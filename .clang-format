@@ -1,0 +1,4 @@
+BasedOnStyle: Google
+SortIncludes: false # Can break stb and opengl
+IndentWidth: 4
+ColumnLimit: 0  # this can creates some really ugly indentation but try to avoid over 80 char per line
