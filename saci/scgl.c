@@ -7,12 +7,18 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+
+#include "helpers.h"
+
+// TODO user defined
+#define MAX_TRIANGLES 1024
+#define MAX_VERTICES MAX_TRIANGLES * 3
 
 //----------------------------------------------------------------------------//
 // Helper functions
 
-const char* __scgl_loadFile(const char* filePath);
-uint32_t __scgl_compileShader(const char* shaderSource, uint32_t shaderType);
+u32 __scgl_compileShader(const char* shaderSource, u32 shaderType);
 
 //----------------------------------------------------------------------------//
 
@@ -46,41 +52,25 @@ void scglMakeWindowContext(scglWindow* window) { glfwMakeContextCurrent(window);
 
 //----------------------------------------------------------------------------//
 
-uint32_t scglCompileShaderV(const char* filePath) {
-    const char* source = __scgl_loadFile(filePath);
-    if (!source) {
-        return 0;
-    }
-
+u32 scglCompileShaderV(const char* source) {
     return __scgl_compileShader(source, GL_VERTEX_SHADER);
 }
 
-uint32_t scglCompileShaderF(const char* filePath) {
-    const char* source = __scgl_loadFile(filePath);
-    if (!source) {
-        return 0;
-    }
-
+u32 scglCompileShaderF(const char* source) {
     return __scgl_compileShader(source, GL_FRAGMENT_SHADER);
 }
 
-uint32_t scglCompileShaderG(const char* filePath) {
-    const char* source = __scgl_loadFile(filePath);
-    if (!source) {
-        return 0;
-    }
-
+u32 scglCompileShaderG(const char* source) {
     return __scgl_compileShader(source, GL_GEOMETRY_SHADER);
 }
 
-uint32_t scglGetShaderProgram(const uint32_t shaders[], size_t shaderCount) {
-    uint32_t programID = glCreateProgram();
-    for (size_t i = 0; i < shaderCount; ++i) {
-        glAttachShader(programID, shaders[i]);
-    }
+u32 scglGetShaderProgram(u32 vshader, u32 fshader) {
+    u32 programID = glCreateProgram();
+    glAttachShader(programID, vshader);
+    glAttachShader(programID, fshader);
     glLinkProgram(programID);
 
-    int32_t success = GL_FALSE;
+    s32 success = GL_FALSE;
     glGetProgramiv(programID, GL_LINK_STATUS, &success);
     if (!success) {
         char errMessage[2048];
@@ -89,6 +79,36 @@ uint32_t scglGetShaderProgram(const uint32_t shaders[], size_t shaderCount) {
         printf("ERROR: Could not link shader\n%s", errMessage);
         return 0;
     }
+    glDetachShader(programID, vshader);
+    glDetachShader(programID, fshader);
+    glDeleteShader(vshader);
+    glDeleteShader(fshader);
+
+    return programID;
+}
+
+u32 scglGetShaderProgramg(u32 vshader, u32 fshader, u32 gshader) {
+    u32 programID = glCreateProgram();
+    glAttachShader(programID, vshader);
+    glAttachShader(programID, fshader);
+    glAttachShader(programID, gshader);
+    glLinkProgram(programID);
+
+    s32 success = GL_FALSE;
+    glGetProgramiv(programID, GL_LINK_STATUS, &success);
+    if (!success) {
+        char errMessage[2048];
+        int sizeReturned = 0;
+        glGetProgramInfoLog(programID, 2048, &sizeReturned, errMessage);
+        printf("ERROR: Could not link shader\n%s", errMessage);
+        return 0;
+    }
+    glDetachShader(programID, vshader);
+    glDetachShader(programID, fshader);
+    glDetachShader(programID, gshader);
+    glDeleteShader(vshader);
+    glDeleteShader(fshader);
+    glDeleteShader(gshader);
 
     return programID;
 }
@@ -96,47 +116,69 @@ uint32_t scglGetShaderProgram(const uint32_t shaders[], size_t shaderCount) {
 //----------------------------------------------------------------------------//
 // Render
 
+void scglClearBackground(color color) {
+    glClearColor(color.r, color.g, color.b, color.a);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+typedef struct Vertice {
+    vec2 pos;
+    color color;
+} Vertice;
+
 struct scglRenderer {
-    // hold all of the renderElement's information/id
+    u32 vao, vbo;
+
+    u32 shaderProgram;
+
+    Vertice* vertices[MAX_VERTICES];
+    u32 vertexCount;
 };
 
-scglRenderer* scglCreateRenderer() {
-    return (scglRenderer*)malloc(sizeof(scglRenderer));
+void __scgl_initRendererVertex(scglRenderer* renderer) {
+    glGenVertexArrays(1, &renderer->vao);
+    glBindVertexArray(renderer->vao);
+
+    glGenBuffers(1, &renderer->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
+    glBufferData(GL_ARRAY_BUFFER, MAX_VERTICES * sizeof(Vertice), NULL, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertice), (void*)offsetof(Vertice, pos));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertice), (void*)offsetof(Vertice, color));
+    glEnableVertexAttribArray(1);
+}
+
+void __scgl_initRendererShaderProgram(scglRenderer* renderer) {
+    u32 vShader = scglCompileShaderV("../examples/shaders/rectangle.vert");
+    u32 fShader = scglCompileShaderF("../examples/shaders/rectangle.frag");
+    assert(vShader != 0 && fShader != 0);
+    renderer->shaderProgram = scglGetShaderProgram(vShader, fShader);
+    assert(renderer->shaderProgram);
+}
+
+void __scgl_initRenderer(scglRenderer* renderer) {
+    __scgl_initRendererVertex(renderer);
+    __scgl_initRendererShaderProgram(renderer);
+}
+
+scglRenderer* scglCreateRenderer(void) {
+    scglRenderer* renderer = (scglRenderer*)malloc(sizeof(scglRenderer));
+    __scgl_initRenderer(renderer);
+    return renderer;
+}
+
+void scglDeleteRenderer(scglRenderer* renderer) {
+    glDeleteBuffers(1, &renderer->vbo);
+    glDeleteVertexArrays(1, &renderer->vao);
+
+    glDeleteProgram(renderer->shaderProgram);
 }
 
 //----------------------------------------------------------------------------//
 // Helper functions
 
-const char* __scgl_loadFile(const char* filePath) {
-    FILE* shaderFile = fopen(filePath, "r");
-    if (!shaderFile) {
-        printf("INFO: Could not open shader file\n");
-        return NULL;
-    }
-    fseek(shaderFile, 0L, SEEK_END);
-    long fileSize = ftell(shaderFile);
-    rewind(shaderFile);
-
-    char* buffer = calloc(1, fileSize + 1);
-    if (!buffer) {
-        fclose(shaderFile);
-        printf("INFO: Could not open shader file\n");
-        return NULL;
-    }
-
-    if (fread(buffer, fileSize, 1, shaderFile) != 1) {
-        fclose(shaderFile);
-        printf("INFO: Could not open shader file\n");
-        return NULL;
-    }
-
-    fclose(shaderFile);
-
-    return buffer;
-}
-
-uint32_t __scgl_compileShader(const char* shaderSource, uint32_t shaderType) {
-    uint32_t shaderID = glCreateShader(shaderType);
+u32 __scgl_compileShader(const char* shaderSource, u32 shaderType) {
+    u32 shaderID = glCreateShader(shaderType);
 
     glShaderSource(shaderID, 1, &shaderSource, NULL);
     glCompileShader(shaderID);
