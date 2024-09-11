@@ -44,8 +44,7 @@ int scglGLEWInit(void) {
 
 scglWindow* scglCreateWindow(int width, int height, const char* title,
                              scglMonitor* monitor, scglWindow* share) {
-    scglWindow* window = glfwCreateWindow(width, height, title, monitor, share);
-    return window;
+    return glfwCreateWindow(width, height, title, monitor, share);
 }
 
 void scglMakeWindowContext(scglWindow* window) { glfwMakeContextCurrent(window); }
@@ -131,7 +130,7 @@ struct scglRenderer {
 
     u32 shaderProgram;
 
-    Vertice* vertices[MAX_VERTICES];
+    Vertice vertices[MAX_VERTICES];
     u32 vertexCount;
 };
 
@@ -149,8 +148,24 @@ void __scgl_initRendererVertex(scglRenderer* renderer) {
 }
 
 void __scgl_initRendererShaderProgram(scglRenderer* renderer) {
-    u32 vShader = scglCompileShaderV("../examples/shaders/rectangle.vert");
-    u32 fShader = scglCompileShaderF("../examples/shaders/rectangle.frag");
+    const char* vShaderSource =
+        "#version 330 core\n"
+        "in vec3 aPos;\n"
+        "void main()\n"
+        "{\n"
+        "  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+        "}\n\0";
+
+    const char* fShaderSource =
+        "#version 330 core\n"
+        "out vec4 FragColor;\n"
+        "void main()\n"
+        "{\n"
+        "  FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+        "}\n\0";
+
+    u32 vShader = scglCompileShaderV(vShaderSource);
+    u32 fShader = scglCompileShaderF(fShaderSource);
     assert(vShader != 0 && fShader != 0);
     renderer->shaderProgram = scglGetShaderProgram(vShader, fShader);
     assert(renderer->shaderProgram);
@@ -167,6 +182,20 @@ scglRenderer* scglCreateRenderer(void) {
     return renderer;
 }
 
+void scglBeginComposition(scglRenderer* renderer) {
+    printf("%d\n", renderer->vertexCount);
+    renderer->vertexCount = 0;
+}
+
+void scglRenderComposition(scglRenderer* renderer) {
+    glUseProgram(renderer->shaderProgram);
+    glBindVertexArray(renderer->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, renderer->vertexCount * 3 * sizeof(Vertice), renderer->vertices);
+
+    glDrawArrays(GL_TRIANGLES, 0, renderer->vertexCount * 3);
+}
+
 void scglDeleteRenderer(scglRenderer* renderer) {
     glDeleteBuffers(1, &renderer->vbo);
     glDeleteVertexArrays(1, &renderer->vao);
@@ -175,7 +204,35 @@ void scglDeleteRenderer(scglRenderer* renderer) {
 }
 
 //----------------------------------------------------------------------------//
+// Draw
+//----------------------------------------------------------------------------//
+
+void __scgl_pushTriangleToRenderer(scglRenderer* renderer,
+                                   const vec2 a, const vec2 b, const vec2 c,
+                                   const color aColor, const color bColor, const color cColor) {
+    // Each verticie is multiplied by 3, as this will be rendered as triangles(3 sides);
+    renderer->vertices[renderer->vertexCount * 3 + 0].pos = a;
+    renderer->vertices[renderer->vertexCount * 3 + 0].color = aColor;
+    renderer->vertices[renderer->vertexCount * 3 + 1].pos = b;
+    renderer->vertices[renderer->vertexCount * 3 + 1].color = bColor;
+    renderer->vertices[renderer->vertexCount * 3 + 2].pos = c;
+    renderer->vertices[renderer->vertexCount * 3 + 2].color = cColor;
+    renderer->vertexCount++;
+}
+
+void scglRenderDrawRect(scglRenderer* renderer, const saciRect rect, color color) {
+    vec2 a, b, c, d;
+    a = Vec2(rect.x, rect.y);
+    b = Vec2(rect.x + rect.width, rect.y);
+    c = Vec2(rect.x + rect.width, rect.y + rect.height);
+    d = Vec2(rect.x, rect.y + rect.height);
+    __scgl_pushTriangleToRenderer(renderer, a, b, c, color, color, color);
+    __scgl_pushTriangleToRenderer(renderer, a, c, d, color, color, color);
+}
+
+//----------------------------------------------------------------------------//
 // Helper functions
+//----------------------------------------------------------------------------//
 
 u32 __scgl_compileShader(const char* shaderSource, u32 shaderType) {
     u32 shaderID = glCreateShader(shaderType);

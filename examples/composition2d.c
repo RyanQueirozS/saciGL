@@ -1,5 +1,4 @@
-#include "../saci/core.h"
-#include "../saci/shapes.h"
+#include "../saci/scgl.h"
 
 #include <GLFW/glfw3.h>
 #include <stdint.h>
@@ -12,26 +11,33 @@
 #define MAX_INDICES_RECTANGLE 6
 
 int main(void) {
-    saciWindowSpecs windowSpecs = {700, 700, "title", NULL, NULL};
+    scglGLFWInit();
 
-    saciWindow* window = saciCreateWindow(windowSpecs);
+    scglWindow* window = scglCreateWindow(700, 700, "title", NULL, NULL);
+    scglMakeWindowContext(window);
     assert(window != NULL);
+
+    scglGLEWInit();
 
     scglRenderer* renderer = scglCreateRenderer();
 
-    saci_Rect rect = {50, 50, 20, 30};
+    saciRect rect = {-0, -0.8, 0.3, 0.3};
 
     color bgColor = Color(0, 0, 0, 1);
-    saciSetCanvasColor(bgColor);
-    while (!glfwWindowShouldClose(window)) {
-        saciBeginComposition();
+    color fgColor = Color(1, 0, 0, 1);
 
-        saciEndComposition();
+    while (!glfwWindowShouldClose(window)) {
+        scglClearBackground(bgColor);
+        scglBeginComposition(renderer);
+
+        scglRenderDrawRect(renderer, rect, fgColor);
+
+        scglRenderComposition(renderer);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    saciTerminate();
+    scglDeleteRenderer(renderer);
 
     return 0;
 }
