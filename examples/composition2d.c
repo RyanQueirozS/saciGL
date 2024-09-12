@@ -6,11 +6,10 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#define MAX_VERTICES_RECTANGLE 12
-#define MAX_INDICES_RECTANGLE 6
+#include <time.h>
 
 int main(void) {
+    srand(time(0));
     scglGLFWInit();
 
     scglWindow* window = scglCreateWindow(700, 700, "title", NULL, NULL);
@@ -23,14 +22,25 @@ int main(void) {
 
     saciRect rect = {-0, -0.8, 0.3, 0.3};
 
+    // debug
+    scglRenderSetFillMode();
+    // scglRenderSetNoFillMode();
+
+    vec2 triangleFixColor[3] = {
+        Vec2(1, 0.5),
+        Vec2(0.9, 0.9),
+        Vec2(0.1, 0.2),
+    };
+
     color bgColor = Color(0, 0, 0, 1);
-    color fgColor = Color(1, 0, 0, 1);
+    color fgColor = Color(0, 1, 0, 1);
 
     while (!glfwWindowShouldClose(window)) {
         scglClearBackground(bgColor);
         scglBeginComposition(renderer);
 
         scglRenderDrawRect(renderer, rect, fgColor);
+        scglRenderDrawTriangleOneColor(renderer, triangleFixColor[0], triangleFixColor[1], triangleFixColor[2], fgColor);
 
         scglRenderComposition(renderer);
         glfwSwapBuffers(window);

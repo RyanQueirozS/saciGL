@@ -10,6 +10,7 @@
 #include <assert.h>
 
 #include "helpers.h"
+#include "shapes.h"
 
 // TODO user defined
 #define MAX_TRIANGLES 1024
@@ -115,11 +116,6 @@ u32 scglGetShaderProgramg(u32 vshader, u32 fshader, u32 gshader) {
 //----------------------------------------------------------------------------//
 // Render
 
-void scglClearBackground(color color) {
-    glClearColor(color.r, color.g, color.b, color.a);
-    glClear(GL_COLOR_BUFFER_BIT);
-}
-
 typedef struct Vertice {
     vec2 pos;
     color color;
@@ -150,18 +146,22 @@ void __scgl_initRendererVertex(scglRenderer* renderer) {
 void __scgl_initRendererShaderProgram(scglRenderer* renderer) {
     const char* vShaderSource =
         "#version 330 core\n"
-        "in vec3 aPos;\n"
+        "layout (location = 0) in vec3 aPos;\n"
+        "layout (location = 1) in vec4 aColor;\n"
+        "out vec4 vColor;\n"
         "void main()\n"
         "{\n"
         "  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+        "  vColor = aColor;\n"
         "}\n\0";
 
     const char* fShaderSource =
         "#version 330 core\n"
         "out vec4 FragColor;\n"
+        "in vec4 vColor;\n"
         "void main()\n"
         "{\n"
-        "  FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+        "  FragColor = vColor;\n"
         "}\n\0";
 
     u32 vShader = scglCompileShaderV(vShaderSource);
@@ -183,7 +183,6 @@ scglRenderer* scglCreateRenderer(void) {
 }
 
 void scglBeginComposition(scglRenderer* renderer) {
-    printf("%d\n", renderer->vertexCount);
     renderer->vertexCount = 0;
 }
 
@@ -203,9 +202,22 @@ void scglDeleteRenderer(scglRenderer* renderer) {
     glDeleteProgram(renderer->shaderProgram);
 }
 
+void scglRenderSetNoFillMode(void) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+}
+
+void scglRenderSetFillMode(void) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
 //----------------------------------------------------------------------------//
 // Draw
 //----------------------------------------------------------------------------//
+
+void scglClearBackground(color color) {
+    glClearColor(color.r, color.g, color.b, color.a);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
 
 void __scgl_pushTriangleToRenderer(scglRenderer* renderer,
                                    const vec2 a, const vec2 b, const vec2 c,
@@ -218,6 +230,16 @@ void __scgl_pushTriangleToRenderer(scglRenderer* renderer,
     renderer->vertices[renderer->vertexCount * 3 + 2].pos = c;
     renderer->vertices[renderer->vertexCount * 3 + 2].color = cColor;
     renderer->vertexCount++;
+}
+
+void scglRenderDrawTriangle(scglRenderer* renderer,
+                            const vec2 a, const vec2 b, const vec2 c,
+                            const color aColor, const color bColor, const color cColor) {
+    __scgl_pushTriangleToRenderer(renderer, a, b, c, aColor, bColor, cColor);
+}
+
+void scglRenderDrawTriangleOneColor(scglRenderer* renderer, const vec2 a, const vec2 b, const vec2 c, const color onlyColor) {
+    __scgl_pushTriangleToRenderer(renderer, a, b, c, onlyColor, onlyColor, onlyColor);
 }
 
 void scglRenderDrawRect(scglRenderer* renderer, const saciRect rect, color color) {
