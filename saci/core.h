@@ -21,16 +21,19 @@ typedef struct saciWindowSpecs {
 
 //----------------------------------------------------------------------------//
 // Windowing
+//----------------------------------------------------------------------------//
 
 saciWindow* saciCreateWindow(const saciWindowSpecs windowSpecs);
 void saciTerminate(void);
 
 //----------------------------------------------------------------------------//
 // Composition
+//----------------------------------------------------------------------------//
 
 void saciSetCanvasColor(const color color);
 
 void saciBeginComposition();
 void saciEndComposition();
 
+//----------------------------------------------------------------------------//
 #endif

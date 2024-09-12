@@ -1,15 +1,9 @@
 #include "../saci/scgl.h"
 
-#include <GLFW/glfw3.h>
-#include <stdint.h>
-#include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <time.h>
 
 int main(void) {
-    srand(time(0));
     scglGLFWInit();
 
     scglWindow* window = scglCreateWindow(700, 700, "title", NULL, NULL);
@@ -26,7 +20,7 @@ int main(void) {
     scglRenderSetFillMode();
     // scglRenderSetNoFillMode();
 
-    vec2 triangleFixColor[3] = {
+    saciTriangle triangleFixColor = {
         Vec2(1, 0.5),
         Vec2(0.9, 0.9),
         Vec2(0.1, 0.2),
@@ -40,7 +34,7 @@ int main(void) {
         scglBeginComposition(renderer);
 
         scglRenderDrawRect(renderer, rect, fgColor);
-        scglRenderDrawTriangleOneColor(renderer, triangleFixColor[0], triangleFixColor[1], triangleFixColor[2], fgColor);
+        scglRenderDrawTriangleOneColor(renderer, triangleFixColor, fgColor);
 
         scglRenderComposition(renderer);
         glfwSwapBuffers(window);

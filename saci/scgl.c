@@ -18,9 +18,12 @@
 
 //----------------------------------------------------------------------------//
 // Helper functions
+//----------------------------------------------------------------------------//
 
 u32 __scgl_compileShader(const char* shaderSource, u32 shaderType);
 
+//----------------------------------------------------------------------------//
+// Init
 //----------------------------------------------------------------------------//
 
 int scglGLFWInit(void) {
@@ -42,6 +45,8 @@ int scglGLEWInit(void) {
 }
 
 //----------------------------------------------------------------------------//
+// Windowing
+//----------------------------------------------------------------------------//
 
 scglWindow* scglCreateWindow(int width, int height, const char* title,
                              scglMonitor* monitor, scglWindow* share) {
@@ -50,6 +55,8 @@ scglWindow* scglCreateWindow(int width, int height, const char* title,
 
 void scglMakeWindowContext(scglWindow* window) { glfwMakeContextCurrent(window); }
 
+//----------------------------------------------------------------------------//
+// Shadering
 //----------------------------------------------------------------------------//
 
 u32 scglCompileShaderV(const char* source) {
@@ -115,6 +122,7 @@ u32 scglGetShaderProgramg(u32 vshader, u32 fshader, u32 gshader) {
 
 //----------------------------------------------------------------------------//
 // Render
+//----------------------------------------------------------------------------//
 
 typedef struct Vertice {
     vec2 pos;
@@ -233,21 +241,21 @@ void __scgl_pushTriangleToRenderer(scglRenderer* renderer,
 }
 
 void scglRenderDrawTriangle(scglRenderer* renderer,
-                            const vec2 a, const vec2 b, const vec2 c,
+                            const saciTriangle triangle,
                             const color aColor, const color bColor, const color cColor) {
-    __scgl_pushTriangleToRenderer(renderer, a, b, c, aColor, bColor, cColor);
+    __scgl_pushTriangleToRenderer(renderer, triangle.a, triangle.b, triangle.c, aColor, bColor, cColor);
 }
 
-void scglRenderDrawTriangleOneColor(scglRenderer* renderer, const vec2 a, const vec2 b, const vec2 c, const color onlyColor) {
-    __scgl_pushTriangleToRenderer(renderer, a, b, c, onlyColor, onlyColor, onlyColor);
+void scglRenderDrawTriangleOneColor(scglRenderer* renderer, const saciTriangle triangle, const color onlyColor) {
+    __scgl_pushTriangleToRenderer(renderer, triangle.a, triangle.b, triangle.c, onlyColor, onlyColor, onlyColor);
 }
 
 void scglRenderDrawRect(scglRenderer* renderer, const saciRect rect, color color) {
     vec2 a, b, c, d;
-    a = Vec2(rect.x, rect.y);
-    b = Vec2(rect.x + rect.width, rect.y);
-    c = Vec2(rect.x + rect.width, rect.y + rect.height);
-    d = Vec2(rect.x, rect.y + rect.height);
+    a = Vec2(rect.x, rect.y);                             // top left
+    b = Vec2(rect.x + rect.width, rect.y);                // top right
+    c = Vec2(rect.x + rect.width, rect.y + rect.height);  // bottom right
+    d = Vec2(rect.x, rect.y + rect.height);               // bottom left
     __scgl_pushTriangleToRenderer(renderer, a, b, c, color, color, color);
     __scgl_pushTriangleToRenderer(renderer, a, c, d, color, color, color);
 }

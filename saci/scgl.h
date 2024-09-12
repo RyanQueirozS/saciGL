@@ -1,5 +1,5 @@
-#ifndef __SACI_SGL_H__
-#define __SACI_SGL_H__
+#ifndef __SACI_SCGL_H__
+#define __SACI_SCGL_H__
 
 #include <stdbool.h>
 
@@ -54,7 +54,7 @@ void scglBeginComposition(scglRenderer* renderer);
 void scglRenderComposition(scglRenderer* renderer);
 void scglDeleteRenderer(scglRenderer* renderer);
 
-// render config
+// Renderer config
 void scglRenderSetNoFillMode(void);
 void scglRenderSetFillMode(void);
 
@@ -64,9 +64,10 @@ void scglRenderSetFillMode(void);
 
 void scglClearBackground(color color);
 void scglRenderDrawRect(scglRenderer* renderer, const saciRect rect, color color);
-void scglRenderDrawTriangle(scglRenderer* renderer,
-                            const vec2 a, const vec2 b, const vec2 c,
+void scglRenderDrawTriangle(scglRenderer* renderer, const saciTriangle triangle,
                             const color aColor, const color bColor, const color cColor);
-void scglRenderDrawTriangleOneColor(scglRenderer* renderer, const vec2 a, const vec2 b, const vec2 c, const color onlyColor);
+void scglRenderDrawTriangleOneColor(scglRenderer* renderer, const saciTriangle triangle, const color onlyColor);
+
+//----------------------------------------------------------------------------//
 
 #endif

@@ -9,4 +9,8 @@ typedef struct saciRect {
     float width, height;
 } saciRect;
 
+typedef struct saciTriangle {
+    vec2 a, b, c;
+} saciTriangle;
+
 #endif
