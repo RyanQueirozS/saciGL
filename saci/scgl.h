@@ -34,7 +34,7 @@ void scglMakeWindowContext(scglWindow* window);
 // Shadering
 //----------------------------------------------------------------------------//
 
-// These 3 should not be used by the dev, it's in here just in case the dev decides to use them
+// These 3 should not be used, it's in here just in case the dev decides to
 u32 scglCompileShaderV(const char* source);
 u32 scglCompileShaderF(const char* source);
 u32 scglCompileShaderG(const char* source);

@@ -1,4 +1,4 @@
-#include "../saci/scgl.h"
+#include <saci/scgl.h>
 
 #include <assert.h>
 #include <stdlib.h>
