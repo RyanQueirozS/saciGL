@@ -1,4 +1,4 @@
-#include "scgl.h"
+#include "gl.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -9,8 +9,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "helpers.h"
-#include "shapes.h"
+#include "utils.h"
 
 // TODO user defined
 #define MAX_TRIANGLES 1024
@@ -22,38 +21,39 @@
 
 u32 __scgl_compileShader(const char* shaderSource, u32 shaderType);
 
-//----------------------------------------------------------------------------//
-// Init
-//----------------------------------------------------------------------------//
-
-int scglGLFWInit(void) {
-    // All of this might change, this could perhaps be setup by the user
-    int success = glfwInit();
-    if (!success) return -1;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    return 0;
-}
-
-int scglGLEWInit(void) {
-    if (glewInit() != GLEW_OK) {
-        return -1;
-    }
-    return 0;
-}
+void __scgl_initRendererVertex(scglRenderer* renderer);
+void __scgl_initRendererShaderProgram(scglRenderer* renderer);
+void __scgl_initRenderer(scglRenderer* renderer);
 
 //----------------------------------------------------------------------------//
 // Windowing
 //----------------------------------------------------------------------------//
 
+bool scglGLFWInit(void) {
+    // All of this might change, this could perhaps be setup by the user
+    int success = glfwInit();
+    if (!success) return false;
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    return true;
+}
+
+bool scglGLEWInit(void) {
+    if (glewInit() != GLEW_OK) {
+        return false;
+    }
+    return true;
+}
+
 scglWindow* scglCreateWindow(int width, int height, const char* title,
                              scglMonitor* monitor, scglWindow* share) {
     return glfwCreateWindow(width, height, title, monitor, share);
 }
-
 void scglMakeWindowContext(scglWindow* window) { glfwMakeContextCurrent(window); }
+
+void scglTerminate(void) { glfwTerminate(); }
 
 //----------------------------------------------------------------------------//
 // Shadering
@@ -125,8 +125,8 @@ u32 scglGetShaderProgramg(u32 vshader, u32 fshader, u32 gshader) {
 //----------------------------------------------------------------------------//
 
 typedef struct Vertice {
-    vec2 pos;
-    color color;
+    Vec2 pos;
+    Color color;
 } Vertice;
 
 struct scglRenderer {
@@ -137,6 +137,124 @@ struct scglRenderer {
     Vertice vertices[MAX_VERTICES];
     u32 vertexCount;
 };
+
+scglRenderer* scglCreateRenderer(void) {
+    scglRenderer* renderer = (scglRenderer*)malloc(sizeof(scglRenderer));
+    assert(renderer);
+    __scgl_initRenderer(renderer);
+    return renderer;
+}
+
+void scglDeleteRenderer(scglRenderer* renderer) {
+    glDeleteBuffers(1, &renderer->vbo);
+    glDeleteVertexArrays(1, &renderer->vao);
+
+    glDeleteProgram(renderer->shaderProgram);
+}
+
+void scglRenderBegin(scglRenderer* renderer) {
+    renderer->vertexCount = 0;
+}
+
+void scglRenderEnd(scglRenderer* renderer) {
+    glUseProgram(renderer->shaderProgram);
+    glBindVertexArray(renderer->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, renderer->vertexCount * 3 * sizeof(Vertice), renderer->vertices);
+
+    glDrawArrays(GL_TRIANGLES, 0, renderer->vertexCount * 3);
+}
+
+void scglRenderSetNoFillMode(void) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+}
+
+void scglRenderSetFillMode(void) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+void scglRenderPushTriangle(scglRenderer* renderer,
+                            const Vec2 a, const Vec2 b, const Vec2 c,
+                            const Color aColor, const Color bColor, const Color cColor) {
+    // Each verticie is multiplied by 3, as this will be rendered as triangles(3 sides);
+    renderer->vertices[renderer->vertexCount * 3 + 0].pos = a;
+    renderer->vertices[renderer->vertexCount * 3 + 0].color = aColor;
+    renderer->vertices[renderer->vertexCount * 3 + 1].pos = b;
+    renderer->vertices[renderer->vertexCount * 3 + 1].color = bColor;
+    renderer->vertices[renderer->vertexCount * 3 + 2].pos = c;
+    renderer->vertices[renderer->vertexCount * 3 + 2].color = cColor;
+    renderer->vertexCount++;
+}
+
+//----------------------------------------------------------------------------//
+// Draw
+//----------------------------------------------------------------------------//
+
+void scglClearBackground(Color color) {
+    glClearColor(color.r, color.g, color.b, color.a);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void scglPresentDrawing(scglWindow* window) {
+    glfwSwapBuffers(window);
+}
+
+//----------------------------------------------------------------------------//
+// Event
+//----------------------------------------------------------------------------//
+
+void scgl_PollEvents() {
+    glfwPollEvents();
+}
+void scgl_WaitForEvents() {
+    glfwWaitEvents();
+}
+void scgl_WaitForEventsTimeout(double timeout) {
+    glfwWaitEventsTimeout(timeout);
+}
+
+void scgl_PostEmptyEvent() {
+    glfwPostEmptyEvent();
+}
+
+void scglSetMousePosHandler(scglWindow* window, scgl_MousePosHandlerFunction mousePosHandlerFunction) {
+    glfwSetCursorPosCallback(window, mousePosHandlerFunction);
+}
+
+void scglSetCursorHandler(scglWindow* window, void (*func)(scglWindow*, double, double)) {
+    glfwSetCursorPosCallback(window, func);
+}
+
+bool scgl_IsKeyPressed(scglWindow* window, scglKeycode keycode) {
+    int keyState = glfwGetKey(window, keycode);
+    if (keyState == GLFW_PRESS) return true;
+    return false;
+}
+
+//----------------------------------------------------------------------------//
+// Helper functions
+//----------------------------------------------------------------------------//
+
+u32 __scgl_compileShader(const char* shaderSource, u32 shaderType) {
+    u32 shaderID = glCreateShader(shaderType);
+
+    glShaderSource(shaderID, 1, &shaderSource, NULL);
+    glCompileShader(shaderID);
+
+    int success;
+    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        char errMessage[2048];
+        int sizeReturned = 0;
+        glGetShaderInfoLog(shaderID, 2048, &sizeReturned, &errMessage[0]);
+
+        glDeleteShader(shaderID);
+        printf("ERROR: Shader compilation failed: %s\n", errMessage);
+        return 0;
+    }
+
+    return shaderID;
+}
 
 void __scgl_initRendererVertex(scglRenderer* renderer) {
     glGenVertexArrays(1, &renderer->vao);
@@ -182,107 +300,6 @@ void __scgl_initRendererShaderProgram(scglRenderer* renderer) {
 void __scgl_initRenderer(scglRenderer* renderer) {
     __scgl_initRendererVertex(renderer);
     __scgl_initRendererShaderProgram(renderer);
-}
-
-scglRenderer* scglCreateRenderer(void) {
-    scglRenderer* renderer = (scglRenderer*)malloc(sizeof(scglRenderer));
-    __scgl_initRenderer(renderer);
-    return renderer;
-}
-
-void scglBeginComposition(scglRenderer* renderer) {
-    renderer->vertexCount = 0;
-}
-
-void scglRenderComposition(scglRenderer* renderer) {
-    glUseProgram(renderer->shaderProgram);
-    glBindVertexArray(renderer->vao);
-    glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, renderer->vertexCount * 3 * sizeof(Vertice), renderer->vertices);
-
-    glDrawArrays(GL_TRIANGLES, 0, renderer->vertexCount * 3);
-}
-
-void scglDeleteRenderer(scglRenderer* renderer) {
-    glDeleteBuffers(1, &renderer->vbo);
-    glDeleteVertexArrays(1, &renderer->vao);
-
-    glDeleteProgram(renderer->shaderProgram);
-}
-
-void scglRenderSetNoFillMode(void) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-}
-
-void scglRenderSetFillMode(void) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-}
-
-//----------------------------------------------------------------------------//
-// Draw
-//----------------------------------------------------------------------------//
-
-void scglClearBackground(color color) {
-    glClearColor(color.r, color.g, color.b, color.a);
-    glClear(GL_COLOR_BUFFER_BIT);
-}
-
-void __scgl_pushTriangleToRenderer(scglRenderer* renderer,
-                                   const vec2 a, const vec2 b, const vec2 c,
-                                   const color aColor, const color bColor, const color cColor) {
-    // Each verticie is multiplied by 3, as this will be rendered as triangles(3 sides);
-    renderer->vertices[renderer->vertexCount * 3 + 0].pos = a;
-    renderer->vertices[renderer->vertexCount * 3 + 0].color = aColor;
-    renderer->vertices[renderer->vertexCount * 3 + 1].pos = b;
-    renderer->vertices[renderer->vertexCount * 3 + 1].color = bColor;
-    renderer->vertices[renderer->vertexCount * 3 + 2].pos = c;
-    renderer->vertices[renderer->vertexCount * 3 + 2].color = cColor;
-    renderer->vertexCount++;
-}
-
-void scglRenderDrawTriangle(scglRenderer* renderer,
-                            const saciTriangle triangle,
-                            const color aColor, const color bColor, const color cColor) {
-    __scgl_pushTriangleToRenderer(renderer, triangle.a, triangle.b, triangle.c, aColor, bColor, cColor);
-}
-
-void scglRenderDrawTriangleOneColor(scglRenderer* renderer, const saciTriangle triangle, const color onlyColor) {
-    __scgl_pushTriangleToRenderer(renderer, triangle.a, triangle.b, triangle.c, onlyColor, onlyColor, onlyColor);
-}
-
-void scglRenderDrawRect(scglRenderer* renderer, const saciRect rect, color color) {
-    vec2 a, b, c, d;
-    a = Vec2(rect.x, rect.y);                             // top left
-    b = Vec2(rect.x + rect.width, rect.y);                // top right
-    c = Vec2(rect.x + rect.width, rect.y + rect.height);  // bottom right
-    d = Vec2(rect.x, rect.y + rect.height);               // bottom left
-    __scgl_pushTriangleToRenderer(renderer, a, b, c, color, color, color);
-    __scgl_pushTriangleToRenderer(renderer, a, c, d, color, color, color);
-}
-
-//----------------------------------------------------------------------------//
-// Helper functions
-//----------------------------------------------------------------------------//
-
-u32 __scgl_compileShader(const char* shaderSource, u32 shaderType) {
-    u32 shaderID = glCreateShader(shaderType);
-
-    glShaderSource(shaderID, 1, &shaderSource, NULL);
-    glCompileShader(shaderID);
-
-    int success;
-    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char errMessage[2048];
-        int sizeReturned = 0;
-        glGetShaderInfoLog(shaderID, 2048, &sizeReturned, &errMessage[0]);
-
-        glDeleteShader(shaderID);
-        printf("ERROR: Shader compilation failed: %s\n", errMessage);
-        return 0;
-    }
-
-    return shaderID;
 }
 
 //----------------------------------------------------------------------------//

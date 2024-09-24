@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Base directory for examples
-EXAMPLES_DIR="examples"
+EXAMPLES_DIR="."
 
 # Function to build all examples with CMake
 build_example() {

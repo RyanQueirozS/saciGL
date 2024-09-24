@@ -1,7 +1,13 @@
-#ifndef __SACI_HELPERS_H__
-#define __SACI_HELPERS_H__
+#ifndef __SACI_UTILS__
+#define __SACI_UTILS__
 
 #include <stdint.h>
+
+#ifdef __cplusplus
+#define SCAST_TO(type) static_cast<type>
+#else
+#define SCAST_TO(type) (type)
+#endif
 
 #define ARRLEN(array) (sizeof(array) / sizeof(array[0]))
 
@@ -15,24 +21,20 @@ typedef int32_t s32;
 typedef int16_t s16;
 typedef int8_t s8;
 
-typedef struct vec2 {
+typedef struct Vec2 {
     float x, y;
-} vec2;
-vec2 Vec2(float x, float y);
+} Vec2;
 
-typedef struct vec3 {
+typedef struct Vec3 {
     float x, y, z;
-} vec3;
-vec3 Vec3(float x, float y, float z);
+} Vec3;
 
-typedef struct vec4 {
+typedef struct Vec4 {
     float x, y, z, w;
-} vec4;
-vec4 Vec4(float x, float y, float z, float w);
+} Vec4;
 
-typedef struct color {
+typedef struct Color {
     float r, g, b, a;
-} color;
-color Color(float r, float g, float b, float a);
+} Color;
 
 #endif
