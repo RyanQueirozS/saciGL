@@ -3,8 +3,8 @@
 // saci.h simplifies these steps. Use saci.c as the standard, and this only
 // as an exception.
 
-#ifndef __SACI_SCGL_H__
-#define __SACI_SCGL_H__
+#ifndef __SACI_saciGL__H__
+#define __SACI_saciGL__H__
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -16,81 +16,81 @@
 
 //----------------------------------------------------------------------------//
 
-typedef GLFWmonitor scglMonitor;
-typedef GLFWwindow scglWindow;
+typedef GLFWmonitor saciGL_Monitor;
+typedef GLFWwindow saciGL_Window;
 
 //----------------------------------------------------------------------------//
 // Windowing
 //----------------------------------------------------------------------------//
 
-bool scglGLFWInit(void);
-bool scglGLEWInit(void);
+bool saciGL_GLFWInit(void);
+bool saciGL_GLEWInit(void);
 
 // Creates a window, does not check if it's null
-scglWindow* scglCreateWindow(int width, int height, const char* title,
-                             scglMonitor* monitor, scglWindow* share);
-void scglMakeWindowContext(scglWindow* window);
+saciGL_Window* saciGL_CreateWindow(int width, int height, const char* title,
+                                   saciGL_Monitor* monitor, saciGL_Window* share);
+void saciGL_MakeWindowContext(saciGL_Window* window);
 
-typedef void (*scgl_WindowPosHandler)(scglWindow* window, int width, int height);
-void scglSetWindowPosHandler(scglWindow* window, scgl_WindowPosHandler windowPosHandler);
-typedef void (*scgl_WindowSizeHandler)(scglWindow* window, int posx, int posy);
-void scglSetWindowSizeHandler(scglWindow* window, scgl_WindowSizeHandler windowSizeHandler);
+typedef void (*saciGL__WindowPosHandler)(saciGL_Window* window, int width, int height);
+void saciGL_SetWindowPosHandler(saciGL_Window* window, saciGL__WindowPosHandler windowPosHandler);
+typedef void (*saciGL__WindowSizeHandler)(saciGL_Window* window, int posx, int posy);
+void saciGL_SetWindowSizeHandler(saciGL_Window* window, saciGL__WindowSizeHandler windowSizeHandler);
 
-void scglTerminate(void);
+void saciGL_Terminate(void);
 
 //----------------------------------------------------------------------------//
 // Shadering
 //----------------------------------------------------------------------------//
 
-u32 scglCompileShaderV(const char* source);
-u32 scglCompileShaderF(const char* source);
-u32 scglCompileShaderG(const char* source);
+saci_u32 saciGL_CompileShaderV(const char* source);
+saci_u32 saciGL_CompileShaderF(const char* source);
+saci_u32 saciGL_CompileShaderG(const char* source);
 
-u32 scglGetShaderProgram(u32 vshader, u32 fshader);
-u32 scglGetShaderProgramg(u32 vshader, u32 fshader, u32 gshader);
+saci_u32 saciGL_GetShaderProgram(saci_u32 vshader, saci_u32 fshader);
+saci_u32 saciGL_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u32 gshader);
 
 //----------------------------------------------------------------------------//
 // Render
 //----------------------------------------------------------------------------//
 
-typedef struct scglRenderer scglRenderer;
+typedef struct saciGL_Renderer saciGL_Renderer;
 
-scglRenderer* scglCreateRenderer(void);
-void scglDeleteRenderer(scglRenderer* renderer);
+saciGL_Renderer* saciGL_CreateRenderer(void);
+void saciGL_DeleteRenderer(saciGL_Renderer* renderer);
 
-void scglRenderBegin(scglRenderer* renderer);
-void scglRenderEnd(scglRenderer* renderer);
+void saciGL_RenderBegin(saciGL_Renderer* renderer);
+void saciGL_RenderEnd(saciGL_Renderer* renderer);
 
 // Renderer config
-void scglRenderSetNoFillMode(void);
-void scglRenderSetFillMode(void);
+void saciGL_RenderSetNoFillMode(void);
+void saciGL_RenderSetFillMode(void);
 
 // Triangles
-void scglRenderPushTriangle(scglRenderer* renderer,
-                            const Vec2 a, const Vec2 b, const Vec2 c,
-                            const Color aColor, const Color bColor, const Color cColor);
+void saciGL_RenderPushTriangle(saciGL_Renderer* renderer,
+                               const Vec2 a, const Vec2 b, const Vec2 c,
+                               const Color aColor, const Color bColor, const Color cColor);
 
 //----------------------------------------------------------------------------//
 // Draw
 //----------------------------------------------------------------------------//
 
-void scglClearBackground(const Color color);
+void saciGL_ClearBackground(const Color color);
 
-void scglPresentDrawing(scglWindow* window);
+void saciGL_PresentDrawing(saciGL_Window* window);
 
 //----------------------------------------------------------------------------//
 // Event
 //----------------------------------------------------------------------------//
 
-void scgl_PollEvents();
-void scgl_WaitForEvents();
-void scgl_WaitForEventsTimeout(double timeout);
-void scgl_PostEmptyEvent();
+void saciGL__PollEvents();
+void saciGL__WaitForEvents();
+void saciGL__WaitForEventsTimeout(double timeout);
+void saciGL__PostEmptyEvent();
 
-typedef void (*scgl_MousePosHandlerFunction)(scglWindow* window, double posx, double posy);
-void scglSetMousePosHandler(scglWindow* window, scgl_MousePosHandlerFunction mousePosHandlerFunction);
+typedef void (*saciGL__MousePosHandlerFunction)(saciGL_Window* window, double posx, double posy);
+void saciGL_SetMousePosHandler(saciGL_Window* window, saciGL__MousePosHandlerFunction mousePosHandlerFunction);
 
-typedef enum scglKeycode { // view https://www.glfw.org/docs/3.3/group__keys.html
+typedef enum saciGL_Keycode { // view https://www.glfw.org/docs/3.3/group__keys.html
     SACI_KEY_SPACE = 32,
     SACI_KEY_APOSTROPHE = 39, /* ' */
     SACI_KEY_COMMA = 44,      /* , */
@@ -212,8 +212,8 @@ typedef enum scglKeycode { // view https://www.glfw.org/docs/3.3/group__keys.htm
     SACI_KEY_RIGHT_SUPER = 347,
     SACI_KEY_MENU = 348,
     SACI_KEY_LAST = SACI_KEY_MENU,
-} scglKeycode;
+} saciGL_Keycode;
 // returns true if last key state was "pressed"
-bool scgl_IsKeyPressed(scglWindow* window, scglKeycode keycode);
+bool saciGL_IsKeyPressed(saciGL_Window* window, saciGL_Keycode keycode);
 
 #endif

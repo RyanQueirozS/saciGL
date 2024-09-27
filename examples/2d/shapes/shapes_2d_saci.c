@@ -7,14 +7,14 @@ bool shouldFillShape = true;
 
 void handle_viewing_mode() {
     if (shouldFillShape) {
-        scglRenderSetFillMode();
+        saciGL_RenderSetFillMode();
     } else {
-        scglRenderSetNoFillMode();
+        saciGL_RenderSetNoFillMode();
     }
 }
 
 void toggle_viewing_mode() {
-    if (saciIsKeyPressed(SACI_KEY_SPACE)) {
+    if (saci_IsKeyPressed(SACI_KEY_SPACE)) {
         shouldFillShape = false;
     } else {
         shouldFillShape = true;
@@ -23,8 +23,8 @@ void toggle_viewing_mode() {
 }
 
 int main() {
-    saciInitWindow(700, 700, "SACI Examples - Shapes2D");
-    saciInitCompositor();
+    saci_InitWindow(700, 700, "SACI Examples - Shapes2D");
+    saci_InitCompositor();
 
     saciRect rect = {
         -0,
@@ -56,17 +56,17 @@ int main() {
         fgColor,
     };
 
-    saciSetCanvasColor(bgColor);
-    while (!saciWindowShouldClose()) {
-        saciBeginComposition();
+    saci_SetCanvasColor(bgColor);
+    while (!saci_WindowShouldClose()) {
+        saci_BeginComposition();
 
-        saciComposeRect(rect, fgColor);
-        saciComposeQuad(quad, fgColor);
-        saciComposeTriangle(triangleFixColor, fgColor);
+        saci_ComposeRect(rect, fgColor);
+        saci_ComposeQuad(quad, fgColor);
+        saci_ComposeTriangle(triangleFixColor, fgColor);
         toggle_viewing_mode();
 
-        saciEndComposition();
+        saci_EndComposition();
     }
 
-    saciTerminate();
+    saci_Terminate();
 }

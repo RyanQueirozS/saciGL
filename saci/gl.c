@@ -19,17 +19,17 @@
 // Helper functions
 //----------------------------------------------------------------------------//
 
-u32 __scgl_compileShader(const char* shaderSource, u32 shaderType);
+saci_u32 __saciGL_compileShader(const char* shaderSource, saci_u32 shaderType);
 
-void __scgl_initRendererVertex(scglRenderer* renderer);
-void __scgl_initRendererShaderProgram(scglRenderer* renderer);
-void __scgl_initRenderer(scglRenderer* renderer);
+void __saciGL_initRendererVertex(saciGL_Renderer* renderer);
+void __saciGL_initRendererShaderProgram(saciGL_Renderer* renderer);
+void __saciGL_initRenderer(saciGL_Renderer* renderer);
 
 //----------------------------------------------------------------------------//
 // Windowing
 //----------------------------------------------------------------------------//
 
-bool scglGLFWInit(void) {
+bool saciGL_GLFWInit(void) {
     int success = glfwInit();
     if (!success) return false;
     // TODO make user defined version
@@ -40,51 +40,51 @@ bool scglGLFWInit(void) {
     return true;
 }
 
-bool scglGLEWInit(void) {
+bool saciGL_GLEWInit(void) {
     if (glewInit() != GLEW_OK) {
         return false;
     }
     return true;
 }
 
-scglWindow* scglCreateWindow(int width, int height, const char* title,
-                             scglMonitor* monitor, scglWindow* share) {
+saciGL_Window* saciGL_CreateWindow(int width, int height, const char* title,
+                                   saciGL_Monitor* monitor, saciGL_Window* share) {
     return glfwCreateWindow(width, height, title, monitor, share);
 }
-void scglMakeWindowContext(scglWindow* window) { glfwMakeContextCurrent(window); }
+void saciGL_MakeWindowContext(saciGL_Window* window) { glfwMakeContextCurrent(window); }
 
-void scglSetWindowPosHandler(scglWindow* window, scgl_WindowPosHandler windowPosHandler) {
+void saciGL_SetWindowPosHandler(saciGL_Window* window, saciGL__WindowPosHandler windowPosHandler) {
     glfwSetWindowPosCallback(window, windowPosHandler);
 }
-void scglSetWindowSizeHandler(scglWindow* window, scgl_WindowSizeHandler windowSizeHandler) {
+void saciGL_SetWindowSizeHandler(saciGL_Window* window, saciGL__WindowSizeHandler windowSizeHandler) {
     glfwSetWindowSizeCallback(window, windowSizeHandler);
 }
 
-void scglTerminate(void) { glfwTerminate(); }
+void saciGL_Terminate(void) { glfwTerminate(); }
 
 //----------------------------------------------------------------------------//
 // Shadering
 //----------------------------------------------------------------------------//
 
-u32 scglCompileShaderV(const char* source) {
-    return __scgl_compileShader(source, GL_VERTEX_SHADER);
+saci_u32 saciGL_CompileShaderV(const char* source) {
+    return __saciGL_compileShader(source, GL_VERTEX_SHADER);
 }
 
-u32 scglCompileShaderF(const char* source) {
-    return __scgl_compileShader(source, GL_FRAGMENT_SHADER);
+saci_u32 saciGL_CompileShaderF(const char* source) {
+    return __saciGL_compileShader(source, GL_FRAGMENT_SHADER);
 }
 
-u32 scglCompileShaderG(const char* source) {
-    return __scgl_compileShader(source, GL_GEOMETRY_SHADER);
+saci_u32 saciGL_CompileShaderG(const char* source) {
+    return __saciGL_compileShader(source, GL_GEOMETRY_SHADER);
 }
 
-u32 scglGetShaderProgram(u32 vshader, u32 fshader) {
-    u32 programID = glCreateProgram();
+saci_u32 saciGL_GetShaderProgram(saci_u32 vshader, saci_u32 fshader) {
+    saci_u32 programID = glCreateProgram();
     glAttachShader(programID, vshader);
     glAttachShader(programID, fshader);
     glLinkProgram(programID);
 
-    s32 success = GL_FALSE;
+    saci_s32 success = GL_FALSE;
     glGetProgramiv(programID, GL_LINK_STATUS, &success);
     if (!success) {
         char errMessage[2048];
@@ -101,14 +101,14 @@ u32 scglGetShaderProgram(u32 vshader, u32 fshader) {
     return programID;
 }
 
-u32 scglGetShaderProgramg(u32 vshader, u32 fshader, u32 gshader) {
-    u32 programID = glCreateProgram();
+saci_u32 saciGL_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u32 gshader) {
+    saci_u32 programID = glCreateProgram();
     glAttachShader(programID, vshader);
     glAttachShader(programID, fshader);
     glAttachShader(programID, gshader);
     glLinkProgram(programID);
 
-    s32 success = GL_FALSE;
+    saci_s32 success = GL_FALSE;
     glGetProgramiv(programID, GL_LINK_STATUS, &success);
     if (!success) {
         char errMessage[2048];
@@ -136,34 +136,34 @@ typedef struct Vertice {
     Color color;
 } Vertice;
 
-struct scglRenderer {
-    u32 vao, vbo;
+struct saciGL_Renderer {
+    saci_u32 vao, vbo;
 
-    u32 shaderProgram;
+    saci_u32 shaderProgram;
 
     Vertice vertices[MAX_VERTICES];
-    u32 vertexCount;
+    saci_u32 vertexCount;
 };
 
-scglRenderer* scglCreateRenderer(void) {
-    scglRenderer* renderer = (scglRenderer*)malloc(sizeof(scglRenderer));
+saciGL_Renderer* saciGL_CreateRenderer(void) {
+    saciGL_Renderer* renderer = (saciGL_Renderer*)malloc(sizeof(saciGL_Renderer));
     assert(renderer);
-    __scgl_initRenderer(renderer);
+    __saciGL_initRenderer(renderer);
     return renderer;
 }
 
-void scglDeleteRenderer(scglRenderer* renderer) {
+void saciGL_DeleteRenderer(saciGL_Renderer* renderer) {
     glDeleteBuffers(1, &renderer->vbo);
     glDeleteVertexArrays(1, &renderer->vao);
 
     glDeleteProgram(renderer->shaderProgram);
 }
 
-void scglRenderBegin(scglRenderer* renderer) {
+void saciGL_RenderBegin(saciGL_Renderer* renderer) {
     renderer->vertexCount = 0;
 }
 
-void scglRenderEnd(scglRenderer* renderer) {
+void saciGL_RenderEnd(saciGL_Renderer* renderer) {
     glUseProgram(renderer->shaderProgram);
     glBindVertexArray(renderer->vao);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
@@ -172,17 +172,17 @@ void scglRenderEnd(scglRenderer* renderer) {
     glDrawArrays(GL_TRIANGLES, 0, renderer->vertexCount * 3);
 }
 
-void scglRenderSetNoFillMode(void) {
+void saciGL_RenderSetNoFillMode(void) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
-void scglRenderSetFillMode(void) {
+void saciGL_RenderSetFillMode(void) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void scglRenderPushTriangle(scglRenderer* renderer,
-                            const Vec2 a, const Vec2 b, const Vec2 c,
-                            const Color aColor, const Color bColor, const Color cColor) {
+void saciGL_RenderPushTriangle(saciGL_Renderer* renderer,
+                               const Vec2 a, const Vec2 b, const Vec2 c,
+                               const Color aColor, const Color bColor, const Color cColor) {
     // Each verticie is multiplied by 3, as this will be rendered as triangles(3 sides);
     renderer->vertices[renderer->vertexCount * 3 + 0].pos = a;
     renderer->vertices[renderer->vertexCount * 3 + 0].color = aColor;
@@ -197,12 +197,12 @@ void scglRenderPushTriangle(scglRenderer* renderer,
 // Draw
 //----------------------------------------------------------------------------//
 
-void scglClearBackground(Color color) {
+void saciGL_ClearBackground(Color color) {
     glClearColor(color.r, color.g, color.b, color.a);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void scglPresentDrawing(scglWindow* window) {
+void saciGL_PresentDrawing(saciGL_Window* window) {
     glfwSwapBuffers(window);
 }
 
@@ -210,29 +210,29 @@ void scglPresentDrawing(scglWindow* window) {
 // Event
 //----------------------------------------------------------------------------//
 
-void scgl_PollEvents() {
+void saciGL__PollEvents() {
     glfwPollEvents();
 }
-void scgl_WaitForEvents() {
+void saciGL__WaitForEvents() {
     glfwWaitEvents();
 }
-void scgl_WaitForEventsTimeout(double timeout) {
+void saciGL__WaitForEventsTimeout(double timeout) {
     glfwWaitEventsTimeout(timeout);
 }
 
-void scgl_PostEmptyEvent() {
+void saciGL__PostEmptyEvent() {
     glfwPostEmptyEvent();
 }
 
-void scglSetMousePosHandler(scglWindow* window, scgl_MousePosHandlerFunction mousePosHandlerFunction) {
+void saciGL_SetMousePosHandler(saciGL_Window* window, saciGL__MousePosHandlerFunction mousePosHandlerFunction) {
     glfwSetCursorPosCallback(window, mousePosHandlerFunction);
 }
 
-void scglSetCursorHandler(scglWindow* window, void (*func)(scglWindow*, double, double)) {
+void saciGL_SetCursorHandler(saciGL_Window* window, void (*func)(saciGL_Window*, double, double)) {
     glfwSetCursorPosCallback(window, func);
 }
 
-bool scgl_IsKeyPressed(scglWindow* window, scglKeycode keycode) {
+bool saciGL_IsKeyPressed(saciGL_Window* window, saciGL_Keycode keycode) {
     int keyState = glfwGetKey(window, keycode);
     if (keyState == GLFW_PRESS) return true;
     return false;
@@ -242,8 +242,8 @@ bool scgl_IsKeyPressed(scglWindow* window, scglKeycode keycode) {
 // Helper functions
 //----------------------------------------------------------------------------//
 
-u32 __scgl_compileShader(const char* shaderSource, u32 shaderType) {
-    u32 shaderID = glCreateShader(shaderType);
+saci_u32 __saciGL_compileShader(const char* shaderSource, saci_u32 shaderType) {
+    saci_u32 shaderID = glCreateShader(shaderType);
 
     glShaderSource(shaderID, 1, &shaderSource, NULL);
     glCompileShader(shaderID);
@@ -263,7 +263,7 @@ u32 __scgl_compileShader(const char* shaderSource, u32 shaderType) {
     return shaderID;
 }
 
-void __scgl_initRendererVertex(scglRenderer* renderer) {
+void __saciGL_initRendererVertex(saciGL_Renderer* renderer) {
     glGenVertexArrays(1, &renderer->vao);
     glBindVertexArray(renderer->vao);
 
@@ -276,7 +276,7 @@ void __scgl_initRendererVertex(scglRenderer* renderer) {
     glEnableVertexAttribArray(1);
 }
 
-void __scgl_initRendererShaderProgram(scglRenderer* renderer) {
+void __saciGL_initRendererShaderProgram(saciGL_Renderer* renderer) {
     const char* vShaderSource =
         "#version 330 core\n"
         "layout (location = 0) in vec3 aPos;\n"
@@ -297,16 +297,16 @@ void __scgl_initRendererShaderProgram(scglRenderer* renderer) {
         "  FragColor = vColor;\n"
         "}\n\0";
 
-    u32 vShader = scglCompileShaderV(vShaderSource);
-    u32 fShader = scglCompileShaderF(fShaderSource);
+    saci_u32 vShader = saciGL_CompileShaderV(vShaderSource);
+    saci_u32 fShader = saciGL_CompileShaderF(fShaderSource);
     assert(vShader != 0 && fShader != 0);
-    renderer->shaderProgram = scglGetShaderProgram(vShader, fShader);
+    renderer->shaderProgram = saciGL_GetShaderProgram(vShader, fShader);
     assert(renderer->shaderProgram);
 }
 
-void __scgl_initRenderer(scglRenderer* renderer) {
-    __scgl_initRendererVertex(renderer);
-    __scgl_initRendererShaderProgram(renderer);
+void __saciGL_initRenderer(saciGL_Renderer* renderer) {
+    __saciGL_initRendererVertex(renderer);
+    __saciGL_initRendererShaderProgram(renderer);
 }
 
 //----------------------------------------------------------------------------//

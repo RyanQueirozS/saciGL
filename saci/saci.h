@@ -13,32 +13,32 @@
 // Windowing
 //----------------------------------------------------------------------------//
 
-typedef scglWindow saciWindow;
-typedef scglMonitor saciMonitor;
+typedef saciGL_Window saci_Window;
+typedef saciGL_Monitor saci_Monitor;
 
-void saciInitWindow(int width, int height, const char* title);
-void saciTerminate(void);
+void saci_InitWindow(int width, int height, const char* title);
+void saci_Terminate(void);
 
-bool saciWindowShouldClose();
+bool saci_WindowShouldClose();
 
 //----------------------------------------------------------------------------//
 // Composition
 //----------------------------------------------------------------------------//
 
-void saciInitCompositor();
+void saci_InitCompositor();
 
-void saciSetCanvasColor(const Color color);
+void saci_SetCanvasColor(const Color color);
 
-void saciBeginComposition();
-void saciEndComposition();
+void saci_BeginComposition();
+void saci_EndComposition();
 
 // 2d
-void saciComposeTriangle(const saciTri triangle, const Color fillColor);
-void saciComposeRect(const saciRect rect, const Color fillColor);
-void saciComposeQuad(const saciQuad quad, const Color fillColor);
+void saci_ComposeTriangle(const saciTri triangle, const Color fillColor);
+void saci_ComposeRect(const saciRect rect, const Color fillColor);
+void saci_ComposeQuad(const saciQuad quad, const Color fillColor);
 
 // 3d
-void saciComposeCuboid(const saciCuboid cuboid, const Color fillColor);
+void saci_ComposeCuboid(const saciCuboid cuboid, const Color fillColor);
 
 //----------------------------------------------------------------------------//
 // Camera
@@ -50,24 +50,24 @@ typedef enum {
     SACI_CAMERA_MOVEMENT_LOCKED_3D = 2, // 3D movement without camera pos control
     SACI_CAMERA_FIXED_ANGLE_3D = 3,     // 3D with no angle adjustment
     SACI_CAMERA_FOCUS_TARGET = 4,       // Camera focuses on a central point
-} saciCameraMovementMode;
+} saci_CameraMovementMode;
 
-void saciSetCameraMode(saciCameraMovementMode cameraMode);
+void saci_SetCameraMode(saci_CameraMovementMode cameraMode);
 
-void saciSetCameraPos(Vec3 newPos);
-void saciSetCameraAngle(Vec3 angleRad);
-void saciSetCameraTarget(Vec3 lookingAtPos);
-Vec3 saciGetCameraPos();
-Vec3 saciGetCameraAngleRad();
+void saci_SetCameraPos(Vec3 newPos);
+void saci_SetCameraAngle(Vec3 angleRad);
+void saci_SetCameraTarget(Vec3 lookingAtPos);
+Vec3 saci_GetCameraPos();
+Vec3 saci_GetCameraAngleRad();
 
 //----------------------------------------------------------------------------//
 // Event
 //----------------------------------------------------------------------------//
 
-Vec2 saciGetMousePos();
+Vec2 saci_GetMousePos();
 
-typedef scglKeycode saciKeycode;
+typedef saciGL_Keycode saci_Keycode;
 
-bool saciIsKeyPressed(saciKeycode keycode);
+bool saci_IsKeyPressed(saci_Keycode keycode);
 
 #endif
