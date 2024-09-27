@@ -14,7 +14,10 @@
 //----------------------------------------------------------------------------//
 // Helper functions
 //----------------------------------------------------------------------------//
+
 void __saci_defaultedMousePosHandler(saciWindow* window, double posx, double posy);
+void __saci_defaultedWindowPosHandler(saciWindow* window, int posx, int posy);
+void __saci_defaultedWindowSizeHandler(saciWindow* window, int width, int height);
 
 //----------------------------------------------------------------------------//
 
@@ -24,7 +27,13 @@ static struct saciCompositor {
     } Render;
     struct {
         Color canvasColor;
-        scglWindow* window;
+        struct {
+            scglWindow* window;
+            int width;
+            int height;
+            int x;
+            int y;
+        } Window;
     } Canvas;
     struct {
         Vec3 pos;
@@ -48,15 +57,17 @@ static struct saciCompositor {
 // Windowing
 //----------------------------------------------------------------------------//
 
-void saciInitWindow(const saciWindowProperties windowProperties) {
+void saciInitWindow(int width, int height, const char* title) {
     assert(scglGLFWInit());
     printf("INFO: Initialized GLFW\n");
 
-    saciCompositor.Canvas.window = scglCreateWindow(windowProperties.width, windowProperties.height, windowProperties.title,
-                                                    NULL, NULL);
-    assert(saciCompositor.Canvas.window != NULL);
+    saciCompositor.Canvas.Window.window = scglCreateWindow(width, height, title,
+                                                           NULL, NULL);
+    saciCompositor.Canvas.Window.width = width;
+    saciCompositor.Canvas.Window.height = height;
+    assert(saciCompositor.Canvas.Window.window != NULL);
     printf("INFO: Created window\n");
-    scglMakeWindowContext(saciCompositor.Canvas.window);
+    scglMakeWindowContext(saciCompositor.Canvas.Window.window);
     printf("INFO: Made window context\n");
 
     assert(scglGLEWInit());
@@ -69,7 +80,7 @@ void saciTerminate(void) {
 }
 
 bool saciWindowShouldClose() {
-    return glfwWindowShouldClose(saciCompositor.Canvas.window);
+    return glfwWindowShouldClose(saciCompositor.Canvas.Window.window);
 }
 
 //----------------------------------------------------------------------------//
@@ -78,7 +89,11 @@ bool saciWindowShouldClose() {
 
 void saciInitCompositor() {
     saciCompositor.Render.renderer = scglCreateRenderer();
-    scglSetMousePosHandler(saciCompositor.Canvas.window, __saci_defaultedMousePosHandler);
+    {
+        scglSetMousePosHandler(saciCompositor.Canvas.Window.window, __saci_defaultedMousePosHandler);
+        scglSetWindowPosHandler(saciCompositor.Canvas.Window.window, __saci_defaultedWindowPosHandler);
+        scglSetWindowSizeHandler(saciCompositor.Canvas.Window.window, __saci_defaultedWindowSizeHandler);
+    }
 }
 
 void saciSetCanvasColor(const Color color) {
@@ -92,7 +107,7 @@ void saciBeginComposition() {
 
 void saciEndComposition() {
     scglRenderEnd(saciCompositor.Render.renderer);
-    scglPresentDrawing(saciCompositor.Canvas.window);
+    scglPresentDrawing(saciCompositor.Canvas.Window.window);
     scgl_PollEvents();
 }
 
@@ -164,7 +179,7 @@ Vec2 saciGetMousePos() {
 }
 
 bool saciIsKeyPressed(saciKeycode keycode) {
-    return scgl_IsKeyPressed(saciCompositor.Canvas.window, keycode);
+    return scgl_IsKeyPressed(saciCompositor.Canvas.Window.window, keycode);
 }
 
 //----------------------------------------------------------------------------//
@@ -176,4 +191,18 @@ void __saci_defaultedMousePosHandler(saciWindow* window, double posx, double pos
     (window);
     saciCompositor.Input.Mouse.x = posx;
     saciCompositor.Input.Mouse.y = posy;
+}
+
+void __saci_defaultedWindowPosHandler(saciWindow* window, int posx, int posy) {
+    SCAST_TO(void)
+    (window);
+    saciCompositor.Canvas.Window.x = posx;
+    saciCompositor.Canvas.Window.y = posy;
+}
+
+void __saci_defaultedWindowSizeHandler(saciWindow* window, int width, int height) {
+    SCAST_TO(void)
+    (window);
+    saciCompositor.Canvas.Window.width = width;
+    saciCompositor.Canvas.Window.height = height;
 }

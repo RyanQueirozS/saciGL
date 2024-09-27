@@ -31,6 +31,11 @@ scglWindow* scglCreateWindow(int width, int height, const char* title,
                              scglMonitor* monitor, scglWindow* share);
 void scglMakeWindowContext(scglWindow* window);
 
+typedef void (*scgl_WindowPosHandler)(scglWindow* window, int width, int height);
+void scglSetWindowPosHandler(scglWindow* window, scgl_WindowPosHandler windowPosHandler);
+typedef void (*scgl_WindowSizeHandler)(scglWindow* window, int posx, int posy);
+void scglSetWindowSizeHandler(scglWindow* window, scgl_WindowSizeHandler windowSizeHandler);
+
 void scglTerminate(void);
 
 //----------------------------------------------------------------------------//

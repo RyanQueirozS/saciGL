@@ -30,9 +30,9 @@ void __scgl_initRenderer(scglRenderer* renderer);
 //----------------------------------------------------------------------------//
 
 bool scglGLFWInit(void) {
-    // All of this might change, this could perhaps be setup by the user
     int success = glfwInit();
     if (!success) return false;
+    // TODO make user defined version
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -52,6 +52,13 @@ scglWindow* scglCreateWindow(int width, int height, const char* title,
     return glfwCreateWindow(width, height, title, monitor, share);
 }
 void scglMakeWindowContext(scglWindow* window) { glfwMakeContextCurrent(window); }
+
+void scglSetWindowPosHandler(scglWindow* window, scgl_WindowPosHandler windowPosHandler) {
+    glfwSetWindowPosCallback(window, windowPosHandler);
+}
+void scglSetWindowSizeHandler(scglWindow* window, scgl_WindowSizeHandler windowSizeHandler) {
+    glfwSetWindowSizeCallback(window, windowSizeHandler);
+}
 
 void scglTerminate(void) { glfwTerminate(); }
 

@@ -1,4 +1,4 @@
-// Implementation of basic shape drawing using SCGL(saci graphics library)
+// Implementation of basic shape drawing using SCGL(saci graphics library) and SACI
 
 #include <saci.h>
 #include <gl.h>
@@ -23,9 +23,7 @@ void toggle_viewing_mode() {
 }
 
 int main() {
-    saciWindowProperties properties = {700, 700, "SACI Examples - Shapes2D"};
-
-    saciInitWindow(properties);
+    saciInitWindow(700, 700, "SACI Examples - Shapes2D");
     saciInitCompositor();
 
     saciRect rect = {

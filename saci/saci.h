@@ -16,14 +16,7 @@
 typedef scglWindow saciWindow;
 typedef scglMonitor saciMonitor;
 
-// TODO these should be updated as the window gets resized, renamed etc
-typedef struct saciWindowProperties {
-    int width;
-    int height;
-    const char* title;
-} saciWindowProperties;
-
-void saciInitWindow(const saciWindowProperties windowProperties);
+void saciInitWindow(int width, int height, const char* title);
 void saciTerminate(void);
 
 bool saciWindowShouldClose();
