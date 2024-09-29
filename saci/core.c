@@ -1,4 +1,4 @@
-#include "core.h"
+#include "saci.h"
 
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
@@ -9,90 +9,200 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "scgl.h"
+#include "gl.h"
+
+//----------------------------------------------------------------------------//
+// Helper functions
+//----------------------------------------------------------------------------//
+
+void __saci_defaultedMousePosHandler(saci_Window* window, double posx, double posy);
+void __saci_defaultedWindowPosHandler(saci_Window* window, int posx, int posy);
+void __saci_defaultedWindowSizeHandler(saci_Window* window, int width, int height);
 
 //----------------------------------------------------------------------------//
 
-saci_Color saciColorFromHex(uint32_t hexValue) {
-    saci_Color color;
-    color.a = (hexValue >> 24) & 0xFF;
-    color.r = (hexValue >> 16) & 0xFF;
-    color.g = (hexValue >> 8) & 0xFF;
-    color.b = hexValue & 0xFF;
-    return color;
-}
-
-saci_Color saciColorFrom8Bit(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    saci_Color color;
-    color.r = r;
-    color.b = b;
-    color.g = g;
-    color.a = a;
-    return color;
-}
+static struct saciCompositor {
+    struct {
+        saciGL_Renderer* renderer;
+    } Render;
+    struct {
+        Color canvasColor;
+        struct {
+            saciGL_Window* window;
+            int width;
+            int height;
+            int x;
+            int y;
+        } Window;
+    } Canvas;
+    struct {
+        Vec3 pos;
+        Vec3 angleRad;
+        Vec3 target;
+        saci_CameraMovementMode cameraMode;
+    } Camera;
+    struct {
+        struct {
+            double x;
+            double y;
+        } Mouse;
+        struct {
+        } Keyboard;
+        struct {
+        } Controller;
+    } Input;
+} saci_compositor;
 
 //----------------------------------------------------------------------------//
+// Windowing
+//----------------------------------------------------------------------------//
 
-saciWindow* saciCreateWindow(const saciWindowSpecs windowSpecs) {
-    assert(scglGLFWInit() != -1);
+void saci_InitWindow(int width, int height, const char* title) {
+    assert(saciGL_GLFWInit());
     printf("INFO: Initialized GLFW\n");
 
-    saciWindow* window = scglCreateWindow(windowSpecs.width, windowSpecs.height,
-                                          windowSpecs.title,
-                                          windowSpecs.monitor, windowSpecs.windowShare);
-    assert(window != NULL);
+    saci_compositor.Canvas.Window.window = saciGL_CreateWindow(width, height, title,
+                                                               NULL, NULL);
+    saci_compositor.Canvas.Window.width = width;
+    saci_compositor.Canvas.Window.height = height;
+    assert(saci_compositor.Canvas.Window.window != NULL);
     printf("INFO: Created window\n");
-    scglMakeWindowContext(window);
+    saciGL_MakeWindowContext(saci_compositor.Canvas.Window.window);
     printf("INFO: Made window context\n");
 
-    assert(scglGLEWInit() != -1);
+    assert(saciGL_GLEWInit());
     printf("INFO: Initialized GLEW\n");
-
-    return window;
 }
 
-void saciTerminate(void) {
-    // TODO remove use glfw
-    glfwTerminate();
+void saci_Terminate(void) {
+    saciGL_Terminate();
+    saciGL_DeleteRenderer(saci_compositor.Render.renderer);
 }
 
-//----------------------------------------------------------------------------//
-
-void saciBeginComposition(void) {
-}
-
-void saciDrawComposition() {}
-
-//----------------------------------------------------------------------------//
-
-void saciClearCanvas(const saci_Color color) {
-    // TODO remove direct use of glew
-    glClearColor(color.r, color.g, color.b, color.a);
-    glClear(GL_COLOR_BUFFER_BIT);
+bool saci_WindowShouldClose() {
+    return glfwWindowShouldClose(saci_compositor.Canvas.Window.window);
 }
 
 //----------------------------------------------------------------------------//
+// Composition
+//----------------------------------------------------------------------------//
 
-uint32_t saciLoadShaderFromPath(const char* path, uint32_t shaderType) {
-    switch (shaderType) {
-        case GL_VERTEX_SHADER: {
-            return scglCompileShaderV(path);
-        }
-        case GL_FRAGMENT_SHADER: {
-            return scglCompileShaderF(path);
-        }
-        case GL_GEOMETRY_SHADER: {
-            return scglCompileShaderG(path);
-        }
-        default: {
-            return 0;
-        }
+void saci_InitCompositor() {
+    saci_compositor.Render.renderer = saciGL_CreateRenderer();
+    {
+        saciGL_SetMousePosHandler(saci_compositor.Canvas.Window.window, __saci_defaultedMousePosHandler);
+        saciGL_SetWindowPosHandler(saci_compositor.Canvas.Window.window, __saci_defaultedWindowPosHandler);
+        saciGL_SetWindowSizeHandler(saci_compositor.Canvas.Window.window, __saci_defaultedWindowSizeHandler);
     }
-    return 0;
 }
 
-uint32_t saciCreateProgram(uint32_t shaders[], size_t shaderAmmount) {
-    return scglGetShaderProgram(shaders, shaderAmmount);
+void saci_SetCanvasColor(const Color color) {
+    saci_compositor.Canvas.canvasColor = color;
+}
+
+void saci_BeginComposition() {
+    saciGL_ClearBackground(saci_compositor.Canvas.canvasColor);
+    saciGL_RenderBegin(saci_compositor.Render.renderer);
+}
+
+void saci_EndComposition() {
+    saciGL_RenderEnd(saci_compositor.Render.renderer);
+    saciGL_PresentDrawing(saci_compositor.Canvas.Window.window);
+    saciGL__PollEvents();
+}
+
+void saci_ComposeTriangle(const saciTri triangle, const Color fillColor) {
+    saciGL_RenderPushTriangle(saci_compositor.Render.renderer, triangle.a, triangle.b, triangle.c, fillColor, fillColor, fillColor);
+}
+
+void saci_ComposeRect(const saciRect rect, const Color fillColor) {
+    Vec2 a = {rect.pos.x, rect.pos.y};
+    Vec2 b = {rect.pos.x + rect.width, rect.pos.y};
+    Vec2 c = {rect.pos.x + rect.width, rect.pos.y + rect.height};
+    Vec2 d = {rect.pos.x, rect.pos.y + rect.height};
+    saciGL_RenderPushTriangle(saci_compositor.Render.renderer,
+                              a, b, c,
+                              fillColor, fillColor, fillColor);
+    saciGL_RenderPushTriangle(saci_compositor.Render.renderer,
+                              a, c, d,
+                              fillColor, fillColor, fillColor);
+}
+
+void saci_ComposeQuad(const saciQuad quad, const Color fillColor) {
+    saciGL_RenderPushTriangle(saci_compositor.Render.renderer,
+                              quad.a, quad.b, quad.d,
+                              fillColor, fillColor, fillColor);
+    saciGL_RenderPushTriangle(saci_compositor.Render.renderer,
+                              quad.b, quad.d, quad.c,
+                              fillColor, fillColor, fillColor);
+}
+
+void saci_ComposeCuboid(const saciCuboid cuboid, const Color fillColor) {
+    printf("TODO\n");
 }
 
 //----------------------------------------------------------------------------//
+// Camera
+//----------------------------------------------------------------------------//
+
+void saci_SetCameraMode(saci_CameraMovementMode cameraMode) {
+    saci_compositor.Camera.cameraMode = cameraMode;
+}
+
+void saci_SetCameraPos(Vec3 newPos) {
+    saci_compositor.Camera.pos = newPos;
+}
+
+void saci_SetCameraAngle(Vec3 angleRad) {
+    saci_compositor.Camera.angleRad = angleRad;
+}
+
+void saci_SetCameraTarget(Vec3 lookingAtPos) {
+    saci_compositor.Camera.target = lookingAtPos;
+}
+
+Vec3 saci_GetCameraPos() {
+    return saci_compositor.Camera.pos;
+}
+
+Vec3 saci_GetCameraAngleRad() {
+    return saci_compositor.Camera.angleRad;
+}
+
+//----------------------------------------------------------------------------//
+// Event
+//----------------------------------------------------------------------------//
+
+Vec2 saci_GetMousePos() {
+    return (Vec2){.x = saci_compositor.Input.Mouse.x,
+                  .y = saci_compositor.Input.Mouse.y};
+}
+
+bool saci_IsKeyPressed(saci_Keycode keycode) {
+    return saciGL_IsKeyPressed(saci_compositor.Canvas.Window.window, keycode);
+}
+
+//----------------------------------------------------------------------------//
+// Helper functions
+//----------------------------------------------------------------------------//
+
+void __saci_defaultedMousePosHandler(saci_Window* window, double posx, double posy) {
+    SACI_SCAST_TO(void)
+    (window);
+    saci_compositor.Input.Mouse.x = posx;
+    saci_compositor.Input.Mouse.y = posy;
+}
+
+void __saci_defaultedWindowPosHandler(saci_Window* window, int posx, int posy) {
+    SACI_SCAST_TO(void)
+    (window);
+    saci_compositor.Canvas.Window.x = posx;
+    saci_compositor.Canvas.Window.y = posy;
+}
+
+void __saci_defaultedWindowSizeHandler(saci_Window* window, int width, int height) {
+    SACI_SCAST_TO(void)
+    (window);
+    saci_compositor.Canvas.Window.width = width;
+    saci_compositor.Canvas.Window.height = height;
+}
