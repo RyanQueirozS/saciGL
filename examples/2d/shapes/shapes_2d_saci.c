@@ -1,7 +1,7 @@
 // Implementation of basic shape drawing using SCGL(saci graphics library) and SACI
 
 #include <saci.h>
-#include <gl.h>
+#include <sacigl.h>
 
 bool shouldFillShape = true;
 
@@ -46,10 +46,10 @@ int main() {
         {-0.5, 0.0}, // Left
     };
 
-    Color bgColor = {0, 0, 0, 1};
-    Color fgColor = {0, 1, 0, 1};
+    saci_Color bgColor = {0, 0, 0, 1};
+    saci_Color fgColor = {0, 1, 0, 1};
 
-    Color triangleColors[4] = {
+    saci_Color triangleColors[4] = {
         fgColor,
         fgColor,
         fgColor,

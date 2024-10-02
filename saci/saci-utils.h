@@ -1,6 +1,7 @@
 #ifndef __SACI_UTILS__
 #define __SACI_UTILS__
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -21,20 +22,23 @@ typedef int32_t saci_s32;
 typedef int16_t saci_s16;
 typedef int8_t saci_s8;
 
+typedef bool saci_Bool;
+typedef saci_u32 saci_ShaderID;
+
 typedef struct saci_Vec2 {
     float x, y;
-} Vec2;
+} saci_Vec2;
 
 typedef struct saci_Vec3 {
     float x, y, z;
-} Vec3;
+} saci_Vec3;
 
 typedef struct saci_Vec4 {
     float x, y, z, w;
-} Vec4;
+} saci_Vec4;
 
 typedef struct saci_Color {
     float r, g, b, a;
-} Color;
+} saci_Color;
 
 #endif

@@ -1,7 +1,7 @@
-#include "gl.h"
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include "sacigl.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "utils.h"
+#include "saci-utils.h"
 
 // TODO user defined
 #define MAX_TRIANGLES 1024
@@ -61,6 +61,15 @@ void saciGL_SetWindowSizeHandler(saciGL_Window* window, saciGL__WindowSizeHandle
 }
 
 void saciGL_Terminate(void) { glfwTerminate(); }
+
+void saciGL_ClearWindow(saci_Color color) {
+    glClearColor(color.r, color.g, color.b, color.a);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void saciGL_SwapWindowBuffer(saciGL_Window* window) {
+    glfwSwapBuffers(window);
+}
 
 //----------------------------------------------------------------------------//
 // Shadering
@@ -132,8 +141,8 @@ saci_u32 saciGL_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u32 g
 //----------------------------------------------------------------------------//
 
 typedef struct Vertice {
-    Vec2 pos;
-    Color color;
+    saci_Vec2 pos;
+    saci_Color color;
 } Vertice;
 
 struct saciGL_Renderer {
@@ -181,8 +190,8 @@ void saciGL_RenderSetFillMode(void) {
 }
 
 void saciGL_RenderPushTriangle(saciGL_Renderer* renderer,
-                               const Vec2 a, const Vec2 b, const Vec2 c,
-                               const Color aColor, const Color bColor, const Color cColor) {
+                               const saci_Vec2 a, const saci_Vec2 b, const saci_Vec2 c,
+                               const saci_Color aColor, const saci_Color bColor, const saci_Color cColor) {
     // Each verticie is multiplied by 3, as this will be rendered as triangles(3 sides);
     renderer->vertices[renderer->vertexCount * 3 + 0].pos = a;
     renderer->vertices[renderer->vertexCount * 3 + 0].color = aColor;
@@ -191,19 +200,6 @@ void saciGL_RenderPushTriangle(saciGL_Renderer* renderer,
     renderer->vertices[renderer->vertexCount * 3 + 2].pos = c;
     renderer->vertices[renderer->vertexCount * 3 + 2].color = cColor;
     renderer->vertexCount++;
-}
-
-//----------------------------------------------------------------------------//
-// Draw
-//----------------------------------------------------------------------------//
-
-void saciGL_ClearBackground(Color color) {
-    glClearColor(color.r, color.g, color.b, color.a);
-    glClear(GL_COLOR_BUFFER_BIT);
-}
-
-void saciGL_PresentDrawing(saciGL_Window* window) {
-    glfwSwapBuffers(window);
 }
 
 //----------------------------------------------------------------------------//

@@ -9,7 +9,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "gl.h"
+#include "sacigl-windowing.h"
+#include "sacigl.h"
 
 //----------------------------------------------------------------------------//
 // Helper functions
@@ -26,7 +27,7 @@ static struct saciCompositor {
         saciGL_Renderer* renderer;
     } Render;
     struct {
-        Color canvasColor;
+        saci_Color canvasColor;
         struct {
             saciGL_Window* window;
             int width;
@@ -36,9 +37,9 @@ static struct saciCompositor {
         } Window;
     } Canvas;
     struct {
-        Vec3 pos;
-        Vec3 angleRad;
-        Vec3 target;
+        saci_Vec3 pos;
+        saci_Vec3 angleRad;
+        saci_Vec3 target;
         saci_CameraMovementMode cameraMode;
     } Camera;
     struct {
@@ -96,30 +97,30 @@ void saci_InitCompositor() {
     }
 }
 
-void saci_SetCanvasColor(const Color color) {
+void saci_SetCanvasColor(const saci_Color color) {
     saci_compositor.Canvas.canvasColor = color;
 }
 
 void saci_BeginComposition() {
-    saciGL_ClearBackground(saci_compositor.Canvas.canvasColor);
+    saciGL_ClearWindow(saci_compositor.Canvas.canvasColor);
     saciGL_RenderBegin(saci_compositor.Render.renderer);
 }
 
 void saci_EndComposition() {
     saciGL_RenderEnd(saci_compositor.Render.renderer);
-    saciGL_PresentDrawing(saci_compositor.Canvas.Window.window);
+    saciGL_SwapWindowBuffer(saci_compositor.Canvas.Window.window);
     saciGL__PollEvents();
 }
 
-void saci_ComposeTriangle(const saciTri triangle, const Color fillColor) {
+void saci_ComposeTriangle(const saciTri triangle, const saci_Color fillColor) {
     saciGL_RenderPushTriangle(saci_compositor.Render.renderer, triangle.a, triangle.b, triangle.c, fillColor, fillColor, fillColor);
 }
 
-void saci_ComposeRect(const saciRect rect, const Color fillColor) {
-    Vec2 a = {rect.pos.x, rect.pos.y};
-    Vec2 b = {rect.pos.x + rect.width, rect.pos.y};
-    Vec2 c = {rect.pos.x + rect.width, rect.pos.y + rect.height};
-    Vec2 d = {rect.pos.x, rect.pos.y + rect.height};
+void saci_ComposeRect(const saciRect rect, const saci_Color fillColor) {
+    saci_Vec2 a = {rect.pos.x, rect.pos.y};
+    saci_Vec2 b = {rect.pos.x + rect.width, rect.pos.y};
+    saci_Vec2 c = {rect.pos.x + rect.width, rect.pos.y + rect.height};
+    saci_Vec2 d = {rect.pos.x, rect.pos.y + rect.height};
     saciGL_RenderPushTriangle(saci_compositor.Render.renderer,
                               a, b, c,
                               fillColor, fillColor, fillColor);
@@ -128,7 +129,7 @@ void saci_ComposeRect(const saciRect rect, const Color fillColor) {
                               fillColor, fillColor, fillColor);
 }
 
-void saci_ComposeQuad(const saciQuad quad, const Color fillColor) {
+void saci_ComposeQuad(const saciQuad quad, const saci_Color fillColor) {
     saciGL_RenderPushTriangle(saci_compositor.Render.renderer,
                               quad.a, quad.b, quad.d,
                               fillColor, fillColor, fillColor);
@@ -137,7 +138,7 @@ void saci_ComposeQuad(const saciQuad quad, const Color fillColor) {
                               fillColor, fillColor, fillColor);
 }
 
-void saci_ComposeCuboid(const saciCuboid cuboid, const Color fillColor) {
+void saci_ComposeCuboid(const saciCuboid cuboid, const saci_Color fillColor) {
     printf("TODO\n");
 }
 
@@ -149,23 +150,23 @@ void saci_SetCameraMode(saci_CameraMovementMode cameraMode) {
     saci_compositor.Camera.cameraMode = cameraMode;
 }
 
-void saci_SetCameraPos(Vec3 newPos) {
+void saci_SetCameraPos(saci_Vec3 newPos) {
     saci_compositor.Camera.pos = newPos;
 }
 
-void saci_SetCameraAngle(Vec3 angleRad) {
+void saci_SetCameraAngle(saci_Vec3 angleRad) {
     saci_compositor.Camera.angleRad = angleRad;
 }
 
-void saci_SetCameraTarget(Vec3 lookingAtPos) {
+void saci_SetCameraTarget(saci_Vec3 lookingAtPos) {
     saci_compositor.Camera.target = lookingAtPos;
 }
 
-Vec3 saci_GetCameraPos() {
+saci_Vec3 saci_GetCameraPos() {
     return saci_compositor.Camera.pos;
 }
 
-Vec3 saci_GetCameraAngleRad() {
+saci_Vec3 saci_GetCameraAngleRad() {
     return saci_compositor.Camera.angleRad;
 }
 
@@ -173,9 +174,9 @@ Vec3 saci_GetCameraAngleRad() {
 // Event
 //----------------------------------------------------------------------------//
 
-Vec2 saci_GetMousePos() {
-    return (Vec2){.x = saci_compositor.Input.Mouse.x,
-                  .y = saci_compositor.Input.Mouse.y};
+saci_Vec2 saci_GetMousePos() {
+    return (saci_Vec2){.x = saci_compositor.Input.Mouse.x,
+                       .y = saci_compositor.Input.Mouse.y};
 }
 
 bool saci_IsKeyPressed(saci_Keycode keycode) {

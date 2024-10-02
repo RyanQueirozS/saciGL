@@ -1,87 +1,12 @@
-// NOTE: This is an abstraction layer for default OpenGL. It can be used
-// alongside saci.h, but it's not recommended due to the added complexity.
-// saci.h simplifies these steps. Use saci.c as the standard, and this only
-// as an exception.
-
-#ifndef __SACI_saciGL__H__
-#define __SACI_saciGL__H__
-
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
-#include <stdbool.h>
-#include <stdint.h>
-
-#include "utils.h"
-
-//----------------------------------------------------------------------------//
-
-typedef GLFWmonitor saciGL_Monitor;
-typedef GLFWwindow saciGL_Window;
-
-//----------------------------------------------------------------------------//
-// Windowing
-//----------------------------------------------------------------------------//
-
-bool saciGL_GLFWInit(void);
-bool saciGL_GLEWInit(void);
-
-// Creates a window, does not check if it's null
-saciGL_Window* saciGL_CreateWindow(int width, int height, const char* title,
-                                   saciGL_Monitor* monitor, saciGL_Window* share);
-void saciGL_MakeWindowContext(saciGL_Window* window);
-
-typedef void (*saciGL__WindowPosHandler)(saciGL_Window* window, int width, int height);
-void saciGL_SetWindowPosHandler(saciGL_Window* window, saciGL__WindowPosHandler windowPosHandler);
-typedef void (*saciGL__WindowSizeHandler)(saciGL_Window* window, int posx, int posy);
-void saciGL_SetWindowSizeHandler(saciGL_Window* window, saciGL__WindowSizeHandler windowSizeHandler);
-
-void saciGL_Terminate(void);
-
-//----------------------------------------------------------------------------//
-// Shadering
-//----------------------------------------------------------------------------//
-
-saci_u32 saciGL_CompileShaderV(const char* source);
-saci_u32 saciGL_CompileShaderF(const char* source);
-saci_u32 saciGL_CompileShaderG(const char* source);
-
-saci_u32 saciGL_GetShaderProgram(saci_u32 vshader, saci_u32 fshader);
-saci_u32 saciGL_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u32 gshader);
-
-//----------------------------------------------------------------------------//
-// Render
-//----------------------------------------------------------------------------//
-
-typedef struct saciGL_Renderer saciGL_Renderer;
-
-saciGL_Renderer* saciGL_CreateRenderer(void);
-void saciGL_DeleteRenderer(saciGL_Renderer* renderer);
-
-void saciGL_RenderBegin(saciGL_Renderer* renderer);
-void saciGL_RenderEnd(saciGL_Renderer* renderer);
-
-// Renderer config
-void saciGL_RenderSetNoFillMode(void);
-void saciGL_RenderSetFillMode(void);
-
-// Triangles
-void saciGL_RenderPushTriangle(saciGL_Renderer* renderer,
-                               const Vec2 a, const Vec2 b, const Vec2 c,
-                               const Color aColor, const Color bColor, const Color cColor);
-
-//----------------------------------------------------------------------------//
-// Draw
-//----------------------------------------------------------------------------//
-
-void saciGL_ClearBackground(const Color color);
-
-void saciGL_PresentDrawing(saciGL_Window* window);
+#ifndef __SACI_SACIGL_EVENT_H__
+#define __SACI_SACIGL_EVENT_H__
 
 //----------------------------------------------------------------------------//
 // Event
 //----------------------------------------------------------------------------//
 
+#include "saci-utils.h"
+#include "sacigl-windowing.h"
 void saciGL__PollEvents();
 void saciGL__WaitForEvents();
 void saciGL__WaitForEventsTimeout(double timeout);
@@ -214,6 +139,6 @@ typedef enum saciGL_Keycode { // view https://www.glfw.org/docs/3.3/group__keys.
     SACI_KEY_LAST = SACI_KEY_MENU,
 } saciGL_Keycode;
 // returns true if last key state was "pressed"
-bool saciGL_IsKeyPressed(saciGL_Window* window, saciGL_Keycode keycode);
+saci_Bool saciGL_IsKeyPressed(saciGL_Window* window, saciGL_Keycode keycode);
 
 #endif
