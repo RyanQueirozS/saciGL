@@ -18,6 +18,7 @@ void saciGL_RenderEnd(saciGL_Renderer* renderer);
 // Renderer config
 void saciGL_RenderSetNoFillMode(void);
 void saciGL_RenderSetFillMode(void);
+void saciGL_RenderSetDepthMode(void);
 
 // Triangles
 void saciGL_RenderPushTriangle(saciGL_Renderer* renderer,

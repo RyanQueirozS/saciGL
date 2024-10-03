@@ -3,11 +3,11 @@
 
 #include "saci-utils.h"
 
-saci_u32 saciGL_CompileShaderV(const char* source);
-saci_u32 saciGL_CompileShaderF(const char* source);
-saci_u32 saciGL_CompileShaderG(const char* source);
+saci_ShaderID saciGL_CompileShaderV(const char* source);
+saci_ShaderID saciGL_CompileShaderF(const char* source);
+saci_ShaderID saciGL_CompileShaderG(const char* source);
 
-saci_u32 saciGL_GetShaderProgram(saci_ShaderID vshader, saci_ShaderID fshader);
-saci_u32 saciGL_GetShaderProgramg(saci_ShaderID vshader, saci_ShaderID fshader, saci_ShaderID gshader);
+saci_ShaderID saciGL_GetShaderProgram(saci_ShaderID vshader, saci_ShaderID fshader);
+saci_ShaderID saciGL_GetShaderProgramg(saci_ShaderID vshader, saci_ShaderID fshader, saci_ShaderID gshader);
 
 #endif

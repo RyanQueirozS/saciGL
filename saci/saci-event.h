@@ -4,7 +4,7 @@
 #include "saci-utils.h"
 #include "sacigl-event.h"
 
-saci_Vec2 saci_GetMousePos();
+saci_Vec2 saci_GetMousePos(void);
 
 typedef saciGL_Keycode saci_Keycode;
 

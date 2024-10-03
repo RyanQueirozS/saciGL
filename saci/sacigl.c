@@ -13,7 +13,7 @@
 
 // TODO user defined
 #define MAX_TRIANGLES 1024
-#define MAX_VERTICES MAX_TRIANGLES * 3
+#define MAX_VERTICES  MAX_TRIANGLES * 3
 
 //----------------------------------------------------------------------------//
 // Helper functions
@@ -64,7 +64,7 @@ void saciGL_Terminate(void) { glfwTerminate(); }
 
 void saciGL_ClearWindow(saci_Color color) {
     glClearColor(color.r, color.g, color.b, color.a);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void saciGL_SwapWindowBuffer(saciGL_Window* window) {
@@ -99,7 +99,7 @@ saci_u32 saciGL_GetShaderProgram(saci_u32 vshader, saci_u32 fshader) {
         char errMessage[2048];
         int sizeReturned = 0;
         glGetProgramInfoLog(programID, 2048, &sizeReturned, errMessage);
-        printf("ERROR: Could not link shader\n%s", errMessage);
+        SACI_LOGGERR(SACI_LOG_LEVEL_ERROR, "Could not link shader", errMessage);
         return 0;
     }
     glDetachShader(programID, vshader);
@@ -123,7 +123,7 @@ saci_u32 saciGL_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u32 g
         char errMessage[2048];
         int sizeReturned = 0;
         glGetProgramInfoLog(programID, 2048, &sizeReturned, errMessage);
-        printf("ERROR: Could not link shader\n%s", errMessage);
+        SACI_LOGGERR(SACI_LOG_LEVEL_ERROR, "Could not link shader", errMessage);
         return 0;
     }
     glDetachShader(programID, vshader);
@@ -189,15 +189,19 @@ void saciGL_RenderSetFillMode(void) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
+void saciGL_RenderSetDepthMode(void) {
+    glEnable(GL_DEPTH_TEST);
+}
+
 void saciGL_RenderPushTriangle(saciGL_Renderer* renderer,
                                const saci_Vec2 a, const saci_Vec2 b, const saci_Vec2 c,
                                const saci_Color aColor, const saci_Color bColor, const saci_Color cColor) {
     // Each verticie is multiplied by 3, as this will be rendered as triangles(3 sides);
-    renderer->vertices[renderer->vertexCount * 3 + 0].pos = a;
+    renderer->vertices[renderer->vertexCount * 3 + 0].pos   = a;
     renderer->vertices[renderer->vertexCount * 3 + 0].color = aColor;
-    renderer->vertices[renderer->vertexCount * 3 + 1].pos = b;
+    renderer->vertices[renderer->vertexCount * 3 + 1].pos   = b;
     renderer->vertices[renderer->vertexCount * 3 + 1].color = bColor;
-    renderer->vertices[renderer->vertexCount * 3 + 2].pos = c;
+    renderer->vertices[renderer->vertexCount * 3 + 2].pos   = c;
     renderer->vertices[renderer->vertexCount * 3 + 2].color = cColor;
     renderer->vertexCount++;
 }
@@ -206,17 +210,17 @@ void saciGL_RenderPushTriangle(saciGL_Renderer* renderer,
 // Event
 //----------------------------------------------------------------------------//
 
-void saciGL__PollEvents() {
+void saciGL_PollEvents(void) {
     glfwPollEvents();
 }
-void saciGL__WaitForEvents() {
+void saciGL_WaitForEvents(void) {
     glfwWaitEvents();
 }
-void saciGL__WaitForEventsTimeout(double timeout) {
+void saciGL_WaitForEventsTimeout(double timeout) {
     glfwWaitEventsTimeout(timeout);
 }
 
-void saciGL__PostEmptyEvent() {
+void saciGL_PostEmptyEvent(void) {
     glfwPostEmptyEvent();
 }
 
@@ -250,9 +254,8 @@ saci_u32 __saciGL_compileShader(const char* shaderSource, saci_u32 shaderType) {
         char errMessage[2048];
         int sizeReturned = 0;
         glGetShaderInfoLog(shaderID, 2048, &sizeReturned, &errMessage[0]);
-
         glDeleteShader(shaderID);
-        printf("ERROR: Shader compilation failed: %s\n", errMessage);
+        SACI_LOGGERR(SACI_LOG_LEVEL_ERROR, "Shader compilation failed", errMessage);
         return 0;
     }
 

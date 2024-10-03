@@ -10,6 +10,6 @@ typedef saciGL_Monitor saci_Monitor;
 void saci_InitWindow(int width, int height, const char* title);
 void saci_Terminate(void);
 
-saci_Bool saci_WindowShouldClose();
+saci_Bool saci_WindowShouldClose(void);
 
 #endif

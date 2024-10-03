@@ -10,6 +10,19 @@
 #define SACI_SCAST_TO(type) (type)
 #endif
 
+#define SACI_LOG_LEVEL_INFO    0
+#define SACI_LOG_LEVEL_WARNING 1
+#define SACI_LOG_LEVEL_ERROR   2
+
+#define SACI_LOGGERR(level, infoType, msg)                                     \
+    do {                                                                       \
+        const char *levelStr = (level == SACI_LOG_LEVEL_INFO)      ? "INFO"    \
+                               : (level == SACI_LOG_LEVEL_WARNING) ? "WARNING" \
+                               : (level == SACI_LOG_LEVEL_ERROR)   ? "ERROR"   \
+                                                                   : "UNKNOWN";  \
+        fprintf(stderr, "%s: %s. %s\n", levelStr, infoType, msg);              \
+    } while (0)
+
 #define SACI_ARRLEN(array) (sizeof(array) / sizeof(array[0]))
 
 typedef uint64_t saci_u64;
@@ -40,5 +53,9 @@ typedef struct saci_Vec4 {
 typedef struct saci_Color {
     float r, g, b, a;
 } saci_Color;
+
+typedef struct saci_Mat4 {
+    float m[4][4];
+} saci_Mat4;
 
 #endif

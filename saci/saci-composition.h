@@ -8,8 +8,8 @@ void saci_InitCompositor();
 
 void saci_SetCanvasColor(const saci_Color color);
 
-void saci_BeginComposition();
-void saci_EndComposition();
+void saci_BeginComposition(void);
+void saci_EndComposition(void);
 
 // 2d
 void saci_ComposeTriangle(const saciTri triangle, const saci_Color fillColor);
