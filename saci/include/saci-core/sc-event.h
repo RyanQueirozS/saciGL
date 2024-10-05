@@ -1,12 +1,12 @@
-#ifndef __SACI_SACIGL_EVENT_H__
-#define __SACI_SACIGL_EVENT_H__
+#ifndef __SACI_CORE_SC_EVENT_H__
+#define __SACI_CORE_SC_EVENT_H__
 
 //----------------------------------------------------------------------------//
 // Event
 //----------------------------------------------------------------------------//
 
-#include "saci-utils.h"
-#include "sacigl-windowing.h"
+#include "sc-windowing.h"
+
 void saciGL__PollEvents();
 void saciGL__WaitForEvents();
 void saciGL__WaitForEventsTimeout(double timeout);

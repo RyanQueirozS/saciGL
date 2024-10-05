@@ -11,14 +11,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # Enable CMake to create the compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Find all source files recursively
+# Find all source files recursively in the src directory
 file(GLOB_RECURSE SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
 )
 
-# Find all header files recursively (optional, if you want them listed)
+# Find all header files recursively in the include directory (optional)
 file(GLOB_RECURSE HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/**/*.h"
 )
 
 # Find GLFW
@@ -34,9 +34,10 @@ find_package(OpenGL REQUIRED)
 add_library(saci STATIC ${SOURCES})
 
 # Include directories
+# Add the root include directory so that headers can be included as <directoryName/filename.h>
 target_include_directories(saci PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/deps/stbi"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"  # Root include directory
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/stbi" # Add your other dependencies here
     ${GLEW_INCLUDE_DIRS}   # Include GLEW headers
     ${GLFW_INCLUDE_DIRS}   # Include GLFW headers
 )
@@ -45,7 +46,7 @@ target_include_directories(saci PUBLIC
 target_link_libraries(saci PUBLIC
     ${OPENGL_LIBRARIES}  # Link OpenGL
     glfw                 # Link GLFW
-    GLEW::GLEW          # Link GLEW
+    GLEW::GLEW           # Link GLEW
 )
 
 # Add compiler flags

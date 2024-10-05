@@ -1,16 +1,14 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "sacigl.h"
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
-#include "saci-utils.h"
-
+#include "saci-core.h"
+//
 // TODO user defined
 #define MAX_TRIANGLES 1024
 #define MAX_VERTICES MAX_TRIANGLES * 3

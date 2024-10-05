@@ -1,16 +1,8 @@
-#ifndef __SACI_UTILS__
-#define __SACI_UTILS__
+#ifndef __SACI_UTILS_SU_TYPES_H__
+#define __SACI_UTILS_SU_TYPES_H__
 
 #include <stdbool.h>
 #include <stdint.h>
-
-#ifdef __cplusplus
-#define SACI_SCAST_TO(type) static_cast<type>
-#else
-#define SACI_SCAST_TO(type) (type)
-#endif
-
-#define SACI_ARRLEN(array) (sizeof(array) / sizeof(array[0]))
 
 typedef uint64_t saci_u64;
 typedef uint32_t saci_u32;

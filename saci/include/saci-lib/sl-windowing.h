@@ -1,8 +1,8 @@
-#ifndef __SACI_SACI_WINDOWING_H__
-#define __SACI_SACI_WINDOWING_H__
+#ifndef __SACI_LIB_SL_WINDOWING_H__
+#define __SACI_LIB_SL_WINDOWING_H__
 
-#include "saci-utils.h"
-#include "sacigl-windowing.h"
+#include "saci-core/sc-windowing.h"
+#include "saci-utils/su-types.h"
 
 typedef saciGL_Window saci_Window;
 typedef saciGL_Monitor saci_Monitor;

@@ -1,8 +1,8 @@
-#ifndef __SACI_SACIGL_WINDOWING_H__
-#define __SACI_SACIGL_WINDOWING_H__
+#ifndef __SACI_CORE_SC_WINDOWING_H__
+#define __SACI_CORE_SC_WINDOWING_H__
 
-#include "saci-utils.h"
 #include <GLFW/glfw3.h>
+#include "saci-utils/su-types.h"
 
 typedef GLFWmonitor saciGL_Monitor;
 typedef GLFWwindow saciGL_Window;

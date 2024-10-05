@@ -1,4 +1,11 @@
-#include "saci.h"
+#include "saci-core/sc-event.h"
+#include "saci-core/sc-rendering.h"
+#include "saci-lib/sl-camera.h"
+#include "saci-lib/sl-event.h"
+#include "saci-lib/sl-shapes.h"
+#include "saci-lib/sl-windowing.h"
+
+#include "saci-utils/su-general.h"
 
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
@@ -8,9 +15,6 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <stdlib.h>
-
-#include "sacigl-windowing.h"
-#include "sacigl.h"
 
 //----------------------------------------------------------------------------//
 // Helper functions

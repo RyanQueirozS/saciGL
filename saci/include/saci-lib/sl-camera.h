@@ -1,7 +1,7 @@
-#ifndef __SACI_SACI_CAMERA_H__
-#define __SACI_SACI_CAMERA_H__
+#ifndef __SACI_LIB_SL_CAMERA_H__
+#define __SACI_LIB_SL_CAMERA_H__
 
-#include "saci-utils.h"
+#include "saci-utils/su-types.h"
 
 typedef enum {
     SACI_CAMERA_MOVEMENT_XY = 0,        // Only movement in X and Y axes

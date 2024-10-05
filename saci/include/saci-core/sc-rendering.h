@@ -1,7 +1,7 @@
-#ifndef __SACI_SACIGL_RENDERING_H__
-#define __SACI_SACIGL_RENDERING_H__
+#ifndef __SACI_CORE_SC_RENDERING_H__
+#define __SACI_CORE_SC_RENDERING_H__
 
-#include "saci-utils.h"
+#include "saci-utils/su-types.h"
 
 //----------------------------------------------------------------------------//
 // Render

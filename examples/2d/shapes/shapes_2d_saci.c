@@ -1,7 +1,7 @@
 // Implementation of basic shape drawing using SCGL(saci graphics library) and SACI
 
-#include <saci.h>
-#include <sacigl.h>
+#include <saci-lib.h>
+#include <saci-core.h>
 
 bool shouldFillShape = true;
 

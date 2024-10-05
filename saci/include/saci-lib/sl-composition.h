@@ -1,8 +1,7 @@
-#ifndef __SACI_SACI_COMPOSITION_H__
-#define __SACI_SACI_COMPOSITION_H__
+#ifndef __SACI_LIB_SL_COMPOSITION_H__
+#define __SACI_LIB_SL_COMPOSITION_H__
 
-#include "saci-shapes.h"
-#include "saci-utils.h"
+#include "sl-shapes.h"
 
 void saci_InitCompositor();
 

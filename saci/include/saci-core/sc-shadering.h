@@ -1,7 +1,7 @@
-#ifndef __SACI_SACIGL_SHADERING_H__
-#define __SACI_SACIGL_SHADERING_H__
+#ifndef __SACI_CORE_SC_SHADERING_H__
+#define __SACI_CORE_SC_SHADERING_H__
 
-#include "saci-utils.h"
+#include "saci-utils/su-types.h"
 
 saci_u32 saciGL_CompileShaderV(const char* source);
 saci_u32 saciGL_CompileShaderF(const char* source);

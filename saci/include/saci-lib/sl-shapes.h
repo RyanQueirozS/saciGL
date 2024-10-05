@@ -1,7 +1,7 @@
-#ifndef __SACI_SHAPES_H__
-#define __SACI_SHAPES_H__
+#ifndef __SACI_LIB_SL_SHAPES_H__
+#define __SACI_LIB_SL_SHAPES_H__
 
-#include "saci-utils.h"
+#include "saci-utils/su-types.h"
 
 // 2d
 typedef struct saciRect {
