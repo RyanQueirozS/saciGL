@@ -4,30 +4,32 @@
 #include <GLFW/glfw3.h>
 #include "saci-utils/su-types.h"
 
-typedef GLFWmonitor saciGL_Monitor;
-typedef GLFWwindow saciGL_Window;
+typedef GLFWmonitor sc_Monitor;
+typedef GLFWwindow sc_Window;
 
 //----------------------------------------------------------------------------//
 // Windowing
 //----------------------------------------------------------------------------//
 
-saci_Bool saciGL_GLFWInit(void);
-saci_Bool saciGL_GLEWInit(void);
+saci_Bool sc_GLFWInit(void);
+saci_Bool sc_GLEWInit(void);
 
 // Creates a window, does not check if it's null
-saciGL_Window* saciGL_CreateWindow(int width, int height, const char* title,
-                                   saciGL_Monitor* monitor, saciGL_Window* share);
-void saciGL_MakeWindowContext(saciGL_Window* window);
+sc_Window* sc_CreateWindow(int width, int height, const char* title,
+                                   sc_Monitor* monitor, sc_Window* share);
+void sc_MakeWindowContext(sc_Window* window);
 
-typedef void (*saciGL__WindowPosHandler)(saciGL_Window* window, int width, int height);
-void saciGL_SetWindowPosHandler(saciGL_Window* window, saciGL__WindowPosHandler windowPosHandler);
-typedef void (*saciGL__WindowSizeHandler)(saciGL_Window* window, int posx, int posy);
-void saciGL_SetWindowSizeHandler(saciGL_Window* window, saciGL__WindowSizeHandler windowSizeHandler);
+saci_Bool sc_WindowShouldClose(sc_Window* window);
 
-void saciGL_Terminate(void);
+typedef void (*sc_WindowPosHandler)(sc_Window* window, int width, int height);
+void sc_SetWindowPosHandler(sc_Window* window, sc_WindowPosHandler windowPosHandler);
+typedef void (*sc_WindowSizeHandler)(sc_Window* window, int posx, int posy);
+void sc_SetWindowSizeHandler(sc_Window* window, sc_WindowSizeHandler windowSizeHandler);
 
-void saciGL_ClearWindow(const saci_Color color);
+void sc_Terminate(void);
 
-void saciGL_SwapWindowBuffer(saciGL_Window* window);
+void sc_ClearWindow(const saci_Color color);
+
+void sc_SwapWindowBuffer(sc_Window* window);
 
 #endif

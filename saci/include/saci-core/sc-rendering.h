@@ -7,20 +7,20 @@
 // Render
 //----------------------------------------------------------------------------//
 
-typedef struct saciGL_Renderer saciGL_Renderer;
+typedef struct sc_Renderer sc_Renderer;
 
-saciGL_Renderer* saciGL_CreateRenderer(void);
-void saciGL_DeleteRenderer(saciGL_Renderer* renderer);
+sc_Renderer* sc_CreateRenderer(void);
+void sc_DeleteRenderer(sc_Renderer* renderer);
 
-void saciGL_RenderBegin(saciGL_Renderer* renderer);
-void saciGL_RenderEnd(saciGL_Renderer* renderer);
+void sc_RenderBegin(sc_Renderer* renderer);
+void sc_RenderEnd(sc_Renderer* renderer);
 
 // Renderer config
-void saciGL_RenderSetNoFillMode(void);
-void saciGL_RenderSetFillMode(void);
+void sc_RenderSetNoFillMode(void);
+void sc_RenderSetFillMode(void);
 
 // Triangles
-void saciGL_RenderPushTriangle(saciGL_Renderer* renderer,
+void sc_RenderPushTriangle(sc_Renderer* renderer,
                                const saci_Vec2 a, const saci_Vec2 b, const saci_Vec2 c,
                                const saci_Color aColor, const saci_Color bColor, const saci_Color cColor);
 #endif

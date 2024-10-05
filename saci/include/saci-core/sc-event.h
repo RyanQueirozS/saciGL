@@ -5,17 +5,18 @@
 // Event
 //----------------------------------------------------------------------------//
 
+#include "saci-utils/su-general.h"
 #include "sc-windowing.h"
 
-void saciGL__PollEvents();
-void saciGL__WaitForEvents();
-void saciGL__WaitForEventsTimeout(double timeout);
-void saciGL__PostEmptyEvent();
+void sc_PollEvents();
+void sc_WaitForEvents();
+void sc_WaitForEventsTimeout(double timeout);
+void sc_PostEmptyEvent();
 
-typedef void (*saciGL__MousePosHandlerFunction)(saciGL_Window* window, double posx, double posy);
-void saciGL_SetMousePosHandler(saciGL_Window* window, saciGL__MousePosHandlerFunction mousePosHandlerFunction);
+typedef void (*sc_MousePosHandlerFunction)(sc_Window* window, double posx, double posy);
+void sc_SetMousePosHandler(sc_Window* window, sc_MousePosHandlerFunction mousePosHandlerFunction);
 
-typedef enum saciGL_Keycode { // view https://www.glfw.org/docs/3.3/group__keys.html
+typedef enum sc_Keycode { // view https://www.glfw.org/docs/3.3/group__keys.html
     SACI_KEY_SPACE = 32,
     SACI_KEY_APOSTROPHE = 39, /* ' */
     SACI_KEY_COMMA = 44,      /* , */
@@ -137,8 +138,9 @@ typedef enum saciGL_Keycode { // view https://www.glfw.org/docs/3.3/group__keys.
     SACI_KEY_RIGHT_SUPER = 347,
     SACI_KEY_MENU = 348,
     SACI_KEY_LAST = SACI_KEY_MENU,
-} saciGL_Keycode;
+} sc_Keycode;
+
 // returns true if last key state was "pressed"
-saci_Bool saciGL_IsKeyPressed(saciGL_Window* window, saciGL_Keycode keycode);
+saci_Bool sc_IsKeyPressed(sc_Window* window, sc_Keycode keycode);
 
 #endif
