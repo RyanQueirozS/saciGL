@@ -1,7 +1,10 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.11)  # Updated to version 3.11 to use CMP0072
 
 # Set the project name
 project(saci LANGUAGES C)
+
+# Explicitly set OpenGL preference to GLVND
+set(OpenGL_GL_PREFERENCE "GLVND")
 
 # Set the output directories for the library
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -30,11 +33,15 @@ find_package(GLEW REQUIRED)
 # Find OpenGL
 find_package(OpenGL REQUIRED)
 
+# Set CMake policy for OpenGL GLVND preference
+if (POLICY CMP0072)
+    cmake_policy(SET CMP0072 NEW)
+endif()
+
 # Create the library
 add_library(saci STATIC ${SOURCES})
 
 # Include directories
-# Add the root include directory so that headers can be included as <directoryName/filename.h>
 target_include_directories(saci PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"  # Root include directory
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/stbi" # Add your other dependencies here
@@ -47,6 +54,7 @@ target_link_libraries(saci PUBLIC
     ${OPENGL_LIBRARIES}  # Link OpenGL
     glfw                 # Link GLFW
     GLEW::GLEW           # Link GLEW
+    m                    # Link math library (libm)
 )
 
 # Add compiler flags
@@ -61,22 +69,4 @@ target_compile_options(saci PRIVATE
     $<$<CONFIG:Debug>:-g>  # Debugging information in Debug mode
     $<$<CONFIG:Release>:-O3> # Higher optimization in Release mode
 )
-
-# Optionally, if you have tests or examples, you can create separate executables
-# Uncomment and modify these lines as needed
-# add_executable(saci_example example.c)
-# target_link_libraries(saci_example PRIVATE saci)
-
-# Optionally, if you want to install the library
-# install(TARGETS saci
-#     EXPORT saciTargets
-#     LIBRARY DESTINATION lib
-#     ARCHIVE DESTINATION lib
-# )
-# install(EXPORT saciTargets
-#     FILE saciTargets.cmake
-#     NAMESPACE saci::
-#     DESTINATION lib/cmake/saci
-# )
-# install(FILES ${HEADERS} DESTINATION include/saci)
 

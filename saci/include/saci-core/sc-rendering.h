@@ -9,7 +9,7 @@
 
 typedef struct sc_Renderer sc_Renderer;
 
-sc_Renderer* sc_CreateRenderer(void);
+sc_Renderer* sc_CreateRenderer(saci_Bool generateDefaults);
 void sc_DeleteRenderer(sc_Renderer* renderer);
 
 void sc_RenderBegin(sc_Renderer* renderer);
@@ -21,6 +21,6 @@ void sc_RenderSetFillMode(void);
 
 // Triangles
 void sc_RenderPushTriangle(sc_Renderer* renderer,
-                               const saci_Vec2 a, const saci_Vec2 b, const saci_Vec2 c,
-                               const saci_Color aColor, const saci_Color bColor, const saci_Color cColor);
+                           const saci_Vec2 a, const saci_Vec2 b, const saci_Vec2 c,
+                           const saci_Color aColor, const saci_Color bColor, const saci_Color cColor);
 #endif

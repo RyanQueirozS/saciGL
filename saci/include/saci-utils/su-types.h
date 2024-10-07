@@ -33,4 +33,8 @@ typedef struct saci_Color {
     float r, g, b, a;
 } saci_Color;
 
+typedef struct saci_Mat4 {
+    float m[4][4];
+} saci_Mat4;
+
 #endif

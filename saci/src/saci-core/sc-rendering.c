@@ -3,6 +3,7 @@
 #include "saci-core.h"
 
 #include "saci-utils/su-general.h"
+#include "saci-utils/su-math.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +11,13 @@
 
 //----------------------------------------------------------------------------//
 // Helper functions
+//----------------------------------------------------------------------------//
+
+void __sc_initRendererVertex(sc_Renderer* renderer);
+void __sc_initRendererShaderProgram(sc_Renderer* renderer);
+void __sc_initRenderCamera(sc_Renderer* renderer);
+void __sc_initRenderer(sc_Renderer* renderer);
+
 //----------------------------------------------------------------------------//
 
 #define MAX_TRIANGLES 1024
@@ -29,14 +37,12 @@ struct sc_Renderer {
     saci_u32 vertexCount;
 };
 
-void __sc_initRendererVertex(sc_Renderer* renderer);
-void __sc_initRendererShaderProgram(sc_Renderer* renderer);
-void __sc_initRenderer(sc_Renderer* renderer);
-
-sc_Renderer* sc_CreateRenderer(void) {
+sc_Renderer* sc_CreateRenderer(saci_Bool generateDefaults) {
     sc_Renderer* renderer = (sc_Renderer*)malloc(sizeof(sc_Renderer));
     assert(renderer);
-    __sc_initRenderer(renderer);
+    if (generateDefaults) {
+        __sc_initRenderer(renderer);
+    }
     return renderer;
 }
 
@@ -69,8 +75,8 @@ void sc_RenderSetFillMode(void) {
 }
 
 void sc_RenderPushTriangle(sc_Renderer* renderer,
-                               const saci_Vec2 a, const saci_Vec2 b, const saci_Vec2 c,
-                               const saci_Color aColor, const saci_Color bColor, const saci_Color cColor) {
+                           const saci_Vec2 a, const saci_Vec2 b, const saci_Vec2 c,
+                           const saci_Color aColor, const saci_Color bColor, const saci_Color cColor) {
     // Each verticie is multiplied by 3, as this will be rendered as triangles(3 sides);
     renderer->vertices[renderer->vertexCount * 3 + 0].pos = a;
     renderer->vertices[renderer->vertexCount * 3 + 0].color = aColor;
@@ -101,19 +107,28 @@ void __sc_initRendererVertex(sc_Renderer* renderer) {
 void __sc_initRendererShaderProgram(sc_Renderer* renderer) {
     const char* vShaderSource =
         "#version 330 core\n"
+
         "layout (location = 0) in vec3 aPos;\n"
         "layout (location = 1) in vec4 aColor;\n"
+
+        "uniform mat4 uViewMatrix;\n"
+        "uniform mat4 uProjectionMatrix;\n"
+
         "out vec4 vColor;\n"
+
         "void main()\n"
         "{\n"
-        "  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+        "  gl_Position = uProjectionMatrix * uViewMatrix * vec4(aPos, 1.0);\n"
         "  vColor = aColor;\n"
         "}\n\0";
 
     const char* fShaderSource =
         "#version 330 core\n"
+
         "out vec4 FragColor;\n"
+
         "in vec4 vColor;\n"
+
         "void main()\n"
         "{\n"
         "  FragColor = vColor;\n"
@@ -126,7 +141,29 @@ void __sc_initRendererShaderProgram(sc_Renderer* renderer) {
     assert(renderer->shaderProgram);
 }
 
+void __sc_initRenderCamera(sc_Renderer* renderer) {
+    glUseProgram(renderer->shaderProgram);
+    saci_Vec3 cameraPos = {0.0f, 0.0f, 0.0f};
+    saci_Vec3 cameraTarget = {0.0f, 0.0f, 0.0f};
+    saci_Vec3 upVector = {0.0f, 1.0f, 0.0f};
+    saci_Mat4 view = saci_LookAtMat4(cameraPos, cameraTarget, upVector);
+
+    float fov = 45.0f;
+    float aspect = 1600.0f / 900.0f;
+    float near = 0.1f;
+    float far = 100.0f;
+    saci_Mat4 projection = saci_PerspectiveMat4(fov, aspect, near, far);
+
+    // Pass the matrices to the shaders
+    int viewLoc = glGetUniformLocation(renderer->shaderProgram, "uViewMatrix");
+    int projLoc = glGetUniformLocation(renderer->shaderProgram, "uProjectionMatrix");
+
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view.m[0][0]);
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m[0][0]);
+}
+
 void __sc_initRenderer(sc_Renderer* renderer) {
     __sc_initRendererVertex(renderer);
     __sc_initRendererShaderProgram(renderer);
+    __sc_initRenderCamera(renderer);
 }

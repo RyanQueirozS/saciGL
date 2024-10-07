@@ -1,6 +1,7 @@
 #include "saci-core/sc-event.h"
 #include "saci-core/sc-rendering.h"
 #include "saci-core/sc-windowing.h"
+#include "saci-utils/su-math.h"
 
 #include <assert.h>
 
@@ -26,9 +27,11 @@ int main() {
         assert(window);
         sc_MakeWindowContext(window);
         assert(sc_GLEWInit());
+        saci_InitMath();
     }
 
-    renderer = sc_CreateRenderer();
+    // Generates defaulted shaders, vertex and array objects
+    renderer = sc_CreateRenderer(true);
     assert(renderer);
 
     saci_Color bgColor = {0, 0, 0, 1};
