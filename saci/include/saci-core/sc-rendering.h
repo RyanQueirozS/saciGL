@@ -1,6 +1,7 @@
 #ifndef __SACI_CORE_SC_RENDERING_H__
 #define __SACI_CORE_SC_RENDERING_H__
 
+#include "saci-core/sc-camera.h"
 #include "saci-utils/su-types.h"
 
 //----------------------------------------------------------------------------//
@@ -13,7 +14,8 @@ sc_Renderer* sc_CreateRenderer(saci_Bool generateDefaults);
 void sc_DeleteRenderer(sc_Renderer* renderer);
 
 void sc_RenderBegin(sc_Renderer* renderer);
-void sc_RenderEnd(sc_Renderer* renderer);
+void sc_RenderEnd(sc_Renderer* renderer, const sc_Camera camera,
+                  saci_Bool usePerspectiveProjection);
 
 // Renderer config
 void sc_RenderSetNoFillMode(void);

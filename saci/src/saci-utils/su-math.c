@@ -2,18 +2,17 @@
 #include <math.h>
 #include <string.h>
 
-double saci_default_sqrt(double x) { // wrapps math.h sqrt func
+static double saci_default_sqrt(double x) { // wrapps math.h sqrt func
     return sqrt(x);
 }
 
-double saci_default_tan(double x) { // wrapps math.h sqrt func
+static double saci_default_tan(double x) { // wrapps math.h sqrt func
     return tan(x);
 }
 
 static struct {
     double (*sqrt_function)(double);
     double (*tan_function)(double);
-
 } saci_mathPreferences;
 
 void saci_InitMath() {
@@ -96,6 +95,20 @@ saci_Mat4 saci_PerspectiveMat4(float fov, float aspect, float near, float far) {
     result.m[2][2] = -(far + near) / (far - near);
     result.m[2][3] = -1.0f;
     result.m[3][2] = -(2.0f * far * near) / (far - near);
+
+    return result;
+}
+
+saci_Mat4 saci_OrthoMat4(float left, float right, float bottom, float top, float near, float far) {
+    saci_Mat4 result = {0};
+
+    result.m[0][0] = 2.0f / (right - left);
+    result.m[1][1] = 2.0f / (top - bottom);
+    result.m[2][2] = -2.0f / (far - near);
+    result.m[3][0] = -(right + left) / (right - left);
+    result.m[3][1] = -(top + bottom) / (top - bottom);
+    result.m[3][2] = -(far + near) / (far - near);
+    result.m[3][3] = 1.0f;
 
     return result;
 }

@@ -41,4 +41,6 @@ saci_Mat4 saci_LookAtMat4(saci_Vec3 eye, saci_Vec3 center, saci_Vec3 up);
 
 saci_Mat4 saci_PerspectiveMat4(float fov, float aspect, float near, float far);
 
+saci_Mat4 saci_OrthoMat4(float left, float right, float bottom, float top, float near, float far);
+
 #endif

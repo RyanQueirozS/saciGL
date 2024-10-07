@@ -2,6 +2,7 @@
 
 #include "saci-core.h"
 
+#include "saci-core/sc-camera.h"
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-math.h"
 
@@ -15,7 +16,6 @@
 
 void __sc_initRendererVertex(sc_Renderer* renderer);
 void __sc_initRendererShaderProgram(sc_Renderer* renderer);
-void __sc_initRenderCamera(sc_Renderer* renderer);
 void __sc_initRenderer(sc_Renderer* renderer);
 
 //----------------------------------------------------------------------------//
@@ -57,8 +57,22 @@ void sc_RenderBegin(sc_Renderer* renderer) {
     renderer->vertexCount = 0;
 }
 
-void sc_RenderEnd(sc_Renderer* renderer) {
+void sc_RenderEnd(sc_Renderer* renderer, const sc_Camera camera, saci_Bool usePerspectiveProjection) {
     glUseProgram(renderer->shaderProgram);
+
+    saci_Mat4 view = saci_LookAtMat4(camera.position, camera.target, camera.up);
+    saci_Mat4 projection;
+    if (usePerspectiveProjection) {
+        projection = saci_PerspectiveMat4(camera.fov, camera.aspectRatio, camera.near, camera.far);
+    } else {
+        projection = saci_OrthoMat4(-1, 1, -1, 1, camera.near, camera.far);
+    }
+    int viewLoc = glGetUniformLocation(renderer->shaderProgram, "uViewMatrix");
+    int projLoc = glGetUniformLocation(renderer->shaderProgram, "uProjectionMatrix");
+
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view.m[0][0]);
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m[0][0]);
+
     glBindVertexArray(renderer->vao);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0, renderer->vertexCount * 3 * sizeof(Vertice), renderer->vertices);
@@ -141,29 +155,7 @@ void __sc_initRendererShaderProgram(sc_Renderer* renderer) {
     assert(renderer->shaderProgram);
 }
 
-void __sc_initRenderCamera(sc_Renderer* renderer) {
-    glUseProgram(renderer->shaderProgram);
-    saci_Vec3 cameraPos = {0.0f, 0.0f, 0.0f};
-    saci_Vec3 cameraTarget = {0.0f, 0.0f, 0.0f};
-    saci_Vec3 upVector = {0.0f, 1.0f, 0.0f};
-    saci_Mat4 view = saci_LookAtMat4(cameraPos, cameraTarget, upVector);
-
-    float fov = 45.0f;
-    float aspect = 1600.0f / 900.0f;
-    float near = 0.1f;
-    float far = 100.0f;
-    saci_Mat4 projection = saci_PerspectiveMat4(fov, aspect, near, far);
-
-    // Pass the matrices to the shaders
-    int viewLoc = glGetUniformLocation(renderer->shaderProgram, "uViewMatrix");
-    int projLoc = glGetUniformLocation(renderer->shaderProgram, "uProjectionMatrix");
-
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view.m[0][0]);
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m[0][0]);
-}
-
 void __sc_initRenderer(sc_Renderer* renderer) {
     __sc_initRendererVertex(renderer);
     __sc_initRendererShaderProgram(renderer);
-    __sc_initRenderCamera(renderer);
 }
