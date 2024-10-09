@@ -1,6 +1,10 @@
 #include "saci-utils/su-math.h"
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
+
+#define SACI_8BIT_COLOR_MAX 255.0f
+#define SACI_8BIT_COLOR_INVERSE_MAX 1.0f / SACI_8BIT_COLOR_MAX // Used for Color related math
 
 static double saci_default_sqrt(double x) { // wrapps math.h sqrt func
     return sqrt(x);
@@ -15,6 +19,10 @@ static struct {
     double (*tan_function)(double);
 } saci_mathPreferences;
 
+//------------------------------------------------------------------------------
+// Init
+//------------------------------------------------------------------------------
+
 void saci_InitMath() {
     saci_mathPreferences.sqrt_function = saci_default_sqrt; // defaults the sqrt
                                                             // operation to C's math.h
@@ -23,13 +31,30 @@ void saci_InitMath() {
     saci_mathPreferences.tan_function = saci_default_tan;
 }
 
+//------------------------------------------------------------------------------
+// Vec3
+//------------------------------------------------------------------------------
+
 saci_Vec3 saci_SubtractVec3(saci_Vec3 a, saci_Vec3 b) {
     saci_Vec3 result = {a.x - b.x, a.y - b.y, a.z - b.z};
     return result;
 }
 
+saci_Vec3 saci_AddVec3(saci_Vec3 a, saci_Vec3 b) {
+    saci_Vec3 result = {a.x + b.x, a.y + b.y, a.z + b.z};
+    return result;
+}
+
+saci_Vec3 saci_MultiplyVec3(saci_Vec3 v, float scalar) {
+    saci_Vec3 result = {v.x * scalar, v.y *= scalar, v.z *= scalar};
+    return result;
+}
+
 saci_Vec3 saci_NormalizeVec3(saci_Vec3 v) {
     float mag = saci_mathPreferences.sqrt_function(v.x * v.x + v.y * v.y + v.z * v.z);
+    if (mag == 0.0f) {
+        return (saci_Vec3){0.0f, 0.0f, 0.0f};
+    }
     saci_Vec3 result = {v.x / mag, v.y / mag, v.z / mag};
     return result;
 }
@@ -46,6 +71,38 @@ float saci_DotVec3(saci_Vec3 a, saci_Vec3 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
+//------------------------------------------------------------------------------
+// Color
+//------------------------------------------------------------------------------
+
+saci_Color saci_ColorFromHex(saci_u32 hex) {
+    saci_Color color;
+    color.r = ((hex >> 24) & 0xFF) * SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert red component
+    color.g = ((hex >> 16) & 0xFF) * SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert green component
+    color.b = ((hex >> 8) & 0xFF) * SACI_8BIT_COLOR_INVERSE_MAX;  // Extract and convert blue component
+    color.a = (hex & 0xFF) * SACI_8BIT_COLOR_INVERSE_MAX;         // Extract and convert alpha component
+    return color;
+}
+
+saci_Color saci_ColorFromU8(saci_u8 r, saci_u8 g, saci_u8 b, saci_u8 a) {
+    saci_Color color;
+    color.r = r * SACI_8BIT_COLOR_INVERSE_MAX;
+    color.g = g * SACI_8BIT_COLOR_INVERSE_MAX;
+    color.b = b * SACI_8BIT_COLOR_INVERSE_MAX;
+    color.a = a * SACI_8BIT_COLOR_INVERSE_MAX;
+    return color;
+}
+
+saci_u32 saci_HexFromColor(saci_Color color) {
+    saci_u32 hex = ((saci_u32)(color.r * SACI_8BIT_COLOR_MAX) << 24) |
+                   ((saci_u32)(color.g * SACI_8BIT_COLOR_MAX) << 16) |
+                   ((saci_u32)(color.b * SACI_8BIT_COLOR_MAX) << 8) |
+                   (saci_u32)(color.a * SACI_8BIT_COLOR_MAX);
+    return hex;
+}
+//------------------------------------------------------------------------------
+// Mat4
+//------------------------------------------------------------------------------
 saci_Mat4 saci_MultiplyMat4(saci_Mat4 a, saci_Mat4 b) {
     saci_Mat4 result;
     memset(result.m, 0, sizeof(result.m));

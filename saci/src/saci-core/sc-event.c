@@ -24,6 +24,6 @@ void sc_SetCursorHandler(sc_Window* window, void (*func)(sc_Window*, double, dou
 
 saci_Bool sc_IsKeyPressed(sc_Window* window, sc_Keycode keycode) {
     int keyState = glfwGetKey(window, keycode);
-    if (keyState == GLFW_PRESS) return true;
+    if (keyState == GLFW_PRESS) return SACI_TRUE;
     return false;
 }

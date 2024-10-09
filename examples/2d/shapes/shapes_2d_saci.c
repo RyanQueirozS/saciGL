@@ -2,7 +2,6 @@
 #include "saci-core/sc-rendering.h"
 #include "saci-core/sc-windowing.h"
 #include "saci-utils/su-math.h"
-#include "saci-core/sc-camera.h"
 
 #include <assert.h>
 
@@ -10,7 +9,6 @@
 
 static sc_Window* window;
 static sc_Renderer* renderer;
-static sc_Camera camera;
 
 static const int screen_width = 1600;
 static const int screen_height = 900;
@@ -41,17 +39,13 @@ int main() {
     renderer = sc_CreateRenderer(true);
     assert(renderer);
 
-    // This takes care of the camera, but it's always recommended to setup the aspect ratio acording
-    camera = sc_GenerateDefaultCamera2D();
-    camera.aspectRatio = (float)screen_width / (float)screen_height;
-
-    saci_Color bgColor = {0, 0, 0, 1};
+    saci_Color bgColor = saci_ColorFromU8(25, 70, 125, 255);
     while (!sc_WindowShouldClose(window)) {
         sc_ClearWindow(bgColor);
 
         sc_RenderBegin(renderer);
-        sc_RenderPushTriangle(renderer, triangleVert[0], triangleVert[1], triangleVert[2], triangleColor[0], triangleColor[1], triangleColor[2]);
-        sc_RenderEnd(renderer, camera, true);
+        sc_RenderPushTriangle2D(renderer, triangleVert[0], triangleVert[1], triangleVert[2], 0.0f, triangleColor[0], triangleColor[1], triangleColor[2]);
+        sc_RenderEnd(renderer, NULL);
         sc_SwapWindowBuffer(window);
 
         sc_PollEvents();

@@ -5,24 +5,24 @@
 
 saci_Bool sc_GLFWInit(void) {
     int success = glfwInit();
-    if (!success) return false;
+    if (!success) return SACI_FALSE;
     // TODO make user defined version
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    return true;
+    return SACI_TRUE;
 }
 
 saci_Bool sc_GLEWInit(void) {
     if (glewInit() != GLEW_OK) {
         return false;
     }
-    return true;
+    return SACI_TRUE;
 }
 
 sc_Window* sc_CreateWindow(int width, int height, const char* title,
-                                   sc_Monitor* monitor, sc_Window* share) {
+                           sc_Monitor* monitor, sc_Window* share) {
     return glfwCreateWindow(width, height, title, monitor, share);
 }
 void sc_MakeWindowContext(sc_Window* window) { glfwMakeContextCurrent(window); }
@@ -41,7 +41,7 @@ void sc_Terminate(void) { glfwTerminate(); }
 
 void sc_ClearWindow(saci_Color color) {
     glClearColor(color.r, color.g, color.b, color.a);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void sc_SwapWindowBuffer(sc_Window* window) {

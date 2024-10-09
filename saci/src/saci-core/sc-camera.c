@@ -3,12 +3,7 @@
 
 sc_Camera sc_GenerateDefaultCamera3D() {
     sc_Camera camera;
-    camera.position = (saci_Vec3){0.0f, 0.0f, -3.0f}; // This Z=-3.0f is to position
-                                                      // the camera "behind" the 2D
-                                                      // rendering layer(aka 0),
-                                                      // perhaps this will change
-                                                      // later, but I'm not so
-                                                      // sure how to improve it now
+    camera.position = (saci_Vec3){0.0f, 0.0f, 0.0f};
     camera.target = (saci_Vec3){0.0f, 0.0f, 0.0f};
     camera.up = (saci_Vec3){0.0f, 1.0f, 0.0f};
 
@@ -22,7 +17,7 @@ sc_Camera sc_GenerateDefaultCamera3D() {
 
 sc_Camera sc_GenerateDefaultCamera2D() {
     sc_Camera camera;
-    camera.position = (saci_Vec3){0.0f, 0.0f, 1.0f}; // This Z=-3.0f is to position
+    camera.position = (saci_Vec3){0.0f, 0.0f, 1.0f}; // This Z=1.0f is to position
                                                      // the camera "behind" the 2D
                                                      // rendering layer(aka 0),
                                                      // perhaps this will change
