@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0072 NEW)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-project(shapes_2d LANGUAGES C)
+project(rotating-cube_3d LANGUAGES C)
 
 set(CMAKE_C_STANDARD 99)
 
@@ -22,9 +22,10 @@ add_subdirectory(${SACI_DIR} ${CMAKE_BINARY_DIR}/saci_build)
 include_directories(${SACI_DIR})
 
 # Create the executable
-add_executable(shapes_2d shapes_2d_saci.c)
+add_executable(rotating-cube_3d rotating-cube_3d_saci.c)
 
 # Link libraries
-target_link_libraries(shapes_2d PRIVATE 
+target_link_libraries(rotating-cube_3d PRIVATE 
     saci
 )
+
