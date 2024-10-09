@@ -1,5 +1,6 @@
-#include <GL/glew.h>
+#include <glad/glad.h>
 
+#include <GLFW/glfw3.h>
 #include "saci-core.h"
 #include "saci-utils/su-types.h"
 
@@ -14,9 +15,9 @@ saci_Bool sc_GLFWInit(void) {
     return SACI_TRUE;
 }
 
-saci_Bool sc_GLEWInit(void) {
-    if (glewInit() != GLEW_OK) {
-        return false;
+saci_Bool sc_GLADInit(void) {
+    if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != SACI_TRUE) {
+        return SACI_FALSE;
     }
     return SACI_TRUE;
 }
