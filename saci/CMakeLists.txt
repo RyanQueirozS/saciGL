@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)  # Updated to version 3.11 to use CMP0072
+cmake_minimum_required(VERSION 3.11)  # Updated to version 3.11 to use CMP0072cmake
 
 # Set the project name
 project(saci LANGUAGES C)
@@ -41,7 +41,7 @@ add_library(saci STATIC ${SOURCES})
 # Include directories
 target_include_directories(saci PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"  # Root include directory
-    "${CMAKE_CURRENT_SOURCE_DIR}/deps/stbi" # STB image headers
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/stb" # STB image headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/include" # Glad headers
     ${GLFW_INCLUDE_DIRS}   # Include GLFW headers
 )

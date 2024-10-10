@@ -32,8 +32,7 @@ static void init_saci() {
 
 int main() {
     init_saci();
-    sc_TextureData tex = sc_LoadImage("./texture/basic-img/cat-standing-up.png");
-    sc_BindTexture2D(tex, 0);
+    int tex = sc_TextureLoad("./texture/basic-img/cat-standing-up.png", false);
     while (!sc_WindowShouldClose(window)) {
     }
 }

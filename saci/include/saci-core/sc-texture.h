@@ -9,10 +9,8 @@ typedef struct sc_TextureData {
     uint8_t* data;
 } sc_TextureData;
 
-sc_TextureData sc_LoadImage(const char* path);
-
-saci_TextureID sc_BindTexture2D(sc_TextureData textureData, int mipmapLevel);
-
-void sc_FreeTextureData(sc_TextureData textureData);
+saci_u8* sc_TextureLoadData(const char* path, saci_Bool flipImg, sc_TextureData* texData);
+saci_TextureID sc_TextureLoad(const char* path, saci_Bool flipImg);
+void sc_TextureFree(saci_TextureID textureID);
 
 #endif
