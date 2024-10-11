@@ -21,7 +21,6 @@
 void __sc_initializeRenderValues(sc_Renderer* renderer);
 
 void __sc_resizeVerticeBuffer(sc_Renderer* renderer, saci_u32 newSize);
-void __sc_resizeTextureBuffer(sc_Renderer* renderer, saci_u32 newSize);
 
 void __sc_resizeVBO(sc_Renderer* renderer, saci_u32 newCapacity);
 void __sc_initRenderer_VBO_VAO(sc_Renderer* renderer);
@@ -50,19 +49,12 @@ typedef struct saci_VerticeBuffer {
     saci_u32 verticeCount;
 } saci_VerticeBuffer;
 
-typedef struct saci_TextureBuffer {
-    saci_TextureID* textures;
-    saci_u32 capacity;
-    saci_u32 textureCount;
-} saci_TextureBuffer;
-
 struct sc_Renderer {
     saci_u32 vao, vbo;
 
     saci_u32 shaderProgram;
 
     saci_VerticeBuffer verticeBuffer;
-    saci_TextureBuffer textureBuffer;
 };
 
 static struct sc_RenderConfig {
@@ -172,10 +164,6 @@ void __sc_initializeRenderValues(sc_Renderer* renderer) {
     renderer->verticeBuffer.vertices = NULL;
     renderer->verticeBuffer.verticeCount = 0;
     renderer->verticeBuffer.capacity = 0;
-
-    renderer->textureBuffer.textures = NULL;
-    renderer->textureBuffer.textureCount = 0;
-    renderer->textureBuffer.capacity = 0;
 }
 
 void __sc_resizeVerticeBuffer(sc_Renderer* renderer, saci_u32 newSize) {
@@ -204,34 +192,6 @@ void __sc_resizeVerticeBuffer(sc_Renderer* renderer, saci_u32 newSize) {
     renderer->verticeBuffer.vertices = newTextures;
     renderer->verticeBuffer.capacity = newSize;
     renderer->verticeBuffer.verticeCount = (newSize / sizeof(saci_TextureID)); // Example calculation
-    __sc_resizeVBO(renderer, newSize);
-}
-
-void __sc_resizeTextureBuffer(sc_Renderer* renderer, saci_u32 newSize) {
-    if (newSize == 0 || newSize < renderer->textureBuffer.textureCount) {
-        printf("WARNING: Invalid size(%d) for renderer, either delete or use the renderer\n", newSize);
-        return;
-    }
-
-    saci_TextureID* newTextures = (saci_TextureID*)malloc(newSize * sizeof(saci_TextureID));
-    if (newTextures == NULL) {
-        printf("ERROR: Couldn't allocate memory for renderer\n");
-        return;
-    }
-
-    // Copy old data to the new buffer
-    if (renderer->textureBuffer.textures != NULL) {
-        saci_u32 copySize = renderer->textureBuffer.textureCount * sizeof(saci_TextureID);
-        if (copySize > newSize) {
-            copySize = newSize; // Only copy as much as newSize allows
-        }
-        memcpy(newTextures, renderer->textureBuffer.textures, copySize);
-        free(renderer->textureBuffer.textures); // Free the old buffer
-    }
-
-    renderer->textureBuffer.textures = newTextures;
-    renderer->textureBuffer.capacity = newSize;
-    renderer->textureBuffer.textureCount = (newSize / sizeof(saci_TextureID)); // Example calculation
     __sc_resizeVBO(renderer, newSize);
 }
 
@@ -306,9 +266,7 @@ void __sc_initRenderer(sc_Renderer* renderer) {
 
     { // Initializes the vertice and texture buffers with default sizes
         __sc_resizeVerticeBuffer(renderer, SACI_DEFAULT_VERTEX_BUFFER_SIZE);
-        __sc_resizeTextureBuffer(renderer, SACI_DEFAULT_TEXTURE_BUFFER_SIZE);
         assert(renderer->verticeBuffer.verticeCount);
-        assert(renderer->textureBuffer.textureCount);
     }
 
     // Initializes OpenGL shaders and objects
