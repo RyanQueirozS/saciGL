@@ -5,16 +5,26 @@
 #include "saci-core/sc-camera.h"
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-math.h"
+#include "saci-utils/su-types.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 //----------------------------------------------------------------------------//
 // Helper functions
 //----------------------------------------------------------------------------//
 
-void __sc_initRendererVertex(sc_Renderer* renderer);
+// This needs to be done to make each new renderer value = 0 or NULL. If not it
+// will generate a garbage value and will lead to a crash
+void __sc_initializeRenderValues(sc_Renderer* renderer);
+
+void __sc_resizeVerticeBuffer(sc_Renderer* renderer, saci_u32 newSize);
+void __sc_resizeTextureBuffer(sc_Renderer* renderer, saci_u32 newSize);
+
+void __sc_resizeVBO(sc_Renderer* renderer, saci_u32 newCapacity);
+void __sc_initRenderer_VBO_VAO(sc_Renderer* renderer);
 void __sc_initRendererShaderProgram(sc_Renderer* renderer);
 void __sc_initRenderer(sc_Renderer* renderer);
 
@@ -24,21 +34,35 @@ void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera);
 // Base Definitions
 //----------------------------------------------------------------------------//
 
-#define MAX_TRIANGLES 1024
-#define MAX_VERTICES MAX_TRIANGLES * 3
+#define SACI_DEFAULT_MAX_TRIANGLES 1024
+#define SACI_DEFAULT_VERTEX_BUFFER_SIZE SACI_DEFAULT_MAX_TRIANGLES * 3
 
-typedef struct Vertice {
+#define SACI_DEFAULT_TEXTURE_BUFFER_SIZE 8
+
+typedef struct sac_Vertice {
     saci_Vec3 pos;
     saci_Color color;
-} Vertice;
+} saci_Vertice;
+
+typedef struct saci_VerticeBuffer {
+    saci_Vertice* vertices;
+    saci_u32 capacity;
+    saci_u32 verticeCount;
+} saci_VerticeBuffer;
+
+typedef struct saci_TextureBuffer {
+    saci_TextureID* textures;
+    saci_u32 capacity;
+    saci_u32 textureCount;
+} saci_TextureBuffer;
 
 struct sc_Renderer {
     saci_u32 vao, vbo;
 
     saci_u32 shaderProgram;
 
-    Vertice vertices[MAX_VERTICES];
-    saci_u32 vertexCount;
+    saci_VerticeBuffer verticeBuffer;
+    saci_TextureBuffer textureBuffer;
 };
 
 static struct sc_RenderConfig {
@@ -99,7 +123,7 @@ void sc_RenderSetCustomProjectionMode(sc_RendererCustomProjectionFunction render
 //----------------------------------------------------------------------------//
 
 void sc_RenderBegin(sc_Renderer* renderer) {
-    renderer->vertexCount = 0;
+    renderer->verticeBuffer.verticeCount = 0;
 }
 
 void sc_RenderEnd(sc_Renderer* renderer, const sc_Camera* camera) {
@@ -109,51 +133,128 @@ void sc_RenderEnd(sc_Renderer* renderer, const sc_Camera* camera) {
 
     glBindVertexArray(renderer->vao);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, renderer->vertexCount * 3 * sizeof(Vertice), renderer->vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, renderer->verticeBuffer.verticeCount * 3 * sizeof(saci_Vertice), renderer->verticeBuffer.vertices);
 
-    glDrawArrays(GL_TRIANGLES, 0, renderer->vertexCount * 3);
+    glDrawArrays(GL_TRIANGLES, 0, renderer->verticeBuffer.verticeCount * 3);
 }
 
 void sc_RenderPushTriangle2D(sc_Renderer* renderer,
                              const saci_Vec2 a, const saci_Vec2 b, const saci_Vec2 c, float depth,
                              const saci_Color aColor, const saci_Color bColor, const saci_Color cColor) {
     // Each verticie is multiplied by 3, as this will be rendered as triangles(3 sides);
-    renderer->vertices[renderer->vertexCount * 3 + 0].pos = (saci_Vec3){a.x, a.y, depth};
-    renderer->vertices[renderer->vertexCount * 3 + 0].color = aColor;
-    renderer->vertices[renderer->vertexCount * 3 + 1].pos = (saci_Vec3){b.x, b.y, depth};
-    renderer->vertices[renderer->vertexCount * 3 + 1].color = bColor;
-    renderer->vertices[renderer->vertexCount * 3 + 2].pos = (saci_Vec3){c.x, c.y, depth};
-    renderer->vertices[renderer->vertexCount * 3 + 2].color = cColor;
-    renderer->vertexCount++;
+    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 0].pos = (saci_Vec3){a.x, a.y, depth};
+    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 0].color = aColor;
+    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 1].pos = (saci_Vec3){b.x, b.y, depth};
+    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 1].color = bColor;
+    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 2].pos = (saci_Vec3){c.x, c.y, depth};
+    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 2].color = cColor;
+    renderer->verticeBuffer.verticeCount++;
 }
 
 void sc_RenderPushTriangle3D(sc_Renderer* renderer,
                              const saci_Vec3 a, const saci_Vec3 b, const saci_Vec3 c,
                              const saci_Color aColor, const saci_Color bColor, const saci_Color cColor) {
     // Each verticie is multiplied by 3, as this will be rendered as triangles(3 sides);
-    renderer->vertices[renderer->vertexCount * 3 + 0].pos = a;
-    renderer->vertices[renderer->vertexCount * 3 + 0].color = aColor;
-    renderer->vertices[renderer->vertexCount * 3 + 1].pos = b;
-    renderer->vertices[renderer->vertexCount * 3 + 1].color = bColor;
-    renderer->vertices[renderer->vertexCount * 3 + 2].pos = c;
-    renderer->vertices[renderer->vertexCount * 3 + 2].color = cColor;
-    renderer->vertexCount++;
+    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 0].pos = a;
+    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 0].color = aColor;
+    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 1].pos = b;
+    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 1].color = bColor;
+    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 2].pos = c;
+    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 2].color = cColor;
+    renderer->verticeBuffer.verticeCount++;
 }
 
 //----------------------------------------------------------------------------//
 // Helper functions
 //----------------------------------------------------------------------------//
 
-void __sc_initRendererVertex(sc_Renderer* renderer) {
+void __sc_initializeRenderValues(sc_Renderer* renderer) {
+    renderer->verticeBuffer.vertices = NULL;
+    renderer->verticeBuffer.verticeCount = 0;
+    renderer->verticeBuffer.capacity = 0;
+
+    renderer->textureBuffer.textures = NULL;
+    renderer->textureBuffer.textureCount = 0;
+    renderer->textureBuffer.capacity = 0;
+}
+
+void __sc_resizeVerticeBuffer(sc_Renderer* renderer, saci_u32 newSize) {
+    if (newSize == 0 || newSize < renderer->verticeBuffer.verticeCount) {
+        printf("WARNING: Invalid size(%d) for renderer, either delete or use the renderer\n", newSize);
+        return;
+    }
+
+    saci_Vertice* newTextures = (saci_Vertice*)malloc(newSize * sizeof(saci_Vertice));
+    if (newTextures == NULL) {
+        printf("ERROR: Couldn't allocate memory for renderer\n");
+        return;
+    }
+
+    // Copy old data to the new buffer
+    if (renderer->verticeBuffer.vertices != NULL) {
+        saci_u32 copySize = renderer->verticeBuffer.verticeCount * sizeof(saci_Vertice);
+        printf("%d\n", copySize);
+        if (copySize > newSize) {
+            copySize = newSize; // Only copy as much as newSize allows
+        }
+        memcpy(newTextures, renderer->verticeBuffer.vertices, copySize);
+        free(renderer->verticeBuffer.vertices); // Free the old buffer
+    }
+
+    renderer->verticeBuffer.vertices = newTextures;
+    renderer->verticeBuffer.capacity = newSize;
+    renderer->verticeBuffer.verticeCount = (newSize / sizeof(saci_TextureID)); // Example calculation
+    __sc_resizeVBO(renderer, newSize);
+}
+
+void __sc_resizeTextureBuffer(sc_Renderer* renderer, saci_u32 newSize) {
+    if (newSize == 0 || newSize < renderer->textureBuffer.textureCount) {
+        printf("WARNING: Invalid size(%d) for renderer, either delete or use the renderer\n", newSize);
+        return;
+    }
+
+    saci_TextureID* newTextures = (saci_TextureID*)malloc(newSize * sizeof(saci_TextureID));
+    if (newTextures == NULL) {
+        printf("ERROR: Couldn't allocate memory for renderer\n");
+        return;
+    }
+
+    // Copy old data to the new buffer
+    if (renderer->textureBuffer.textures != NULL) {
+        saci_u32 copySize = renderer->textureBuffer.textureCount * sizeof(saci_TextureID);
+        if (copySize > newSize) {
+            copySize = newSize; // Only copy as much as newSize allows
+        }
+        memcpy(newTextures, renderer->textureBuffer.textures, copySize);
+        free(renderer->textureBuffer.textures); // Free the old buffer
+    }
+
+    renderer->textureBuffer.textures = newTextures;
+    renderer->textureBuffer.capacity = newSize;
+    renderer->textureBuffer.textureCount = (newSize / sizeof(saci_TextureID)); // Example calculation
+    __sc_resizeVBO(renderer, newSize);
+}
+
+void __sc_resizeVBO(sc_Renderer* renderer, saci_u32 newCapacity) {
+    glBindVertexArray(renderer->vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
+    glBufferData(GL_ARRAY_BUFFER, newCapacity * sizeof(saci_Vertice), NULL, GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void __sc_initRenderer_VBO_VAO(sc_Renderer* renderer) {
     glGenVertexArrays(1, &renderer->vao);
     glBindVertexArray(renderer->vao);
 
     glGenBuffers(1, &renderer->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
-    glBufferData(GL_ARRAY_BUFFER, MAX_VERTICES * sizeof(Vertice), NULL, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertice), (void*)offsetof(Vertice, pos));
+    glBufferData(GL_ARRAY_BUFFER, renderer->verticeBuffer.capacity * sizeof(saci_Vertice), NULL, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(saci_Vertice), (void*)offsetof(saci_Vertice, pos));
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertice), (void*)offsetof(Vertice, color));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(saci_Vertice), (void*)offsetof(saci_Vertice, color));
     glEnableVertexAttribArray(1);
 }
 
@@ -200,7 +301,18 @@ void __sc_initRendererShaderProgram(sc_Renderer* renderer) {
 }
 
 void __sc_initRenderer(sc_Renderer* renderer) {
-    __sc_initRendererVertex(renderer);
+    // Initializes to remove garbage numbers
+    __sc_initializeRenderValues(renderer);
+
+    { // Initializes the vertice and texture buffers with default sizes
+        __sc_resizeVerticeBuffer(renderer, SACI_DEFAULT_VERTEX_BUFFER_SIZE);
+        __sc_resizeTextureBuffer(renderer, SACI_DEFAULT_TEXTURE_BUFFER_SIZE);
+        assert(renderer->verticeBuffer.verticeCount);
+        assert(renderer->textureBuffer.textureCount);
+    }
+
+    // Initializes OpenGL shaders and objects
+    __sc_initRenderer_VBO_VAO(renderer);
     __sc_initRendererShaderProgram(renderer);
 }
 
