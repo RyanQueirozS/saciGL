@@ -16,12 +16,24 @@
 // Helper functions
 //----------------------------------------------------------------------------//
 
+// structs used in helper functions
+typedef struct saci_Vertice saci_Vertice;
+typedef struct saci_RenderCall saci_RenderCall;
+typedef struct saci_RenderBatch saci_RenderBatch;
+
 // This needs to be done to make each new renderer value = 0 or NULL. If not it
 // will generate a garbage value and will lead to a crash
 void __sc_initializeRenderValues(sc_Renderer* renderer);
 
-void __sc_resizeVerticeBuffer(sc_Renderer* renderer, saci_u32 newSize);
+// Renderer related
+saci_RenderCall __sc_renderCall_create(saci_Vertice* vertices, int drawMode, saci_TextureID texID, saci_u64 verticesAmount);
 
+void __sc_renderBatch_ResizeInternal(saci_RenderBatch* renderBatch, saci_u32 newSize);
+void __sc_renderBatch_AddTo(saci_RenderBatch* renderBatch, saci_RenderCall renderCall);
+void __sc_renderBatch_Empty(saci_RenderBatch* renderBatch);
+void __sc_renderBatch_Free(saci_RenderBatch* renderBatch);
+
+// OpenGL related
 void __sc_resizeVBO(sc_Renderer* renderer, saci_u32 newCapacity);
 void __sc_initRenderer_VBO_VAO(sc_Renderer* renderer);
 void __sc_initRendererShaderProgram(sc_Renderer* renderer);
@@ -38,30 +50,36 @@ void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera);
 
 #define SACI_DEFAULT_TEXTURE_BUFFER_SIZE 8
 
-typedef struct sac_Vertice {
+typedef struct saci_Vertice {
     saci_Vec3 pos;
     saci_Color color;
 } saci_Vertice;
 
-typedef struct saci_VerticeBuffer {
-    saci_Vertice* vertices;
+typedef struct saci_RenderCall {
+    saci_Vertice* vertices; // from opengl dot to opengl quad 0-7
+    int drawMode;           // LINE TRIANGLE or QUAD
+    saci_TextureID textureID;
+} saci_RenderCall;
+
+typedef struct saci_RenderBatch {
+    saci_RenderCall* drawCalls;
     saci_u32 capacity;
-    saci_u32 verticeCount;
-} saci_VerticeBuffer;
+    saci_u32 drawCallCount;
+} saci_RenderBatch;
 
 struct sc_Renderer {
     saci_u32 vao, vbo;
 
     saci_u32 shaderProgram;
 
-    saci_VerticeBuffer verticeBuffer;
+    saci_RenderBatch renderBatch;
 };
 
 static struct sc_RenderConfig {
     sc_RendererProjectionMode projectionMode;
     sc_RendererCustomProjectionFunction customProjectionFunction;
 
-    bool isFillingShape;
+    bool shouldFillShape;
 } sc_renderConfig;
 
 //----------------------------------------------------------------------------//
@@ -90,12 +108,12 @@ void sc_DeleteRenderer(sc_Renderer* renderer) {
 
 void sc_RenderSetNoFillMode(void) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    sc_renderConfig.isFillingShape = SACI_FALSE;
+    sc_renderConfig.shouldFillShape = SACI_FALSE;
 }
 
 void sc_RenderSetFillMode(void) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    sc_renderConfig.isFillingShape = SACI_TRUE;
+    sc_renderConfig.shouldFillShape = SACI_TRUE;
 }
 
 void sc_RenderEnableZBuffer(void) {
@@ -115,7 +133,7 @@ void sc_RenderSetCustomProjectionMode(sc_RendererCustomProjectionFunction render
 //----------------------------------------------------------------------------//
 
 void sc_RenderBegin(sc_Renderer* renderer) {
-    renderer->verticeBuffer.verticeCount = 0;
+    renderer->renderBatch.drawCallCount = 0;
 }
 
 void sc_RenderEnd(sc_Renderer* renderer, const sc_Camera* camera) {
@@ -125,35 +143,74 @@ void sc_RenderEnd(sc_Renderer* renderer, const sc_Camera* camera) {
 
     glBindVertexArray(renderer->vao);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, renderer->verticeBuffer.verticeCount * 3 * sizeof(saci_Vertice), renderer->verticeBuffer.vertices);
 
-    glDrawArrays(GL_TRIANGLES, 0, renderer->verticeBuffer.verticeCount * 3);
+    for (saci_u32 i = 0; i < renderer->renderBatch.drawCallCount; ++i) {
+        saci_RenderCall* call = &renderer->renderBatch.drawCalls[i];
+
+        saci_u32 vertexCount = 0;
+        if (call->drawMode == GL_TRIANGLES) {
+            vertexCount = 3; // Triangle uses 3 vertices
+        } else if (call->drawMode == GL_QUADS) {
+            vertexCount = 6; // A quad is drawn as 2 triangles, thus 6 vertices
+        } else if (call->drawMode == GL_LINES) {
+            vertexCount = 2; // Line uses 2 vertices
+        }
+
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(saci_Vertice) * vertexCount, call->vertices);
+
+        if (call->drawMode == GL_TRIANGLES) {
+            glDrawArrays(GL_TRIANGLES, 0, 3); // Draw 1 triangle (3 vertices)
+        } else if (call->drawMode == GL_QUADS) {
+            glDrawArrays(GL_TRIANGLES, 0, 6); // Draw 2 triangles (6 vertices for the quad)
+        } else if (call->drawMode == GL_LINE) {
+            glDrawArrays(GL_LINES, 0, 2); // Draw 1 line (2 vertices)
+        }
+        if (call->textureID != 0) {
+            glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture after rendering if needed
+        }
+    }
+
+    glBindVertexArray(0);
+}
+
+void sc_RenderPushTriangleTexture(sc_Renderer* renderer,
+                                  const saci_Vec3 a, const saci_Vec3 b, const saci_Vec3 c,
+                                  const saci_TextureID texID) {
+    saci_Vertice vertices[] = {
+        (saci_Vertice){a, {}},
+        (saci_Vertice){b, {}},
+        (saci_Vertice){c, {}},
+    };
+    saci_RenderCall renderCall = __sc_renderCall_create(vertices, GL_TRIANGLES, texID, 3);
+    __sc_renderBatch_AddTo(&renderer->renderBatch, renderCall);
 }
 
 void sc_RenderPushTriangle2D(sc_Renderer* renderer,
                              const saci_Vec2 a, const saci_Vec2 b, const saci_Vec2 c, float depth,
                              const saci_Color aColor, const saci_Color bColor, const saci_Color cColor) {
-    // Each verticie is multiplied by 3, as this will be rendered as triangles(3 sides);
-    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 0].pos = (saci_Vec3){a.x, a.y, depth};
-    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 0].color = aColor;
-    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 1].pos = (saci_Vec3){b.x, b.y, depth};
-    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 1].color = bColor;
-    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 2].pos = (saci_Vec3){c.x, c.y, depth};
-    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 2].color = cColor;
-    renderer->verticeBuffer.verticeCount++;
+    saci_Vec3 a3 = {a.x, a.y, depth};
+    saci_Vec3 b3 = {b.x, b.y, depth};
+    saci_Vec3 c3 = {c.x, c.y, depth};
+
+    saci_Vertice vertices[] = {
+        (saci_Vertice){a3, aColor},
+        (saci_Vertice){b3, bColor},
+        (saci_Vertice){c3, cColor},
+    };
+    saci_RenderCall renderCall = __sc_renderCall_create(vertices, GL_TRIANGLES, 0, 3);
+    __sc_renderBatch_AddTo(&renderer->renderBatch, renderCall);
 }
 
 void sc_RenderPushTriangle3D(sc_Renderer* renderer,
                              const saci_Vec3 a, const saci_Vec3 b, const saci_Vec3 c,
                              const saci_Color aColor, const saci_Color bColor, const saci_Color cColor) {
-    // Each verticie is multiplied by 3, as this will be rendered as triangles(3 sides);
-    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 0].pos = a;
-    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 0].color = aColor;
-    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 1].pos = b;
-    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 1].color = bColor;
-    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 2].pos = c;
-    renderer->verticeBuffer.vertices[renderer->verticeBuffer.verticeCount * 3 + 2].color = cColor;
-    renderer->verticeBuffer.verticeCount++;
+    saci_Vertice vertices[] = {
+        (saci_Vertice){a, aColor},
+        (saci_Vertice){b, bColor},
+        (saci_Vertice){c, cColor},
+    };
+    saci_RenderCall renderCall = __sc_renderCall_create(vertices, GL_TRIANGLES, 0, 3);
+    __sc_renderBatch_AddTo(&renderer->renderBatch, renderCall);
 }
 
 //----------------------------------------------------------------------------//
@@ -161,39 +218,69 @@ void sc_RenderPushTriangle3D(sc_Renderer* renderer,
 //----------------------------------------------------------------------------//
 
 void __sc_initializeRenderValues(sc_Renderer* renderer) {
-    renderer->verticeBuffer.vertices = NULL;
-    renderer->verticeBuffer.verticeCount = 0;
-    renderer->verticeBuffer.capacity = 0;
+    renderer->renderBatch.drawCalls = NULL;
+    renderer->renderBatch.drawCallCount = 0;
+    renderer->renderBatch.capacity = 0;
 }
 
-void __sc_resizeVerticeBuffer(sc_Renderer* renderer, saci_u32 newSize) {
-    if (newSize == 0 || newSize < renderer->verticeBuffer.verticeCount) {
-        printf("WARNING: Invalid size(%d) for renderer, either delete or use the renderer\n", newSize);
-        return;
+saci_RenderCall __sc_renderCall_create(saci_Vertice* vertices, int drawMode, saci_TextureID texID, saci_u64 verticesAmount) {
+    saci_RenderCall renderCall = {0};
+    if (!vertices || verticesAmount == 0) {
+        fprintf(stderr, "Invalid vertices or size.\n");
+        return renderCall;
     }
-
-    saci_Vertice* newTextures = (saci_Vertice*)malloc(newSize * sizeof(saci_Vertice));
-    if (newTextures == NULL) {
-        printf("ERROR: Couldn't allocate memory for renderer\n");
-        return;
+    if (drawMode < 0 || drawMode > 7) { // TODO recreate opengl types
+        fprintf(stderr, "Invalid vertices or size.\n");
+        return renderCall;
     }
-
-    // Copy old data to the new buffer
-    if (renderer->verticeBuffer.vertices != NULL) {
-        saci_u32 copySize = renderer->verticeBuffer.verticeCount * sizeof(saci_Vertice);
-        printf("%d\n", copySize);
-        if (copySize > newSize) {
-            copySize = newSize; // Only copy as much as newSize allows
-        }
-        memcpy(newTextures, renderer->verticeBuffer.vertices, copySize);
-        free(renderer->verticeBuffer.vertices); // Free the old buffer
+    renderCall.vertices = (saci_Vertice*)malloc(verticesAmount * sizeof(saci_Vertice));
+    if (!renderCall.vertices) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        return renderCall;
     }
+    memcpy(renderCall.vertices, vertices, verticesAmount * sizeof(saci_Vertice));
+    renderCall.drawMode = drawMode;
+    renderCall.textureID = texID;
 
-    renderer->verticeBuffer.vertices = newTextures;
-    renderer->verticeBuffer.capacity = newSize;
-    renderer->verticeBuffer.verticeCount = (newSize / sizeof(saci_TextureID)); // Example calculation
-    __sc_resizeVBO(renderer, newSize);
+    return renderCall;
 }
+
+void __sc_renderBatch_ResizeInternal(saci_RenderBatch* renderBatch, saci_u32 newSize) {
+    if (newSize <= 0 || newSize <= renderBatch->drawCallCount) {
+        // TODO
+        return;
+    }
+    saci_RenderCall* newDrawCalls = (saci_RenderCall*)malloc(newSize * sizeof(saci_RenderCall));
+    if (!newDrawCalls) {
+        // TODO
+        return;
+    }
+    memcpy(newDrawCalls, renderBatch->drawCalls, renderBatch->drawCallCount * sizeof(saci_RenderCall));
+    free(renderBatch->drawCalls);
+    renderBatch->drawCalls = newDrawCalls;
+    renderBatch->capacity = newSize;
+}
+
+void __sc_renderBatch_AddTo(saci_RenderBatch* renderBatch, saci_RenderCall renderCall) {
+    if (renderBatch->capacity <= renderBatch->drawCallCount) {
+        // TODO
+        return;
+    }
+    renderBatch->drawCalls[renderBatch->drawCallCount] = renderCall;
+    renderBatch->drawCallCount++;
+}
+
+void __sc_renderBatch_Empty(saci_RenderBatch* renderBatch) {
+    renderBatch->drawCallCount = 0;
+    renderBatch->drawCalls = NULL;
+}
+
+void __sc_renderBatch_Free(saci_RenderBatch* renderBatch) {
+    free(renderBatch->drawCalls);
+    free(renderBatch);
+}
+
+// OpenGL
 
 void __sc_resizeVBO(sc_Renderer* renderer, saci_u32 newCapacity) {
     glBindVertexArray(renderer->vao);
@@ -211,7 +298,7 @@ void __sc_initRenderer_VBO_VAO(sc_Renderer* renderer) {
 
     glGenBuffers(1, &renderer->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
-    glBufferData(GL_ARRAY_BUFFER, renderer->verticeBuffer.capacity * sizeof(saci_Vertice), NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, renderer->renderBatch.capacity * sizeof(saci_Vertice), NULL, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(saci_Vertice), (void*)offsetof(saci_Vertice, pos));
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(saci_Vertice), (void*)offsetof(saci_Vertice, color));
@@ -265,8 +352,8 @@ void __sc_initRenderer(sc_Renderer* renderer) {
     __sc_initializeRenderValues(renderer);
 
     { // Initializes the vertice and texture buffers with default sizes
-        __sc_resizeVerticeBuffer(renderer, SACI_DEFAULT_VERTEX_BUFFER_SIZE);
-        assert(renderer->verticeBuffer.verticeCount);
+        __sc_renderBatch_ResizeInternal(&renderer->renderBatch, SACI_DEFAULT_VERTEX_BUFFER_SIZE);
+        assert(renderer->renderBatch.drawCalls);
     }
 
     // Initializes OpenGL shaders and objects
