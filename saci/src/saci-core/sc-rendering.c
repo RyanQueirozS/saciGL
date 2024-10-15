@@ -45,6 +45,7 @@ void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera);
 // Base Definitions
 //----------------------------------------------------------------------------//
 
+// TODO rename
 #define SACI_DEFAULT_MAX_TRIANGLES 1024
 #define SACI_DEFAULT_VERTEX_BUFFER_SIZE SACI_DEFAULT_MAX_TRIANGLES * 3
 
@@ -53,6 +54,7 @@ void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera);
 typedef struct saci_Vertice {
     saci_Vec3 pos;
     saci_Color color;
+    saci_Vec2 texCoord;
 } saci_Vertice;
 
 typedef struct saci_RenderCall {
@@ -147,39 +149,47 @@ void sc_RenderEnd(sc_Renderer* renderer, const sc_Camera* camera) {
     for (saci_u32 i = 0; i < renderer->renderBatch.drawCallCount; ++i) {
         saci_RenderCall* call = &renderer->renderBatch.drawCalls[i];
 
+        if (call->textureID != 0) {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, call->textureID);
+        }
+
         saci_u32 vertexCount = 0;
         if (call->drawMode == GL_TRIANGLES) {
-            vertexCount = 3; // Triangle uses 3 vertices
+            vertexCount = 3; // Triangle needs 3 vertices
         } else if (call->drawMode == GL_QUADS) {
-            vertexCount = 6; // A quad is drawn as 2 triangles, thus 6 vertices
+            vertexCount = 6; // A quad uses 6 vertices (2 triangles)
         } else if (call->drawMode == GL_LINES) {
-            vertexCount = 2; // Line uses 2 vertices
+            vertexCount = 2; // Line needs 2 vertices
         }
 
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(saci_Vertice) * vertexCount, call->vertices);
 
         if (call->drawMode == GL_TRIANGLES) {
-            glDrawArrays(GL_TRIANGLES, 0, 3); // Draw 1 triangle (3 vertices)
+            glDrawArrays(GL_TRIANGLES, 0, 3); // Draw 1 triangle
         } else if (call->drawMode == GL_QUADS) {
-            glDrawArrays(GL_TRIANGLES, 0, 6); // Draw 2 triangles (6 vertices for the quad)
-        } else if (call->drawMode == GL_LINE) {
+            glDrawArrays(GL_TRIANGLES, 0, 6); // Draw 2 triangles (6 vertices) for the quad
+        } else if (call->drawMode == GL_LINES) {
             glDrawArrays(GL_LINES, 0, 2); // Draw 1 line (2 vertices)
         }
+
         if (call->textureID != 0) {
-            glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture after rendering if needed
+            glBindTexture(GL_TEXTURE_2D, 0);
         }
     }
-
     glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 void sc_RenderPushTriangleTexture(sc_Renderer* renderer,
                                   const saci_Vec3 a, const saci_Vec3 b, const saci_Vec3 c,
+                                  const saci_Color aColor, const saci_Color bColor, const saci_Color cColor,
+                                  const saci_Vec2 aUV, const saci_Vec2 bUV, const saci_Vec2 cUV,
                                   const saci_TextureID texID) {
     saci_Vertice vertices[] = {
-        (saci_Vertice){a, {}},
-        (saci_Vertice){b, {}},
-        (saci_Vertice){c, {}},
+        (saci_Vertice){a, aColor, aUV},
+        (saci_Vertice){b, bColor, bUV},
+        (saci_Vertice){c, cColor, cUV},
     };
     saci_RenderCall renderCall = __sc_renderCall_create(vertices, GL_TRIANGLES, texID, 3);
     __sc_renderBatch_AddTo(&renderer->renderBatch, renderCall);
@@ -193,9 +203,9 @@ void sc_RenderPushTriangle2D(sc_Renderer* renderer,
     saci_Vec3 c3 = {c.x, c.y, depth};
 
     saci_Vertice vertices[] = {
-        (saci_Vertice){a3, aColor},
-        (saci_Vertice){b3, bColor},
-        (saci_Vertice){c3, cColor},
+        (saci_Vertice){a3, aColor, {0, 0}},
+        (saci_Vertice){b3, bColor, {0, 0}},
+        (saci_Vertice){c3, cColor, {0, 0}},
     };
     saci_RenderCall renderCall = __sc_renderCall_create(vertices, GL_TRIANGLES, 0, 3);
     __sc_renderBatch_AddTo(&renderer->renderBatch, renderCall);
@@ -205,9 +215,9 @@ void sc_RenderPushTriangle3D(sc_Renderer* renderer,
                              const saci_Vec3 a, const saci_Vec3 b, const saci_Vec3 c,
                              const saci_Color aColor, const saci_Color bColor, const saci_Color cColor) {
     saci_Vertice vertices[] = {
-        (saci_Vertice){a, aColor},
-        (saci_Vertice){b, bColor},
-        (saci_Vertice){c, cColor},
+        (saci_Vertice){a, aColor, {0, 0}},
+        (saci_Vertice){b, bColor, {0, 0}},
+        (saci_Vertice){c, cColor, {0, 0}},
     };
     saci_RenderCall renderCall = __sc_renderCall_create(vertices, GL_TRIANGLES, 0, 3);
     __sc_renderBatch_AddTo(&renderer->renderBatch, renderCall);
@@ -303,6 +313,8 @@ void __sc_initRenderer_VBO_VAO(sc_Renderer* renderer) {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(saci_Vertice), (void*)offsetof(saci_Vertice, color));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(saci_Vertice), (void*)offsetof(saci_Vertice, texCoord));
+    glEnableVertexAttribArray(2);
 }
 
 void __sc_initRendererShaderProgram(sc_Renderer* renderer) {
@@ -311,12 +323,14 @@ void __sc_initRendererShaderProgram(sc_Renderer* renderer) {
 
         "layout (location = 0) in vec3 aPos;\n"
         "layout (location = 1) in vec4 aColor;\n"
+        "layout (location = 2) in vec2 aTexCoord;\n"
 
         "uniform mat4 uViewMatrix;\n"
         "uniform mat4 uProjectionMatrix;\n"
         "uniform bool uUseCam;\n"
 
         "out vec4 vColor;\n"
+        "out vec2 vTexCoord;\n"
 
         "void main()\n"
         "{\n"
@@ -325,19 +339,29 @@ void __sc_initRendererShaderProgram(sc_Renderer* renderer) {
         "   }else {\n"
         "       gl_Position = vec4(aPos, 1.0);\n"
         "   }\n"
-        "    vColor = aColor;\n"
+        "   vColor = aColor;\n"
+        "   vTexCoord = aTexCoord;\n"
         "}\n\0";
 
     const char* fShaderSource =
         "#version 330 core\n"
 
-        "out vec4 FragColor;\n"
-
         "in vec4 vColor;\n"
+        "in vec2 vTexCoord;\n"
+
+        "uniform sampler2D uTexture;\n"
+        "uniform bool uUseTexture;\n"
+
+        "out vec4 FragColor;\n"
 
         "void main()\n"
         "{\n"
-        "  FragColor = vColor;\n"
+        "   if (uUseTexture) {\n"
+        "       vec4 texColor = texture(uTexture, vTexCoord);\n"
+        "       FragColor = texColor * vColor;\n"
+        "   } else {\n"
+        "       FragColor = vColor;\n"
+        "   }\n"
         "}\n\0";
 
     saci_u32 vShader = sc_CompileShaderV(vShaderSource);
@@ -372,20 +396,19 @@ void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera) {
     }
 
     view = saci_LookAtMat4(camera->position, camera->target, camera->up);
+
     switch (sc_renderConfig.projectionMode) {
         case SACI_RENDER_ORTHOGRAPHIC_PROJECTION: {
-            projection = saci_OrthoMat4(-1, 1, -1, 1,
-                                        camera->near, camera->far);
+            projection = saci_OrthoMat4(-1, 1, -1, 1, camera->near, camera->far);
             break;
         }
         case SACI_RENDER_PERSPECTIVE_PROJECTION: {
-            projection = saci_PerspectiveMat4(camera->fov, camera->aspectRatio,
-                                              camera->near, camera->far);
+            projection = saci_PerspectiveMat4(camera->fov, camera->aspectRatio, camera->near, camera->far);
             break;
         }
         case SACI_RENDER_CUSTOM_PROJECTION: {
             if (sc_renderConfig.customProjectionFunction == NULL) {
-                return; // TODO error handling
+                return; // TODO: Handle error if no custom projection function is provided
             }
             projection = sc_renderConfig.customProjectionFunction(*camera);
             break;
@@ -395,8 +418,13 @@ void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera) {
     int viewLoc = glGetUniformLocation(renderer->shaderProgram, "uViewMatrix");
     int projLoc = glGetUniformLocation(renderer->shaderProgram, "uProjectionMatrix");
     int useCamLoc = glGetUniformLocation(renderer->shaderProgram, "uUseCam");
+    int uTextureLoc = glGetUniformLocation(renderer->shaderProgram, "uTexture");
+    int uUseTextureLoc = glGetUniformLocation(renderer->shaderProgram, "uUseTexture");
 
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view.m[0][0]);
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m[0][0]);
     glUniform1i(useCamLoc, SACI_TRUE);
+
+    glUniform1i(uTextureLoc, 0);
+    glUniform1i(uUseTextureLoc, SACI_TRUE);
 }

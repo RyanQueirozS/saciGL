@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include "saci-core.h"
 #include "saci-utils/su-types.h"
+#include "saci-utils/su-debug.h"
 
 saci_Bool sc_GLFWInit(void) {
     int success = glfwInit();
@@ -19,6 +20,10 @@ saci_Bool sc_GLADInit(void) {
     if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != SACI_TRUE) {
         return SACI_FALSE;
     }
+    // TODO remove
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(saci_DebugMessageCallback, NULL);
     return SACI_TRUE;
 }
 
