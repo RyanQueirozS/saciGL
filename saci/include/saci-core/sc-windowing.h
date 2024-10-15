@@ -12,11 +12,11 @@ typedef GLFWwindow sc_Window;
 //----------------------------------------------------------------------------//
 
 saci_Bool sc_GLFWInit(void);
-saci_Bool sc_GLEWInit(void);
+saci_Bool sc_GLADInit(void);
 
 // Creates a window, does not check if it's null
 sc_Window* sc_CreateWindow(int width, int height, const char* title,
-                                   sc_Monitor* monitor, sc_Window* share);
+                           sc_Monitor* monitor, sc_Window* share);
 void sc_MakeWindowContext(sc_Window* window);
 
 saci_Bool sc_WindowShouldClose(sc_Window* window);

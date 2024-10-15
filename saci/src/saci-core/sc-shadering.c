@@ -1,7 +1,8 @@
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <stdio.h>
 
 #include "saci-core.h"
+#include "saci-utils/su-types.h"
 
 //----------------------------------------------------------------------------//
 // Helper functions

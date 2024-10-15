@@ -84,7 +84,7 @@ static void init_saci() {
     window = sc_CreateWindow(1600, 900, "SACI ROTATING-CUBE 3D", NULL, NULL);
     assert(window);
     sc_MakeWindowContext(window);
-    assert(sc_GLEWInit());
+    assert(sc_GLADInit());
 
     renderer = sc_CreateRenderer(true);
     assert(renderer);
