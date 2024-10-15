@@ -1,3 +1,4 @@
+
 #include "saci-core/sc-event.h"
 #include "saci-core/sc-rendering.h"
 #include "saci-core/sc-windowing.h"
@@ -31,7 +32,7 @@ int main() {
         window = sc_CreateWindow(1600, 900, "SACI SHAPES 2D", NULL, NULL);
         assert(window);
         sc_MakeWindowContext(window);
-        assert(sc_GLEWInit());
+        assert(sc_GLADInit());
         saci_InitMath();
     }
 

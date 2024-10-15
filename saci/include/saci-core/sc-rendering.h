@@ -36,6 +36,11 @@ void sc_RenderSetCustomProjectionMode(sc_RendererCustomProjectionFunction render
 void sc_RenderBegin(sc_Renderer* renderer);
 void sc_RenderEnd(sc_Renderer* renderer, const sc_Camera* camera);
 
+void sc_RenderPushTriangleTexture(sc_Renderer* renderer,
+                                  const saci_Vec3 a, const saci_Vec3 b, const saci_Vec3 c,
+                                  const saci_Color aColor, const saci_Color bColor, const saci_Color cColor,
+                                  const saci_Vec2 aUV, const saci_Vec2 bUV, const saci_Vec2 cUV,
+                                  const saci_TextureID texID);
 void sc_RenderPushTriangle2D(sc_Renderer* renderer,
                              const saci_Vec2 a, const saci_Vec2 b, const saci_Vec2 c, float depth,
                              const saci_Color aColor, const saci_Color bColor, const saci_Color cColor);

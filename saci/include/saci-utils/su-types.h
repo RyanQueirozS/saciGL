@@ -19,6 +19,7 @@ typedef int8_t saci_s8;
 typedef bool saci_Bool;
 
 typedef saci_u32 saci_ShaderID;
+typedef saci_u32 saci_TextureID;
 
 typedef struct saci_Vec2 {
     float x, y;

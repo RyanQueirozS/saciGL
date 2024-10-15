@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)  # Updated to version 3.11 to use CMP0072
+cmake_minimum_required(VERSION 3.11)  # Updated to version 3.11 to use CMP0072cmake
 
 # Set the project name
 project(saci LANGUAGES C)
@@ -16,7 +16,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Find all source files recursively in the src directory
 file(GLOB_RECURSE SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.c"
 )
 
 # Find all header files recursively in the include directory (optional)
@@ -26,9 +26,6 @@ file(GLOB_RECURSE HEADERS
 
 # Find GLFW
 find_package(glfw3 REQUIRED)
-
-# Find GLEW
-find_package(GLEW REQUIRED)
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
@@ -44,16 +41,18 @@ add_library(saci STATIC ${SOURCES})
 # Include directories
 target_include_directories(saci PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"  # Root include directory
-    "${CMAKE_CURRENT_SOURCE_DIR}/deps/stbi" # Add your other dependencies here
-    ${GLEW_INCLUDE_DIRS}   # Include GLEW headers
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/stb" # STB image headers
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/include" # Glad headers
     ${GLFW_INCLUDE_DIRS}   # Include GLFW headers
 )
+
+# Add Glad source file to the library
+target_sources(saci PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/src/glad.c")
 
 # Link libraries
 target_link_libraries(saci PUBLIC
     ${OPENGL_LIBRARIES}  # Link OpenGL
     glfw                 # Link GLFW
-    GLEW::GLEW           # Link GLEW
     m                    # Link math library (libm)
 )
 
