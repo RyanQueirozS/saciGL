@@ -5,9 +5,21 @@
 #include "saci-utils/su-types.h"
 #include "saci-utils/su-debug.h"
 
+//----------------------------------------------------------------------------//
+// Helper functions
+//----------------------------------------------------------------------------//
+
+void __sc_initializeOpenglDebugger();
+
+//----------------------------------------------------------------------------//
+
 saci_Bool sc_GLFWInit(void) {
     int success = glfwInit();
-    if (!success) return SACI_FALSE;
+    if (!success) {
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, "Couldn't load glfw");
+        return SACI_FALSE;
+    }
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Loaded glfw");
     // TODO make user defined version
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -18,12 +30,11 @@ saci_Bool sc_GLFWInit(void) {
 
 saci_Bool sc_GLADInit(void) {
     if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != SACI_TRUE) {
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, "Couldn't Load glad");
         return SACI_FALSE;
     }
-    // TODO remove
-    glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(saci_DebugMessageCallback, NULL);
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Loaded glad");
+    __sc_initializeOpenglDebugger();
     return SACI_TRUE;
 }
 
@@ -43,7 +54,10 @@ void sc_SetWindowSizeHandler(sc_Window* window, sc_WindowSizeHandler windowSizeH
     glfwSetWindowSizeCallback(window, windowSizeHandler);
 }
 
-void sc_Terminate(void) { glfwTerminate(); }
+void sc_Terminate(void) {
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Terminated glfw");
+    glfwTerminate();
+}
 
 void sc_ClearWindow(saci_Color color) {
     glClearColor(color.r, color.g, color.b, color.a);
@@ -52,4 +66,15 @@ void sc_ClearWindow(saci_Color color) {
 
 void sc_SwapWindowBuffer(sc_Window* window) {
     glfwSwapBuffers(window);
+}
+
+//----------------------------------------------------------------------------//
+// Helper functions
+//----------------------------------------------------------------------------//
+
+void __sc_initializeOpenglDebugger() {
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(saci_OpenGLDebugMessageCallback, NULL);
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Loaded OpenGL debugger");
 }

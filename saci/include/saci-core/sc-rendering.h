@@ -27,7 +27,7 @@ typedef enum sc_RenderProjectionMode {
 } sc_RendererProjectionMode;
 void sc_RenderSetProjectionMode(sc_RendererProjectionMode renderProjectionMode);
 typedef saci_Mat4 (*sc_RendererCustomProjectionFunction)(sc_Camera camera);
-void sc_RenderSetCustomProjectionMode(sc_RendererCustomProjectionFunction renderCustomProjectionMode);
+void sc_RenderSetCustomProjectionModeFunction(sc_RendererCustomProjectionFunction renderCustomProjectionMode);
 
 //----------------------------------------------------------------------------//
 // Renderer Usage

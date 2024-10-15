@@ -79,4 +79,5 @@ int main() {
 
         sc_PollEvents();
     }
+    sc_Terminate();
 }
