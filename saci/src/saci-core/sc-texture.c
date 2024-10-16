@@ -18,6 +18,7 @@ void __sc_setupTexture(saci_TextureID id, saci_Bool useMipmaps);
 //----------------------------------------------------------------------------//
 
 void sc_TextureLoadData(const char* path, saci_Bool flipImg, sc_TextureData* texData) {
+    // @note flipImg is used with a ! operator because stbi automatically flips the image
     stbi_set_flip_vertically_on_load(!flipImg);
     texData->data = stbi_load(path, &texData->width, &texData->height, &texData->nrChannels, 0);
     if (texData->width <= 0 || texData->height <= 0) {
