@@ -63,9 +63,15 @@ target_compile_options(saci PRIVATE
     -O2           # Optimization level
 )
 
-# Optionally, if you want different flags for different configurations
-target_compile_options(saci PRIVATE
-    $<$<CONFIG:Debug>:-g>  # Debugging information in Debug mode
-    $<$<CONFIG:Release>:-O3> # Higher optimization in Release mode
-)
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/../.git")
+    message(STATUS "Git repository detected. Enabling SACI_DEBUG_MODE.")
+    target_compile_definitions(saci PRIVATE SACI_DEBUG_MODE)
+else()
+    message(STATUS "No Git repository detected. SACI_DEBUG_MODE will not be defined.")
+endif()
 
+# Optionally, you can still conditionally add debug symbols or further define macros for different configurations
+target_compile_options(saci PRIVATE
+    $<$<CONFIG:Debug>:-g>      # Debugging information in Debug mode
+    $<$<CONFIG:Release>:-O3>   # Higher optimization in Release mode
+)

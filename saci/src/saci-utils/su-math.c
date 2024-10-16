@@ -1,6 +1,5 @@
 #include "saci-utils/su-math.h"
 #include <math.h>
-#include <stdio.h>
 #include <string.h>
 
 #define SACI_8BIT_COLOR_MAX 255.0f

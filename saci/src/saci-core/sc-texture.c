@@ -43,23 +43,19 @@ saci_TextureID sc_TextureLoad(const char* path, saci_Bool flipImg) {
     saci_TextureID id;
     glGenTextures(1, &id);
 
-    // Ensure the texture is properly bound
     glBindTexture(GL_TEXTURE_2D, id);
 
-    // Ensure the texture dimensions are valid
     if (texData.width <= 0 || texData.height <= 0) {
         SACI_LOG_PRINT(SACI_LOG_LEVEL_WARN, SACI_LOG_CONTEXT_OPENGL, "Texture coudn't be loaded: Texture Width or Height is equal to 0");
         stbi_image_free(texData.data);
         return 0;
     }
 
-    // Upload the texture data to OpenGL
     glTexImage2D(
         GL_TEXTURE_2D, 0, format,
         texData.width, texData.height, 0,
         format, GL_UNSIGNED_BYTE, texData.data);
 
-    // Verify texture dimensions in OpenGL after glTexImage2D
     int glWidth = 0, glHeight = 0;
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &glWidth);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &glHeight);
@@ -73,10 +69,20 @@ saci_TextureID sc_TextureLoad(const char* path, saci_Bool flipImg) {
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(texData.data);
+#if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_TEXTURE)
+    char debugMsg[256];
+    snprintf(debugMsg, sizeof(debugMsg), "Loaded texture with %d width, %d height from %s", texData.width, texData.height, path);
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_OPENGL, debugMsg);
+#endif
     return id;
 }
 
 void sc_TextureFree(saci_TextureID textureID) {
+#if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_TEXTURE)
+    char debugMsg[128];
+    snprintf(debugMsg, sizeof(debugMsg), "Freed texture, id: %d", textureID);
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_OPENGL, debugMsg);
+#endif
     glDeleteTextures(1, &textureID);
 }
 

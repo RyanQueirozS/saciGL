@@ -409,6 +409,9 @@ void __sc_initRenderer(sc_Renderer* renderer) {
     // Initializes OpenGL shaders and objects
     __sc_initRenderer_VBO_VAO(renderer);
     __sc_initRendererShaderProgram(renderer);
+#if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_RENDERING)
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_RENDERER, "Renderer initialized successfully");
+#endif
 }
 
 void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera) {

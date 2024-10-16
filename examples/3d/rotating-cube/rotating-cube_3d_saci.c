@@ -8,10 +8,6 @@
 #include "saci-utils/su-math.h"
 #include <saci-utils/su-general.h>
 
-#define SACI_CORE_IMPLEMENTATION
-// #define SACI_LIB_IMPLEMENTATION
-
-#ifdef SACI_CORE_IMPLEMENTATION
 static sc_Camera camera;
 static sc_Renderer* renderer;
 static sc_Window* window;
@@ -113,8 +109,3 @@ int main() {
         sc_PollEvents();
     }
 }
-
-#endif
-
-#ifdef SACI_LIB_IMPLEMENTATION
-#endif

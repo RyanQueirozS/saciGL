@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 
 #include <GLFW/glfw3.h>
+#include <stdio.h>
 #include "saci-core.h"
 #include "saci-utils/su-types.h"
 #include "saci-utils/su-debug.h"
@@ -35,6 +36,14 @@ saci_Bool sc_GLADInit(void) {
     }
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Loaded glad");
     __sc_initializeOpenglDebugger();
+
+#if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_WINDOWING)
+    const saci_u8* version = glGetString(GL_VERSION);
+    char versionStr[256];
+    snprintf(versionStr, sizeof(versionStr), "Using OpenGL version: %s", version);
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_OPENGL, versionStr);
+#endif
+
     return SACI_TRUE;
 }
 
@@ -48,15 +57,17 @@ saci_Bool sc_WindowShouldClose(sc_Window* window) { return glfwWindowShouldClose
 
 void sc_SetWindowPosHandler(sc_Window* window, sc_WindowPosHandler windowPosHandler) {
     glfwSetWindowPosCallback(window, windowPosHandler);
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Set window pos handler");
 }
 
 void sc_SetWindowSizeHandler(sc_Window* window, sc_WindowSizeHandler windowSizeHandler) {
     glfwSetWindowSizeCallback(window, windowSizeHandler);
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Set window size callback");
 }
 
 void sc_Terminate(void) {
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Terminated glfw");
     glfwTerminate();
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Terminated glfw");
 }
 
 void sc_ClearWindow(saci_Color color) {
@@ -76,5 +87,7 @@ void __sc_initializeOpenglDebugger() {
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(saci_OpenGLDebugMessageCallback, NULL);
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Loaded OpenGL debugger");
+#ifdef SACI_DEBUG_MODE
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_OPENGL, "Loaded OpenGL debugger");
+#endif
 }

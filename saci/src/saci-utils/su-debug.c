@@ -34,6 +34,7 @@ const char* __sc_logContextToString(int level) {
 void saci_LogMessage(int level, int context, const char* message, const char* file, int line) {
     if (level == SACI_LOG_LEVEL_WARN || level == SACI_LOG_LEVEL_ERROR) {
         printf("%s: %s: %s: [FILE:%s][LINE:%d]\n", __sc_logLevelToString(level), __sc_logContextToString(context), message, file, line);
+        return;
     }
     printf("%s: %s: %s\n", __sc_logLevelToString(level), __sc_logContextToString(context), message);
 }

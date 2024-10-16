@@ -34,10 +34,12 @@ saci_u32 sc_GetShaderProgram(saci_u32 vshader, saci_u32 fshader) {
     saci_s32 success = GL_FALSE;
     glGetProgramiv(programID, GL_LINK_STATUS, &success);
     if (!success) {
+        char glErrMessage[1024];
         char errMessage[2048];
         int sizeReturned = 0;
-        glGetProgramInfoLog(programID, 2048, &sizeReturned, errMessage);
-        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, "Shader program couldn't be loaded"); // TODO add multiple args
+        glGetProgramInfoLog(programID, 2048, &sizeReturned, glErrMessage);
+        snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s", glErrMessage);
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, errMessage);
         return 0;
     }
     glDetachShader(programID, vshader);
@@ -59,10 +61,12 @@ saci_u32 sc_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u32 gshad
     saci_s32 success = GL_FALSE;
     glGetProgramiv(programID, GL_LINK_STATUS, &success);
     if (!success) {
+        char glErrMessage[1024];
         char errMessage[2048];
         int sizeReturned = 0;
-        glGetProgramInfoLog(programID, 2048, &sizeReturned, errMessage);
-        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, "Shader program couldn't be loaded"); // TODO add multiple args
+        glGetProgramInfoLog(programID, 2048, &sizeReturned, glErrMessage);
+        snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s", glErrMessage);
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, errMessage);
         return 0;
     }
     glDetachShader(programID, vshader);

@@ -79,5 +79,7 @@ int main() {
 
         sc_PollEvents();
     }
+    sc_TextureFree(tex);
+    sc_DeleteRenderer(renderer);
     sc_Terminate();
 }
