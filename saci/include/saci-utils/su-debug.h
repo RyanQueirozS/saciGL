@@ -4,7 +4,7 @@
 #include "saci-utils/su-types.h"
 
 typedef enum saci_LogLevel {
-    SACI_LOG_LEVEL_DEBUG = -1, // Should not be used unless debug enabled // TODO have an option to enable debug, perhaps a macro
+    SACI_LOG_LEVEL_DEBUG = -1, // Should not be used unless debug enabled
     SACI_LOG_LEVEL_INFO = 0,
     SACI_LOG_LEVEL_WARN = 1,
     SACI_LOG_LEVEL_ERROR = 2,

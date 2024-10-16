@@ -437,7 +437,8 @@ void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera) {
         }
         case SACI_RENDER_CUSTOM_PROJECTION: {
             if (sc_renderConfig.customProjectionFunction == NULL) {
-                return; // TODO: Handle error if no custom projection function is provided
+                SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_RENDERER, "Custom projection mode function not set");
+                return;
             }
             projection = sc_renderConfig.customProjectionFunction(*camera);
             break;

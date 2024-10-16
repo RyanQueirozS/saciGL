@@ -6,7 +6,7 @@
 typedef struct sc_TextureData {
     int width, height;
     int nrChannels;
-    uint8_t* data; // TODO not being used
+    uint8_t* data;
 } sc_TextureData;
 
 void sc_TextureLoadData(const char* path, saci_Bool flipImg, sc_TextureData* texData);
