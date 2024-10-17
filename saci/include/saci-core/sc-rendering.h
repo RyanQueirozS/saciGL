@@ -1,3 +1,7 @@
+/**
+ * @file sc-rendering.h
+ * @brief This header defines rendering related functions and structs related to saciCORE
+ */
 #ifndef __SACI_CORE_SC_RENDERING_H__
 #define __SACI_CORE_SC_RENDERING_H__
 
@@ -11,8 +15,8 @@
  * @brief Structure to hold render related information.
  *
  * @details
- * This structure is used to hold vertex information in form of triangles, squares or lines.
- * These shapes are later rendered to the screen.
+ * This structure is used to hold vertex information in form of triangles, squares or
+ * lines. These shapes are later rendered to the screen.
  */
 typedef struct sc_Renderer sc_Renderer;
 
@@ -22,7 +26,8 @@ typedef struct sc_Renderer sc_Renderer;
  * @brief Creates the sc_Renderer struct
  *
  * @details
- * This functions creates, initializes and sets all of the sc_Renderer related shaders and OpenGL context.
+ * This functions creates, initializes and sets all of the sc_Renderer related shaders and
+ * OpenGL context.
  *
  * @param generateDefaults A boolean to generate defaulted shaders and OpenGL context.
  * @return A new sc_Renderer* either defaulted or not. Does check if it's null
@@ -73,7 +78,8 @@ typedef enum sc_RenderProjectionMode {
 /**
  * @brief Sets projection mode
  *
- * @param renderProjectionMode The sc_RenderProjectionMode that the sc_Renderer should use.
+ * @param renderProjectionMode The sc_RenderProjectionMode that the sc_Renderer should
+ * use.
  */
 void sc_RenderSetProjectionMode(sc_RendererProjectionMode renderProjectionMode);
 
@@ -89,9 +95,11 @@ typedef saci_Mat4 (*sc_RendererCustomProjectionFunction)(sc_Camera camera);
 /**
  * @brief Sets custom projection mode function.
  *
- * @param renderCustomProjectionModeFunction The sc_RenderProjectionMode that the sc_Renderer should use.
+ * @param renderCustomProjectionModeFunction The sc_RenderProjectionMode that the
+ * sc_Renderer should use.
  */
-void sc_RenderSetCustomProjectionModeFunction(sc_RendererCustomProjectionFunction renderCustomProjectionModeFunction);
+void sc_RenderSetCustomProjectionModeFunction(
+    sc_RendererCustomProjectionFunction renderCustomProjectionModeFunction);
 
 /* === Render Usage === */
 
@@ -125,10 +133,11 @@ void sc_RenderEnd(sc_Renderer* renderer, const sc_Camera* camera);
  * @param aUV, bUV, cUV The UV coordinates for each vertex.
  * @param texID The texture to apply.
  */
-void sc_RenderPushTriangleTexture(sc_Renderer* renderer,
-                                  const saci_Vec3 a, const saci_Vec3 b, const saci_Vec3 c,
-                                  const saci_Color aColor, const saci_Color bColor, const saci_Color cColor,
-                                  const saci_Vec2 aUV, const saci_Vec2 bUV, const saci_Vec2 cUV,
+void sc_RenderPushTriangleTexture(sc_Renderer* renderer, const saci_Vec3 a,
+                                  const saci_Vec3 b, const saci_Vec3 c,
+                                  const saci_Color aColor, const saci_Color bColor,
+                                  const saci_Color cColor, const saci_Vec2 aUV,
+                                  const saci_Vec2 bUV, const saci_Vec2 cUV,
                                   const saci_TextureID texID);
 
 /**
@@ -138,9 +147,9 @@ void sc_RenderPushTriangleTexture(sc_Renderer* renderer,
  * @param a, b, c The triangle vertices.
  * @param aColor, bColor, cColor The colors for each vertex.
  */
-void sc_RenderPushTriangle2D(sc_Renderer* renderer,
-                             const saci_Vec2 a, const saci_Vec2 b, const saci_Vec2 c, float depth,
-                             const saci_Color aColor, const saci_Color bColor, const saci_Color cColor);
+void sc_RenderPushTriangle2D(sc_Renderer* renderer, const saci_Vec2 a, const saci_Vec2 b,
+                             const saci_Vec2 c, float depth, const saci_Color aColor,
+                             const saci_Color bColor, const saci_Color cColor);
 
 /**
  * @brief Pushes a textured 3D plane triangle to the renderer.
@@ -149,7 +158,7 @@ void sc_RenderPushTriangle2D(sc_Renderer* renderer,
  * @param a, b, c The triangle vertices.
  * @param aColor, bColor, cColor The colors for each vertex.
  */
-void sc_RenderPushTriangle3D(sc_Renderer* renderer,
-                             const saci_Vec3 a, const saci_Vec3 b, const saci_Vec3 c,
-                             const saci_Color aColor, const saci_Color bColor, const saci_Color cColor);
+void sc_RenderPushTriangle3D(sc_Renderer* renderer, const saci_Vec3 a, const saci_Vec3 b,
+                             const saci_Vec3 c, const saci_Color aColor,
+                             const saci_Color bColor, const saci_Color cColor);
 #endif

@@ -74,10 +74,11 @@ saci_Bool sc_GLADInit(void);
  * @param title The title of the window.
  * @param monitor The monitor to display the window on (use NULL for the primary monitor).
  * @param share The window to share resources with (use NULL for no sharing).
- * @return A pointer to the created sc_Window. This function does not check if the window is null.
+ * @return A pointer to the created sc_Window. This function does not check if the window
+ * is null.
  */
-sc_Window* sc_CreateWindow(int width, int height, const char* title,
-                           sc_Monitor* monitor, sc_Window* share);
+sc_Window* sc_CreateWindow(int width, int height, const char* title, sc_Monitor* monitor,
+                           sc_Window* share);
 
 /**
  * @brief Makes the specified window the current OpenGL context.

@@ -1,19 +1,22 @@
+/**
+ * @file sc-windowing.h
+ * @brief This header defines event related funtions regarding saciCORE
+ */
+
 #ifndef __SACI_CORE_SC_EVENT_H__
 #define __SACI_CORE_SC_EVENT_H__
 
-//----------------------------------------------------------------------------//
-// Event
-//----------------------------------------------------------------------------//
-
-#include "saci-utils/su-general.h"
 #include "sc-windowing.h"
+
+/* === Event Handling === */
 
 /**
  * @brief Processes all pending events.
  *
  * @details
- * This function retrieves and processes all events from the event queue, such as input events and window events.
- * It should be called in the main loop to ensure that the application remains responsive to user input.
+ * This function retrieves and processes all events from the event queue, such as input
+ * events and window events. It should be called in the main loop to ensure that the
+ * application remains responsive to user input.
  */
 void sc_PollEvents();
 
@@ -21,8 +24,9 @@ void sc_PollEvents();
  * @brief Waits for events to occur.
  *
  * @details
- * This function blocks the calling thread until an event occurs, allowing the application to sleep until there are
- * events to process. This can be more efficient than continuously polling for events.
+ * This function blocks the calling thread until an event occurs, allowing the application
+ * to sleep until there are events to process. This can be more efficient than
+ * continuously polling for events.
  */
 void sc_WaitForEvents();
 
@@ -30,11 +34,12 @@ void sc_WaitForEvents();
  * @brief Waits for events to occur with a timeout.
  *
  * @details
- * This function blocks the calling thread until an event occurs or the specified timeout duration has elapsed.
+ * This function blocks the calling thread until an event occurs or the specified timeout
+ * duration has elapsed.
  *
- * @param timeout The maximum time in seconds to wait for an event. If an event occurs within this time,
- *                the function returns immediately. If the timeout expires, the function returns without
- *                processing any events.
+ * @param timeout The maximum time in seconds to wait for an event. If an event occurs
+ * within this time, the function returns immediately. If the timeout expires, the
+ * function returns without processing any events.
  */
 void sc_WaitForEventsTimeout(double timeout);
 
@@ -42,8 +47,9 @@ void sc_WaitForEventsTimeout(double timeout);
  * @brief Posts an empty event.
  *
  * @details
- * This function posts an empty event to the event queue. It can be used to wake up the main loop when it is
- * waiting for events, allowing it to re-check for other events or exit.
+ * This function posts an empty event to the event queue. It can be used to wake up the
+ * main loop when it is waiting for events, allowing it to re-check for other events or
+ * exit.
  */
 void sc_PostEmptyEvent();
 
@@ -51,8 +57,8 @@ void sc_PostEmptyEvent();
  * @brief Type definition for a mouse position handler function.
  *
  * @details
- * This type represents a function that handles mouse position updates. It is called whenever the mouse
- * position changes within the specified window.
+ * This type represents a function that handles mouse position updates. It is called
+ * whenever the mouse position changes within the specified window.
  *
  * @param window The window where the mouse event occurred.
  * @param posx The new x-coordinate of the mouse pointer.
@@ -64,20 +70,23 @@ typedef void (*sc_MousePosHandlerFunction)(sc_Window* window, double posx, doubl
  * @brief Sets a mouse position handler for a specified window.
  *
  * @details
- * This function sets a callback that will be called whenever the mouse position changes in the specified window.
+ * This function sets a callback that will be called whenever the mouse position changes
+ * in the specified window.
  *
  * @param window The window to set the mouse position handler for.
- * @param mousePosHandlerFunction The callback function to be called on mouse position changes.
+ * @param mousePosHandlerFunction The callback function to be called on mouse position
+ * changes.
  */
-void sc_SetMousePosHandler(sc_Window* window, sc_MousePosHandlerFunction mousePosHandlerFunction);
+void sc_SetMousePosHandler(sc_Window* window,
+                           sc_MousePosHandlerFunction mousePosHandlerFunction);
 
 /**
  * @brief Enumeration of key codes for keyboard input.
  *
  * @details
- * This enumeration defines key codes used to identify various keys on the keyboard. These key codes are used
- * in input handling to check if specific keys are pressed.
- * See https://www.glfw.org/docs/3.3/group__keys.html
+ * This enumeration defines key codes used to identify various keys on the keyboard. These
+ * key codes are used in input handling to check if specific keys are pressed. See
+ * https://www.glfw.org/docs/3.3/group__keys.html
  */
 typedef enum sc_Keycode {
     SACI_KEY_SPACE = 32,
@@ -215,3 +224,4 @@ typedef enum sc_Keycode {
  * @return Returns SACI_TRUE if the key is pressed; otherwise, returns false.
  */
 saci_Bool sc_IsKeyPressed(sc_Window* window, sc_Keycode keycode);
+#endif

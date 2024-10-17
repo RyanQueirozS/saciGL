@@ -1,3 +1,7 @@
+/**
+ * @file sc-rendering.h
+ * @brief This header defines camera related functions and structs related to saciCORE
+ */
 #ifndef __SACI_CORE_SC_CAMERA_H__
 #define __SACI_CORE_SC_CAMERA_H__
 
@@ -54,7 +58,8 @@ sc_Camera sc_GenerateDefaultCamera3D();
  *
  * @details
  * - **Position:** (0.0f, 0.0f, 1.0f)
- *   The Z value is set to 1.0f to position the camera "behind" the 2D rendering layer (at Z=0).
+ *   The Z value is set to 1.0f to position the camera "behind" the 2D rendering layer (at
+ * Z=0).
  * - **Target:** (0.0f, 0.0f, 0.0f)
  * - **Up Vector:** (0.0f, 1.0f, 0.0f)
  * - **Field of View (FOV):** 45.0f

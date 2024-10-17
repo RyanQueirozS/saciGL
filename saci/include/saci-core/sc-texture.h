@@ -3,8 +3,9 @@
  * @brief This header defines functions and structures for loading and managing textures.
  *
  * @details
- * This file includes the necessary functions and structures for loading texture data from a file,
- * managing texture memory, and providing utilities to handle textures in the SACI engine.
+ * This file includes the necessary functions and structures for loading texture data from
+ * a file, managing texture memory, and providing utilities to handle textures in the SACI
+ * engine.
  */
 
 #ifndef __SACI_CORE_SC_TEXTURE_H__
@@ -19,8 +20,8 @@
  * @brief Structure to hold texture information and pixel data.
  *
  * @details
- * This structure is used to represent the raw texture data, including width, height, number of channels,
- * and a pointer to the actual image data.
+ * This structure is used to represent the raw texture data, including width, height,
+ * number of channels, and a pointer to the actual image data.
  *
  * @var sc_TextureData::width
  * The width of the texture in pixels.
@@ -47,12 +48,14 @@ typedef struct sc_TextureData {
  * @brief Loads texture data from a file without creating an OpenGL texture.
  *
  * @details
- * This function reads the image file at the specified path and fills the provided sc_TextureData structure
- * with the texture's pixel data. It also supports flipping the image vertically.
+ * This function reads the image file at the specified path and fills the provided
+ * sc_TextureData structure with the texture's pixel data. It also supports flipping the
+ * image vertically.
  *
  * @param path The file path of the texture to load.
  * @param flipImg A boolean indicating whether the image should be flipped vertically.
- * @param texData A pointer to an sc_TextureData structure that will hold the loaded texture information.
+ * @param texData A pointer to an sc_TextureData structure that will hold the loaded
+ * texture information.
  */
 void sc_TextureLoadData(const char* path, saci_Bool flipImg, sc_TextureData* texData);
 
@@ -60,8 +63,9 @@ void sc_TextureLoadData(const char* path, saci_Bool flipImg, sc_TextureData* tex
  * @brief Loads a texture from a file and creates an OpenGL texture.
  *
  * @details
- * This function reads the image file at the specified path, uploads the texture to the GPU,
- * and returns a texture ID that can be used for rendering. It also supports vertical flipping of the image.
+ * This function reads the image file at the specified path, uploads the texture to the
+ * GPU, and returns a texture ID that can be used for rendering. It also supports vertical
+ * flipping of the image.
  *
  * @param path The file path of the texture to load.
  * @param flipImg A boolean indicating whether the image should be flipped vertically.
@@ -73,7 +77,8 @@ saci_TextureID sc_TextureLoad(const char* path, saci_Bool flipImg);
  * @brief Frees the memory associated with an OpenGL texture.
  *
  * @details
- * This function releases the texture associated with the given texture ID from the GPU, freeing its memory.
+ * This function releases the texture associated with the given texture ID from the GPU,
+ * freeing its memory.
  *
  * @param textureID The saci_TextureID of the texture to free.
  */
