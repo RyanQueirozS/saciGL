@@ -165,7 +165,7 @@ Example:
 ```c
     if (texData->width <= 0 || texData->height <= 0) {
         SACI_LOG_PRINT(
-            SACI_LOG_ERROR, // Type
+            SACI_LOG_TYPE_ERROR, // Type
             SACI_LOG_LEVEL_MEDIUM, // Level
             SACI_LOG_CONTEXT_STBI, // Context
             "Texture coudn't be loaded: Texture Width or Height is equal to 0"); // Message
@@ -269,7 +269,7 @@ Example: `/saci/include/saci-core/sc-camera.h` should be defined as
 #### Structs
 
 Structs follow the base [Naming Conventions](#Naming-Conventions), but must:
-- Use PascalCase after the `sc_` or `sl_` prefix;
+- Use PascalCase after the `sc_`, `sl_` or `saci_`, prefix;
 - Members follow the default  [Naming Conventions](#Naming-Conventions);
 
 ```c
@@ -287,16 +287,49 @@ typedef struct sc_Camera {
 
 #### Functions
 
-Functions follow the base [Naming Conventions](#Naming-Conventions), but must:
-- Use PascalCase after the `sc_` or `sl_` prefix;
+**FUNCTIONS MUST** Start with what it modifies or what are most closely
+related. Example:
+```c
+/**
+ * @brief Loads texture data from a file into a sc_TextureData* without creating an OpenGL
+ * texture.
+ *
+ * @param path The file path of the texture to load.
+ * @param flipImg A boolean indicating whether the image should be flipped vertically.
+ * @param texData A pointer to an sc_TextureData structure that will hold the loaded
+ * texture information.
+ */
+void sc_Texture_LoadData(const char* path, saci_Bool flipImg, sc_TextureData* texData);
+```
+In the code above , it's declared a function that loads texture from a file
+into a `sc_TextureData*`. This function is related to **TEXTURES**, so we need
+to begin the name of the function with `Texture`.
+
+This is true for all of the code base, except boolean functions that can
+contain a `Should` or `Is` before the main subject.
+
+Other notes:
 - If a function recieves no parameters, it should be declared as
   `MyFunction(void)` (with the `void` keyword inside the paramter list)
 - Be descriptive! No one should guess what the function does nor have to read
   the whole documentation.
 
+
+**PUBLIC functions** follow the base [naming conventions](#Naming-Conventions), but should:
+- Use PascalCase after the `sc_`, `sl_` or `saci_` prefix;
+
 Example:
 ```c
-sc_Camera sc_GenerateDefaultCamera3D(void);
+sc_Camera sc_CameraGetDefault2D(void);
+```
+
+**PRIVATE functions** follow the base [naming convetions](#Naming-Convetions), but should:
+- Begin with `__` prefix
+- Use camelCase after the `sc_`, `sl_` or `saci_` prefix;
+
+Example:
+```c
+void __sc_renderBatch_Empty(sc_RenderBatch* renderBatch);
 ```
 
 #### Variables

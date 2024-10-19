@@ -17,7 +17,7 @@ void __sc_setupTexture(saci_TextureID id, saci_Bool useMipmaps);
 
 //----------------------------------------------------------------------------//
 
-void sc_TextureLoadData(const char* path, saci_Bool flipImg, sc_TextureData* texData) {
+void sc_Texture_LoadData(const char* path, saci_Bool flipImg, sc_TextureData* texData) {
     // @note flipImg is used with a ! operator because stbi automatically flips the image
     stbi_set_flip_vertically_on_load(!flipImg);
     texData->data =
@@ -31,7 +31,7 @@ void sc_TextureLoadData(const char* path, saci_Bool flipImg, sc_TextureData* tex
 
 saci_TextureID sc_TextureLoad(const char* path, saci_Bool flipImg) {
     sc_TextureData texData = {0};
-    sc_TextureLoadData(path, flipImg, &texData);
+    sc_Texture_LoadData(path, flipImg, &texData);
 
     if (!__sc_isImageLoaded(texData.data)) {
         SACI_LOG_PRINT(SACI_LOG_LEVEL_WARN, SACI_LOG_CONTEXT_OPENGL,
@@ -88,7 +88,7 @@ saci_TextureID sc_TextureLoad(const char* path, saci_Bool flipImg) {
     return id;
 }
 
-void sc_TextureFree(saci_TextureID textureID) {
+void sc_Texture_Free(saci_TextureID textureID) {
 #if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_TEXTURE)
     char debugMsg[128];
     snprintf(debugMsg, sizeof(debugMsg), "Freed texture, id: %d", textureID);

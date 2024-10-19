@@ -105,11 +105,11 @@ saci_u32 saci_HexFromColor(saci_Color color) {
 //------------------------------------------------------------------------------
 saci_Mat4 saci_MultiplyMat4(saci_Mat4 a, saci_Mat4 b) {
     saci_Mat4 result;
-    memset(result.mMatrix, 0, sizeof(result.mMatrix));
+    memset(result.m, 0, sizeof(result.m));
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             for (int k = 0; k < 4; k++) {
-                result.mMatrix[i][j] += a.mMatrix[i][k] * b.mMatrix[k][j];
+                result.m[i][j] += a.m[i][k] * b.m[k][j];
             }
         }
     }
@@ -127,18 +127,18 @@ saci_Mat4 saci_LookAtMat4(saci_Vec3 eye, saci_Vec3 center, saci_Vec3 up) {
     saci_Vec3 u = saci_CrossVec3(s, f);
 
     saci_Mat4 result = saci_IdentityMat4();
-    result.mMatrix[0][0] = s.x;
-    result.mMatrix[0][1] = u.x;
-    result.mMatrix[0][2] = -f.x;
-    result.mMatrix[1][0] = s.y;
-    result.mMatrix[1][1] = u.y;
-    result.mMatrix[1][2] = -f.y;
-    result.mMatrix[2][0] = s.z;
-    result.mMatrix[2][1] = u.z;
-    result.mMatrix[2][2] = -f.z;
-    result.mMatrix[3][0] = -saci_DotVec3(s, eye);
-    result.mMatrix[3][1] = -saci_DotVec3(u, eye);
-    result.mMatrix[3][2] = saci_DotVec3(f, eye);
+    result.m[0][0] = s.x;
+    result.m[0][1] = u.x;
+    result.m[0][2] = -f.x;
+    result.m[1][0] = s.y;
+    result.m[1][1] = u.y;
+    result.m[1][2] = -f.y;
+    result.m[2][0] = s.z;
+    result.m[2][1] = u.z;
+    result.m[2][2] = -f.z;
+    result.m[3][0] = -saci_DotVec3(s, eye);
+    result.m[3][1] = -saci_DotVec3(u, eye);
+    result.m[3][2] = saci_DotVec3(f, eye);
 
     return result;
 }
@@ -147,11 +147,11 @@ saci_Mat4 saci_PerspectiveMat4(float fov, float aspect, float near, float far) {
     saci_Mat4 result = {0};
     float tanHalfFov = saci_mathPreferences.tan_function(SACI_DEG2RAD(fov) / 2.0f);
 
-    result.mMatrix[0][0] = 1.0f / (aspect * tanHalfFov);
-    result.mMatrix[1][1] = 1.0f / tanHalfFov;
-    result.mMatrix[2][2] = -(far + near) / (far - near);
-    result.mMatrix[2][3] = -1.0f;
-    result.mMatrix[3][2] = -(2.0f * far * near) / (far - near);
+    result.m[0][0] = 1.0f / (aspect * tanHalfFov);
+    result.m[1][1] = 1.0f / tanHalfFov;
+    result.m[2][2] = -(far + near) / (far - near);
+    result.m[2][3] = -1.0f;
+    result.m[3][2] = -(2.0f * far * near) / (far - near);
 
     return result;
 }
@@ -160,13 +160,13 @@ saci_Mat4 saci_OrthoMat4(float left, float right, float bottom, float top, float
                          float far) {
     saci_Mat4 result = {0};
 
-    result.mMatrix[0][0] = 2.0f / (right - left);
-    result.mMatrix[1][1] = 2.0f / (top - bottom);
-    result.mMatrix[2][2] = -2.0f / (far - near);
-    result.mMatrix[3][0] = -(right + left) / (right - left);
-    result.mMatrix[3][1] = -(top + bottom) / (top - bottom);
-    result.mMatrix[3][2] = -(far + near) / (far - near);
-    result.mMatrix[3][3] = 1.0f;
+    result.m[0][0] = 2.0f / (right - left);
+    result.m[1][1] = 2.0f / (top - bottom);
+    result.m[2][2] = -2.0f / (far - near);
+    result.m[3][0] = -(right + left) / (right - left);
+    result.m[3][1] = -(top + bottom) / (top - bottom);
+    result.m[3][2] = -(far + near) / (far - near);
+    result.m[3][3] = 1.0f;
 
     return result;
 }

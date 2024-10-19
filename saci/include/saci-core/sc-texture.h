@@ -45,19 +45,15 @@ typedef struct sc_TextureData {
 /* === Texture Loading Functions === */
 
 /**
- * @brief Loads texture data from a file without creating an OpenGL texture.
- *
- * @details
- * This function reads the image file at the specified path and fills the provided
- * sc_TextureData structure with the texture's pixel data. It also supports flipping the
- * image vertically.
+ * @brief Loads texture data from a file into a sc_TextureData* without creating an OpenGL
+ * texture.
  *
  * @param path The file path of the texture to load.
  * @param flipImg A boolean indicating whether the image should be flipped vertically.
  * @param texData A pointer to an sc_TextureData structure that will hold the loaded
  * texture information.
  */
-void sc_TextureLoadData(const char* path, saci_Bool flipImg, sc_TextureData* texData);
+void sc_Texture_LoadData(const char* path, saci_Bool flipImg, sc_TextureData* texData);
 
 /**
  * @brief Loads a texture from a file and creates an OpenGL texture.
@@ -71,7 +67,7 @@ void sc_TextureLoadData(const char* path, saci_Bool flipImg, sc_TextureData* tex
  * @param flipImg A boolean indicating whether the image should be flipped vertically.
  * @return A saci_TextureID representing the loaded texture in the GPU.
  */
-saci_TextureID sc_TextureLoad(const char* path, saci_Bool flipImg);
+saci_TextureID sc_Texture_Load(const char* path, saci_Bool flipImg);
 
 /**
  * @brief Frees the memory associated with an OpenGL texture.
@@ -82,6 +78,6 @@ saci_TextureID sc_TextureLoad(const char* path, saci_Bool flipImg);
  *
  * @param textureID The saci_TextureID of the texture to free.
  */
-void sc_TextureFree(saci_TextureID textureID);
+void sc_Texture_Free(saci_TextureID textureID);
 
 #endif

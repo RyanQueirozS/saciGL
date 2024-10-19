@@ -55,21 +55,15 @@ static void draw_cube() {
     // Loop through the triangles and render them
     for (int i = 0; i < 6; ++i) {
         // First triangle of the face
-        sc_RenderPushTriangle3D(renderer,
-                                vertices[triangles[i][0]],
-                                vertices[triangles[i][1]],
-                                vertices[triangles[i][2]],
-                                colors[triangles[i][0]],
-                                colors[triangles[i][1]],
+        sc_RenderPushTriangle3D(renderer, vertices[triangles[i][0]],
+                                vertices[triangles[i][1]], vertices[triangles[i][2]],
+                                colors[triangles[i][0]], colors[triangles[i][1]],
                                 colors[triangles[i][2]]);
 
         // Second triangle of the face
-        sc_RenderPushTriangle3D(renderer,
-                                vertices[triangles[i][3]],
-                                vertices[triangles[i][4]],
-                                vertices[triangles[i][5]],
-                                colors[triangles[i][3]],
-                                colors[triangles[i][4]],
+        sc_RenderPushTriangle3D(renderer, vertices[triangles[i][3]],
+                                vertices[triangles[i][4]], vertices[triangles[i][5]],
+                                colors[triangles[i][3]], colors[triangles[i][4]],
                                 colors[triangles[i][5]]);
     }
 }
@@ -85,7 +79,7 @@ static void init_saci() {
     renderer = sc_CreateRenderer(true);
     assert(renderer);
 
-    camera = sc_GenerateDefaultCamera3D();
+    camera = sc_Camera_GetDefault3DCamera();
     camera.aspectRatio = 1600.0f / 900.0f;
     camera.position.z = -10.0f; // Change as you may
     camera.position.y = 5.0f;
@@ -97,7 +91,8 @@ static void init_saci() {
 int main() {
     init_saci();
 
-    saci_Color bgColor = saci_ColorFromU8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
+    saci_Color bgColor = saci_ColorFromU8(
+        25, 70, 125, 255); // Colors are stored as float values from 0 to 1
     while (!sc_WindowShouldClose(window)) {
         sc_ClearWindow(bgColor);
 
