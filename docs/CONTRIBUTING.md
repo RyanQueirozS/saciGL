@@ -317,7 +317,7 @@ Other notes:
 
 Example:
 ```c
-sc_Camera sc_CameraGetDefault2D(void);
+sc_Camera sc_Camera_GetDefault2DCamera(void);
 ```
 
 **PRIVATE functions** follow the base [naming convetions](#Naming-Convetions), but should:

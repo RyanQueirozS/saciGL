@@ -42,7 +42,8 @@ void __sc_initRenderer_VBO_VAO(sc_Renderer* renderer);
 void __sc_initRendererShaderProgram(sc_Renderer* renderer);
 void __sc_initRenderer(sc_Renderer* renderer);
 
-void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera);
+void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera,
+                           bool setTexture);
 
 //----------------------------------------------------------------------------//
 // Base Definitions
@@ -178,13 +179,12 @@ void sc_Renderer_Begin(sc_Renderer* renderer) {
 void sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera) {
     glUseProgram(renderer->shaderProgram);
 
-    __sc_setRenderUniform(renderer, camera);
-
     glBindVertexArray(renderer->vao);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
 
     for (saci_u32 i = 0; i < renderer->renderBatch.renderCallCount; ++i) {
         sc_RenderCall* call = &renderer->renderBatch.renderCalls[i];
+        __sc_setRenderUniform(renderer, camera, call->textureID);
 
         if (call->textureID != 0) {
             glActiveTexture(GL_TEXTURE0);
@@ -448,12 +448,29 @@ void __sc_initRenderer(sc_Renderer* renderer) {
 #endif
 }
 
-void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera) {
+void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera,
+                           bool useTexture) {
     saci_Mat4 view = {0};
     saci_Mat4 projection = {0};
 
+    int viewLoc = glGetUniformLocation(renderer->shaderProgram, "uViewMatrix");
+    int projLoc = glGetUniformLocation(renderer->shaderProgram, "uProjectionMatrix");
+    int useCamLoc = glGetUniformLocation(renderer->shaderProgram, "uUseCam");
+    int uTextureLoc = glGetUniformLocation(renderer->shaderProgram, "uTexture");
+    int uUseTextureLoc = glGetUniformLocation(renderer->shaderProgram, "uUseTexture");
+
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view.m[0][0]);
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m[0][0]);
+    glUniform1i(useCamLoc, SACI_TRUE);
+
+    glUniform1i(uTextureLoc, 0);
+    glUniform1i(uUseTextureLoc, SACI_FALSE);
+
+    if (useTexture) {
+        glUniform1i(uUseTextureLoc, SACI_TRUE);
+    }
+
     if (camera == NULL) {
-        int useCamLoc = glGetUniformLocation(renderer->shaderProgram, "uUseCam");
         glUniform1i(useCamLoc, SACI_FALSE);
         return;
     }
@@ -480,17 +497,6 @@ void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera) {
             break;
         }
     }
-
-    int viewLoc = glGetUniformLocation(renderer->shaderProgram, "uViewMatrix");
-    int projLoc = glGetUniformLocation(renderer->shaderProgram, "uProjectionMatrix");
-    int useCamLoc = glGetUniformLocation(renderer->shaderProgram, "uUseCam");
-    int uTextureLoc = glGetUniformLocation(renderer->shaderProgram, "uTexture");
-    int uUseTextureLoc = glGetUniformLocation(renderer->shaderProgram, "uUseTexture");
-
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view.m[0][0]);
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m[0][0]);
-    glUniform1i(useCamLoc, SACI_TRUE);
-
-    glUniform1i(uTextureLoc, 0);
-    glUniform1i(uUseTextureLoc, SACI_TRUE);
 }
