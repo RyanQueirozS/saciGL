@@ -1,6 +1,7 @@
 /**
  * @file su-debug.h
- * @brief This header defines common debug functions and constants used in the saciCORE and saciLIB.
+ * @brief This header defines common debug functions and constants used in the saciCORE
+ * and saciLIB.
  *
  * @details
  * This file provides both OpenGL and saciCORE/saciLIB debugging macros and functions
@@ -10,6 +11,8 @@
 #define __SACI_UTILS_SU_DEBUG_H__
 
 #include "saci-utils/su-types.h"
+
+// TODO add a level and a type log
 
 /**
  * @typedef saci_LogLevel
@@ -29,6 +32,7 @@ typedef enum saci_LogLevel {
 typedef enum saci_ContextLevel {
     SACI_LOG_CONTEXT_OPENGL = 0,
     SACI_LOG_CONTEXT_RENDERER = 1,
+    SACI_LOG_CONTEXT_STBI = 2,
 } saci_ContextLevel;
 
 /**
@@ -53,15 +57,17 @@ typedef enum saci_ContextLevel {
  * @param file The file it happened
  * @param line The line it happened
  */
-void saci_LogMessage(int level, int context, const char* message, const char* file, int line);
+void saci_LogMessage(int level, int context, const char* message, const char* file,
+                     int line);
 
 /**
  * @brief OpenGL message logger
  *
- * @note see: https://registry.khronos.org/OpenGL-Refpages/gl4/html/glDebugMessageCallback.xhtml
+ * @note see:
+ * https://registry.khronos.org/OpenGL-Refpages/gl4/html/glDebugMessageCallback.xhtml
  */
 void saci_OpenGLDebugMessageCallback(saci_u32 source, saci_u32 type, saci_u32 id,
-                                     saci_u32 severity, int length,
-                                     const char* msg, const void* data);
+                                     saci_u32 severity, int length, const char* msg,
+                                     const void* data);
 
 #endif

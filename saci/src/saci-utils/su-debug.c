@@ -26,22 +26,27 @@ const char* __sc_logContextToString(int level) {
             return "OpenGL";
         case SACI_LOG_CONTEXT_RENDERER:
             return "Renderer";
+        case SACI_LOG_CONTEXT_STBI:
+            return "STBI";
         default:
             return "UNKOWN";
     }
 }
 
-void saci_LogMessage(int level, int context, const char* message, const char* file, int line) {
+void saci_LogMessage(int level, int context, const char* message, const char* file,
+                     int line) {
     if (level == SACI_LOG_LEVEL_WARN || level == SACI_LOG_LEVEL_ERROR) {
-        printf("%s: %s: %s: [FILE:%s][LINE:%d]\n", __sc_logLevelToString(level), __sc_logContextToString(context), message, file, line);
+        printf("%s: %s: %s: [FILE:%s][LINE:%d]\n", __sc_logLevelToString(level),
+               __sc_logContextToString(context), message, file, line);
         return;
     }
-    printf("%s: %s: %s\n", __sc_logLevelToString(level), __sc_logContextToString(context), message);
+    printf("%s: %s: %s\n", __sc_logLevelToString(level), __sc_logContextToString(context),
+           message);
 }
 
 void saci_OpenGLDebugMessageCallback(saci_u32 source, saci_u32 type, saci_u32 id,
-                                     saci_u32 severity, int length,
-                                     const char* msg, const void* data) {
+                                     saci_u32 severity, int length, const char* msg,
+                                     const void* data) {
     (void)length, (void)data;
     char* _source;
     char* _type;
@@ -133,6 +138,6 @@ void saci_OpenGLDebugMessageCallback(saci_u32 source, saci_u32 type, saci_u32 id
             break;
     }
 
-    printf("%d: %s of %s severity, raised from %s: %s\n",
-           id, _type, _severity, _source, msg);
+    printf("%d: %s of %s severity, raised from %s: %s\n", id, _type, _severity, _source,
+           msg);
 }

@@ -30,7 +30,7 @@ typedef struct sc_Renderer sc_Renderer;
  * OpenGL context.
  *
  * @param generateDefaults A boolean to generate defaulted shaders and OpenGL context.
- * @return A new sc_Renderer* either defaulted or not. Does check if it's null
+ * @return A new sc_Renderer* either defaulted or not. Can return null
  */
 sc_Renderer* sc_CreateRenderer(saci_Bool generateDefaults);
 

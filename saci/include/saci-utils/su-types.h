@@ -1,11 +1,12 @@
 /**
  * @file su-types.h
- * @brief This header defines common types and structures used in the saciCORE and saciLIB.
+ * @brief This header defines common types and structures used in the saciCORE and
+ * saciLIB.
  *
  * @details
- * This file provides typedefs for both signed and unsigned integer types, boolean constants,
- * as well as common vector, color, and matrix structures.
- * It aims to simplify the use of types across the saciCORE and saciLIB and ensure consistency.
+ * This file provides typedefs for both signed and unsigned integer types, boolean
+ * constants, as well as common vector, color, and matrix structures. It aims to simplify
+ * the use of types across the saciCORE and saciLIB and ensure consistency.
  */
 
 #ifndef __SACI_UTILS_SU_TYPES_H__

@@ -47,7 +47,7 @@ typedef struct sc_Camera {
  *
  * @return The initialized 3D camera with default settings.
  */
-sc_Camera sc_GenerateDefaultCamera3D();
+sc_Camera sc_GenerateDefaultCamera3D(void);
 
 /**
  * @brief Generates a default 2D camera.
