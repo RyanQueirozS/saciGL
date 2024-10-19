@@ -79,7 +79,8 @@ Examples must:
 
 #### Consistency
 Follow the current SACI code style. Code style might evolve, but no major
-changes are expected soon.
+changes are expected soon. Use the `.clang-format` provided in the root of the
+project.
 
 #### Modularity
 Keep functions focused on a single responsibility. Use helper functions to
@@ -394,7 +395,7 @@ guide](https://www.doxygen.nl/manual/docblocks.html).
       `Function1` before `Function2`.
 2. **Commenting**: Use minimal comments. Let code naming and logic be
 self-explanatory.
-3. **OpenGL**: Ensure proper resource management and deletion.
+3. **Dependencies**: Ensure proper resource management and deletion.
 4. **Error Checking**: Ensure robust error and memory management.
 5. **Memory Management**: Always clean up allocated memory in destructors or
 termination functions to prevent memory leaks.
