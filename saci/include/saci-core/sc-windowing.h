@@ -38,7 +38,7 @@ typedef GLFWwindow sc_Window;
  * @param posx The new X position of the window.
  * @param posy The new Y position of the window.
  */
-typedef void (*sc_WindowPosHandler)(sc_Window* window, int posx, int posy);
+typedef void (*sc_Window_PosHandler)(sc_Window* window, int posx, int posy);
 
 /**
  * @typedef sc_WindowSizeHandler
@@ -48,7 +48,7 @@ typedef void (*sc_WindowPosHandler)(sc_Window* window, int posx, int posy);
  * @param width The new width of the window.
  * @param height The new height of the window.
  */
-typedef void (*sc_WindowSizeHandler)(sc_Window* window, int width, int height);
+typedef void (*sc_Window_SizeHandler)(sc_Window* window, int width, int height);
 
 /* === Windowing Functions === */
 
@@ -57,14 +57,14 @@ typedef void (*sc_WindowSizeHandler)(sc_Window* window, int width, int height);
  *
  * @return SACI_TRUE if initialization was successful, SACI_FALSE otherwise.
  */
-saci_Bool sc_GLFWInit(void);
+saci_Bool sc_GLFW_Init(void);
 
 /**
  * @brief Initializes the GLAD library for OpenGL function loading.
  *
  * @return SACI_TRUE if initialization was successful, SACI_FALSE otherwise.
  */
-saci_Bool sc_GLADInit(void);
+saci_Bool sc_GLAD_Init(void);
 
 /**
  * @brief Creates a new window.
@@ -77,8 +77,8 @@ saci_Bool sc_GLADInit(void);
  * @return A pointer to the created sc_Window. This function does not check if the window
  * is null.
  */
-sc_Window* sc_CreateWindow(int width, int height, const char* title, sc_Monitor* monitor,
-                           sc_Window* share);
+sc_Window* sc_Window_Create(int width, int height, const char* title, sc_Monitor* monitor,
+                            sc_Window* share);
 
 /**
  * @brief Makes the specified window the current OpenGL context.
@@ -86,7 +86,7 @@ sc_Window* sc_CreateWindow(int width, int height, const char* title, sc_Monitor*
  * @param window The window to make the current context.
  * @note Needed to initialize GLAD.
  */
-void sc_MakeWindowContext(sc_Window* window);
+void sc_Window_MakeContext(sc_Window* window);
 
 /**
  * @brief Checks if the window should close.
@@ -94,7 +94,7 @@ void sc_MakeWindowContext(sc_Window* window);
  * @param window The window to check.
  * @return SACI_TRUE if the window should close, SACI_FALSE otherwise.
  */
-saci_Bool sc_WindowShouldClose(sc_Window* window);
+saci_Bool sc_Window_ShouldClose(sc_Window* window);
 
 /**
  * @brief Sets a callback function for handling window position changes.
@@ -102,7 +102,7 @@ saci_Bool sc_WindowShouldClose(sc_Window* window);
  * @param window The window to set the position handler for.
  * @param windowPosHandler The callback function to handle position changes.
  */
-void sc_SetWindowPosHandler(sc_Window* window, sc_WindowPosHandler windowPosHandler);
+void sc_Window_SetPosHandler(sc_Window* window, sc_Window_PosHandler windowPosHandler);
 
 /**
  * @brief Sets a callback function for handling window size changes.
@@ -110,19 +110,19 @@ void sc_SetWindowPosHandler(sc_Window* window, sc_WindowPosHandler windowPosHand
  * @param window The window to set the size handler for.
  * @param windowSizeHandler The callback function to handle size changes.
  */
-void sc_SetWindowSizeHandler(sc_Window* window, sc_WindowSizeHandler windowSizeHandler);
+void sc_Window_SetSizeHandler(sc_Window* window, sc_Window_SizeHandler windowSizeHandler);
 
 /**
  * @brief Terminates the windowing system, cleaning up resources.
  */
-void sc_Terminate(void);
+void sc_Window_Terminate(void);
 
 /**
  * @brief Clears the window with the specified color.
  *
  * @param color The saci_Color to clear the window with.
  */
-void sc_ClearWindow(const saci_Color color);
+void sc_Window_ClearColor(const saci_Color color);
 
 /**
  * @brief Swaps the window buffer to display rendered content.
@@ -130,6 +130,6 @@ void sc_ClearWindow(const saci_Color color);
  * @param window The window whose buffer will be swapped.
  * @note If not called, nothing will show on screen.
  */
-void sc_SwapWindowBuffer(sc_Window* window);
+void sc_Window_SwapBuffer(sc_Window* window);
 
 #endif

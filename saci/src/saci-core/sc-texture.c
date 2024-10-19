@@ -29,7 +29,7 @@ void sc_Texture_LoadData(const char* path, saci_Bool flipImg, sc_TextureData* te
     }
 }
 
-saci_TextureID sc_TextureLoad(const char* path, saci_Bool flipImg) {
+saci_TextureID sc_Texture_Load(const char* path, saci_Bool flipImg) {
     sc_TextureData texData = {0};
     sc_Texture_LoadData(path, flipImg, &texData);
 

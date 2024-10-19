@@ -13,19 +13,19 @@ saci_u32 __sc_compileShader(const char* shaderSource, saci_u32 shaderType);
 
 //----------------------------------------------------------------------------//
 
-saci_u32 sc_CompileShaderV(const char* source) {
+saci_u32 sc_Shader_CompileShaderV(const char* source) {
     return __sc_compileShader(source, GL_VERTEX_SHADER);
 }
 
-saci_u32 sc_CompileShaderF(const char* source) {
+saci_u32 sc_Shader_CompileShaderF(const char* source) {
     return __sc_compileShader(source, GL_FRAGMENT_SHADER);
 }
 
-saci_u32 sc_CompileShaderG(const char* source) {
+saci_u32 sc_Shader_CompileShaderG(const char* source) {
     return __sc_compileShader(source, GL_GEOMETRY_SHADER);
 }
 
-saci_u32 sc_GetShaderProgram(saci_u32 vshader, saci_u32 fshader) {
+saci_u32 sc_Shader_GetShaderProgram(saci_u32 vshader, saci_u32 fshader) {
     saci_u32 programID = glCreateProgram();
     glAttachShader(programID, vshader);
     glAttachShader(programID, fshader);
@@ -38,7 +38,8 @@ saci_u32 sc_GetShaderProgram(saci_u32 vshader, saci_u32 fshader) {
         char errMessage[2048];
         int sizeReturned = 0;
         glGetProgramInfoLog(programID, 2048, &sizeReturned, glErrMessage);
-        snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s", glErrMessage);
+        snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s",
+                 glErrMessage);
         SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, errMessage);
         return 0;
     }
@@ -47,11 +48,13 @@ saci_u32 sc_GetShaderProgram(saci_u32 vshader, saci_u32 fshader) {
     glDeleteShader(vshader);
     glDeleteShader(fshader);
 
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Shader program loaded successfully");
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL,
+                   "Shader program loaded successfully");
     return programID;
 }
 
-saci_u32 sc_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u32 gshader) {
+saci_u32 sc_Shader_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader,
+                                     saci_u32 gshader) {
     saci_u32 programID = glCreateProgram();
     glAttachShader(programID, vshader);
     glAttachShader(programID, fshader);
@@ -65,7 +68,8 @@ saci_u32 sc_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u32 gshad
         char errMessage[2048];
         int sizeReturned = 0;
         glGetProgramInfoLog(programID, 2048, &sizeReturned, glErrMessage);
-        snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s", glErrMessage);
+        snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s",
+                 glErrMessage);
         SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, errMessage);
         return 0;
     }
@@ -75,7 +79,8 @@ saci_u32 sc_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u32 gshad
     glDeleteShader(vshader);
     glDeleteShader(fshader);
     glDeleteShader(gshader);
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Shader program be loaded successfully");
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL,
+                   "Shader program be loaded successfully");
 
     return programID;
 }
@@ -98,15 +103,20 @@ saci_u32 __sc_compileShader(const char* shaderSource, saci_u32 shaderType) {
         glGetShaderInfoLog(shaderID, 2048, &sizeReturned, &errMessage[0]);
 
         glDeleteShader(shaderID);
-        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, shaderType == GL_VERTEX_SHADER ? "Vertex shader couldn't be loaded" : (shaderType == GL_FRAGMENT_SHADER ? "Fragment shader couldn't be loaded" : "Geometry shader couldn't be loaded"));
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL,
+                       shaderType == GL_VERTEX_SHADER
+                           ? "Vertex shader couldn't be loaded"
+                           : (shaderType == GL_FRAGMENT_SHADER
+                                  ? "Fragment shader couldn't be loaded"
+                                  : "Geometry shader couldn't be loaded"));
         return 0;
     }
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL,
-                   shaderType == GL_VERTEX_SHADER
-                       ? "Vertex shader loaded successfully"
-                       : (shaderType == GL_FRAGMENT_SHADER
-                              ? "Fragment shader loaded successfully"
-                              : "Geometry shader loaded successfully"));
+    SACI_LOG_PRINT(
+        SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL,
+        shaderType == GL_VERTEX_SHADER
+            ? "Vertex shader loaded successfully"
+            : (shaderType == GL_FRAGMENT_SHADER ? "Fragment shader loaded successfully"
+                                                : "Geometry shader loaded successfully"));
 
     return shaderID;
 }

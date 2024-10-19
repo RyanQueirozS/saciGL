@@ -55,28 +55,28 @@ static void draw_cube() {
     // Loop through the triangles and render them
     for (int i = 0; i < 6; ++i) {
         // First triangle of the face
-        sc_RenderPushTriangle3D(renderer, vertices[triangles[i][0]],
-                                vertices[triangles[i][1]], vertices[triangles[i][2]],
-                                colors[triangles[i][0]], colors[triangles[i][1]],
-                                colors[triangles[i][2]]);
+        sc_Renderer_PushTriangle3D(renderer, vertices[triangles[i][0]],
+                                   vertices[triangles[i][1]], vertices[triangles[i][2]],
+                                   colors[triangles[i][0]], colors[triangles[i][1]],
+                                   colors[triangles[i][2]]);
 
         // Second triangle of the face
-        sc_RenderPushTriangle3D(renderer, vertices[triangles[i][3]],
-                                vertices[triangles[i][4]], vertices[triangles[i][5]],
-                                colors[triangles[i][3]], colors[triangles[i][4]],
-                                colors[triangles[i][5]]);
+        sc_Renderer_PushTriangle3D(renderer, vertices[triangles[i][3]],
+                                   vertices[triangles[i][4]], vertices[triangles[i][5]],
+                                   colors[triangles[i][3]], colors[triangles[i][4]],
+                                   colors[triangles[i][5]]);
     }
 }
 
 static void init_saci() {
     saci_InitMath();
-    assert(sc_GLFWInit());
-    window = sc_CreateWindow(1600, 900, "SACI ROTATING-CUBE 3D", NULL, NULL);
+    assert(sc_GLFW_Init());
+    window = sc_Window_Create(1600, 900, "SACI ROTATING-CUBE 3D", NULL, NULL);
     assert(window);
-    sc_MakeWindowContext(window);
-    assert(sc_GLADInit());
+    sc_Window_MakeContext(window);
+    assert(sc_GLAD_Init());
 
-    renderer = sc_CreateRenderer(true);
+    renderer = sc_Renderer_Create(true);
     assert(renderer);
 
     camera = sc_Camera_GetDefault3DCamera();
@@ -84,8 +84,8 @@ static void init_saci() {
     camera.position.z = -10.0f; // Change as you may
     camera.position.y = 5.0f;
 
-    sc_RenderEnableZBuffer();
-    sc_RenderSetProjectionMode(SACI_RENDER_PERSPECTIVE_PROJECTION);
+    sc_Renderer_EnableZBuffer();
+    sc_Renderer_SetProjectionMode(SACI_RENDER_PERSPECTIVE_PROJECTION);
 }
 
 int main() {
@@ -93,14 +93,14 @@ int main() {
 
     saci_Color bgColor = saci_ColorFromU8(
         25, 70, 125, 255); // Colors are stored as float values from 0 to 1
-    while (!sc_WindowShouldClose(window)) {
-        sc_ClearWindow(bgColor);
+    while (!sc_Window_ShouldClose(window)) {
+        sc_Window_ClearColor(bgColor);
 
-        sc_RenderBegin(renderer);
+        sc_Renderer_Begin(renderer);
         draw_cube();
-        sc_RenderEnd(renderer, &camera);
-        sc_SwapWindowBuffer(window);
+        sc_Renderer_End(renderer, &camera);
+        sc_Window_SwapBuffer(window);
 
-        sc_PollEvents();
+        sc_Event_Poll();
     }
 }

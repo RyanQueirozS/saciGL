@@ -28,29 +28,31 @@ static saci_Color triangleColor[3] = {
 
 int main() {
     {
-        assert(sc_GLFWInit());
-        window = sc_CreateWindow(1600, 900, "SACI SHAPES 2D", NULL, NULL);
+        assert(sc_GLFW_Init());
+        window = sc_Window_Create(1600, 900, "SACI SHAPES 2D", NULL, NULL);
         assert(window);
-        sc_MakeWindowContext(window);
-        assert(sc_GLADInit());
+        sc_Window_MakeContext(window);
+        assert(sc_GLAD_Init());
         saci_InitMath();
     }
 
     // Generates defaulted shaders, vertex and array objects
-    renderer = sc_CreateRenderer(true);
+    renderer = sc_Renderer_Create(true);
     assert(renderer);
 
     saci_Color bgColor = saci_ColorFromU8(25, 70, 125, 255);
-    while (!sc_WindowShouldClose(window)) {
-        sc_ClearWindow(bgColor);
+    while (!sc_Window_ShouldClose(window)) {
+        sc_Window_ClearColor(bgColor);
 
-        sc_RenderBegin(renderer);
-        sc_RenderPushTriangle2D(renderer, triangleVert[0], triangleVert[1], triangleVert[2], 0.0f, triangleColor[0], triangleColor[1], triangleColor[2]);
-        sc_RenderEnd(renderer, NULL);
-        sc_SwapWindowBuffer(window);
+        sc_Renderer_Begin(renderer);
+        sc_Renderer_PushTriangle2D(renderer, triangleVert[0], triangleVert[1],
+                                   triangleVert[2], 0.0f, triangleColor[0],
+                                   triangleColor[1], triangleColor[2]);
+        sc_Renderer_End(renderer, NULL);
+        sc_Window_SwapBuffer(window);
 
-        sc_PollEvents();
+        sc_Event_Poll();
     }
-    sc_DeleteRenderer(renderer);
-    sc_Terminate();
+    sc_Renderer_Delete(renderer);
+    sc_Window_Terminate();
 }

@@ -305,9 +305,6 @@ In the code above , it's declared a function that loads texture from a file
 into a `sc_TextureData*`. This function is related to **TEXTURES**, so we need
 to begin the name of the function with `Texture`.
 
-This is true for all of the code base, except boolean functions that can
-contain a `Should` or `Is` before the main subject.
-
 Other notes:
 - If a function recieves no parameters, it should be declared as
   `MyFunction(void)` (with the `void` keyword inside the paramter list)

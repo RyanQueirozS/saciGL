@@ -14,7 +14,7 @@ void __sc_initializeOpenglDebugger();
 
 //----------------------------------------------------------------------------//
 
-saci_Bool sc_GLFWInit(void) {
+saci_Bool sc_GLFW_Init(void) {
     int success = glfwInit();
     if (!success) {
         SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL,
@@ -30,7 +30,7 @@ saci_Bool sc_GLFWInit(void) {
     return SACI_TRUE;
 }
 
-saci_Bool sc_GLADInit(void) {
+saci_Bool sc_GLAD_Init(void) {
     if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != SACI_TRUE) {
         SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL,
                        "Couldn't Load glad");
@@ -49,39 +49,40 @@ saci_Bool sc_GLADInit(void) {
     return SACI_TRUE;
 }
 
-sc_Window* sc_CreateWindow(int width, int height, const char* title, sc_Monitor* monitor,
-                           sc_Window* share) {
+sc_Window* sc_Window_Create(int width, int height, const char* title, sc_Monitor* monitor,
+                            sc_Window* share) {
     return glfwCreateWindow(width, height, title, monitor, share);
 }
-void sc_MakeWindowContext(sc_Window* window) { glfwMakeContextCurrent(window); }
+void sc_Window_MakeContext(sc_Window* window) { glfwMakeContextCurrent(window); }
 
-saci_Bool sc_WindowShouldClose(sc_Window* window) {
+saci_Bool sc_Window_ShouldClose(sc_Window* window) {
     return glfwWindowShouldClose(window);
 }
 
-void sc_SetWindowPosHandler(sc_Window* window, sc_WindowPosHandler windowPosHandler) {
+void sc_Window_SetPosHandler(sc_Window* window, sc_Window_PosHandler windowPosHandler) {
     glfwSetWindowPosCallback(window, windowPosHandler);
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL,
                    "Set window pos handler");
 }
 
-void sc_SetWindowSizeHandler(sc_Window* window, sc_WindowSizeHandler windowSizeHandler) {
+void sc_Window_SetSizeHandler(sc_Window* window,
+                              sc_Window_SizeHandler windowSizeHandler) {
     glfwSetWindowSizeCallback(window, windowSizeHandler);
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL,
                    "Set window size callback");
 }
 
-void sc_Terminate(void) {
+void sc_Window_Terminate(void) {
     glfwTerminate();
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Terminated glfw");
 }
 
-void sc_ClearWindow(saci_Color color) {
+void sc_Window_ClearColor(saci_Color color) {
     glClearColor(color.r, color.g, color.b, color.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void sc_SwapWindowBuffer(sc_Window* window) { glfwSwapBuffers(window); }
+void sc_Window_SwapBuffer(sc_Window* window) { glfwSwapBuffers(window); }
 
 //----------------------------------------------------------------------------//
 // Helper functions

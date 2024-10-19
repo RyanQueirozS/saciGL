@@ -82,7 +82,7 @@ struct sc_Renderer {
 
 static struct sc_RenderConfig {
     sc_RendererProjectionMode projectionMode;
-    sc_RendererCustomProjectionFunction customProjectionFunction;
+    sc_Renderer_CustomProjectionFunction customProjectionFunction;
 
     bool shouldFillShape;
 } sc_sRenderConfig;
@@ -91,7 +91,7 @@ static struct sc_RenderConfig {
 // Render Initialization/Deletion
 //----------------------------------------------------------------------------//
 
-sc_Renderer* sc_CreateRenderer(saci_Bool generateDefaults) {
+sc_Renderer* sc_Renderer_Create(saci_Bool generateDefaults) {
     sc_Renderer* renderer = (sc_Renderer*)malloc(sizeof(sc_Renderer));
     if (!renderer) {
         SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_RENDERER,
@@ -106,7 +106,7 @@ sc_Renderer* sc_CreateRenderer(saci_Bool generateDefaults) {
     return renderer;
 }
 
-void sc_DeleteRenderer(sc_Renderer* renderer) {
+void sc_Renderer_Delete(sc_Renderer* renderer) {
     glDeleteBuffers(1, &renderer->vbo);
     glDeleteVertexArrays(1, &renderer->vao);
 
@@ -119,27 +119,27 @@ void sc_DeleteRenderer(sc_Renderer* renderer) {
 // Renderer config
 //----------------------------------------------------------------------------//
 
-void sc_RenderSetNoFillMode(void) {
+void sc_Renderer_SetNoFillMode(void) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     sc_sRenderConfig.shouldFillShape = SACI_FALSE;
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_RENDERER,
                    "Renderer set no fill mode");
 }
 
-void sc_RenderSetFillMode(void) {
+void sc_Renderer_SetFillMode(void) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     sc_sRenderConfig.shouldFillShape = SACI_TRUE;
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_RENDERER,
                    "Renderer set fill mode");
 }
 
-void sc_RenderEnableZBuffer(void) {
+void sc_Renderer_EnableZBuffer(void) {
     glEnable(GL_DEPTH_TEST);
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_RENDERER,
                    "Renderer enabled Z buffer");
 }
 
-void sc_RenderSetProjectionMode(sc_RendererProjectionMode renderProjectionMode) {
+void sc_Renderer_SetProjectionMode(sc_RendererProjectionMode renderProjectionMode) {
     sc_sRenderConfig.projectionMode = renderProjectionMode;
     switch (renderProjectionMode) {
         case SACI_RENDER_ORTHOGRAPHIC_PROJECTION: {
@@ -160,8 +160,8 @@ void sc_RenderSetProjectionMode(sc_RendererProjectionMode renderProjectionMode) 
     }
 }
 
-void sc_RenderSetCustomProjectionModeFunction(
-    sc_RendererCustomProjectionFunction renderCustomProjectionMode) {
+void sc_Renderer_SetCustomProjectionModeFunction(
+    sc_Renderer_CustomProjectionFunction renderCustomProjectionMode) {
     sc_sRenderConfig.customProjectionFunction = renderCustomProjectionMode;
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_RENDERER,
                    "Renderer set custom projection mode function");
@@ -171,9 +171,11 @@ void sc_RenderSetCustomProjectionModeFunction(
 // Renderer Usage
 //----------------------------------------------------------------------------//
 
-void sc_RenderBegin(sc_Renderer* renderer) { renderer->renderBatch.renderCallCount = 0; }
+void sc_Renderer_Begin(sc_Renderer* renderer) {
+    renderer->renderBatch.renderCallCount = 0;
+}
 
-void sc_RenderEnd(sc_Renderer* renderer, const sc_Camera* camera) {
+void sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera) {
     glUseProgram(renderer->shaderProgram);
 
     __sc_setRenderUniform(renderer, camera);
@@ -218,12 +220,12 @@ void sc_RenderEnd(sc_Renderer* renderer, const sc_Camera* camera) {
     glUseProgram(0);
 }
 
-void sc_RenderPushTriangleTexture(sc_Renderer* renderer, const saci_Vec3 a,
-                                  const saci_Vec3 b, const saci_Vec3 c,
-                                  const saci_Color aColor, const saci_Color bColor,
-                                  const saci_Color cColor, const saci_Vec2 aUV,
-                                  const saci_Vec2 bUV, const saci_Vec2 cUV,
-                                  const saci_TextureID texID) {
+void sc_Renderer_PushTriangleTexture(sc_Renderer* renderer, const saci_Vec3 a,
+                                     const saci_Vec3 b, const saci_Vec3 c,
+                                     const saci_Color aColor, const saci_Color bColor,
+                                     const saci_Color cColor, const saci_Vec2 aUV,
+                                     const saci_Vec2 bUV, const saci_Vec2 cUV,
+                                     const saci_TextureID texID) {
     sc_Vertice vertices[] = {
         (sc_Vertice){a, aColor, aUV},
         (sc_Vertice){b, bColor, bUV},
@@ -233,9 +235,10 @@ void sc_RenderPushTriangleTexture(sc_Renderer* renderer, const saci_Vec3 a,
     __sc_renderBatch_AddTo(&renderer->renderBatch, renderCall);
 }
 
-void sc_RenderPushTriangle2D(sc_Renderer* renderer, const saci_Vec2 a, const saci_Vec2 b,
-                             const saci_Vec2 c, float depth, const saci_Color aColor,
-                             const saci_Color bColor, const saci_Color cColor) {
+void sc_Renderer_PushTriangle2D(sc_Renderer* renderer, const saci_Vec2 a,
+                                const saci_Vec2 b, const saci_Vec2 c, float depth,
+                                const saci_Color aColor, const saci_Color bColor,
+                                const saci_Color cColor) {
     saci_Vec3 a3 = {a.x, a.y, depth};
     saci_Vec3 b3 = {b.x, b.y, depth};
     saci_Vec3 c3 = {c.x, c.y, depth};
@@ -249,9 +252,10 @@ void sc_RenderPushTriangle2D(sc_Renderer* renderer, const saci_Vec2 a, const sac
     __sc_renderBatch_AddTo(&renderer->renderBatch, renderCall);
 }
 
-void sc_RenderPushTriangle3D(sc_Renderer* renderer, const saci_Vec3 a, const saci_Vec3 b,
-                             const saci_Vec3 c, const saci_Color aColor,
-                             const saci_Color bColor, const saci_Color cColor) {
+void sc_Renderer_PushTriangle3D(sc_Renderer* renderer, const saci_Vec3 a,
+                                const saci_Vec3 b, const saci_Vec3 c,
+                                const saci_Color aColor, const saci_Color bColor,
+                                const saci_Color cColor) {
     sc_Vertice vertices[] = {
         (sc_Vertice){a, aColor, {0, 0}},
         (sc_Vertice){b, bColor, {0, 0}},
@@ -418,10 +422,10 @@ void __sc_initRendererShaderProgram(sc_Renderer* renderer) {
         "   }\n"
         "}\n\0";
 
-    saci_u32 vShader = sc_CompileShaderV(vShaderSource);
-    saci_u32 fShader = sc_CompileShaderF(fShaderSource);
+    saci_u32 vShader = sc_Shader_CompileShaderV(vShaderSource);
+    saci_u32 fShader = sc_Shader_CompileShaderF(fShaderSource);
     assert(vShader != 0 && fShader != 0);
-    renderer->shaderProgram = sc_GetShaderProgram(vShader, fShader);
+    renderer->shaderProgram = sc_Shader_GetShaderProgram(vShader, fShader);
     assert(renderer->shaderProgram);
 }
 

@@ -37,13 +37,13 @@ saci_Vec2 uvCoords[4] = {
 
 static void init_saci() {
     saci_InitMath();
-    assert(sc_GLFWInit());
-    window = sc_CreateWindow(1600, 900, "SACI ROTATING-CUBE 3D", NULL, NULL);
+    assert(sc_GLFW_Init());
+    window = sc_Window_Create(1600, 900, "SACI ROTATING-CUBE 3D", NULL, NULL);
     assert(window);
-    sc_MakeWindowContext(window);
-    assert(sc_GLADInit());
+    sc_Window_MakeContext(window);
+    assert(sc_GLAD_Init());
 
-    renderer = sc_CreateRenderer(true);
+    renderer = sc_Renderer_Create(true);
     assert(renderer);
 
     camera = sc_Camera_GetDefault3DCamera();
@@ -54,8 +54,8 @@ static void init_saci() {
         camera.position.z = 5.0f;
     }
 
-    sc_RenderEnableZBuffer();
-    sc_RenderSetProjectionMode(SACI_RENDER_PERSPECTIVE_PROJECTION);
+    sc_Renderer_EnableZBuffer();
+    sc_Renderer_SetProjectionMode(SACI_RENDER_PERSPECTIVE_PROJECTION);
 }
 
 int main() {
@@ -64,26 +64,27 @@ int main() {
     assert(tex);
     saci_Color bgColor = saci_ColorFromU8(
         25, 70, 125, 255); // Colors are stored as float values from 0 to 1
-    while (!sc_WindowShouldClose(window)) {
-        sc_ClearWindow(bgColor);
+    while (!sc_Window_ShouldClose(window)) {
+        sc_Window_ClearColor(bgColor);
 
-        sc_RenderBegin(renderer);
-        sc_RenderPushTriangleTexture(renderer, triangleVertices[0], triangleVertices[1],
-                                     triangleVertices[2], vertexColors[0],
-                                     vertexColors[1], vertexColors[2], uvCoords[0],
-                                     uvCoords[1], uvCoords[2], tex);
-        sc_RenderPushTriangleTexture(renderer, triangleVertices[2], triangleVertices[1],
-                                     triangleVertices[3], // Vertices
-                                     vertexColors[2], vertexColors[1],
-                                     vertexColors[3],                       // Colors
-                                     uvCoords[2], uvCoords[1], uvCoords[3], // UVs
-                                     tex);
-        sc_RenderEnd(renderer, &camera);
-        sc_SwapWindowBuffer(window);
+        sc_Renderer_Begin(renderer);
+        sc_Renderer_PushTriangleTexture(renderer, triangleVertices[0],
+                                        triangleVertices[1], triangleVertices[2],
+                                        vertexColors[0], vertexColors[1], vertexColors[2],
+                                        uvCoords[0], uvCoords[1], uvCoords[2], tex);
+        sc_Renderer_PushTriangleTexture(renderer, triangleVertices[2],
+                                        triangleVertices[1],
+                                        triangleVertices[3], // Vertices
+                                        vertexColors[2], vertexColors[1],
+                                        vertexColors[3],                       // Colors
+                                        uvCoords[2], uvCoords[1], uvCoords[3], // UVs
+                                        tex);
+        sc_Renderer_End(renderer, &camera);
+        sc_Window_SwapBuffer(window);
 
-        sc_PollEvents();
+        sc_Event_Poll();
     }
     sc_Texture_Free(tex);
-    sc_DeleteRenderer(renderer);
-    sc_Terminate();
+    sc_Renderer_Delete(renderer);
+    sc_Window_Terminate();
 }

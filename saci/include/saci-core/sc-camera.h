@@ -9,14 +9,7 @@
 
 /**
  * @struct sc_Camera
- * @brief Represents a 3D camera in the saciCORE graphics system.
- *
- * @details
- * The `sc_Camera` struct defines the properties of a camera, including its
- * position in 3D space, the target it looks at, the up direction,
- * and projection parameters such as field of view, aspect ratio,
- * and clipping planes. This struct is used for configuring the
- * camera's view in the scene and for rendering purposes.
+ * @brief Represents a 3D camera in the saciCORE.
  */
 typedef struct sc_Camera {
     saci_Vec3 position; ///< The position of the camera in world space.
@@ -31,10 +24,6 @@ typedef struct sc_Camera {
 
 /**
  * @brief Generates a default 3D camera.
- *
- * This function initializes and returns a default 3D camera with predefined
- * parameters. The camera is positioned at the origin and looks towards
- * the target point, with an upward orientation defined by the up vector.
  *
  * @details
  * - **Position:** (0.0f, 0.0f, 0.0f)
@@ -51,10 +40,6 @@ sc_Camera sc_Camera_GetDefault3DCamera(void);
 
 /**
  * @brief Generates a default 2D camera.
- *
- * This function initializes and returns a default 2D camera with predefined
- * parameters. The camera is positioned slightly behind the rendering layer to
- * ensure proper display of 2D content.
  *
  * @details
  * - **Position:** (0.0f, 0.0f, 1.0f)

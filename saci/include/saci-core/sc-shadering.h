@@ -26,7 +26,7 @@
  * @param source The source code of the vertex shader as a string.
  * @return A saci_ShaderID representing the compiled vertex shader.
  */
-saci_u32 sc_CompileShaderV(const char* source);
+saci_u32 sc_Shader_CompileShaderV(const char* source);
 
 /**
  * @brief Compiles a fragment shader from source code.
@@ -38,7 +38,7 @@ saci_u32 sc_CompileShaderV(const char* source);
  * @param source The source code of the fragment shader as a string.
  * @return A saci_ShaderID representing the compiled fragment shader.
  */
-saci_u32 sc_CompileShaderF(const char* source);
+saci_u32 sc_Shader_CompileShaderF(const char* source);
 
 /**
  * @brief Compiles a geometry shader from source code.
@@ -50,7 +50,7 @@ saci_u32 sc_CompileShaderF(const char* source);
  * @param source The source code of the geometry shader as a string.
  * @return A saci_ShaderID representing the compiled geometry shader.
  */
-saci_u32 sc_CompileShaderG(const char* source);
+saci_u32 sc_Shader_CompileShaderG(const char* source);
 
 /* === Shader Program Linking Functions === */
 
@@ -65,7 +65,7 @@ saci_u32 sc_CompileShaderG(const char* source);
  * @param fshader The saci_ShaderID of the compiled fragment shader.
  * @return A saci_u32 representing the shader program ID.
  */
-saci_u32 sc_GetShaderProgram(saci_ShaderID vshader, saci_ShaderID fshader);
+saci_u32 sc_Shader_GetShaderProgram(saci_ShaderID vshader, saci_ShaderID fshader);
 
 /**
  * @brief Links a vertex, fragment, and geometry shader into a shader program.
@@ -79,7 +79,7 @@ saci_u32 sc_GetShaderProgram(saci_ShaderID vshader, saci_ShaderID fshader);
  * @param gshader The saci_ShaderID of the compiled geometry shader.
  * @return A saci_u32 representing the shader program ID.
  */
-saci_u32 sc_GetShaderProgramg(saci_ShaderID vshader, saci_ShaderID fshader,
-                              saci_ShaderID gshader);
+saci_u32 sc_Shader_GetShaderProgramg(saci_ShaderID vshader, saci_ShaderID fshader,
+                                     saci_ShaderID gshader);
 
 #endif

@@ -11,14 +11,9 @@
 /* === Event Handling === */
 
 /**
- * @brief Processes all pending events.
- *
- * @details
- * This function retrieves and processes all events from the event queue, such as input
- * events and window events. It should be called in the main loop to ensure that the
- * application remains responsive to user input.
+ * @brief Processes all pending events from event queue.
  */
-void sc_PollEvents();
+void sc_Event_Poll();
 
 /**
  * @brief Waits for events to occur.
@@ -28,7 +23,7 @@ void sc_PollEvents();
  * to sleep until there are events to process. This can be more efficient than
  * continuously polling for events.
  */
-void sc_WaitForEvents();
+void sc_Events_Wait();
 
 /**
  * @brief Waits for events to occur with a timeout.
@@ -41,7 +36,7 @@ void sc_WaitForEvents();
  * within this time, the function returns immediately. If the timeout expires, the
  * function returns without processing any events.
  */
-void sc_WaitForEventsTimeout(double timeout);
+void sc_Event_WaitForTimeout(double timeout);
 
 /**
  * @brief Posts an empty event.
@@ -51,7 +46,7 @@ void sc_WaitForEventsTimeout(double timeout);
  * main loop when it is waiting for events, allowing it to re-check for other events or
  * exit.
  */
-void sc_PostEmptyEvent();
+void sc_Event_PostEmpty();
 
 /**
  * @brief Type definition for a mouse position handler function.
@@ -64,7 +59,8 @@ void sc_PostEmptyEvent();
  * @param posx The new x-coordinate of the mouse pointer.
  * @param posy The new y-coordinate of the mouse pointer.
  */
-typedef void (*sc_MousePosHandlerFunction)(sc_Window* window, double posx, double posy);
+typedef void (*sc_Event_MousePosHandlerFunction)(sc_Window* window, double posx,
+                                                 double posy);
 
 /**
  * @brief Sets a mouse position handler for a specified window.
@@ -77,8 +73,8 @@ typedef void (*sc_MousePosHandlerFunction)(sc_Window* window, double posx, doubl
  * @param mousePosHandlerFunction The callback function to be called on mouse position
  * changes.
  */
-void sc_SetMousePosHandler(sc_Window* window,
-                           sc_MousePosHandlerFunction mousePosHandlerFunction);
+void sc_Event_SetMousePosHandler(
+    sc_Window* window, sc_Event_MousePosHandlerFunction mousePosHandlerFunction);
 
 /**
  * @brief Enumeration of key codes for keyboard input.
@@ -223,5 +219,5 @@ typedef enum sc_Keycode {
  * @param keycode The key code of the key to check.
  * @return Returns SACI_TRUE if the key is pressed; otherwise, returns false.
  */
-saci_Bool sc_IsKeyPressed(sc_Window* window, sc_Keycode keycode);
+saci_Bool sc_Event_IsKeyPressed(sc_Window* window, sc_Keycode keycode);
 #endif

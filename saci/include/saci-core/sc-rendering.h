@@ -32,7 +32,7 @@ typedef struct sc_Renderer sc_Renderer;
  * @param generateDefaults A boolean to generate defaulted shaders and OpenGL context.
  * @return A new sc_Renderer* either defaulted or not. Can return null
  */
-sc_Renderer* sc_CreateRenderer(saci_Bool generateDefaults);
+sc_Renderer* sc_Renderer_Create(saci_Bool generateDefaults);
 
 /**
  * @brief Deletes the sc_Renderer struct
@@ -42,20 +42,20 @@ sc_Renderer* sc_CreateRenderer(saci_Bool generateDefaults);
  *
  * @param renderer The renderer to be deleted
  */
-void sc_DeleteRenderer(sc_Renderer* renderer);
+void sc_Renderer_Delete(sc_Renderer* renderer);
 
 /* === Render Config === */
 
 /**
  * @brief Sets renderer to not fill shapes
  */
-void sc_RenderSetNoFillMode(void);
+void sc_Renderer_SetNoFillMode(void);
 
 /**
  * @brief Sets renderer to fill shapes
  * @note This is the defaulted option.
  */
-void sc_RenderSetFillMode(void);
+void sc_Renderer_SetFillMode(void);
 
 /**
  * @brief Enables the Z buffer.
@@ -63,7 +63,7 @@ void sc_RenderSetFillMode(void);
  * @details
  * Check OpenGL article: https://learnopengl.com/Advanced-OpenGL/Depth-testing
  */
-void sc_RenderEnableZBuffer(void);
+void sc_Renderer_EnableZBuffer(void);
 
 /**
  * @enum sc_RenderProjectionType
@@ -81,7 +81,7 @@ typedef enum sc_RenderProjectionMode {
  * @param renderProjectionMode The sc_RenderProjectionMode that the sc_Renderer should
  * use.
  */
-void sc_RenderSetProjectionMode(sc_RendererProjectionMode renderProjectionMode);
+void sc_Renderer_SetProjectionMode(sc_RendererProjectionMode renderProjectionMode);
 
 /**
  * @typedef sc_RenderCustomProjectionFunction
@@ -90,7 +90,7 @@ void sc_RenderSetProjectionMode(sc_RendererProjectionMode renderProjectionMode);
  * @param camera The sc_Camera struct used to setup projection
  * @return A saci_Mat4 with the projection values
  */
-typedef saci_Mat4 (*sc_RendererCustomProjectionFunction)(sc_Camera camera);
+typedef saci_Mat4 (*sc_Renderer_CustomProjectionFunction)(sc_Camera camera);
 
 /**
  * @brief Sets custom projection mode function.
@@ -98,8 +98,8 @@ typedef saci_Mat4 (*sc_RendererCustomProjectionFunction)(sc_Camera camera);
  * @param renderCustomProjectionModeFunction The sc_RenderProjectionMode that the
  * sc_Renderer should use.
  */
-void sc_RenderSetCustomProjectionModeFunction(
-    sc_RendererCustomProjectionFunction renderCustomProjectionModeFunction);
+void sc_Renderer_SetCustomProjectionModeFunction(
+    sc_Renderer_CustomProjectionFunction renderCustomProjectionModeFunction);
 
 /* === Render Usage === */
 
@@ -108,21 +108,14 @@ void sc_RenderSetCustomProjectionModeFunction(
  *
  * @param renderer The renderer to setup
  */
-void sc_RenderBegin(sc_Renderer* renderer);
+void sc_Renderer_Begin(sc_Renderer* renderer);
 
 /**
  * @brief Draws the RenderCalls in the sc_Renderer
  *
- * @details
- * Each sc_Renderer has a non set size array of RenderCalls called RenderBatch,
- * RenderCalls store the vertice information, as well as the renderingMode(triangle,
- * quad, line), and the texture that will be used (if any).
- * When called, this function Draws everything stored in the this RenderBatch
- * using the VAO,VBO and shader program in sc_Renderer.
- *
  * @param renderer The renderer to setup
  */
-void sc_RenderEnd(sc_Renderer* renderer, const sc_Camera* camera);
+void sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera);
 
 /**
  * @brief Pushes a textured 3D plane triangle to the renderer.
@@ -133,32 +126,34 @@ void sc_RenderEnd(sc_Renderer* renderer, const sc_Camera* camera);
  * @param aUV, bUV, cUV The UV coordinates for each vertex.
  * @param texID The texture to apply.
  */
-void sc_RenderPushTriangleTexture(sc_Renderer* renderer, const saci_Vec3 a,
-                                  const saci_Vec3 b, const saci_Vec3 c,
-                                  const saci_Color aColor, const saci_Color bColor,
-                                  const saci_Color cColor, const saci_Vec2 aUV,
-                                  const saci_Vec2 bUV, const saci_Vec2 cUV,
-                                  const saci_TextureID texID);
+void sc_Renderer_PushTriangleTexture(sc_Renderer* renderer, const saci_Vec3 a,
+                                     const saci_Vec3 b, const saci_Vec3 c,
+                                     const saci_Color aColor, const saci_Color bColor,
+                                     const saci_Color cColor, const saci_Vec2 aUV,
+                                     const saci_Vec2 bUV, const saci_Vec2 cUV,
+                                     const saci_TextureID texID);
 
 /**
- * @brief Pushes a textured 2D plane triangle to the renderer.
+ * @brief Pushes an untextured 2D plane triangle to the renderer.
  *
  * @param renderer The target renderer.
  * @param a, b, c The triangle vertices.
  * @param aColor, bColor, cColor The colors for each vertex.
  */
-void sc_RenderPushTriangle2D(sc_Renderer* renderer, const saci_Vec2 a, const saci_Vec2 b,
-                             const saci_Vec2 c, float depth, const saci_Color aColor,
-                             const saci_Color bColor, const saci_Color cColor);
+void sc_Renderer_PushTriangle2D(sc_Renderer* renderer, const saci_Vec2 a,
+                                const saci_Vec2 b, const saci_Vec2 c, float depth,
+                                const saci_Color aColor, const saci_Color bColor,
+                                const saci_Color cColor);
 
 /**
- * @brief Pushes a textured 3D plane triangle to the renderer.
+ * @brief Pushes an untextured 3D plane triangle to the renderer.
  *
  * @param renderer The target renderer.
  * @param a, b, c The triangle vertices.
  * @param aColor, bColor, cColor The colors for each vertex.
  */
-void sc_RenderPushTriangle3D(sc_Renderer* renderer, const saci_Vec3 a, const saci_Vec3 b,
-                             const saci_Vec3 c, const saci_Color aColor,
-                             const saci_Color bColor, const saci_Color cColor);
+void sc_Renderer_PushTriangle3D(sc_Renderer* renderer, const saci_Vec3 a,
+                                const saci_Vec3 b, const saci_Vec3 c,
+                                const saci_Color aColor, const saci_Color bColor,
+                                const saci_Color cColor);
 #endif
