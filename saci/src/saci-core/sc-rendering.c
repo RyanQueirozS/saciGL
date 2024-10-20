@@ -23,37 +23,108 @@ typedef struct sc_Vertice sc_Vertice;
 typedef struct sc_RenderCall sc_RenderCall;
 typedef struct sc_RenderBatch sc_RenderBatch;
 
-// This needs to be done to make each new renderer value = 0 or NULL. If not it
-// will generate a garbage value and will lead to a crash
-void __sc_initializeRenderValues(sc_Renderer* renderer);
+/**
+ * @brief Function to cleanup garbage numbers.
+ *
+ * @details
+ * This needs to be used so it doesn't crash the application
+ *
+ * @param renderer The sc_Renderer to initialized
+ */
+void __sc_Renderer_initializeValues(sc_Renderer* renderer);
 
-// Renderer related
-sc_RenderCall __sc_renderCall_create(sc_Vertice* vertices, int renderMode,
+/**
+ * @brief Creates a sc_RenderCall
+ *
+ * @param vertices A vertice array containing all of the vertices that will be pushed to
+ * the RenderCall.
+ * @param renderMode The mode these vertices will be rendered,
+ * (SACI_RENDERCALL_MODE_TRIANGLE, SACI_RENDERCALL_MODE_LINE or
+ * SACI_RENDERCALL_MODE_QUAD).
+ * @param texID The ID of the OpenGL texture that will be used on the render call, can be
+ * 0.
+ * @param verticesAmount The amount of vertices in the vertices array
+ */
+sc_RenderCall __sc_RenderCall_create(sc_Vertice* vertices, int renderMode,
                                      saci_TextureID texID, saci_u64 verticesAmount);
 
-void __sc_renderBatch_ResizeInternal(sc_RenderBatch* renderBatch, saci_u32 newSize);
-void __sc_renderBatch_AddTo(sc_RenderBatch* renderBatch, sc_RenderCall renderCall);
-void __sc_renderBatch_Empty(sc_RenderBatch* renderBatch);
-void __sc_renderBatch_Free(sc_RenderBatch* renderBatch);
+/**
+ * @brief Resizes a sc_RenderBatch
+ *
+ * @param renderBatch The sc_RenderBatch to be resized
+ * @param newSize The newSize of the renderBatch
+ */
+void __sc_renderBatch_resize(sc_RenderBatch* renderBatch, saci_u32 newSize);
 
-// OpenGL related
-void __sc_resizeVBO(sc_Renderer* renderer, saci_u32 newCapacity);
-void __sc_initRenderer_VBO_VAO(sc_Renderer* renderer);
-void __sc_initRendererShaderProgram(sc_Renderer* renderer);
-void __sc_initRenderer(sc_Renderer* renderer);
+/**
+ * @brief pushes a sc_RenderCall to a sc_RenderBatch
+ *
+ * @param renderBatch The sc_RenderBatch the renderCall will be added
+ * @param renderCall The sc_RenderCall to be pushed into the renderBatch
+ */
+void __sc_renderBatch_push(sc_RenderBatch* renderBatch, sc_RenderCall renderCall);
 
-void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera,
-                           bool setTexture);
+/**
+ * @brief empties a sc_RenderBatch
+ *
+ * @param renderBatch The sc_RenderBatch that will be emptied
+ */
+void __sc_renderBatch_empty(sc_RenderBatch* renderBatch);
+
+/**
+ * @brief frees a sc_RenderBatch
+ *
+ * @param renderBatch The sc_RenderBatch that will be freed from memory
+ */
+void __sc_renderBatch_free(sc_RenderBatch* renderBatch);
+
+/* === OpenGL Related === */
+
+/**
+ * @brief resizes the VBO in the renderer to a newCapacity
+ *
+ * @param renderer The renderer that will have it's VBO resized.
+ * @param newCapacity The VBO's new capacity.
+ */
+void __sc_renderer_resizeVBO(sc_Renderer* renderer, saci_u32 newCapacity);
+
+/**
+ * @brief initializes OpenGL vertex attribute context
+ *
+ * @param renderer The renderer that will be initialized
+ */
+void __sc_renderer_initGLVertexAttribContext(sc_Renderer* renderer);
+
+/**
+ * @brief initializes OpenGL shader context
+ *
+ * @param renderer The renderer that will have it's shader program initialized
+ */
+void __sc_renderer_initShaderProgram(sc_Renderer* renderer);
+
+/**
+ * @brief initializes all of the above mentioned functions
+ *
+ * @param renderer The renderer that be initialized
+ */
+void __sc_renderer_initAll(sc_Renderer* renderer);
+
+/**
+ * @brief sets uniforms up
+ *
+ * @param renderer The renderer that bases the shaderProgram
+ * @param camera The camera that will or won't be used
+ * @param setTexture The texture that will or won't be used
+ */
+void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera,
+                              bool setTexture);
 
 //----------------------------------------------------------------------------//
 // Base Definitions
 //----------------------------------------------------------------------------//
 
-// TODO rename
-#define SACI_DEFAULT_MAX_TRIANGLES 1024
-#define SACI_DEFAULT_VERTEX_BUFFER_SIZE SACI_DEFAULT_MAX_TRIANGLES * 3
-
-#define SACI_DEFAULT_TEXTURE_BUFFER_SIZE 8
+#define SACI_RENDER_BATCH_DEFAULT_CAPACITY 0x10000
+#define SACI_DEFAULT_TEXTURE_BUFFER_SIZE 1 // TODO
 
 typedef struct sc_Vertice {
     saci_Vec3 pos;
@@ -100,7 +171,7 @@ sc_Renderer* sc_Renderer_Create(saci_Bool generateDefaults) {
         return NULL;
     }
     if (generateDefaults) {
-        __sc_initRenderer(renderer);
+        __sc_renderer_initAll(renderer);
     }
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_RENDERER,
                    "Renderer created successfully");
@@ -184,7 +255,7 @@ void sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera) {
 
     for (saci_u32 i = 0; i < renderer->renderBatch.renderCallCount; ++i) {
         sc_RenderCall* call = &renderer->renderBatch.renderCalls[i];
-        __sc_setRenderUniform(renderer, camera, call->textureID);
+        __sc_renderer_setUniform(renderer, camera, call->textureID);
 
         if (call->textureID != 0) {
             glActiveTexture(GL_TEXTURE0);
@@ -231,8 +302,8 @@ void sc_Renderer_PushTriangleTexture(sc_Renderer* renderer, const saci_Vec3 a,
         (sc_Vertice){b, bColor, bUV},
         (sc_Vertice){c, cColor, cUV},
     };
-    sc_RenderCall renderCall = __sc_renderCall_create(vertices, GL_TRIANGLES, texID, 3);
-    __sc_renderBatch_AddTo(&renderer->renderBatch, renderCall);
+    sc_RenderCall renderCall = __sc_RenderCall_create(vertices, GL_TRIANGLES, texID, 3);
+    __sc_renderBatch_push(&renderer->renderBatch, renderCall);
 }
 
 void sc_Renderer_PushTriangle2D(sc_Renderer* renderer, const saci_Vec2 a,
@@ -248,8 +319,8 @@ void sc_Renderer_PushTriangle2D(sc_Renderer* renderer, const saci_Vec2 a,
         (sc_Vertice){b3, bColor, {0, 0}},
         (sc_Vertice){c3, cColor, {0, 0}},
     };
-    sc_RenderCall renderCall = __sc_renderCall_create(vertices, GL_TRIANGLES, 0, 3);
-    __sc_renderBatch_AddTo(&renderer->renderBatch, renderCall);
+    sc_RenderCall renderCall = __sc_RenderCall_create(vertices, GL_TRIANGLES, 0, 3);
+    __sc_renderBatch_push(&renderer->renderBatch, renderCall);
 }
 
 void sc_Renderer_PushTriangle3D(sc_Renderer* renderer, const saci_Vec3 a,
@@ -261,21 +332,21 @@ void sc_Renderer_PushTriangle3D(sc_Renderer* renderer, const saci_Vec3 a,
         (sc_Vertice){b, bColor, {0, 0}},
         (sc_Vertice){c, cColor, {0, 0}},
     };
-    sc_RenderCall renderCall = __sc_renderCall_create(vertices, GL_TRIANGLES, 0, 3);
-    __sc_renderBatch_AddTo(&renderer->renderBatch, renderCall);
+    sc_RenderCall renderCall = __sc_RenderCall_create(vertices, GL_TRIANGLES, 0, 3);
+    __sc_renderBatch_push(&renderer->renderBatch, renderCall);
 }
 
 //----------------------------------------------------------------------------//
 // Helper functions
 //----------------------------------------------------------------------------//
 
-void __sc_initializeRenderValues(sc_Renderer* renderer) {
+void __sc_Renderer_initializeValues(sc_Renderer* renderer) {
     renderer->renderBatch.renderCalls = NULL;
     renderer->renderBatch.renderCallCount = 0;
     renderer->renderBatch.capacity = 0;
 }
 
-sc_RenderCall __sc_renderCall_create(sc_Vertice* vertices, int renderMode,
+sc_RenderCall __sc_RenderCall_create(sc_Vertice* vertices, int renderMode,
                                      saci_TextureID texID, saci_u64 verticesAmount) {
     sc_RenderCall renderCall = {0};
     if (!vertices || verticesAmount == 0) {
@@ -301,7 +372,7 @@ sc_RenderCall __sc_renderCall_create(sc_Vertice* vertices, int renderMode,
     return renderCall;
 }
 
-void __sc_renderBatch_ResizeInternal(sc_RenderBatch* renderBatch, saci_u32 newSize) {
+void __sc_renderBatch_resize(sc_RenderBatch* renderBatch, saci_u32 newSize) {
     if (newSize <= 0 || newSize <= renderBatch->renderCallCount) {
         SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_RENDERER,
                        "RenderBatch new size is not valid");
@@ -314,6 +385,7 @@ void __sc_renderBatch_ResizeInternal(sc_RenderBatch* renderBatch, saci_u32 newSi
                        "RenderBatch Couldn't create new render call");
         return;
     }
+    printf("%lu\n", sizeof(sc_RenderCall) * newSize);
     memcpy(newRenderCalls, renderBatch->renderCalls,
            renderBatch->renderCallCount * sizeof(sc_RenderCall));
     free(renderBatch->renderCalls);
@@ -323,7 +395,7 @@ void __sc_renderBatch_ResizeInternal(sc_RenderBatch* renderBatch, saci_u32 newSi
                    "RenderBatch resized successfully");
 }
 
-void __sc_renderBatch_AddTo(sc_RenderBatch* renderBatch, sc_RenderCall renderCall) {
+void __sc_renderBatch_push(sc_RenderBatch* renderBatch, sc_RenderCall renderCall) {
     if (renderBatch->capacity <= renderBatch->renderCallCount) {
         SACI_LOG_PRINT(SACI_LOG_LEVEL_WARN, SACI_LOG_CONTEXT_RENDERER,
                        "RenderBatch RenderCount exceeded Capacity ");
@@ -333,19 +405,19 @@ void __sc_renderBatch_AddTo(sc_RenderBatch* renderBatch, sc_RenderCall renderCal
     renderBatch->renderCallCount++;
 }
 
-void __sc_renderBatch_Empty(sc_RenderBatch* renderBatch) {
+void __sc_renderBatch_empty(sc_RenderBatch* renderBatch) {
     renderBatch->renderCallCount = 0;
     renderBatch->renderCalls = NULL;
 }
 
-void __sc_renderBatch_Free(sc_RenderBatch* renderBatch) {
+void __sc_renderBatch_free(sc_RenderBatch* renderBatch) {
     free(renderBatch->renderCalls);
     free(renderBatch);
 }
 
 // OpenGL
 
-void __sc_resizeVBO(sc_Renderer* renderer, saci_u32 newCapacity) {
+void __sc_renderer_resizeVBO(sc_Renderer* renderer, saci_u32 newCapacity) {
     glBindVertexArray(renderer->vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
@@ -356,7 +428,7 @@ void __sc_resizeVBO(sc_Renderer* renderer, saci_u32 newCapacity) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void __sc_initRenderer_VBO_VAO(sc_Renderer* renderer) {
+void __sc_renderer_initGLVertexAttribContext(sc_Renderer* renderer) {
     glGenVertexArrays(1, &renderer->vao);
     glBindVertexArray(renderer->vao);
 
@@ -375,7 +447,7 @@ void __sc_initRenderer_VBO_VAO(sc_Renderer* renderer) {
     glEnableVertexAttribArray(2);
 }
 
-void __sc_initRendererShaderProgram(sc_Renderer* renderer) {
+void __sc_renderer_initShaderProgram(sc_Renderer* renderer) {
     const char* vShaderSource =
         "#version 330 core\n"
 
@@ -429,27 +501,27 @@ void __sc_initRendererShaderProgram(sc_Renderer* renderer) {
     assert(renderer->shaderProgram);
 }
 
-void __sc_initRenderer(sc_Renderer* renderer) {
+void __sc_renderer_initAll(sc_Renderer* renderer) {
     // Initializes to remove garbage numbers
-    __sc_initializeRenderValues(renderer);
+    __sc_Renderer_initializeValues(renderer);
 
     { // Initializes the vertice and texture buffers with default sizes
-        __sc_renderBatch_ResizeInternal(&renderer->renderBatch,
-                                        SACI_DEFAULT_VERTEX_BUFFER_SIZE);
+        __sc_renderBatch_resize(&renderer->renderBatch,
+                                SACI_RENDER_BATCH_DEFAULT_CAPACITY);
         assert(renderer->renderBatch.renderCalls);
     }
 
     // Initializes OpenGL shaders and objects
-    __sc_initRenderer_VBO_VAO(renderer);
-    __sc_initRendererShaderProgram(renderer);
+    __sc_renderer_initGLVertexAttribContext(renderer);
+    __sc_renderer_initShaderProgram(renderer);
 #if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_RENDERING)
     SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_RENDERER,
                    "Renderer initialized successfully");
 #endif
 }
 
-void __sc_setRenderUniform(sc_Renderer* renderer, const sc_Camera* camera,
-                           bool useTexture) {
+void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera,
+                              bool useTexture) {
     saci_Mat4 view = {0};
     saci_Mat4 projection = {0};
 

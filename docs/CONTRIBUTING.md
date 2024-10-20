@@ -270,7 +270,7 @@ Example: `/saci/include/saci-core/sc-camera.h` should be defined as
 
 Structs follow the base [Naming Conventions](#Naming-Conventions), but must:
 - Use PascalCase after the `sc_`, `sl_` or `saci_`, prefix;
-- Members follow the default  [Naming Conventions](#Naming-Conventions);
+- Members follow [variable](#Variables) style
 
 ```c
 typedef struct sc_Camera {
@@ -326,8 +326,9 @@ sc_Camera sc_Camera_GetDefault2DCamera(void);
 
 Example:
 ```c
-void __sc_renderBatch_Empty(sc_RenderBatch* renderBatch);
+void __sc_renderBatch_empty(sc_RenderBatch* renderBatch);
 ```
+`renderBatch` is the context, empty is what the function does to the context.
 
 #### Variables
 

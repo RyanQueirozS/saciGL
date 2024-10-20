@@ -9,20 +9,20 @@
 // Helper functions
 //----------------------------------------------------------------------------//
 
-saci_u32 __sc_compileShader(const char* shaderSource, saci_u32 shaderType);
+saci_u32 __sc_shader_compile(const char* shaderSource, saci_u32 shaderType);
 
 //----------------------------------------------------------------------------//
 
 saci_u32 sc_Shader_CompileShaderV(const char* source) {
-    return __sc_compileShader(source, GL_VERTEX_SHADER);
+    return __sc_shader_compile(source, GL_VERTEX_SHADER);
 }
 
 saci_u32 sc_Shader_CompileShaderF(const char* source) {
-    return __sc_compileShader(source, GL_FRAGMENT_SHADER);
+    return __sc_shader_compile(source, GL_FRAGMENT_SHADER);
 }
 
 saci_u32 sc_Shader_CompileShaderG(const char* source) {
-    return __sc_compileShader(source, GL_GEOMETRY_SHADER);
+    return __sc_shader_compile(source, GL_GEOMETRY_SHADER);
 }
 
 saci_u32 sc_Shader_GetShaderProgram(saci_u32 vshader, saci_u32 fshader) {
@@ -89,7 +89,7 @@ saci_u32 sc_Shader_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader,
 // Helper functions
 //----------------------------------------------------------------------------//
 
-saci_u32 __sc_compileShader(const char* shaderSource, saci_u32 shaderType) {
+saci_u32 __sc_shader_compile(const char* shaderSource, saci_u32 shaderType) {
     saci_u32 shaderID = glCreateShader(shaderType);
 
     glShaderSource(shaderID, 1, &shaderSource, NULL);

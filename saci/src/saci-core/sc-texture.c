@@ -11,9 +11,9 @@
 // Helper functions
 //----------------------------------------------------------------------------//
 
-saci_Bool __sc_isImageLoaded(saci_u8* data);
-saci_s32 __sc_determineTextureFormat(int nrChannels);
-void __sc_setupTexture(saci_TextureID id, saci_Bool useMipmaps);
+saci_Bool __sc_image_isLoaded(saci_u8* data);
+saci_s32 __sc_texture_determineFormat(int nrChannels);
+void __sc_texture_setup(saci_TextureID id, saci_Bool useMipmaps);
 
 //----------------------------------------------------------------------------//
 
@@ -33,13 +33,13 @@ saci_TextureID sc_Texture_Load(const char* path, saci_Bool flipImg) {
     sc_TextureData texData = {0};
     sc_Texture_LoadData(path, flipImg, &texData);
 
-    if (!__sc_isImageLoaded(texData.data)) {
+    if (!__sc_image_isLoaded(texData.data)) {
         SACI_LOG_PRINT(SACI_LOG_LEVEL_WARN, SACI_LOG_CONTEXT_OPENGL,
                        "Texture coudn't be loaded: Image could not be loaded");
         return 0;
     }
 
-    saci_s32 format = __sc_determineTextureFormat(texData.nrChannels);
+    saci_s32 format = __sc_texture_determineFormat(texData.nrChannels);
     if (format == 0) {
         stbi_image_free(texData.data);
         SACI_LOG_PRINT(SACI_LOG_LEVEL_WARN, SACI_LOG_CONTEXT_OPENGL,
@@ -101,7 +101,7 @@ void sc_Texture_Free(saci_TextureID textureID) {
 // Helper functions
 //----------------------------------------------------------------------------//
 
-saci_Bool __sc_isImageLoaded(saci_u8* data) {
+saci_Bool __sc_image_isLoaded(saci_u8* data) {
     if (!data) {
         SACI_LOG_PRINT(
             SACI_LOG_LEVEL_WARN, SACI_LOG_CONTEXT_OPENGL,
@@ -111,7 +111,7 @@ saci_Bool __sc_isImageLoaded(saci_u8* data) {
     return SACI_TRUE;
 }
 
-saci_s32 __sc_determineTextureFormat(int nrChannels) {
+saci_s32 __sc_texture_determineFormat(int nrChannels) {
     if (nrChannels == 3) return GL_RGB;
     if (nrChannels == 4) return GL_RGBA;
     SACI_LOG_PRINT(SACI_LOG_LEVEL_WARN, SACI_LOG_CONTEXT_OPENGL,
@@ -119,7 +119,7 @@ saci_s32 __sc_determineTextureFormat(int nrChannels) {
     return 0;
 }
 
-void __sc_setupTexture(saci_TextureID id, saci_Bool useMipmaps) {
+void __sc_texture_setup(saci_TextureID id, saci_Bool useMipmaps) {
     glBindTexture(GL_TEXTURE_2D, id);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

@@ -10,7 +10,7 @@
 // Helper functions
 //----------------------------------------------------------------------------//
 
-void __sc_initializeOpenglDebugger();
+void __sc_OpenGL_initializeDebugger();
 
 //----------------------------------------------------------------------------//
 
@@ -37,7 +37,7 @@ saci_Bool sc_GLAD_Init(void) {
         return SACI_FALSE;
     }
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Loaded glad");
-    __sc_initializeOpenglDebugger();
+    __sc_OpenGL_initializeDebugger();
 
 #if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_WINDOWING)
     const saci_u8* version = glGetString(GL_VERSION);
@@ -88,7 +88,7 @@ void sc_Window_SwapBuffer(sc_Window* window) { glfwSwapBuffers(window); }
 // Helper functions
 //----------------------------------------------------------------------------//
 
-void __sc_initializeOpenglDebugger() {
+void __sc_OpenGL_initializeDebugger() {
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(saci_OpenGLDebugMessageCallback, NULL);
