@@ -6,6 +6,20 @@ making changes to the `saci-core` and `saci-lib` modules.
 
 Take a look at the [conventions](/docs/CONVENTIONS)!
 
+## Table of Contents
+
+- [Project Goal](#project-goal)
+  - [Philosophy](#philosophy)
+    - [What saciGL is](#what-sacigl-is)
+    - [What saciGL is NOT](#what-sacigl-is-not)
+  - [Goals of saciCore](#goals-of-sacicore)
+  - [Goals of saciLib](#goals-of-sacilib)
+- [Submitting Contributions](#submitting-contributions)
+  - [Branch Naming](#branch-naming)
+  - [Commit Messages](#commit-messages)
+  - [Workflow](#workflow)
+
+
 ## Project Goal
 
 SACI aims to implement a simple, highly customizable, OpenGL-based graphics

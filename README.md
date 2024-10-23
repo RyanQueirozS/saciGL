@@ -3,6 +3,18 @@
 SaciGL (pronounced sa-si) is a OpenGL based Graphics Library that simplifies
 the base renderin process by providing low-level abstractions and memory safety
 
+## Table of Contents
+
+- [Installing](#installing)
+  - [Building](#building)
+    - [Linux](#linux)
+  - [Binaries](#binaries)
+    - [Linux](#linux-1)
+- [Contributing](#contributing)
+- [Documentation](#documentation)
+- [Warnings](#warnings)
+- [License](#license)
+
 ## Installing
 
 ### Building
