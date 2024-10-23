@@ -4,7 +4,7 @@ Thank you for considering contributing to SACI! This guide will help you
 understand the coding standards, best practices, and workflow to follow when
 making changes to the `saci-core` and `saci-lib` modules.
 
-Take a look at the [conventions](/docs/CONVENTIONS)!
+Take a look at the [conventions](/docs/CONVENTIONS.md)!
 
 ## Table of Contents
 
@@ -74,6 +74,15 @@ What saciGL is **NOT**:
     - Messages should start with `doc:` for documentation, `feature:` for
       features, and `refactor:` for refactoring.
 
-3. **Workflow**: After testing a branch, it may be merged into the `develop`
-branch and eventually into `main`.
+3. **Workflow**: The contribution workflow for SACI follows the typical Git
+   Flow model to ensure that features, fixes, and improvements are properly
+   tested and reviewed before being merged into the main codebase. The process
+   should go as follows:
+    1. Fork and Clone the Repository
+    2. Create a New Branch
+    3. Make Changes
+    4. Create a Pull Request
+    5. Code Review
+    6. Merge
+    7. Branch Clean Up
 

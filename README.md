@@ -47,7 +47,7 @@ Take a look at **[releases](https://github.com/RyanQueirozS/saciGL/releases)**.
 
 ## Contributing
 
-Take a look at [contributing](/docs/CONTRIBUTING)!
+Take a look at [contributing](/docs/CONTRIBUTING.md)!
 
 ## Documentation
 

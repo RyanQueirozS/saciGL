@@ -1,0 +1,7 @@
+# Examples
+
+## Building
+
+```sh
+./build
+```

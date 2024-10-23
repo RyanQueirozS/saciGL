@@ -1,7 +1,7 @@
 BasedOnStyle: Google
 SortIncludes: false # Can break stb and opengl
 IndentWidth: 4
-ColumnLimit: 90  # this can create some really ugly indentation,
+ColumnLimit: 100  # this can create some really ugly indentation,
                   # so try to avoid over 80 char per line. 110 is the maximum
 CommentPragmas: true
 SpacesBeforeTrailingComments: 1
