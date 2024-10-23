@@ -4,6 +4,8 @@ Thank you for considering contributing to SACI! This guide will help you
 understand the coding standards, best practices, and workflow to follow when
 making changes to the `saci-core` and `saci-lib` modules.
 
+Take a look at the [conventions](/docs/CONVENTIONS)!
+
 ## Project Goal
 
 SACI aims to implement a simple, highly customizable, OpenGL-based graphics
