@@ -1,10 +1,10 @@
 #include "saci-utils/su-math.h"
 #include <math.h>
-#include <stdio.h>
 #include <string.h>
 
 #define SACI_8BIT_COLOR_MAX 255.0f
-#define SACI_8BIT_COLOR_INVERSE_MAX 1.0f / SACI_8BIT_COLOR_MAX // Used for Color related math
+#define SACI_8BIT_COLOR_INVERSE_MAX \
+    1.0f / SACI_8BIT_COLOR_MAX // Used for Color related math
 
 static double saci_default_sqrt(double x) { // wrapps math.h sqrt func
     return sqrt(x);
@@ -60,16 +60,12 @@ saci_Vec3 saci_NormalizeVec3(saci_Vec3 v) {
 }
 
 saci_Vec3 saci_CrossVec3(saci_Vec3 a, saci_Vec3 b) {
-    saci_Vec3 result = {
-        a.y * b.z - a.z * b.y,
-        a.z * b.x - a.x * b.z,
-        a.x * b.y - a.y * b.x};
+    saci_Vec3 result = {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
+                        a.x * b.y - a.y * b.x};
     return result;
 }
 
-float saci_DotVec3(saci_Vec3 a, saci_Vec3 b) {
-    return a.x * b.x + a.y * b.y + a.z * b.z;
-}
+float saci_DotVec3(saci_Vec3 a, saci_Vec3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
 
 //------------------------------------------------------------------------------
 // Color
@@ -77,10 +73,14 @@ float saci_DotVec3(saci_Vec3 a, saci_Vec3 b) {
 
 saci_Color saci_ColorFromHex(saci_u32 hex) {
     saci_Color color;
-    color.r = ((hex >> 24) & 0xFF) * SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert red component
-    color.g = ((hex >> 16) & 0xFF) * SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert green component
-    color.b = ((hex >> 8) & 0xFF) * SACI_8BIT_COLOR_INVERSE_MAX;  // Extract and convert blue component
-    color.a = (hex & 0xFF) * SACI_8BIT_COLOR_INVERSE_MAX;         // Extract and convert alpha component
+    color.r = ((hex >> 24) & 0xFF) *
+              SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert red component
+    color.g = ((hex >> 16) & 0xFF) *
+              SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert green component
+    color.b = ((hex >> 8) & 0xFF) *
+              SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert blue component
+    color.a =
+        (hex & 0xFF) * SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert alpha component
     return color;
 }
 
@@ -156,7 +156,8 @@ saci_Mat4 saci_PerspectiveMat4(float fov, float aspect, float near, float far) {
     return result;
 }
 
-saci_Mat4 saci_OrthoMat4(float left, float right, float bottom, float top, float near, float far) {
+saci_Mat4 saci_OrthoMat4(float left, float right, float bottom, float top, float near,
+                         float far) {
     saci_Mat4 result = {0};
 
     result.m[0][0] = 2.0f / (right - left);

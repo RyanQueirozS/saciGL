@@ -1,7 +1,7 @@
 #include "saci-core/sc-camera.h"
 #include "saci-utils/su-types.h"
 
-sc_Camera sc_GenerateDefaultCamera3D() {
+sc_Camera sc_Camera_GetDefault3DCamera() {
     sc_Camera camera;
     camera.position = (saci_Vec3){0.0f, 0.0f, 0.0f};
     camera.target = (saci_Vec3){0.0f, 0.0f, 0.0f};
@@ -15,7 +15,7 @@ sc_Camera sc_GenerateDefaultCamera3D() {
     return camera;
 }
 
-sc_Camera sc_GenerateDefaultCamera2D() {
+sc_Camera sc_Camera_GetDefault2DCamera() {
     sc_Camera camera;
     camera.position = (saci_Vec3){0.0f, 0.0f, 1.0f}; // This Z=1.0f is to position
                                                      // the camera "behind" the 2D
