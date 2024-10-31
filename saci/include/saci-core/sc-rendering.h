@@ -20,6 +20,12 @@
  */
 typedef struct sc_Renderer sc_Renderer;
 
+typedef struct sc_Vertice {
+    saci_Vec3 pos;
+    saci_Color color;
+    saci_Vec2 texCoord;
+} sc_Vertice;
+
 /* === Render Initialization === */
 
 /**
@@ -126,11 +132,10 @@ void sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera);
  * @param aUV, bUV, cUV The UV coordinates for each vertex.
  * @param texID The texture to apply.
  */
-void sc_Renderer_PushTriangleTexture(sc_Renderer* renderer, const saci_Vec3 a,
-                                     const saci_Vec3 b, const saci_Vec3 c,
-                                     const saci_Color aColor, const saci_Color bColor,
-                                     const saci_Color cColor, const saci_Vec2 aUV,
-                                     const saci_Vec2 bUV, const saci_Vec2 cUV,
+void sc_Renderer_PushTriangleTexture(sc_Renderer* renderer, const saci_Vec3 a, const saci_Vec3 b,
+                                     const saci_Vec3 c, const saci_Color aColor,
+                                     const saci_Color bColor, const saci_Color cColor,
+                                     const saci_Vec2 aUV, const saci_Vec2 bUV, const saci_Vec2 cUV,
                                      const saci_TextureID texID);
 
 /**
@@ -140,10 +145,9 @@ void sc_Renderer_PushTriangleTexture(sc_Renderer* renderer, const saci_Vec3 a,
  * @param a, b, c The triangle vertices.
  * @param aColor, bColor, cColor The colors for each vertex.
  */
-void sc_Renderer_PushTriangle2D(sc_Renderer* renderer, const saci_Vec2 a,
-                                const saci_Vec2 b, const saci_Vec2 c, float depth,
-                                const saci_Color aColor, const saci_Color bColor,
-                                const saci_Color cColor);
+void sc_Renderer_PushTriangle2D(sc_Renderer* renderer, const saci_Vec2 a, const saci_Vec2 b,
+                                const saci_Vec2 c, float depth, const saci_Color aColor,
+                                const saci_Color bColor, const saci_Color cColor);
 
 /**
  * @brief Pushes an untextured 3D plane triangle to the renderer.
@@ -152,8 +156,10 @@ void sc_Renderer_PushTriangle2D(sc_Renderer* renderer, const saci_Vec2 a,
  * @param a, b, c The triangle vertices.
  * @param aColor, bColor, cColor The colors for each vertex.
  */
-void sc_Renderer_PushTriangle3D(sc_Renderer* renderer, const saci_Vec3 a,
-                                const saci_Vec3 b, const saci_Vec3 c,
-                                const saci_Color aColor, const saci_Color bColor,
+void sc_Renderer_PushTriangle3D(sc_Renderer* renderer, const saci_Vec3 a, const saci_Vec3 b,
+                                const saci_Vec3 c, const saci_Color aColor, const saci_Color bColor,
                                 const saci_Color cColor);
+
+void sc_Renderer_PushVertices(sc_Renderer* renderer, sc_Vertice* vertices, saci_u64 verticeAmount,
+                              saci_u32* indices, saci_u64 indiceAmount, saci_TextureID texID);
 #endif
