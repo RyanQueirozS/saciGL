@@ -14,10 +14,10 @@ static sc_Renderer* renderer;
 static const int screen_width = 1600;
 static const int screen_height = 900;
 
-static saci_Vec2 triangleVert[3] = {
-    (saci_Vec2){.x = 1, .y = 0.4},
-    (saci_Vec2){.x = 0.8, .y = 0.7},
-    (saci_Vec2){.x = 0.3, .y = 0.1},
+static saci_Vec3 triangleVert[3] = {
+    (saci_Vec3){.x = 1, .y = 0.4, 0},
+    (saci_Vec3){.x = 0.8, .y = 0.7, 0},
+    (saci_Vec3){.x = 0.3, .y = 0.1, 0},
 };
 
 static saci_Color triangleColor[3] = {
@@ -41,13 +41,17 @@ int main() {
     assert(renderer);
 
     saci_Color bgColor = saci_ColorFromU8(25, 70, 125, 255);
+    sc_Vertice vertices[3] = {
+        {triangleVert[0], triangleColor[0], {0, 0}}, // We do not use textures,
+        {triangleVert[1], triangleColor[1], {0, 0}}, // so texcoord will be 0,0
+        {triangleVert[2], triangleColor[2], {0, 0}},
+    };
+    saci_u32 indices[3] = {0, 1, 2}; // indices for the triangle
     while (!sc_Window_ShouldClose(window)) {
         sc_Window_ClearColor(bgColor);
 
         sc_Renderer_Begin(renderer);
-        sc_Renderer_PushTriangle2D(renderer, triangleVert[0], triangleVert[1],
-                                   triangleVert[2], 0.0f, triangleColor[0],
-                                   triangleColor[1], triangleColor[2]);
+        sc_Renderer_PushVertices(renderer, vertices, 3, indices, 3, 0);
         sc_Renderer_End(renderer, NULL);
         sc_Window_SwapBuffer(window);
 

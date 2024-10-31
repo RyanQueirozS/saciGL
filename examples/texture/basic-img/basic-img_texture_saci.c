@@ -62,23 +62,23 @@ int main() {
     init_saci();
     int tex = sc_Texture_Load("./texture/basic-img/cat-standing-up.png", false);
     assert(tex);
-    saci_Color bgColor = saci_ColorFromU8(
-        25, 70, 125, 255); // Colors are stored as float values from 0 to 1
+    saci_Color bgColor =
+        saci_ColorFromU8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
+    sc_Vertice vertices[4] = {
+        {triangleVertices[0], vertexColors[0], uvCoords[0]},
+        {triangleVertices[1], vertexColors[1], uvCoords[1]},
+        {triangleVertices[2], vertexColors[2], uvCoords[2]},
+        {triangleVertices[3], vertexColors[3], uvCoords[3]},
+    };
+    saci_u32 indices[6] = {
+        0, 1, 2, // first triangle
+        1, 2, 3, // second triangle
+    };
     while (!sc_Window_ShouldClose(window)) {
         sc_Window_ClearColor(bgColor);
 
         sc_Renderer_Begin(renderer);
-        sc_Renderer_PushTriangleTexture(renderer, triangleVertices[0],
-                                        triangleVertices[1], triangleVertices[2],
-                                        vertexColors[0], vertexColors[1], vertexColors[2],
-                                        uvCoords[0], uvCoords[1], uvCoords[2], tex);
-        sc_Renderer_PushTriangleTexture(renderer, triangleVertices[2],
-                                        triangleVertices[1],
-                                        triangleVertices[3], // Vertices
-                                        vertexColors[2], vertexColors[1],
-                                        vertexColors[3],                       // Colors
-                                        uvCoords[2], uvCoords[1], uvCoords[3], // UVs
-                                        tex);
+        sc_Renderer_PushVertices(renderer, vertices, 4, indices, 6, tex);
         sc_Renderer_End(renderer, &camera);
         sc_Window_SwapBuffer(window);
 

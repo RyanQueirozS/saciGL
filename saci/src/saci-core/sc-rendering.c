@@ -269,48 +269,6 @@ void sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera) {
     glUseProgram(0);
 }
 
-void sc_Renderer_PushTriangleTexture(sc_Renderer* renderer, const saci_Vec3 a, const saci_Vec3 b,
-                                     const saci_Vec3 c, const saci_Color aColor,
-                                     const saci_Color bColor, const saci_Color cColor,
-                                     const saci_Vec2 aUV, const saci_Vec2 bUV, const saci_Vec2 cUV,
-                                     const saci_TextureID texID) {
-    sc_Vertice vertices[] = {
-        (sc_Vertice){a, aColor, aUV},
-        (sc_Vertice){b, bColor, bUV},
-        (sc_Vertice){c, cColor, cUV},
-    };
-    sc_RenderCall renderCall = __sc_RenderCall_create(vertices, GL_TRIANGLES, texID, 3);
-    __sc_renderBatch_push(&renderer->renderBatch, renderCall);
-}
-
-void sc_Renderer_PushTriangle2D(sc_Renderer* renderer, const saci_Vec2 a, const saci_Vec2 b,
-                                const saci_Vec2 c, float depth, const saci_Color aColor,
-                                const saci_Color bColor, const saci_Color cColor) {
-    saci_Vec3 a3 = {a.x, a.y, depth};
-    saci_Vec3 b3 = {b.x, b.y, depth};
-    saci_Vec3 c3 = {c.x, c.y, depth};
-
-    sc_Vertice vertices[] = {
-        (sc_Vertice){a3, aColor, {0, 0}},
-        (sc_Vertice){b3, bColor, {0, 0}},
-        (sc_Vertice){c3, cColor, {0, 0}},
-    };
-    sc_RenderCall renderCall = __sc_RenderCall_create(vertices, GL_TRIANGLES, 0, 3);
-    __sc_renderBatch_push(&renderer->renderBatch, renderCall);
-}
-
-void sc_Renderer_PushTriangle3D(sc_Renderer* renderer, const saci_Vec3 a, const saci_Vec3 b,
-                                const saci_Vec3 c, const saci_Color aColor, const saci_Color bColor,
-                                const saci_Color cColor) {
-    sc_Vertice vertices[] = {
-        (sc_Vertice){a, aColor, {0, 0}},
-        (sc_Vertice){b, bColor, {0, 0}},
-        (sc_Vertice){c, cColor, {0, 0}},
-    };
-    sc_RenderCall renderCall = __sc_RenderCall_create(vertices, GL_TRIANGLES, 0, 3);
-    __sc_renderBatch_push(&renderer->renderBatch, renderCall);
-}
-
 void sc_Renderer_PushVertices(sc_Renderer* renderer, sc_Vertice* vertices, saci_u64 verticeAmount,
                               saci_u32* indices, saci_u64 indiceAmount, saci_TextureID texID) {
     if (!vertices) {
