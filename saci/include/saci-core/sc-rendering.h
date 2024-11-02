@@ -6,6 +6,7 @@
 #define __SACI_CORE_SC_RENDERING_H__
 
 #include "saci-core/sc-camera.h"
+#include "saci-core/sc-model-loading.h"
 #include "saci-utils/su-types.h"
 
 /* === Render Struct === */
@@ -20,11 +21,9 @@
  */
 typedef struct sc_Renderer sc_Renderer;
 
-typedef struct sc_Vertice {
-    saci_Vec3 pos;
-    saci_Color color;
-    saci_Vec2 texCoord;
-} sc_Vertice;
+typedef struct sc_Vertice sc_Vertice;
+
+typedef struct sc_ModelMesh sc_ModelMesh;
 
 /* === Render Initialization === */
 
@@ -126,4 +125,13 @@ void sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera);
 
 void sc_Renderer_PushVertices(sc_Renderer* renderer, sc_Vertice* vertices, saci_u64 verticeAmount,
                               saci_u32* indices, saci_u64 indiceAmount, saci_TextureID texID);
+
+void sc_Renderer_PushModelMesh(sc_Renderer* renderer, sc_ModelMesh* mesh, saci_TextureID texID);
+
+sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3* verticesPos, saci_u64 verticePosAmount,
+                                  saci_Vec2* verticesTexcoord, saci_u64 verticesTexcoordAmount,
+                                  struct sc_VertexIndice* indices, saci_u64 indiceAmount);
+
+void sc_ModelMesh_Delete(sc_ModelMesh* modelMesh);
+
 #endif

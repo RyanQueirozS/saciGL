@@ -378,6 +378,11 @@ Files should be named:
         └── **[ALL OF SACI UTILITY SOURCE FILES]**  
 ```
 
+In saci-core:
+- `sc-rendering` uses (includes) all of the other files in `saci-core`
+- All files in `saci-core` use (include) only the `saci-utils` files, and never
+  any other `saci-core` file
+
 ### Header Files
 
 Must:

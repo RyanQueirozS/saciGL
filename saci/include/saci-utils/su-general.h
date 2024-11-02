@@ -3,7 +3,8 @@
  * @brief This header defines common code utilities used in the saciCORE and saciLIB.
  *
  * @details
- * This file provides general code utilities, like type casting macros and macros to get array lengths
+ * This file provides general code utilities, like type casting macros and macros to get array
+ * lengths
  */
 
 #ifndef __SACI_UTILS_SU_GENERAL_H__

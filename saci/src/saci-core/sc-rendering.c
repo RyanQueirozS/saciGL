@@ -1,15 +1,14 @@
 #include "saci-core/sc-rendering.h"
 #include <glad/glad.h>
 
-#include "saci-core.h"
-
 #include "saci-core/sc-camera.h"
+#include "saci-core/sc-shadering.h"
 #include "saci-utils/su-debug.h"
-#include "saci-utils/su-general.h"
 #include "saci-utils/su-math.h"
 #include "saci-utils/su-types.h"
 
 #include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
@@ -123,8 +122,14 @@ void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, bo
 // Base Definitions
 //----------------------------------------------------------------------------//
 
-#define SACI_RENDER_BATCH_DEFAULT_CAPACITY 0x10000
+#define SACI_RENDER_BATCH_DEFAULT_CAPACITY 0x1000000
 #define SACI_DEFAULT_TEXTURE_BUFFER_SIZE 1 // TODO
+
+typedef struct sc_Vertice {
+    saci_Vec3 pos;
+    saci_Color color;
+    saci_Vec2 texCoord;
+} sc_Vertice;
 
 typedef struct sc_RenderCall {
     sc_Vertice* vertices;
@@ -157,6 +162,14 @@ static struct sc_RenderConfig {
 
     bool shouldFillShape;
 } sc_sRenderConfig;
+
+typedef struct sc_ModelMesh {
+    sc_Vertice* vertices;
+    saci_u64 verticesAmount;
+
+    saci_u32* indices;
+    saci_u64 indicesAmount;
+} sc_ModelMesh;
 
 //----------------------------------------------------------------------------//
 // Render Initialization/Deletion
@@ -256,7 +269,7 @@ void sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera) {
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, call->ibo);
 
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(sc_Vertice) * call->indiceAmount,
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(sc_Vertice) * call->verticeAmount,
                         call->vertices);
 
         glDrawElements(call->renderMode, call->indiceAmount, GL_UNSIGNED_INT, 0);
@@ -279,9 +292,61 @@ void sc_Renderer_PushVertices(sc_Renderer* renderer, sc_Vertice* vertices, saci_
     sc_RenderCall renderCall = __sc_RenderCall_create(vertices, GL_TRIANGLES, texID, verticeAmount);
     renderCall.indices = indices;
     renderCall.indiceAmount = indiceAmount;
+    renderCall.verticeAmount = verticeAmount;
     renderCall.ibo = sc_GL_CreateIndexBuffer(renderCall.indices, renderCall.indiceAmount);
     __sc_renderBatch_push(&renderer->renderBatch, renderCall);
 }
+
+void sc_Renderer_PushModelMesh(sc_Renderer* renderer, sc_ModelMesh* mesh, saci_TextureID texID) {
+    if (!mesh) {
+        exit(1);
+    }
+    sc_Renderer_PushVertices(renderer, mesh->vertices, mesh->verticesAmount, mesh->indices,
+                             mesh->indicesAmount, texID);
+}
+
+sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3* verticesPos, saci_u64 verticePosAmount,
+                                  saci_Vec2* verticesTexcoord, saci_u64 verticesTexcoordAmount,
+                                  struct sc_VertexIndice* indices, saci_u64 indiceAmount) {
+    if (verticePosAmount != verticesTexcoordAmount) {
+        return NULL;
+    }
+
+    sc_ModelMesh* mesh = (sc_ModelMesh*)malloc(sizeof(sc_ModelMesh));
+    if (!mesh) {
+        return NULL;
+    }
+
+    mesh->verticesAmount = verticePosAmount;
+    mesh->indicesAmount = indiceAmount;
+
+    mesh->vertices = (sc_Vertice*)malloc(sizeof(sc_Vertice) * mesh->verticesAmount);
+    if (!mesh->vertices) {
+        free(mesh);
+        return NULL;
+    }
+
+    for (saci_u64 i = 0; i < verticePosAmount; i++) {
+        mesh->vertices[i].pos = verticesPos[i];
+        mesh->vertices[i].texCoord = verticesTexcoord[i];
+        mesh->vertices[i].color = (saci_Color){1.0f, 1.0f, 1.0f, 1.0f}; // Default white color
+    }
+
+    mesh->indices = (saci_u32*)malloc(sizeof(saci_u32) * mesh->indicesAmount);
+    if (!mesh->indices) {
+        free(mesh->vertices);
+        free(mesh);
+        return NULL;
+    }
+
+    for (saci_u64 i = 0; i < indiceAmount; i++) {
+        mesh->indices[i] = indices[i].vertexIndex;
+    }
+
+    return mesh;
+}
+
+void sc_ModelMesh_Delete(sc_ModelMesh* modelMesh) {}
 
 //----------------------------------------------------------------------------//
 // Helper functions
@@ -526,4 +591,33 @@ saci_u32 sc_GL_CreateIndexBuffer(saci_u32* indices, saci_u64 indiceAmount) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     assert(ibo);
     return ibo;
+}
+
+void __sc_tinyobj_fileReaderCallback(void* context, const char* filename, int isMtl,
+                                     const char* objFilename, char** buffer, size_t* lenght) {
+    (void)context;
+    (void)isMtl;
+    (void)objFilename;
+    FILE* file = fopen(filename, "rb");
+    if (!file) {
+        *buffer = NULL;
+        *lenght = 0;
+        return;
+    }
+
+    // Get file size
+    fseek(file, 0, SEEK_END);
+    *lenght = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    *buffer = (char*)malloc(*lenght + 1); // +1 for null terminator
+    if (!*buffer) {
+        fclose(file);
+        *lenght = 0;
+        return;
+    }
+
+    fread(*buffer, 1, *lenght, file);
+    (*buffer)[*lenght] = '\0'; // Null-terminate to ensure safety for string-based APIs
+    fclose(file);
 }
