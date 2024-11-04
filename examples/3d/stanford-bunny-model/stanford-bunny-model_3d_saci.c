@@ -67,6 +67,8 @@ void read_file(const char* path, char** buffer, saci_u64* length) {
 
 int main() {
     init_saci();
+    saci_Color bgColor =
+        saci_ColorFromU8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
 
     const char* filePath = "./3d/stanford-bunny-model/bunny.obj";
     sc_fileReadingFunction func = read_file;
@@ -83,13 +85,16 @@ int main() {
     sc_ModelMesh* mesh = sc_ModelMesh_Create(verticesPos, verticePosAmount, verticesTexcoord,
                                              verticesTexcoordAmount, indices, indiceAmount);
     assert(mesh);
-    saci_Color bgColor =
-        saci_ColorFromU8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
+    saci_Mat4 modelMatrix;
+    saci_Vec3 modelPos = {1, 0, 1};
+    saci_Vec3 modelRot = {0, 0, 0};
+    saci_Vec3 modelScale = {1, 1, 1};
+    modelMatrix = saci_Mat4_ModelMatrix(modelPos, modelRot, modelScale);
     while (!sc_Window_ShouldClose(window)) {
         sc_Window_ClearColor(bgColor);
 
         sc_Renderer_Begin(renderer);
-        sc_Renderer_PushModelMesh(renderer, mesh, 0);
+        sc_Renderer_PushModelMesh(renderer, mesh, modelMatrix, 0);
         sc_Renderer_End(renderer, &camera);
         camera.position.z -= 0.003;
         sc_Window_SwapBuffer(window);

@@ -145,7 +145,7 @@ saci_Color saci_ColorFromU8(saci_u8 r, saci_u8 g, saci_u8 b, saci_u8 a);
 
 saci_u32 saci_HexFromColor(saci_Color color);
 
-/* === Mat4 Operations === */
+/* === Mat Operations === */
 
 /**
  * @brief Multiplies two 4x4 matrices.
@@ -214,5 +214,19 @@ saci_Mat4 saci_RotateMat4_X(saci_Mat4 mat, float angle);
  * @return The resulting rotated matrix.
  */
 saci_Mat4 saci_RotateMat4_Y(saci_Mat4 mat, float angle);
+
+saci_Mat4 saci_ScaleMat4(float sx, float sy, float sz);
+
+saci_Mat4 saci_Mat4_Translate(float tx, float ty, float tz);
+
+/**
+ * @brief Creates a model matrix based on translation, rotation, and scale vectors.
+ *
+ * @param position The position vector (translation).
+ * @param rotation The rotation vector (in radians, with x, y, z components).
+ * @param scale The scale vector.
+ * @return The resulting model matrix.
+ */
+saci_Mat4 saci_Mat4_ModelMatrix(saci_Vec3 position, saci_Vec3 rotation, saci_Vec3 scale);
 
 #endif

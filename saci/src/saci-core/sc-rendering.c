@@ -116,7 +116,9 @@ void __sc_renderer_initAll(sc_Renderer* renderer);
  * @param camera The camera that will or won't be used
  * @param setTexture The texture that will or won't be used
  */
-void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, bool setTexture);
+// todo update doc
+void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, saci_Mat4 modelMatrix,
+                              bool useTexture);
 
 //----------------------------------------------------------------------------//
 // Base Definitions
@@ -140,6 +142,8 @@ typedef struct sc_RenderCall {
     saci_u32* indices;
     saci_u64 indiceAmount;
     saci_u32 ibo;
+
+    saci_Mat4 modelMatrix;
 } sc_RenderCall;
 
 typedef struct sc_RenderBatch {
@@ -260,7 +264,7 @@ void sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera) {
 
     for (saci_u32 i = 0; i < renderer->renderBatch.renderCallCount; ++i) {
         sc_RenderCall* call = &renderer->renderBatch.renderCalls[i];
-        __sc_renderer_setUniform(renderer, camera, call->textureID);
+        __sc_renderer_setUniform(renderer, camera, call->modelMatrix, call->textureID);
 
         if (call->textureID != 0) {
             glActiveTexture(GL_TEXTURE0);
@@ -283,7 +287,8 @@ void sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera) {
 }
 
 void sc_Renderer_PushVertices(sc_Renderer* renderer, sc_Vertice* vertices, saci_u64 verticeAmount,
-                              saci_u32* indices, saci_u64 indiceAmount, saci_TextureID texID) {
+                              saci_u32* indices, saci_u64 indiceAmount, saci_Mat4 modelMatrix,
+                              saci_TextureID texID) {
     if (!vertices) {
         // todo err
         exit(1);
@@ -293,24 +298,26 @@ void sc_Renderer_PushVertices(sc_Renderer* renderer, sc_Vertice* vertices, saci_
     renderCall.indices = indices;
     renderCall.indiceAmount = indiceAmount;
     renderCall.verticeAmount = verticeAmount;
+    renderCall.modelMatrix = modelMatrix;
     renderCall.ibo = sc_GL_CreateIndexBuffer(renderCall.indices, renderCall.indiceAmount);
     __sc_renderBatch_push(&renderer->renderBatch, renderCall);
 }
 
-void sc_Renderer_PushModelMesh(sc_Renderer* renderer, sc_ModelMesh* mesh, saci_TextureID texID) {
+void sc_Renderer_PushModelMesh(sc_Renderer* renderer, sc_ModelMesh* mesh, saci_Mat4 modelMatrix,
+                               saci_TextureID texID) {
     if (!mesh) {
         exit(1);
     }
     sc_Renderer_PushVertices(renderer, mesh->vertices, mesh->verticesAmount, mesh->indices,
-                             mesh->indicesAmount, texID);
+                             mesh->indicesAmount, modelMatrix, texID);
 }
 
 sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3* verticesPos, saci_u64 verticePosAmount,
                                   saci_Vec2* verticesTexcoord, saci_u64 verticesTexcoordAmount,
                                   struct sc_VertexIndice* indices, saci_u64 indiceAmount) {
-    if (verticePosAmount != verticesTexcoordAmount) {
-        return NULL;
-    }
+    // if (verticePosAmount != verticesTexcoordAmount) {
+    //     return NULL;
+    // }
 
     sc_ModelMesh* mesh = (sc_ModelMesh*)malloc(sizeof(sc_ModelMesh));
     if (!mesh) {
@@ -465,6 +472,7 @@ void __sc_renderer_initShaderProgram(sc_Renderer* renderer) {
         "layout (location = 1) in vec4 aColor;\n"
         "layout (location = 2) in vec2 aTexCoord;\n"
 
+        "uniform mat4 uModelMatrix;\n"
         "uniform mat4 uViewMatrix;\n"
         "uniform mat4 uProjectionMatrix;\n"
         "uniform bool uUseCam;\n"
@@ -474,10 +482,11 @@ void __sc_renderer_initShaderProgram(sc_Renderer* renderer) {
 
         "void main()\n"
         "{\n"
-        "   if(uUseCam){\n"
-        "       gl_Position = uProjectionMatrix * uViewMatrix * vec4(aPos, 1.0);\n"
-        "   }else {\n"
-        "       gl_Position = vec4(aPos, 1.0);\n"
+        "   vec4 worldPosition = uModelMatrix * vec4(aPos, 1.0);\n"
+        "   if (uUseCam) {\n"
+        "       gl_Position = uProjectionMatrix * uViewMatrix * worldPosition;\n"
+        "   } else {\n"
+        "       gl_Position = worldPosition;\n"
         "   }\n"
         "   vColor = aColor;\n"
         "   vTexCoord = aTexCoord;\n"
@@ -529,18 +538,21 @@ void __sc_renderer_initAll(sc_Renderer* renderer) {
 #endif
 }
 
-void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, bool useTexture) {
+void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, saci_Mat4 modelMatrix,
+                              bool useTexture) {
     saci_Mat4 view = {0};
     saci_Mat4 projection = {0};
 
     int viewLoc = glGetUniformLocation(renderer->shaderProgram, "uViewMatrix");
     int projLoc = glGetUniformLocation(renderer->shaderProgram, "uProjectionMatrix");
     int useCamLoc = glGetUniformLocation(renderer->shaderProgram, "uUseCam");
+    int uModelMatrixLoc = glGetUniformLocation(renderer->shaderProgram, "uModelMatrix");
     int uTextureLoc = glGetUniformLocation(renderer->shaderProgram, "uTexture");
     int uUseTextureLoc = glGetUniformLocation(renderer->shaderProgram, "uUseTexture");
 
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view.m[0][0]);
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m[0][0]);
+    glUniformMatrix4fv(uModelMatrixLoc, 1, GL_FALSE, &modelMatrix.m[0][0]);
     glUniform1i(useCamLoc, SACI_TRUE);
 
     glUniform1i(uTextureLoc, 0);

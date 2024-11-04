@@ -3,8 +3,7 @@
 #include <string.h>
 
 #define SACI_8BIT_COLOR_MAX 255.0f
-#define SACI_8BIT_COLOR_INVERSE_MAX \
-    1.0f / SACI_8BIT_COLOR_MAX // Used for Color related math
+#define SACI_8BIT_COLOR_INVERSE_MAX 1.0f / SACI_8BIT_COLOR_MAX // Used for Color related math
 
 static double saci_default_sqrt(double x) { // wrapps math.h sqrt func
     return sqrt(x);
@@ -60,8 +59,7 @@ saci_Vec3 saci_NormalizeVec3(saci_Vec3 v) {
 }
 
 saci_Vec3 saci_CrossVec3(saci_Vec3 a, saci_Vec3 b) {
-    saci_Vec3 result = {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
-                        a.x * b.y - a.y * b.x};
+    saci_Vec3 result = {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
     return result;
 }
 
@@ -73,14 +71,13 @@ float saci_DotVec3(saci_Vec3 a, saci_Vec3 b) { return a.x * b.x + a.y * b.y + a.
 
 saci_Color saci_ColorFromHex(saci_u32 hex) {
     saci_Color color;
-    color.r = ((hex >> 24) & 0xFF) *
-              SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert red component
-    color.g = ((hex >> 16) & 0xFF) *
-              SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert green component
-    color.b = ((hex >> 8) & 0xFF) *
-              SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert blue component
-    color.a =
-        (hex & 0xFF) * SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert alpha component
+    color.r =
+        ((hex >> 24) & 0xFF) * SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert red component
+    color.g =
+        ((hex >> 16) & 0xFF) * SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert green component
+    color.b =
+        ((hex >> 8) & 0xFF) * SACI_8BIT_COLOR_INVERSE_MAX; // Extract and convert blue component
+    color.a = (hex & 0xFF) * SACI_8BIT_COLOR_INVERSE_MAX;  // Extract and convert alpha component
     return color;
 }
 
@@ -156,8 +153,7 @@ saci_Mat4 saci_PerspectiveMat4(float fov, float aspect, float near, float far) {
     return result;
 }
 
-saci_Mat4 saci_OrthoMat4(float left, float right, float bottom, float top, float near,
-                         float far) {
+saci_Mat4 saci_OrthoMat4(float left, float right, float bottom, float top, float near, float far) {
     saci_Mat4 result = {0};
 
     result.m[0][0] = 2.0f / (right - left);
@@ -169,4 +165,79 @@ saci_Mat4 saci_OrthoMat4(float left, float right, float bottom, float top, float
     result.m[3][3] = 1.0f;
 
     return result;
+}
+
+saci_Mat4 saci_RotateMat4_X(saci_Mat4 mat, float angle) {
+    saci_Mat4 rotation = saci_IdentityMat4();
+    float cosA = cosf(angle);
+    float sinA = sinf(angle);
+
+    rotation.m[1][1] = cosA;
+    rotation.m[1][2] = -sinA;
+    rotation.m[2][1] = sinA;
+    rotation.m[2][2] = cosA;
+
+    return saci_MultiplyMat4(mat, rotation);
+}
+
+saci_Mat4 saci_RotateMat4_Y(saci_Mat4 mat, float angle) {
+    saci_Mat4 rotation = saci_IdentityMat4();
+    float cosA = cosf(angle);
+    float sinA = sinf(angle);
+
+    rotation.m[0][0] = cosA;
+    rotation.m[0][2] = sinA;
+    rotation.m[2][0] = -sinA;
+    rotation.m[2][2] = cosA;
+
+    return saci_MultiplyMat4(mat, rotation);
+}
+
+saci_Mat4 saci_RotateMat4_Z(saci_Mat4 mat, float angle) {
+    saci_Mat4 rotation = saci_IdentityMat4();
+    float cosA = cosf(angle);
+    float sinA = sinf(angle);
+
+    rotation.m[0][0] = cosA;
+    rotation.m[0][1] = -sinA;
+    rotation.m[1][0] = sinA;
+    rotation.m[1][1] = cosA;
+
+    return saci_MultiplyMat4(mat, rotation);
+}
+
+saci_Mat4 saci_ScaleMat4(float sx, float sy, float sz) {
+    saci_Mat4 result = saci_IdentityMat4();
+    result.m[0][0] = sx; // Scale in x direction
+    result.m[1][1] = sy; // Scale in y direction
+    result.m[2][2] = sz; // Scale in z direction
+    return result;
+}
+
+saci_Mat4 saci_Mat4_Translate(float tx, float ty, float tz) {
+    saci_Mat4 result = saci_IdentityMat4();
+    result.m[3][0] = tx; // Translate in x direction
+    result.m[3][1] = ty; // Translate in y direction
+    result.m[3][2] = tz; // Translate in z direction
+    return result;
+}
+
+saci_Mat4 saci_Mat4_ModelMatrix(saci_Vec3 position, saci_Vec3 rotation, saci_Vec3 scale) {
+    saci_Mat4 scaleMat = saci_ScaleMat4(scale.x, scale.y, scale.z);
+
+    saci_Mat4 rotationX =
+        saci_RotateMat4_X(saci_IdentityMat4(), rotation.x); // Rotate around X-axis
+    saci_Mat4 rotationY =
+        saci_RotateMat4_Y(saci_IdentityMat4(), rotation.y); // Rotate around Y-axis
+    saci_Mat4 rotationZ =
+        saci_RotateMat4_Z(saci_IdentityMat4(), rotation.z); // Rotate around Z-axis
+
+    saci_Mat4 rotationMat = saci_MultiplyMat4(rotationZ, saci_MultiplyMat4(rotationY, rotationX));
+
+    saci_Mat4 translationMat = saci_Mat4_Translate(position.x, position.y, position.z);
+
+    saci_Mat4 modelMatrix =
+        saci_MultiplyMat4(translationMat, saci_MultiplyMat4(rotationMat, scaleMat));
+
+    return modelMatrix;
 }
