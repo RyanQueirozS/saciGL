@@ -301,6 +301,7 @@ void sc_Renderer_PushModelMesh(sc_Renderer* renderer, sc_ModelMesh* mesh, saci_M
 sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3* verticesPos, saci_u64 verticePosAmount,
                                   saci_Vec2* verticesTexcoord, saci_u64 verticesTexcoordAmount,
                                   struct sc_VertexIndice* indices, saci_u64 indiceAmount) {
+    // TODO
     // if (verticePosAmount != verticesTexcoordAmount) {
     //     return NULL;
     // }
@@ -309,6 +310,8 @@ sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3* verticesPos, saci_u64 verticePosAmo
     if (!mesh) {
         return NULL;
     }
+
+    assert(verticePosAmount < SACI_RENDER_BATCH_DEFAULT_CAPACITY);
 
     mesh->verticesAmount = verticePosAmount;
     mesh->indicesAmount = indiceAmount;
@@ -354,17 +357,8 @@ sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_Model_FileReadingFunction f
                       &verticesTexCoordsAmount, &indices, &indicesAmount)) {
         return NULL;
     }
-    sc_ModelMesh* mesh = (sc_ModelMesh*)malloc(sizeof(sc_ModelMesh));
-    mesh->vertices = (sc_Vertice*)malloc(sizeof(sc_Vertice) * verticesAmount);
-    for (saci_u64 i = 0; i < verticesAmount; ++i) {
-        mesh->vertices->pos = verticesPos[i];
-        mesh->vertices->texCoord = verticesTexCoords[i];
-    }
-    mesh->indices = (saci_u32*)malloc(sizeof(saci_u32) * indicesAmount);
-    for (saci_u64 i = 0; i < indicesAmount; ++i) {
-        mesh->indices[i] = indices[i].vertexIndex;
-    }
-    return NULL;
+    return sc_ModelMesh_Create(verticesPos, verticesAmount, verticesTexCoords,
+                               verticesTexCoordsAmount, indices, indicesAmount);
 }
 
 void sc_ModelMesh_Delete(sc_ModelMesh* modelMesh) {

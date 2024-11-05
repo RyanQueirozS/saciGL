@@ -75,7 +75,6 @@ int main() {
         sc_Model_FileReadingFunction func = read_file;
 
         mesh = sc_ModelMesh_Load(filePath, func);
-        printf("oi\n");
     }
 
     assert(mesh);
