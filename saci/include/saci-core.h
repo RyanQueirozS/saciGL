@@ -3,7 +3,7 @@
 
 #include "saci-core/sc-camera.h"
 #include "saci-core/sc-event.h"
-#include "saci-core/sc-rendering.h"
+#include "saci-core/sc-gl.h"
 #include "saci-core/sc-shadering.h"
 #include "saci-core/sc-texture.h"
 #include "saci-core/sc-windowing.h"

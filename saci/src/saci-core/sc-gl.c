@@ -1,4 +1,4 @@
-#include "saci-core/sc-rendering.h"
+#include "saci-core/sc-gl.h"
 #include <glad/glad.h>
 
 #include "saci-core/sc-camera.h"
@@ -20,8 +20,6 @@
 // structs used in helper functions
 typedef struct sc_RenderCall sc_RenderCall;
 typedef struct sc_RenderBatch sc_RenderBatch;
-
-saci_u32 sc_GL_CreateIndexBuffer(saci_u32* indices, saci_u64 indiceAmount);
 
 /**
  * @brief Function to cleanup garbage numbers.
@@ -114,9 +112,9 @@ void __sc_renderer_initAll(sc_Renderer* renderer);
  *
  * @param renderer The renderer that bases the shaderProgram
  * @param camera The camera that will or won't be used
+ * @param modelMatrix The modelMatrix referenced in the DrawCall
  * @param setTexture The texture that will or won't be used
  */
-// todo update doc
 void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, saci_Mat4 modelMatrix,
                               bool useTexture);
 
@@ -165,7 +163,7 @@ static struct sc_RenderConfig {
     sc_Renderer_CustomProjectionFunction customProjectionFunction;
 
     bool shouldFillShape;
-} sc_sRenderConfig;
+} sc_RenderConfig;
 
 typedef struct sc_ModelMesh {
     sc_Vertice* vertices;
@@ -207,13 +205,13 @@ void sc_Renderer_Delete(sc_Renderer* renderer) {
 
 void sc_Renderer_SetNoFillMode(void) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    sc_sRenderConfig.shouldFillShape = SACI_FALSE;
+    sc_RenderConfig.shouldFillShape = SACI_FALSE;
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_RENDERER, "Renderer set no fill mode");
 }
 
 void sc_Renderer_SetFillMode(void) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    sc_sRenderConfig.shouldFillShape = SACI_TRUE;
+    sc_RenderConfig.shouldFillShape = SACI_TRUE;
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_RENDERER, "Renderer set fill mode");
 }
 
@@ -223,7 +221,7 @@ void sc_Renderer_EnableZBuffer(void) {
 }
 
 void sc_Renderer_SetProjectionMode(sc_RendererProjectionMode renderProjectionMode) {
-    sc_sRenderConfig.projectionMode = renderProjectionMode;
+    sc_RenderConfig.projectionMode = renderProjectionMode;
     switch (renderProjectionMode) {
         case SACI_RENDER_ORTHOGRAPHIC_PROJECTION: {
             SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_RENDERER,
@@ -245,7 +243,7 @@ void sc_Renderer_SetProjectionMode(sc_RendererProjectionMode renderProjectionMod
 
 void sc_Renderer_SetCustomProjectionModeFunction(
     sc_Renderer_CustomProjectionFunction renderCustomProjectionMode) {
-    sc_sRenderConfig.customProjectionFunction = renderCustomProjectionMode;
+    sc_RenderConfig.customProjectionFunction = renderCustomProjectionMode;
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_RENDERER,
                    "Renderer set custom projection mode function");
 }
@@ -290,8 +288,7 @@ void sc_Renderer_PushVertices(sc_Renderer* renderer, sc_Vertice* vertices, saci_
                               saci_u32* indices, saci_u64 indiceAmount, saci_Mat4 modelMatrix,
                               saci_TextureID texID) {
     if (!vertices) {
-        // todo err
-        exit(1);
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_RENDERER, "Invalid vertices");
         return;
     }
     sc_RenderCall renderCall = __sc_RenderCall_create(vertices, GL_TRIANGLES, texID, verticeAmount);
@@ -538,6 +535,8 @@ void __sc_renderer_initAll(sc_Renderer* renderer) {
 #endif
 }
 
+// @TODO
+// this whole function needs to be refactored
 void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, saci_Mat4 modelMatrix,
                               bool useTexture) {
     saci_Mat4 view = {0};
@@ -569,7 +568,7 @@ void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, sa
 
     view = saci_LookAtMat4(camera->position, camera->target, camera->up);
 
-    switch (sc_sRenderConfig.projectionMode) {
+    switch (sc_RenderConfig.projectionMode) {
         case SACI_RENDER_ORTHOGRAPHIC_PROJECTION: {
             projection = saci_OrthoMat4(-1, 1, -1, 1, camera->near, camera->far);
             break;
@@ -580,12 +579,12 @@ void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, sa
             break;
         }
         case SACI_RENDER_CUSTOM_PROJECTION: {
-            if (sc_sRenderConfig.customProjectionFunction == NULL) {
+            if (sc_RenderConfig.customProjectionFunction == NULL) {
                 SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_RENDERER,
                                "Custom projection mode function not set");
                 return;
             }
-            projection = sc_sRenderConfig.customProjectionFunction(*camera);
+            projection = sc_RenderConfig.customProjectionFunction(*camera);
             break;
         }
     }
@@ -593,7 +592,6 @@ void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, sa
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m[0][0]);
 }
 
-// todo make public
 saci_u32 sc_GL_CreateIndexBuffer(saci_u32* indices, saci_u64 indiceAmount) {
     saci_u32 ibo;
     glGenBuffers(1, &ibo);
@@ -603,33 +601,4 @@ saci_u32 sc_GL_CreateIndexBuffer(saci_u32* indices, saci_u64 indiceAmount) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     assert(ibo);
     return ibo;
-}
-
-void __sc_tinyobj_fileReaderCallback(void* context, const char* filename, int isMtl,
-                                     const char* objFilename, char** buffer, size_t* lenght) {
-    (void)context;
-    (void)isMtl;
-    (void)objFilename;
-    FILE* file = fopen(filename, "rb");
-    if (!file) {
-        *buffer = NULL;
-        *lenght = 0;
-        return;
-    }
-
-    // Get file size
-    fseek(file, 0, SEEK_END);
-    *lenght = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    *buffer = (char*)malloc(*lenght + 1); // +1 for null terminator
-    if (!*buffer) {
-        fclose(file);
-        *lenght = 0;
-        return;
-    }
-
-    fread(*buffer, 1, *lenght, file);
-    (*buffer)[*lenght] = '\0'; // Null-terminate to ensure safety for string-based APIs
-    fclose(file);
 }

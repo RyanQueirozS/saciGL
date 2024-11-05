@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "saci-utils/su-debug.h"
+#include "saci-utils/su-general.h"
 
 //----------------------------------------------------------------------------//
 // Helper declarations
@@ -77,6 +79,8 @@ void __sc_File_GetInfo(const char* buffer, saci_u64 bufferLenght, saci_u64** lin
                        saci_u64** linePos, saci_u64* lineAmount);
 
 int __sc_OBJ_tryParseDouble(const char* s, const char* s_end, double* result);
+
+struct sc_VertexIndice __sc_OBJ_ParseRawTriple(const char** token);
 
 float __sc_OBJ_ParseFloat(const char** token);
 
@@ -365,31 +369,14 @@ void __sc_OBJ_ParseFloat2(float* x, float* y, const char** token) {
     (*y) = __sc_OBJ_ParseFloat(token);
 }
 
-// todo declare
-static int my_atoi(const char* c) {
-    int value = 0;
-    int sign = 1;
-    if (*c == '+' || *c == '-') {
-        if (*c == '-') sign = -1;
-        c++;
-    }
-    while (((*c) >= '0') && ((*c) <= '9')) { /* isdigit(*c) */
-        value *= 10;
-        value += (int)(*c - '0');
-        c++;
-    }
-    return value * sign;
-}
-
-// todo declare
-struct sc_VertexIndice parseRawTriple(const char** token) {
+struct sc_VertexIndice __sc_OBJ_ParseRawTriple(const char** token) {
     struct sc_VertexIndice vi;
     /* 0x80000000 = -2147483648 = invalid */
     vi.vertexIndex = (int)(0x80000000);
     vi.normalIndex = (int)(0x80000000);
     vi.texCoordIndex = (int)(0x80000000);
 
-    vi.vertexIndex = my_atoi((*token));
+    vi.vertexIndex = saci_Atoi((*token));
     while ((*token)[0] != '\0' && (*token)[0] != '/' && (*token)[0] != ' ' && (*token)[0] != '\t' &&
            (*token)[0] != '\r') {
         (*token)++;
@@ -402,7 +389,7 @@ struct sc_VertexIndice parseRawTriple(const char** token) {
     /* i//k */
     if ((*token)[0] == '/') {
         (*token)++;
-        vi.normalIndex = my_atoi((*token));
+        vi.normalIndex = saci_Atoi((*token));
         while ((*token)[0] != '\0' && (*token)[0] != '/' && (*token)[0] != ' ' &&
                (*token)[0] != '\t' && (*token)[0] != '\r') {
             (*token)++;
@@ -411,7 +398,7 @@ struct sc_VertexIndice parseRawTriple(const char** token) {
     }
 
     /* i/j/k or i/j */
-    vi.texCoordIndex = my_atoi((*token));
+    vi.texCoordIndex = saci_Atoi((*token));
     while ((*token)[0] != '\0' && (*token)[0] != '/' && (*token)[0] != ' ' && (*token)[0] != '\t' &&
            (*token)[0] != '\r') {
         (*token)++;
@@ -422,7 +409,7 @@ struct sc_VertexIndice parseRawTriple(const char** token) {
 
     /* i/j/k */
     (*token)++; /* skip '/' */
-    vi.normalIndex = my_atoi((*token));
+    vi.normalIndex = saci_Atoi((*token));
     while ((*token)[0] != '\0' && (*token)[0] != '/' && (*token)[0] != ' ' && (*token)[0] != '\t' &&
            (*token)[0] != '\r') {
         (*token)++;
@@ -441,7 +428,9 @@ saci_Bool __sc_OBJ_ParseLine(struct __sc_OBJ_Command* command, const char* line,
     char lineBuffer[4096];
     const char* token;
     if (lineLenght >= 4095) {
-        exit(1); // todo
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OBJ_LOADING,
+                       "Invalid line when parsing");
+        return 0;
     }
     memcpy(lineBuffer, line, lineLenght);
     lineBuffer[lineLenght] = '\0'; // end of the buffer
@@ -449,7 +438,11 @@ saci_Bool __sc_OBJ_ParseLine(struct __sc_OBJ_Command* command, const char* line,
     command->type = SC_OBJ_COMMANDTYPE_EMPTY;
     __sc_String_SkipSpace(&token);
 
-    assert(token);          // remove assert
+    if (!token) {
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OBJ_LOADING,
+                       "Invalid token when parsing");
+        return 0;
+    }
     if (token[0] == '\0') { /* empty line */
         return 0;
     }
@@ -500,7 +493,7 @@ saci_Bool __sc_OBJ_ParseLine(struct __sc_OBJ_Command* command, const char* line,
         __sc_String_SkipSpace(&token);
 
         while (!__SACI_CHAR_IS_NEWLINE(token[0])) {
-            struct sc_VertexIndice vi = parseRawTriple(&token);
+            struct sc_VertexIndice vi = __sc_OBJ_ParseRawTriple(&token);
             __sc_String_SkipSpaceAndCR(&token);
 
             f[num_f] = vi;

@@ -1,4 +1,7 @@
-#include "saci-core.h"
+#include "saci-core/sc-event.h"
+#include "saci-core/sc-windowing.h"
+
+#include <GLFW/glfw3.h>
 
 void sc_Event_Poll() { glfwPollEvents(); }
 void sc_Event_Wait() { glfwWaitEvents(); }
@@ -6,8 +9,8 @@ void sc_Event_WaitForTimeout(double timeout) { glfwWaitEventsTimeout(timeout); }
 
 void sc_Event_PostEmpty() { glfwPostEmptyEvent(); }
 
-void sc_Event_SetMousePosHandler(
-    sc_Window* window, sc_Event_MousePosHandlerFunction mousePosHandlerFunction) {
+void sc_Event_SetMousePosHandler(sc_Window* window,
+                                 sc_Event_MousePosHandlerFunction mousePosHandlerFunction) {
     glfwSetCursorPosCallback(window, mousePosHandlerFunction);
 }
 

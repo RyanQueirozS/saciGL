@@ -136,4 +136,8 @@ sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3* verticesPos, saci_u64 verticePosAmo
 
 void sc_ModelMesh_Delete(sc_ModelMesh* modelMesh);
 
+/* === OpenGL Helpers === */
+
+saci_u32 sc_GL_CreateIndexBuffer(saci_u32* indices, saci_u64 indiceAmount);
+
 #endif

@@ -1,6 +1,6 @@
 #include <saci-core.h>
 #include "saci-core/sc-model-loading.h"
-#include "saci-core/sc-rendering.h"
+#include "saci-core/sc-gl.h"
 #include "saci-core/sc-windowing.h"
 #include "saci-utils/su-math.h"
 
@@ -70,20 +70,25 @@ int main() {
     saci_Color bgColor =
         saci_ColorFromU8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
 
-    const char* filePath = "./3d/stanford-bunny-model/bunny.obj";
-    sc_fileReadingFunction func = read_file;
-    saci_Vec3* verticesPos;
-    saci_u64 verticePosAmount;
-    saci_Vec2* verticesTexcoord;
-    saci_u64 verticesTexcoordAmount;
-    struct sc_VertexIndice* indices;
-    saci_u64 indiceAmount;
+    sc_ModelMesh* mesh;
 
-    sc_OBJ_Load(filePath, func, &verticesPos, &verticePosAmount, &verticesTexcoord,
-                &verticesTexcoordAmount, &indices, &indiceAmount);
+    {
+        const char* filePath = "./3d/stanford-bunny-model/bunny.obj";
+        sc_fileReadingFunction func = read_file;
+        saci_Vec3* verticesPos;
+        saci_u64 verticePosAmount;
+        saci_Vec2* verticesTexcoord;
+        saci_u64 verticesTexcoordAmount;
+        struct sc_VertexIndice* indices;
+        saci_u64 indiceAmount;
 
-    sc_ModelMesh* mesh = sc_ModelMesh_Create(verticesPos, verticePosAmount, verticesTexcoord,
-                                             verticesTexcoordAmount, indices, indiceAmount);
+        sc_OBJ_Load(filePath, func, &verticesPos, &verticePosAmount, &verticesTexcoord,
+                    &verticesTexcoordAmount, &indices, &indiceAmount);
+
+        mesh = sc_ModelMesh_Create(verticesPos, verticePosAmount, verticesTexcoord,
+                                   verticesTexcoordAmount, indices, indiceAmount);
+    }
+
     assert(mesh);
     saci_Mat4 modelMatrix;
     saci_Vec3 modelPos = {1, 0, 1};
