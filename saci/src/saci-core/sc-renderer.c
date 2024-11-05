@@ -1,28 +1,18 @@
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 
-#include "saci-core/sc-gl.h"
-
-#include "saci-core/sc-camera.h"
-#include "saci-utils/su-debug.h"
-#include "saci-utils/su-math.h"
-#include "saci-utils/su-types.h"
-
-#include <stdio.h>
-#include <stddef.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include "saci-core/sc-gl.h"
+#include "saci-utils/su-debug.h"
+#include "saci-utils/su-math.h"
 
-//----------------------------------------------------------------------------//
-// Helper functions
-//----------------------------------------------------------------------------//
+/* === Structs for Helper Functions === */
 
-void __sc_OpenGL_initializeDebugger();
-
-// structs used in helper functions
 typedef struct sc_RenderCall sc_RenderCall;
 typedef struct sc_RenderBatch sc_RenderBatch;
+
+/* === Helper Functions === */
 
 /**
  * @brief Function to cleanup garbage numbers.
@@ -82,14 +72,6 @@ void __sc_renderBatch_free(sc_RenderBatch* renderBatch);
 /* === OpenGL Related === */
 
 /**
- * @brief resizes the VBO in the renderer to a newCapacity
- *
- * @param renderer The renderer that will have it's VBO resized.
- * @param newCapacity The VBO's new capacity.
- */
-void __sc_renderer_resizeVBO(sc_Renderer* renderer, saci_u32 newCapacity);
-
-/**
  * @brief initializes OpenGL vertex attribute context
  *
  * @param renderer The renderer that will be initialized
@@ -121,12 +103,7 @@ void __sc_renderer_initAll(sc_Renderer* renderer);
 void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, saci_Mat4 modelMatrix,
                               bool useTexture);
 
-// todo doc
-saci_u32 __sc_shader_compile(const char* shaderSource, saci_u32 shaderType);
-
-//----------------------------------------------------------------------------//
-// Base Definitions
-//----------------------------------------------------------------------------//
+/* === Local Definitions === */
 
 #define SACI_RENDER_BATCH_DEFAULT_CAPACITY 0x1000000
 #define SACI_DEFAULT_TEXTURE_BUFFER_SIZE 1 // TODO
@@ -179,73 +156,23 @@ typedef struct sc_ModelMesh {
     saci_u64 indicesAmount;
 } sc_ModelMesh;
 
-//----------------------------------------------------------------------------//
-// Render Initialization/Deletion
-//----------------------------------------------------------------------------//
+/* === Renderer Implementation === */
 
-saci_Bool sc_GLFW_Init(void) {
-    int success = glfwInit();
-    if (!success) {
-        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, "Couldn't load glfw");
-        return SACI_FALSE;
+sc_Vertice* sc_Vertice_CreateVerticesArray(saci_Vec3* positions, saci_Color* colors,
+                                           saci_Vec2* texcoords, saci_u64 amount) {
+    sc_Vertice* vertices = (sc_Vertice*)malloc(sizeof(sc_Vertice) * amount);
+    if (!vertices) {
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_MEMORY_ALLOCATION,
+                       "Could not allocate new vertices");
+        return NULL;
     }
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Loaded glfw");
-    // TODO make user defined version
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    return SACI_TRUE;
-}
-
-saci_Bool sc_GLAD_Init(void) {
-    if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != SACI_TRUE) {
-        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, "Couldn't Load glad");
-        return SACI_FALSE;
+    for (saci_u64 i = 0; i < amount; ++i) {
+        if (positions) vertices[i].pos = positions[i];
+        if (colors) vertices[i].color = colors[i];
+        if (texcoords) vertices[i].texCoord = texcoords[i];
     }
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Loaded glad");
-    __sc_OpenGL_initializeDebugger();
-
-#if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_WINDOWING)
-    const saci_u8* version = glGetString(GL_VERSION);
-    char versionStr[256];
-    snprintf(versionStr, sizeof(versionStr), "Using OpenGL version: %s", version);
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_OPENGL, versionStr);
-#endif
-
-    return SACI_TRUE;
+    return vertices;
 }
-
-sc_Window* sc_Window_Create(int width, int height, const char* title, sc_Monitor* monitor,
-                            sc_Window* share) {
-    return glfwCreateWindow(width, height, title, monitor, share);
-}
-
-void sc_Window_MakeContext(sc_Window* window) { glfwMakeContextCurrent(window); }
-
-saci_Bool sc_Window_ShouldClose(sc_Window* window) { return glfwWindowShouldClose(window); }
-
-void sc_Window_SetPosHandler(sc_Window* window, sc_Window_PosHandler windowPosHandler) {
-    glfwSetWindowPosCallback(window, windowPosHandler);
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Set window pos handler");
-}
-
-void sc_Window_SetSizeHandler(sc_Window* window, sc_Window_SizeHandler windowSizeHandler) {
-    glfwSetWindowSizeCallback(window, windowSizeHandler);
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Set window size callback");
-}
-
-void sc_Window_Terminate(void) {
-    glfwTerminate();
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Terminated glfw");
-}
-
-void sc_Window_ClearColor(saci_Color color) {
-    glClearColor(color.r, color.g, color.b, color.a);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-void sc_Window_SwapBuffer(sc_Window* window) { glfwSwapBuffers(window); }
 
 sc_Renderer* sc_Renderer_Create(saci_Bool generateDefaults) {
     sc_Renderer* renderer = (sc_Renderer*)malloc(sizeof(sc_Renderer));
@@ -268,10 +195,6 @@ void sc_Renderer_Delete(sc_Renderer* renderer) {
     glDeleteProgram(renderer->shaderProgram);
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_RENDERER, "Renderer deleted successfully");
 }
-
-//----------------------------------------------------------------------------//
-// Renderer config
-//----------------------------------------------------------------------------//
 
 void sc_Renderer_SetNoFillMode(void) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -317,10 +240,6 @@ void sc_Renderer_SetCustomProjectionModeFunction(
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_RENDERER,
                    "Renderer set custom projection mode function");
 }
-
-//----------------------------------------------------------------------------//
-// Renderer Usage
-//----------------------------------------------------------------------------//
 
 void sc_Renderer_Begin(sc_Renderer* renderer) { renderer->renderBatch.renderCallCount = 0; }
 
@@ -420,8 +339,7 @@ sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3* verticesPos, saci_u64 verticePosAmo
     return mesh;
 }
 
-// TODO
-sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_FileReadingFunction fileReader) {
+sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_Model_FileReadingFunction fileReader) {
     char* buffer = 0;
     saci_u64 lenght = 0;
     fileReader(path, &buffer, &lenght);
@@ -449,122 +367,37 @@ sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_FileReadingFunction fileRea
     return NULL;
 }
 
-void sc_ModelMesh_Delete(sc_ModelMesh* modelMesh) {}
-
-saci_u32 sc_Shader_CompileShaderV(const char* source) {
-    return __sc_shader_compile(source, GL_VERTEX_SHADER);
+void sc_ModelMesh_Delete(sc_ModelMesh* modelMesh) {
+    if (!modelMesh) return;
+    free(modelMesh->indices);
+    free(modelMesh->vertices);
+    free(modelMesh);
 }
 
-saci_u32 sc_Shader_CompileShaderF(const char* source) {
-    return __sc_shader_compile(source, GL_FRAGMENT_SHADER);
-}
-
-saci_u32 sc_Shader_CompileShaderG(const char* source) {
-    return __sc_shader_compile(source, GL_GEOMETRY_SHADER);
-}
-
-saci_u32 sc_Shader_GetShaderProgram(saci_u32 vshader, saci_u32 fshader) {
-    saci_u32 programID = glCreateProgram();
-    glAttachShader(programID, vshader);
-    glAttachShader(programID, fshader);
-    glLinkProgram(programID);
-
-    saci_s32 success = GL_FALSE;
-    glGetProgramiv(programID, GL_LINK_STATUS, &success);
-    if (!success) {
-        char glErrMessage[1024];
-        char errMessage[2048];
-        int sizeReturned = 0;
-        glGetProgramInfoLog(programID, 2048, &sizeReturned, glErrMessage);
-        snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s",
-                 glErrMessage);
-        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, errMessage);
-        return 0;
-    }
-    glDetachShader(programID, vshader);
-    glDetachShader(programID, fshader);
-    glDeleteShader(vshader);
-    glDeleteShader(fshader);
-
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL,
-                   "Shader program loaded successfully");
-    return programID;
-}
-
-saci_u32 sc_Shader_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u32 gshader) {
-    saci_u32 programID = glCreateProgram();
-    glAttachShader(programID, vshader);
-    glAttachShader(programID, fshader);
-    glAttachShader(programID, gshader);
-    glLinkProgram(programID);
-
-    saci_s32 success = GL_FALSE;
-    glGetProgramiv(programID, GL_LINK_STATUS, &success);
-    if (!success) {
-        char glErrMessage[1024];
-        char errMessage[2048];
-        int sizeReturned = 0;
-        glGetProgramInfoLog(programID, 2048, &sizeReturned, glErrMessage);
-        snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s",
-                 glErrMessage);
-        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, errMessage);
-        return 0;
-    }
-    glDetachShader(programID, vshader);
-    glDetachShader(programID, fshader);
-    glDetachShader(programID, gshader);
-    glDeleteShader(vshader);
-    glDeleteShader(fshader);
-    glDeleteShader(gshader);
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL,
-                   "Shader program be loaded successfully");
-
-    return programID;
-}
-
-//----------------------------------------------------------------------------//
-// Helper functions
-//----------------------------------------------------------------------------//
-
-saci_u32 __sc_shader_compile(const char* shaderSource, saci_u32 shaderType) {
-    saci_u32 shaderID = glCreateShader(shaderType);
-
-    glShaderSource(shaderID, 1, &shaderSource, NULL);
-    glCompileShader(shaderID);
-
-    int success;
-    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char errMessage[2048];
-        int sizeReturned = 0;
-        glGetShaderInfoLog(shaderID, 2048, &sizeReturned, &errMessage[0]);
-
-        glDeleteShader(shaderID);
-        SACI_LOG_PRINT(
-            SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL,
-            shaderType == GL_VERTEX_SHADER
-                ? "Vertex shader couldn't be loaded"
-                : (shaderType == GL_FRAGMENT_SHADER ? "Fragment shader couldn't be loaded"
-                                                    : "Geometry shader couldn't be loaded"));
-        return 0;
-    }
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL,
-                   shaderType == GL_VERTEX_SHADER ? "Vertex shader loaded successfully"
-                                                  : (shaderType == GL_FRAGMENT_SHADER
-                                                         ? "Fragment shader loaded successfully"
-                                                         : "Geometry shader loaded successfully"));
-
-    return shaderID;
-}
-
-//----------------------------------------------------------------------------//
-// Helper functions
-//----------------------------------------------------------------------------//
+/* === Helper Implementation === */
 
 void __sc_Renderer_initializeValues(sc_Renderer* renderer) {
     renderer->renderBatch.renderCalls = NULL;
     renderer->renderBatch.renderCallCount = 0;
     renderer->renderBatch.capacity = 0;
+}
+
+void __sc_renderer_initAll(sc_Renderer* renderer) {
+    // Initializes to remove garbage numbers
+    __sc_Renderer_initializeValues(renderer);
+
+    { // Initializes the vertice and texture buffers with default sizes
+        __sc_renderBatch_resize(&renderer->renderBatch, SACI_RENDER_BATCH_DEFAULT_CAPACITY);
+        assert(renderer->renderBatch.renderCalls);
+    }
+
+    // Initializes OpenGL shaders and objects
+    __sc_renderer_initGLVertexAttribContext(renderer);
+    __sc_renderer_initShaderProgram(renderer);
+#if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_RENDERING)
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_RENDERER,
+                   "Renderer initialized successfully");
+#endif
 }
 
 sc_RenderCall __sc_RenderCall_create(sc_Vertice* vertices, int renderMode, saci_TextureID texID,
@@ -633,18 +466,6 @@ void __sc_renderBatch_empty(sc_RenderBatch* renderBatch) {
 void __sc_renderBatch_free(sc_RenderBatch* renderBatch) {
     free(renderBatch->renderCalls);
     free(renderBatch);
-}
-
-// OpenGL
-
-void __sc_renderer_resizeVBO(sc_Renderer* renderer, saci_u32 newCapacity) {
-    glBindVertexArray(renderer->vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
-    glBufferData(GL_ARRAY_BUFFER, newCapacity * sizeof(sc_Vertice), NULL, GL_DYNAMIC_DRAW);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void __sc_renderer_initGLVertexAttribContext(sc_Renderer* renderer) {
@@ -722,26 +543,6 @@ void __sc_renderer_initShaderProgram(sc_Renderer* renderer) {
     assert(renderer->shaderProgram);
 }
 
-void __sc_renderer_initAll(sc_Renderer* renderer) {
-    // Initializes to remove garbage numbers
-    __sc_Renderer_initializeValues(renderer);
-
-    { // Initializes the vertice and texture buffers with default sizes
-        __sc_renderBatch_resize(&renderer->renderBatch, SACI_RENDER_BATCH_DEFAULT_CAPACITY);
-        assert(renderer->renderBatch.renderCalls);
-    }
-
-    // Initializes OpenGL shaders and objects
-    __sc_renderer_initGLVertexAttribContext(renderer);
-    __sc_renderer_initShaderProgram(renderer);
-#if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_RENDERING)
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_RENDERER,
-                   "Renderer initialized successfully");
-#endif
-}
-
-// @TODO
-// this whole function needs to be refactored
 void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, saci_Mat4 modelMatrix,
                               bool useTexture) {
     saci_Mat4 view = {0};
@@ -795,25 +596,4 @@ void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, sa
     }
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view.m[0][0]);
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m[0][0]);
-}
-
-// todo move up
-saci_u32 sc_GL_CreateIndexBuffer(saci_u32* indices, saci_u64 indiceAmount) {
-    saci_u32 ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indiceAmount * sizeof(saci_u32), &indices[0],
-                 GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    assert(ibo);
-    return ibo;
-}
-
-void __sc_OpenGL_initializeDebugger() {
-    glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(saci_OpenGLDebugMessageCallback, NULL);
-#ifdef SACI_DEBUG_MODE
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_OPENGL, "Loaded OpenGL debugger");
-#endif
 }

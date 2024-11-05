@@ -1,10 +1,7 @@
-#include <saci-core.h>
-#include <saci-core/sc-windowing.h>
-
 #include <assert.h>
 #include "saci-core/sc-camera.h"
 #include "saci-core/sc-event.h"
-#include "saci-core/sc-rendering.h"
+#include "saci-core/sc-gl.h"
 #include "saci-utils/su-math.h"
 #include <saci-utils/su-general.h>
 #include <stdlib.h>
@@ -49,17 +46,6 @@ saci_u32 cubeIndices[] = {
     1, 2, 6, 1, 6, 5  // Right face
 };
 
-sc_Vertice* createCubeData(saci_Vec3* verticesPos, saci_u64 verticeAmount) {
-    sc_Vertice* vertices = (sc_Vertice*)malloc(verticeAmount * sizeof(sc_Vertice));
-
-    for (saci_u64 i = 0; i < verticeAmount; ++i) {
-        vertices[i].pos = verticesPos[i];
-        vertices[i].color = colors[i];
-        vertices[i].texCoord = (saci_Vec2){0.0f, 0.0f}; // Texture coordinates are not used
-    }
-    return vertices;
-}
-
 void init_saci() {
     saci_InitMath();
     assert(sc_GLFW_Init());
@@ -74,7 +60,7 @@ void init_saci() {
     camera = sc_Camera_GetDefault3DCamera();
     camera.aspectRatio = 1600.0f / 900.0f;
     camera.position.z = -10.0f; // Change as you may
-    camera.position.y = 5.0f;
+    camera.position.y = 0.0f;
 
     sc_Renderer_EnableZBuffer();
     sc_Renderer_SetProjectionMode(SACI_RENDER_PERSPECTIVE_PROJECTION);
@@ -83,7 +69,11 @@ void init_saci() {
 int main() {
     init_saci();
 
-    sc_Vertice* vertices = createCubeData(verticesPos, verticeAmount);
+    sc_Vertice* vertices = sc_Vertice_CreateVerticesArray(verticesPos, colors, NULL, 8);
+
+    saci_Vec3 rotation = {0, 0, 0};
+    saci_Mat4 modelMatrix =
+        saci_Mat4_ModelMatrix((saci_Vec3){0, 0, 0}, rotation, (saci_Vec3){1, 1, 1});
 
     saci_Color bgColor =
         saci_ColorFromU8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
@@ -91,10 +81,18 @@ int main() {
         sc_Window_ClearColor(bgColor);
 
         sc_Renderer_Begin(renderer);
-        sc_Renderer_PushVertices(renderer, vertices, verticeAmount, cubeIndices, indiceAmount, 0);
+        sc_Renderer_PushVertices(renderer, vertices, verticeAmount, cubeIndices, indiceAmount,
+                                 modelMatrix, 0);
         sc_Renderer_End(renderer, &camera);
         sc_Window_SwapBuffer(window);
 
         sc_Event_Poll();
+        {
+            rotation.x += 0.01;
+            rotation.z += 0.01;
+            rotation.y += 0.01;
+            modelMatrix =
+                saci_Mat4_ModelMatrix((saci_Vec3){0, 0, 0}, rotation, (saci_Vec3){1, 1, 1});
+        }
     }
 }

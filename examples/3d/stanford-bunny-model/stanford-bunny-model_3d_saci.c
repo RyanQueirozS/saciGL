@@ -72,7 +72,7 @@ int main() {
 
     {
         const char* filePath = "./3d/stanford-bunny-model/bunny.obj";
-        sc_FileReadingFunction func = read_file;
+        sc_Model_FileReadingFunction func = read_file;
 
         mesh = sc_ModelMesh_Load(filePath, func);
         printf("oi\n");

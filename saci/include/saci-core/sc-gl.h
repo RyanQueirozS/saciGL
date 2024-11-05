@@ -46,8 +46,6 @@ typedef void (*sc_Window_PosHandler)(sc_Window* window, int posx, int posy);
  */
 typedef void (*sc_Window_SizeHandler)(sc_Window* window, int width, int height);
 
-/* === Windowing Functions === */
-
 /**
  * @brief Initializes the GLFW library for window management.
  *
@@ -128,7 +126,7 @@ void sc_Window_ClearColor(const saci_Color color);
  */
 void sc_Window_SwapBuffer(sc_Window* window);
 
-/* === Render Struct === */
+/* === Renderer === */
 
 /**
  * @struct sc_Renderer
@@ -140,13 +138,35 @@ void sc_Window_SwapBuffer(sc_Window* window);
  */
 typedef struct sc_Renderer sc_Renderer;
 
-// todo add doc
+/**
+ * @struct sc_Renderer
+ * @brief Structure to hold vertice related information.
+ */
 typedef struct sc_Vertice sc_Vertice;
 
-// todo add doc
-typedef struct sc_ModelMesh sc_ModelMesh;
+/**
+ * @brief Creates an array of @ref sc_Vertice.
+ *
+ * @param positions The array containing position of the vertices.
+ * @param colors    The array containing colors of the vertices.
+ * @param texcoords The array containing texcoords of the vertices.
+ * @param amount    The amount of @ref sc_Vertices to be generated.
+ *
+ * @note
+ * Param `amount` should be the same size of positions, colors and texcoords. A field can be
+ * completelly null, but the size must be the same.
+ *
+ * @internal
+ * TODO: Fix the above.
+ */
+sc_Vertice* sc_Vertice_CreateVerticesArray(saci_Vec3* positions, saci_Color* colors,
+                                           saci_Vec2* texcoords, saci_u64 amount);
 
-/* === Render Initialization === */
+/**
+ * @struct sc_ModelMesh
+ * @brief Structure to hold model related information.
+ */
+typedef struct sc_ModelMesh sc_ModelMesh;
 
 /**
  * @brief Creates the sc_Renderer struct
@@ -169,8 +189,6 @@ sc_Renderer* sc_Renderer_Create(saci_Bool generateDefaults);
  * @param renderer The renderer to be deleted
  */
 void sc_Renderer_Delete(sc_Renderer* renderer);
-
-/* === Render Config === */
 
 /**
  * @brief Sets renderer to not fill shapes
@@ -227,8 +245,6 @@ typedef saci_Mat4 (*sc_Renderer_CustomProjectionFunction)(sc_Camera camera);
 void sc_Renderer_SetCustomProjectionModeFunction(
     sc_Renderer_CustomProjectionFunction renderCustomProjectionModeFunction);
 
-/* === Render Usage === */
-
 /**
  * @brief Sets renderer to begins rendering the frame
  *
@@ -244,34 +260,110 @@ void sc_Renderer_Begin(sc_Renderer* renderer);
  */
 void sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera);
 
+/**
+ * @brief Pushes vertices to the @ref sc_Renderer.
+ *
+ * @param renderer The renderer that will get data pushed.
+ * @param vertices The array vertex information.
+ * @param verticeAmount The amount of vertices.
+ * @param indices The indices of the vertices.
+ * @param indiceAmount The amount of indices.
+ * @param modelMatrix The model matrix to explain how to draw the model.
+ * @param texID The OpenGL index of the texture.
+ */
 void sc_Renderer_PushVertices(sc_Renderer* renderer, sc_Vertice* vertices, saci_u64 verticeAmount,
                               saci_u32* indices, saci_u64 indiceAmount, saci_Mat4 modelMatrix,
                               saci_TextureID texID);
 
+/**
+ * @brief Pushes a model to the @ref sc_Renderer.
+ *
+ * @param renderer The renderer that will get data pushed.
+ * @param mesh The mesh that will get pushed
+ * @param modelMatrix The model matrix to explain how to draw the model.
+ * @param texID The OpenGL index of the texture.
+ */
 void sc_Renderer_PushModelMesh(sc_Renderer* renderer, sc_ModelMesh* mesh, saci_Mat4 modelMatrix,
                                saci_TextureID texID);
+
 /* === Model Creation === */
 
-typedef void (*sc_FileReadingFunction)(const char* path, char** buffer, saci_u64* length);
+/**
+ * @brief File reader function for model loading.
+ *
+ * @param[in]  path   The path of the file
+ * @param[out] buffer The buffer that will get loaded
+ * @param[out] lenght The lenght of file
+ */
+typedef void (*sc_Model_FileReadingFunction)(const char* path, char** buffer, saci_u64* length);
 
-sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_FileReadingFunction fileReader);
+/**
+ * @brief Creates a @ref sc_ModelMesh containing the info in the provided path.
+ *
+ * @param path The path for the model file.
+ * @param fileReader The file reading function to load the model information.
+ */
+sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_Model_FileReadingFunction fileReader);
 
-struct sc_VertexIndice { // should not be typedefed
-    saci_u32 vertexIndex;
-    saci_u32 texCoordIndex;
-    saci_u32 normalIndex;
+/**
+ * @brief Structure to hold Vertex Indice information.
+ *
+ * @details
+ * In general, only use this if you want to load OBJ files manually. NOT RECOMENDED.
+ *
+ * @internal
+ * Do NOT typedef this, see CONVENTIONS.md
+ */
+struct sc_VertexIndice {
+    saci_u32 vertexIndex;   /**< Indices of the vertice positions */
+    saci_u32 texCoordIndex; /**< Indices of the texcoord values */
+    saci_u32 normalIndex;   /**< Indices of the normal values */
 };
 
-extern saci_Bool sc_OBJ_Parse(const char* buffer, saci_u64 lenght, saci_Vec3** verticesPos,
-                              saci_u64* verticesAmount, saci_Vec2** verticesTexCoords,
-                              saci_u64* verticesTexCoordsAmount, struct sc_VertexIndice** indices,
-                              saci_u64* indicesAmount);
+/**
+ * @brief Parses OBJ files.
+ *
+ * @param buffer The buffer that contains the OBJ file info.
+ * @param lenght The lenght of the buffer.
+ * @param verticesPos The position of the vertices in the OBJ file.
+ * @param verticesPosAmount The amount of verticesPos 1-1.
+ * @param verticesTexCoords The texcoords of the vertices.
+ * @param verticesTexCoordsAmount The amount of texcoords of the vertices 1-1.
+ * @param indices The indices of the the vertex positions, texcoords and normals.
+ * @param indicesAmount The amount of indices 1-1.
+ */
+saci_Bool sc_OBJ_Parse(const char* buffer, saci_u64 lenght, saci_Vec3** verticesPos,
+                       saci_u64* verticesPosAmount, saci_Vec2** verticesTexCoords,
+                       saci_u64* verticesTexCoordsAmount, struct sc_VertexIndice** indices,
+                       saci_u64* indicesAmount);
 
+/**
+ * @brief Frees a model mesh from memory.
+ *
+ * @param modelMesh The model mesh to be freed.
+ */
 void sc_ModelMesh_Delete(sc_ModelMesh* modelMesh);
 
 /* === OpenGL Helpers === */
 
+/**
+ * @brief Creates a IBO (Index buffer).
+ *
+ * @param indices The indices to fill the IBO.
+ * @param indiceAmount The amount of indices.
+ */
 saci_u32 sc_GL_CreateIndexBuffer(saci_u32* indices, saci_u64 indiceAmount);
+
+/**
+ * @brief resizes the VBO in the renderer to a newCapacity
+ *
+ * @param vaoID The ID of the vao that will get it's vbo updated
+ * @param vboID The ID of the vbo that will get it's size updated
+ * @param newCapacity The VBO's new capacity.
+ * @param vertexDataStructureSize The size of the base structure that holds the vertex information
+ */
+void sc_GL_ResizeVBO(saci_u32 vaoID, saci_u32 vboID, saci_u32 newCapacity,
+                     saci_u64 vertexDataStructureSize);
 
 /* === Shader Functions === */
 

@@ -31,9 +31,10 @@ typedef enum saci_LogLevel {
  */
 typedef enum saci_ContextLevel {
     SACI_LOG_CONTEXT_OPENGL = 0,
-    SACI_LOG_CONTEXT_RENDERER = 1,
-    SACI_LOG_CONTEXT_OBJ_LOADING = 2,
-    SACI_LOG_CONTEXT_STBI = 3,
+    SACI_LOG_CONTEXT_RENDERER,
+    SACI_LOG_CONTEXT_OBJ_LOADING,
+    SACI_LOG_CONTEXT_STBI,
+    SACI_LOG_CONTEXT_MEMORY_ALLOCATION,
 } saci_ContextLevel;
 
 /**
