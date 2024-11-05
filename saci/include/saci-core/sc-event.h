@@ -6,7 +6,7 @@
 #ifndef __SACI_CORE_SC_EVENT_H__
 #define __SACI_CORE_SC_EVENT_H__
 
-#include "sc-windowing.h"
+#include "saci-core/sc-gl.h"
 
 /* === Event Handling === */
 
@@ -59,8 +59,7 @@ void sc_Event_PostEmpty();
  * @param posx The new x-coordinate of the mouse pointer.
  * @param posy The new y-coordinate of the mouse pointer.
  */
-typedef void (*sc_Event_MousePosHandlerFunction)(sc_Window* window, double posx,
-                                                 double posy);
+typedef void (*sc_Event_MousePosHandlerFunction)(sc_Window* window, double posx, double posy);
 
 /**
  * @brief Sets a mouse position handler for a specified window.
@@ -73,8 +72,8 @@ typedef void (*sc_Event_MousePosHandlerFunction)(sc_Window* window, double posx,
  * @param mousePosHandlerFunction The callback function to be called on mouse position
  * changes.
  */
-void sc_Event_SetMousePosHandler(
-    sc_Window* window, sc_Event_MousePosHandlerFunction mousePosHandlerFunction);
+void sc_Event_SetMousePosHandler(sc_Window* window,
+                                 sc_Event_MousePosHandlerFunction mousePosHandlerFunction);
 
 /**
  * @brief Enumeration of key codes for keyboard input.

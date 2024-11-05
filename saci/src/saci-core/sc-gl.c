@@ -1,8 +1,9 @@
-#include "saci-core/sc-gl.h"
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
+#include "saci-core/sc-gl.h"
 
 #include "saci-core/sc-camera.h"
-#include "saci-core/sc-shadering.h"
 #include "saci-utils/su-debug.h"
 #include "saci-utils/su-math.h"
 #include "saci-utils/su-types.h"
@@ -16,6 +17,8 @@
 //----------------------------------------------------------------------------//
 // Helper functions
 //----------------------------------------------------------------------------//
+
+void __sc_OpenGL_initializeDebugger();
 
 // structs used in helper functions
 typedef struct sc_RenderCall sc_RenderCall;
@@ -118,6 +121,9 @@ void __sc_renderer_initAll(sc_Renderer* renderer);
 void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, saci_Mat4 modelMatrix,
                               bool useTexture);
 
+// todo doc
+saci_u32 __sc_shader_compile(const char* shaderSource, saci_u32 shaderType);
+
 //----------------------------------------------------------------------------//
 // Base Definitions
 //----------------------------------------------------------------------------//
@@ -176,6 +182,70 @@ typedef struct sc_ModelMesh {
 //----------------------------------------------------------------------------//
 // Render Initialization/Deletion
 //----------------------------------------------------------------------------//
+
+saci_Bool sc_GLFW_Init(void) {
+    int success = glfwInit();
+    if (!success) {
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, "Couldn't load glfw");
+        return SACI_FALSE;
+    }
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Loaded glfw");
+    // TODO make user defined version
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    return SACI_TRUE;
+}
+
+saci_Bool sc_GLAD_Init(void) {
+    if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != SACI_TRUE) {
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, "Couldn't Load glad");
+        return SACI_FALSE;
+    }
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Loaded glad");
+    __sc_OpenGL_initializeDebugger();
+
+#if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_WINDOWING)
+    const saci_u8* version = glGetString(GL_VERSION);
+    char versionStr[256];
+    snprintf(versionStr, sizeof(versionStr), "Using OpenGL version: %s", version);
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_OPENGL, versionStr);
+#endif
+
+    return SACI_TRUE;
+}
+
+sc_Window* sc_Window_Create(int width, int height, const char* title, sc_Monitor* monitor,
+                            sc_Window* share) {
+    return glfwCreateWindow(width, height, title, monitor, share);
+}
+
+void sc_Window_MakeContext(sc_Window* window) { glfwMakeContextCurrent(window); }
+
+saci_Bool sc_Window_ShouldClose(sc_Window* window) { return glfwWindowShouldClose(window); }
+
+void sc_Window_SetPosHandler(sc_Window* window, sc_Window_PosHandler windowPosHandler) {
+    glfwSetWindowPosCallback(window, windowPosHandler);
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Set window pos handler");
+}
+
+void sc_Window_SetSizeHandler(sc_Window* window, sc_Window_SizeHandler windowSizeHandler) {
+    glfwSetWindowSizeCallback(window, windowSizeHandler);
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Set window size callback");
+}
+
+void sc_Window_Terminate(void) {
+    glfwTerminate();
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Terminated glfw");
+}
+
+void sc_Window_ClearColor(saci_Color color) {
+    glClearColor(color.r, color.g, color.b, color.a);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void sc_Window_SwapBuffer(sc_Window* window) { glfwSwapBuffers(window); }
 
 sc_Renderer* sc_Renderer_Create(saci_Bool generateDefaults) {
     sc_Renderer* renderer = (sc_Renderer*)malloc(sizeof(sc_Renderer));
@@ -350,7 +420,142 @@ sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3* verticesPos, saci_u64 verticePosAmo
     return mesh;
 }
 
+// TODO
+sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_FileReadingFunction fileReader) {
+    char* buffer = 0;
+    saci_u64 lenght = 0;
+    fileReader(path, &buffer, &lenght);
+
+    saci_Vec3* verticesPos = NULL;
+    saci_u64 verticesAmount = 0;
+    saci_Vec2* verticesTexCoords = NULL;
+    saci_u64 verticesTexCoordsAmount = 0;
+    struct sc_VertexIndice* indices = NULL;
+    saci_u64 indicesAmount = 0;
+    if (!sc_OBJ_Parse(buffer, lenght, &verticesPos, &verticesAmount, &verticesTexCoords,
+                      &verticesTexCoordsAmount, &indices, &indicesAmount)) {
+        return NULL;
+    }
+    sc_ModelMesh* mesh = (sc_ModelMesh*)malloc(sizeof(sc_ModelMesh));
+    mesh->vertices = (sc_Vertice*)malloc(sizeof(sc_Vertice) * verticesAmount);
+    for (saci_u64 i = 0; i < verticesAmount; ++i) {
+        mesh->vertices->pos = verticesPos[i];
+        mesh->vertices->texCoord = verticesTexCoords[i];
+    }
+    mesh->indices = (saci_u32*)malloc(sizeof(saci_u32) * indicesAmount);
+    for (saci_u64 i = 0; i < indicesAmount; ++i) {
+        mesh->indices[i] = indices[i].vertexIndex;
+    }
+    return NULL;
+}
+
 void sc_ModelMesh_Delete(sc_ModelMesh* modelMesh) {}
+
+saci_u32 sc_Shader_CompileShaderV(const char* source) {
+    return __sc_shader_compile(source, GL_VERTEX_SHADER);
+}
+
+saci_u32 sc_Shader_CompileShaderF(const char* source) {
+    return __sc_shader_compile(source, GL_FRAGMENT_SHADER);
+}
+
+saci_u32 sc_Shader_CompileShaderG(const char* source) {
+    return __sc_shader_compile(source, GL_GEOMETRY_SHADER);
+}
+
+saci_u32 sc_Shader_GetShaderProgram(saci_u32 vshader, saci_u32 fshader) {
+    saci_u32 programID = glCreateProgram();
+    glAttachShader(programID, vshader);
+    glAttachShader(programID, fshader);
+    glLinkProgram(programID);
+
+    saci_s32 success = GL_FALSE;
+    glGetProgramiv(programID, GL_LINK_STATUS, &success);
+    if (!success) {
+        char glErrMessage[1024];
+        char errMessage[2048];
+        int sizeReturned = 0;
+        glGetProgramInfoLog(programID, 2048, &sizeReturned, glErrMessage);
+        snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s",
+                 glErrMessage);
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, errMessage);
+        return 0;
+    }
+    glDetachShader(programID, vshader);
+    glDetachShader(programID, fshader);
+    glDeleteShader(vshader);
+    glDeleteShader(fshader);
+
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL,
+                   "Shader program loaded successfully");
+    return programID;
+}
+
+saci_u32 sc_Shader_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u32 gshader) {
+    saci_u32 programID = glCreateProgram();
+    glAttachShader(programID, vshader);
+    glAttachShader(programID, fshader);
+    glAttachShader(programID, gshader);
+    glLinkProgram(programID);
+
+    saci_s32 success = GL_FALSE;
+    glGetProgramiv(programID, GL_LINK_STATUS, &success);
+    if (!success) {
+        char glErrMessage[1024];
+        char errMessage[2048];
+        int sizeReturned = 0;
+        glGetProgramInfoLog(programID, 2048, &sizeReturned, glErrMessage);
+        snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s",
+                 glErrMessage);
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, errMessage);
+        return 0;
+    }
+    glDetachShader(programID, vshader);
+    glDetachShader(programID, fshader);
+    glDetachShader(programID, gshader);
+    glDeleteShader(vshader);
+    glDeleteShader(fshader);
+    glDeleteShader(gshader);
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL,
+                   "Shader program be loaded successfully");
+
+    return programID;
+}
+
+//----------------------------------------------------------------------------//
+// Helper functions
+//----------------------------------------------------------------------------//
+
+saci_u32 __sc_shader_compile(const char* shaderSource, saci_u32 shaderType) {
+    saci_u32 shaderID = glCreateShader(shaderType);
+
+    glShaderSource(shaderID, 1, &shaderSource, NULL);
+    glCompileShader(shaderID);
+
+    int success;
+    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        char errMessage[2048];
+        int sizeReturned = 0;
+        glGetShaderInfoLog(shaderID, 2048, &sizeReturned, &errMessage[0]);
+
+        glDeleteShader(shaderID);
+        SACI_LOG_PRINT(
+            SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL,
+            shaderType == GL_VERTEX_SHADER
+                ? "Vertex shader couldn't be loaded"
+                : (shaderType == GL_FRAGMENT_SHADER ? "Fragment shader couldn't be loaded"
+                                                    : "Geometry shader couldn't be loaded"));
+        return 0;
+    }
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL,
+                   shaderType == GL_VERTEX_SHADER ? "Vertex shader loaded successfully"
+                                                  : (shaderType == GL_FRAGMENT_SHADER
+                                                         ? "Fragment shader loaded successfully"
+                                                         : "Geometry shader loaded successfully"));
+
+    return shaderID;
+}
 
 //----------------------------------------------------------------------------//
 // Helper functions
@@ -592,6 +797,7 @@ void __sc_renderer_setUniform(sc_Renderer* renderer, const sc_Camera* camera, sa
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m[0][0]);
 }
 
+// todo move up
 saci_u32 sc_GL_CreateIndexBuffer(saci_u32* indices, saci_u64 indiceAmount) {
     saci_u32 ibo;
     glGenBuffers(1, &ibo);
@@ -601,4 +807,13 @@ saci_u32 sc_GL_CreateIndexBuffer(saci_u32* indices, saci_u64 indiceAmount) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     assert(ibo);
     return ibo;
+}
+
+void __sc_OpenGL_initializeDebugger() {
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(saci_OpenGLDebugMessageCallback, NULL);
+#ifdef SACI_DEBUG_MODE
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_OPENGL, "Loaded OpenGL debugger");
+#endif
 }

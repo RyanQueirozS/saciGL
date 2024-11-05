@@ -1,4 +1,4 @@
-#include "saci-core/sc-model-loading.h"
+#include "saci-core/sc-gl.h"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -91,28 +91,14 @@ void __sc_OBJ_ParseFloat3(float* x, float* y, float* z, const char** token);
 saci_Bool __sc_OBJ_ParseLine(struct __sc_OBJ_Command* command, const char* line,
                              saci_u64 lineLenght);
 
-saci_Bool __sc_OBJ_Parse(const char* buffer, saci_u64 lenght, saci_Vec3** verticesPos,
-                         saci_u64* verticesAmount, saci_Vec2** verticesTexCoords,
-                         saci_u64* verticesTexCoordsAmount, struct sc_VertexIndice** indices,
-                         saci_u64* indicesAmount);
-
 //----------------------------------------------------------------------------//
 // Base Definitions
 //----------------------------------------------------------------------------//
 
-saci_Vec3* sc_OBJ_ModelIndiceToVec3(const struct sc_VertexIndice* indices) { return NULL; }
-
-saci_Bool sc_OBJ_Load(const char* path, sc_fileReadingFunction fileReader, saci_Vec3** verticesPos,
-                      saci_u64* verticesAmount, saci_Vec2** verticesTexCoords,
-                      saci_u64* verticesTexCoordsAmount, struct sc_VertexIndice** indices,
-                      saci_u64* indicesAmount) {
-    char* buffer = 0;
-    saci_u64 lenght = 0;
-    fileReader(path, &buffer, &lenght);
-
-    return __sc_OBJ_Parse(buffer, lenght, verticesPos, verticesAmount, verticesTexCoords,
-                          verticesTexCoordsAmount, indices, indicesAmount);
-}
+saci_Bool sc_OBJ_Parse(const char* buffer, saci_u64 lenght, saci_Vec3** verticesPos,
+                       saci_u64* verticesAmount, saci_Vec2** verticesTexCoords,
+                       saci_u64* verticesTexCoordsAmount, struct sc_VertexIndice** indices,
+                       saci_u64* indicesAmount);
 
 //----------------------------------------------------------------------------//
 // Helper function implementation
@@ -544,10 +530,10 @@ saci_Bool __sc_OBJ_ParseLine(struct __sc_OBJ_Command* command, const char* line,
     return SACI_TRUE;
 }
 
-saci_Bool __sc_OBJ_Parse(const char* buffer, saci_u64 lenght, saci_Vec3** verticesPos,
-                         saci_u64* verticesAmount, saci_Vec2** verticesTexCoords,
-                         saci_u64* verticesTexCoordsAmount, struct sc_VertexIndice** indices,
-                         saci_u64* indicesAmount) {
+saci_Bool sc_OBJ_Parse(const char* buffer, saci_u64 lenght, saci_Vec3** verticesPos,
+                       saci_u64* verticesAmount, saci_Vec2** verticesTexCoords,
+                       saci_u64* verticesTexCoordsAmount, struct sc_VertexIndice** indices,
+                       saci_u64* indicesAmount) {
     if (lenght < 1) return SACI_FALSE;
     if (!buffer) return SACI_FALSE;
 

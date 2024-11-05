@@ -1,5 +1,4 @@
 #include "saci-core/sc-event.h"
-#include "saci-core/sc-windowing.h"
 
 #include <GLFW/glfw3.h>
 

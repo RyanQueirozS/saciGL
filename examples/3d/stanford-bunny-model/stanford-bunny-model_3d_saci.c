@@ -1,7 +1,5 @@
-#include <saci-core.h>
-#include "saci-core/sc-model-loading.h"
+#include "saci-core/sc-event.h"
 #include "saci-core/sc-gl.h"
-#include "saci-core/sc-windowing.h"
 #include "saci-utils/su-math.h"
 
 #include <assert.h>
@@ -74,19 +72,10 @@ int main() {
 
     {
         const char* filePath = "./3d/stanford-bunny-model/bunny.obj";
-        sc_fileReadingFunction func = read_file;
-        saci_Vec3* verticesPos;
-        saci_u64 verticePosAmount;
-        saci_Vec2* verticesTexcoord;
-        saci_u64 verticesTexcoordAmount;
-        struct sc_VertexIndice* indices;
-        saci_u64 indiceAmount;
+        sc_FileReadingFunction func = read_file;
 
-        sc_OBJ_Load(filePath, func, &verticesPos, &verticePosAmount, &verticesTexcoord,
-                    &verticesTexcoordAmount, &indices, &indiceAmount);
-
-        mesh = sc_ModelMesh_Create(verticesPos, verticePosAmount, verticesTexcoord,
-                                   verticesTexcoordAmount, indices, indiceAmount);
+        mesh = sc_ModelMesh_Load(filePath, func);
+        printf("oi\n");
     }
 
     assert(mesh);
