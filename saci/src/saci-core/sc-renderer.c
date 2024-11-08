@@ -158,6 +158,12 @@ typedef struct sc_ModelMesh {
 
 /* === Renderer Implementation === */
 
+saci_Vec3 sc_Vertice_GetPos(const sc_Vertice vertice) { return vertice.pos; }
+
+saci_Color sc_Vertice_GetColor(const sc_Vertice vertice) { return vertice.color; }
+
+saci_Vec2 sc_Vertice_GetTexcoord(const sc_Vertice vertice) { return vertice.texCoord; }
+
 sc_Vertice* sc_Vertice_CreateVerticesArray(saci_Vec3* positions, saci_Color* colors,
                                            saci_Vec2* texcoords, saci_u64 amount) {
     sc_Vertice* vertices = (sc_Vertice*)malloc(sizeof(sc_Vertice) * amount);
@@ -172,6 +178,18 @@ sc_Vertice* sc_Vertice_CreateVerticesArray(saci_Vec3* positions, saci_Color* col
         if (texcoords) vertices[i].texCoord = texcoords[i];
     }
     return vertices;
+}
+
+sc_Vertice* sc_ModelMesh_GetVertices(const sc_ModelMesh* modelMesh) { return modelMesh->vertices; }
+
+saci_u64 sc_ModelMesh_GetVerticesAmount(const sc_ModelMesh* modelMesh) {
+    return modelMesh->verticesAmount;
+}
+
+saci_u32* sc_ModelMesh_GetIndices(const sc_ModelMesh* modelMesh) { return modelMesh->indices; }
+
+saci_u64 sc_ModelMesh_GetIndicesAmount(const sc_ModelMesh* modelMesh) {
+    return modelMesh->indicesAmount;
 }
 
 sc_Renderer* sc_Renderer_Create(saci_Bool generateDefaults) {
@@ -323,9 +341,12 @@ sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3* verticesPos, saci_u64 verticePosAmo
     }
 
     for (saci_u64 i = 0; i < verticePosAmount; i++) {
+        float r = (rand() % 10001) / 10000.0f; // Generates a float between 0 and 1
+        float g = (rand() % 10001) / 10000.0f;
+        float b = (rand() % 10001) / 10000.0f;
         mesh->vertices[i].pos = verticesPos[i];
         mesh->vertices[i].texCoord = verticesTexcoord[i];
-        mesh->vertices[i].color = (saci_Color){1.0f, 1.0f, 1.0f, 1.0f}; // Default white color
+        mesh->vertices[i].color = (saci_Color){r, g, b, 1.0f}; // Default white color
     }
 
     mesh->indices = (saci_u32*)malloc(sizeof(saci_u32) * mesh->indicesAmount);

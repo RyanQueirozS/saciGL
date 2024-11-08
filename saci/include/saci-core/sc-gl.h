@@ -144,6 +144,11 @@ typedef struct sc_Renderer sc_Renderer;
  */
 typedef struct sc_Vertice sc_Vertice;
 
+// TODO doc
+saci_Vec3 sc_Vertice_GetPos(const sc_Vertice vertice);
+saci_Color sc_Vertice_GetColor(const sc_Vertice vertice);
+saci_Vec2 sc_Vertice_GetTexcoord(const sc_Vertice vertice);
+
 /**
  * @brief Creates an array of @ref sc_Vertice.
  *
@@ -167,6 +172,16 @@ sc_Vertice* sc_Vertice_CreateVerticesArray(saci_Vec3* positions, saci_Color* col
  * @brief Structure to hold model related information.
  */
 typedef struct sc_ModelMesh sc_ModelMesh;
+
+// TODO doc
+// create a const alternative
+sc_Vertice* sc_ModelMesh_GetVertices(const sc_ModelMesh* modelMesh);
+
+saci_u64 sc_ModelMesh_GetVerticesAmount(const sc_ModelMesh* modelMesh);
+
+saci_u32* sc_ModelMesh_GetIndices(const sc_ModelMesh* modelMesh);
+
+saci_u64 sc_ModelMesh_GetIndicesAmount(const sc_ModelMesh* modelMesh);
 
 /**
  * @brief Creates the sc_Renderer struct
@@ -324,7 +339,7 @@ struct sc_VertexIndice {
  * @brief Parses OBJ files.
  *
  * @param buffer The buffer that contains the OBJ file info.
- * @param lenght The lenght of the buffer.
+ * @param length The lenght of the buffer.
  * @param verticesPos The position of the vertices in the OBJ file.
  * @param verticesPosAmount The amount of verticesPos 1-1.
  * @param verticesTexCoords The texcoords of the vertices.
@@ -332,7 +347,7 @@ struct sc_VertexIndice {
  * @param indices The indices of the the vertex positions, texcoords and normals.
  * @param indicesAmount The amount of indices 1-1.
  */
-saci_Bool sc_OBJ_Parse(const char* buffer, saci_u64 lenght, saci_Vec3** verticesPos,
+saci_Bool sc_OBJ_Parse(const char* buffer, saci_u64 length, saci_Vec3** verticesPos,
                        saci_u64* verticesPosAmount, saci_Vec2** verticesTexCoords,
                        saci_u64* verticesTexCoordsAmount, struct sc_VertexIndice** indices,
                        saci_u64* indicesAmount);

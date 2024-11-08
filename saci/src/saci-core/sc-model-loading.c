@@ -530,18 +530,18 @@ saci_Bool __sc_OBJ_ParseLine(struct __sc_OBJ_Command* command, const char* line,
     return SACI_TRUE;
 }
 
-saci_Bool sc_OBJ_Parse(const char* buffer, saci_u64 lenght, saci_Vec3** verticesPos,
+saci_Bool sc_OBJ_Parse(const char* buffer, saci_u64 length, saci_Vec3** verticesPos,
                        saci_u64* verticesAmount, saci_Vec2** verticesTexCoords,
                        saci_u64* verticesTexCoordsAmount, struct sc_VertexIndice** indices,
                        saci_u64* indicesAmount) {
-    if (lenght < 1) return SACI_FALSE;
+    if (length < 1) return SACI_FALSE;
     if (!buffer) return SACI_FALSE;
 
     saci_u64* lineLenght = 0;
     saci_u64* linePos = 0;
     saci_u64 lineAmount;
 
-    __sc_File_GetInfo(buffer, lenght, &lineLenght, &linePos, &lineAmount);
+    __sc_File_GetInfo(buffer, length, &lineLenght, &linePos, &lineAmount);
 
     struct __sc_OBJ_Command* objCommands =
         (struct __sc_OBJ_Command*)malloc(sizeof(struct __sc_OBJ_Command) * lineAmount);
@@ -614,7 +614,7 @@ saci_Bool sc_OBJ_Parse(const char* buffer, saci_u64 lenght, saci_Vec3** vertices
 
     *verticesAmount = vertexCount;
     *verticesTexCoordsAmount = texcoordCount;
-    *indicesAmount = facesCount * 3;
+    *indicesAmount = facesCount;
 
     if (lineLenght) {
         free(lineLenght);

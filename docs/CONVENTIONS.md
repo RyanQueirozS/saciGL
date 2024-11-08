@@ -312,6 +312,8 @@ Whenever defining **LOCAL** level code, each element should precede a:
 - `__sl_` if part of saciLib.
 - `__saci_` if part of saciUtil.
 
+**NOTE:** tests do not need these.
+
 ### Naming guidelines
 
 C has many naming conventions with many different reasons to use each one of
