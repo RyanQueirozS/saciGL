@@ -174,7 +174,7 @@ sc_Vertice* sc_Vertice_CreateVerticesArray(saci_Vec3* positions, saci_Color* col
 typedef struct sc_ModelMesh sc_ModelMesh;
 
 // TODO doc
-// create a const alternative
+// TODO create a const alternative
 sc_Vertice* sc_ModelMesh_GetVertices(const sc_ModelMesh* modelMesh);
 
 saci_u64 sc_ModelMesh_GetVerticesAmount(const sc_ModelMesh* modelMesh);
@@ -303,14 +303,9 @@ void sc_Renderer_PushModelMesh(sc_Renderer* renderer, sc_ModelMesh* mesh, saci_M
 
 /* === Model Creation === */
 
-/**
- * @brief File reader function for model loading.
- *
- * @param[in]  path   The path of the file
- * @param[out] buffer The buffer that will get loaded
- * @param[out] lenght The lenght of file
- */
-typedef void (*sc_Model_FileReadingFunction)(const char* path, char** buffer, saci_u64* length);
+// todo doc
+typedef void (*sc_OBJ_ModelFileReadingFunction)(void* ctx, const char* filename, int isMtl,
+                                                const char* objFilename, char** buf, size_t* len);
 
 /**
  * @brief Creates a @ref sc_ModelMesh containing the info in the provided path.
@@ -318,7 +313,7 @@ typedef void (*sc_Model_FileReadingFunction)(const char* path, char** buffer, sa
  * @param path The path for the model file.
  * @param fileReader The file reading function to load the model information.
  */
-sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_Model_FileReadingFunction fileReader);
+sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_OBJ_ModelFileReadingFunction fileReader);
 
 /**
  * @brief Structure to hold Vertex Indice information.
@@ -335,22 +330,11 @@ struct sc_VertexIndice {
     saci_u32 normalIndex;   /**< Indices of the normal values */
 };
 
-/**
- * @brief Parses OBJ files.
- *
- * @param buffer The buffer that contains the OBJ file info.
- * @param length The lenght of the buffer.
- * @param verticesPos The position of the vertices in the OBJ file.
- * @param verticesPosAmount The amount of verticesPos 1-1.
- * @param verticesTexCoords The texcoords of the vertices.
- * @param verticesTexCoordsAmount The amount of texcoords of the vertices 1-1.
- * @param indices The indices of the the vertex positions, texcoords and normals.
- * @param indicesAmount The amount of indices 1-1.
- */
-saci_Bool sc_OBJ_Parse(const char* buffer, saci_u64 length, saci_Vec3** verticesPos,
-                       saci_u64* verticesPosAmount, saci_Vec2** verticesTexCoords,
-                       saci_u64* verticesTexCoordsAmount, struct sc_VertexIndice** indices,
-                       saci_u64* indicesAmount);
+// todo doc
+saci_Bool sc_OBJ_Parse(const char* filePath, sc_OBJ_ModelFileReadingFunction fileReader,
+                       saci_Vec3** positions, saci_u64* positionsCount, saci_Vec2** texcoords,
+                       saci_u64* texcoordCount, struct sc_VertexIndice** indices,
+                       saci_u64* indicesCount);
 
 /**
  * @brief Frees a model mesh from memory.

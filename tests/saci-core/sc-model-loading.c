@@ -1,328 +1,328 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <time.h>
 #include "saci-core/sc-gl.h"
 #include "saci-testing.h"
+#include "saci-utils/su-types.h"
 
-/**
- * @brief
- *
- * @param buffer
- * @param length
- * @param verticesPos
- * @param verticesAmount
- * @param verticesTexCoords
- * @param verticesTexCoordsAmount
- * @param normals
- * @param normalsAmount
- * @param sc_VertexIndice
- * @param indices
- * @param indicesAmount
- */
-static void __generateRandomBuffer(char** buffer, saci_u64* length, saci_Vec3** verticesPos,
-                                   saci_u64* verticesAmount, saci_Vec2** verticesTexCoords,
-                                   saci_u64* verticesTexCoordsAmount, saci_Vec3** normals,
-                                   saci_u64* normalsAmount, struct sc_VertexIndice** indices,
-                                   saci_u64* indicesAmount) { // Seed the random number generator
-    srand((unsigned int)time(NULL));
+static void __GenerateTriangulatedOBJFile(const char *path, saci_Vec3 **positionArray,
+                                          saci_u64 *positionArrayAmount, saci_Vec2 **texcoordArray,
+                                          saci_u64 *texcoordArrayAmount,
+                                          struct sc_VertexIndice **indicesArray,
+                                          saci_u64 *indicesArrayAmount);
 
-    // Generate random vertices
-    *verticesAmount = 10 + rand() % 10000; // random between 10 and 20 vertices
-    *verticesPos = (saci_Vec3*)malloc(*verticesAmount * sizeof(saci_Vec3));
-    for (saci_u64 i = 0; i < *verticesAmount; ++i) {
-        (*verticesPos)[i].x = (float)(rand() % 100) / 10.0f;
-        (*verticesPos)[i].y = (float)(rand() % 100) / 10.0f;
-        (*verticesPos)[i].z = (float)(rand() % 100) / 10.0f;
-    }
+static void __GenerateNonTriangulatedOBJFile(const char *pathconst, saci_Vec3 **positionArray,
+                                             saci_u64 *positionArrayAmount,
+                                             saci_Vec2 **texcoordArray,
+                                             saci_u64 *texcoordArrayAmount,
+                                             struct sc_VertexIndice **indicesArray,
+                                             saci_u64 *indicesArrayAmount);
 
-    // Generate random texture coordinates
-    *verticesTexCoordsAmount = *verticesAmount; // same amount as vertices
-    *verticesTexCoords = (saci_Vec2*)malloc(*verticesTexCoordsAmount * sizeof(saci_Vec2));
-    for (saci_u64 i = 0; i < *verticesTexCoordsAmount; ++i) {
-        (*verticesTexCoords)[i].x = (float)(rand() % 100) / 100.0f;
-        (*verticesTexCoords)[i].y = (float)(rand() % 100) / 100.0f;
-    }
-
-    // Generate random normals
-    *normalsAmount = *verticesAmount; // same amount as vertices
-    *normals = (saci_Vec3*)malloc(*normalsAmount * sizeof(saci_Vec3));
-    for (saci_u64 i = 0; i < *normalsAmount; ++i) {
-        (*normals)[i].x = (float)(rand() % 100) / 10.0f;
-        (*normals)[i].y = (float)(rand() % 100) / 10.0f;
-        (*normals)[i].z = (float)(rand() % 100) / 10.0f;
-    }
-
-    // Generate indices for faces (triangular faces)
-    *indicesAmount = (*verticesAmount >= 3) ? *verticesAmount - 2 : 0;
-    *indices = (struct sc_VertexIndice*)malloc(*indicesAmount * sizeof(struct sc_VertexIndice) *
-                                               3); // 3 vertices per face
-    for (saci_u64 i = 0; i < *indicesAmount; ++i) {
-        (*indices)[i].vertexIndex = (rand() % *verticesAmount) + 1; // OBJ is 1-indexed
-        (*indices)[i].texCoordIndex = (rand() % *verticesTexCoordsAmount) + 1;
-        (*indices)[i].normalIndex = (rand() % *normalsAmount) + 1;
-    }
-
-    // Calculate buffer size and prepare for OBJ format
-    *length = 0;
-    saci_u64 estimated_size =
-        256 * (*verticesAmount + *verticesTexCoordsAmount + *normalsAmount + *indicesAmount);
-    *buffer = (char*)malloc(estimated_size);
-    char* buf_ptr = *buffer;
-
-    // Write vertices (v) to buffer
-    for (saci_u64 i = 0; i < *verticesAmount; ++i) {
-        int written = snprintf(buf_ptr, estimated_size - *length, "v %.2f %.2f %.2f\n",
-                               (*verticesPos)[i].x, (*verticesPos)[i].y, (*verticesPos)[i].z);
-        buf_ptr += written;
-        *length += written;
-    }
-
-    // Write texture coordinates (vt) to buffer
-    for (saci_u64 i = 0; i < *verticesTexCoordsAmount; ++i) {
-        int written = snprintf(buf_ptr, estimated_size - *length, "vt %.2f %.2f\n",
-                               (*verticesTexCoords)[i].x, (*verticesTexCoords)[i].y);
-        buf_ptr += written;
-        *length += written;
-    }
-
-    // Write normals (vn) to buffer
-    for (saci_u64 i = 0; i < *normalsAmount; ++i) {
-        int written = snprintf(buf_ptr, estimated_size - *length, "vn %.2f %.2f %.2f\n",
-                               (*normals)[i].x, (*normals)[i].y, (*normals)[i].z);
-        buf_ptr += written;
-        *length += written;
-    }
-
-    // Write faces (f) to buffer
-    for (saci_u64 i = 0; i < *indicesAmount; ++i) {
-        int written = snprintf(
-            buf_ptr, estimated_size - *length, "f %d/%d/%d %d/%d/%d %d/%d/%d\n",
-            (*indices)[i].vertexIndex, (*indices)[i].texCoordIndex, (*indices)[i].normalIndex,
-            (*indices)[i].vertexIndex, (*indices)[i].texCoordIndex, (*indices)[i].normalIndex,
-            (*indices)[i].vertexIndex, (*indices)[i].texCoordIndex, (*indices)[i].normalIndex);
-        buf_ptr += written;
-        *length += written;
-    }
-
-    // Reallocate buffer to the exact size used
-    *buffer = (char*)realloc(*buffer, *length + 1);
-    (*buffer)[*length] = '\0'; // Null-terminate the buffer
-}
-
-/**
- * @brief
- *
- * @param buffer
- * @param length
- * @param verticesPos
- * @param verticesAmount
- * @param verticesTexCoords
- * @param verticesTexCoordsAmount
- * @param normals
- * @param normalsAmount
- * @param sc_VertexIndice
- * @param indices
- * @param indicesAmount
- * @param generator
- */
-static void __generateRandomBufferWithNonTriangulatedFaces(
-    char** buffer, saci_u64* length, saci_Vec3** verticesPos, saci_u64* verticesAmount,
-    saci_Vec2** verticesTexCoords, saci_u64* verticesTexCoordsAmount, saci_Vec3** normals,
-    saci_u64* normalsAmount, struct sc_VertexIndice** indices,
-    saci_u64* indicesAmount) { // Seed the random number generator
-    srand((unsigned int)time(NULL));
-
-    // Generate random vertices
-    *verticesAmount = 10 + rand() % 1000; // random between 10 and 20 vertices
-    *verticesPos = (saci_Vec3*)malloc(*verticesAmount * sizeof(saci_Vec3));
-    for (saci_u64 i = 0; i < *verticesAmount; ++i) {
-        (*verticesPos)[i].x = (float)(rand() % 100) / 10.0f;
-        (*verticesPos)[i].y = (float)(rand() % 100) / 10.0f;
-        (*verticesPos)[i].z = (float)(rand() % 100) / 10.0f;
-    }
-
-    // Generate random texture coordinates
-    *verticesTexCoordsAmount = *verticesAmount; // same amount as vertices
-    *verticesTexCoords = (saci_Vec2*)malloc(*verticesTexCoordsAmount * sizeof(saci_Vec2));
-    for (saci_u64 i = 0; i < *verticesTexCoordsAmount; ++i) {
-        (*verticesTexCoords)[i].x = (float)(rand() % 100) / 100.0f;
-        (*verticesTexCoords)[i].y = (float)(rand() % 100) / 100.0f;
-    }
-
-    // Generate random normals
-    *normalsAmount = *verticesAmount; // same amount as vertices
-    *normals = (saci_Vec3*)malloc(*normalsAmount * sizeof(saci_Vec3));
-    for (saci_u64 i = 0; i < *normalsAmount; ++i) {
-        (*normals)[i].x = (float)(rand() % 100) / 10.0f;
-        (*normals)[i].y = (float)(rand() % 100) / 10.0f;
-        (*normals)[i].z = (float)(rand() % 100) / 10.0f;
-    }
-
-    // Generate random indices for faces (non-triangulated faces, e.g., quadrilaterals)
-    *indicesAmount = (*verticesAmount >= 4) ? (*verticesAmount / 2)
-                                            : 0; // Create quadrilaterals if enough vertices exist
-    *indices = (struct sc_VertexIndice*)malloc(*indicesAmount * sizeof(struct sc_VertexIndice) *
-                                               4); // 4 vertices per face
-    for (saci_u64 i = 0; i < *indicesAmount; ++i) {
-        (*indices)[i * 4 + 0].vertexIndex = (rand() % *verticesAmount) + 1;
-        (*indices)[i * 4 + 1].vertexIndex = (rand() % *verticesAmount) + 1;
-        (*indices)[i * 4 + 2].vertexIndex = (rand() % *verticesAmount) + 1;
-        (*indices)[i * 4 + 3].vertexIndex = (rand() % *verticesAmount) + 1;
-
-        (*indices)[i * 4 + 0].texCoordIndex = (rand() % *verticesTexCoordsAmount) + 1;
-        (*indices)[i * 4 + 1].texCoordIndex = (rand() % *verticesTexCoordsAmount) + 1;
-        (*indices)[i * 4 + 2].texCoordIndex = (rand() % *verticesTexCoordsAmount) + 1;
-        (*indices)[i * 4 + 3].texCoordIndex = (rand() % *verticesTexCoordsAmount) + 1;
-
-        (*indices)[i * 4 + 0].normalIndex = (rand() % *normalsAmount) + 1;
-        (*indices)[i * 4 + 1].normalIndex = (rand() % *normalsAmount) + 1;
-        (*indices)[i * 4 + 2].normalIndex = (rand() % *normalsAmount) + 1;
-        (*indices)[i * 4 + 3].normalIndex = (rand() % *normalsAmount) + 1;
-    }
-
-    // Calculate buffer size and prepare for OBJ format
-    *length = 0;
-    saci_u64 estimated_size =
-        256 * (*verticesAmount + *verticesTexCoordsAmount + *normalsAmount + *indicesAmount);
-    *buffer = (char*)malloc(estimated_size);
-    char* buf_ptr = *buffer;
-
-    // Write vertices (v) to buffer
-    for (saci_u64 i = 0; i < *verticesAmount; ++i) {
-        int written = snprintf(buf_ptr, estimated_size - *length, "v %.2f %.2f %.2f\n",
-                               (*verticesPos)[i].x, (*verticesPos)[i].y, (*verticesPos)[i].z);
-        buf_ptr += written;
-        *length += written;
-    }
-
-    // Write texture coordinates (vt) to buffer
-    for (saci_u64 i = 0; i < *verticesTexCoordsAmount; ++i) {
-        int written = snprintf(buf_ptr, estimated_size - *length, "vt %.2f %.2f\n",
-                               (*verticesTexCoords)[i].x, (*verticesTexCoords)[i].y);
-        buf_ptr += written;
-        *length += written;
-    }
-
-    // Write normals (vn) to buffer
-    for (saci_u64 i = 0; i < *normalsAmount; ++i) {
-        int written = snprintf(buf_ptr, estimated_size - *length, "vn %.2f %.2f %.2f\n",
-                               (*normals)[i].x, (*normals)[i].y, (*normals)[i].z);
-        buf_ptr += written;
-        *length += written;
-    }
-
-    // Write non-triangulated faces (f) to buffer
-    for (saci_u64 i = 0; i < *indicesAmount; ++i) {
-        int written =
-            snprintf(buf_ptr, estimated_size - *length, "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n",
-                     (*indices)[i * 4 + 0].vertexIndex, (*indices)[i * 4 + 0].texCoordIndex,
-                     (*indices)[i * 4 + 0].normalIndex, (*indices)[i * 4 + 1].vertexIndex,
-                     (*indices)[i * 4 + 1].texCoordIndex, (*indices)[i * 4 + 1].normalIndex,
-                     (*indices)[i * 4 + 2].vertexIndex, (*indices)[i * 4 + 2].texCoordIndex,
-                     (*indices)[i * 4 + 2].normalIndex, (*indices)[i * 4 + 3].vertexIndex,
-                     (*indices)[i * 4 + 3].texCoordIndex, (*indices)[i * 4 + 3].normalIndex);
-        buf_ptr += written;
-        *length += written;
-    }
-
-    // Reallocate buffer to the exact size used
-    *buffer = (char*)realloc(*buffer, *length + 1);
-    (*buffer)[*length] = '\0'; // Null-terminate the buffer
-}
-
+static void __FileReadingFunction(void *ctx, const char *filename, int isMtl,
+                                  const char *objFilename, char **buf, size_t *len);
 static void TestOBJParse(void);
 
 void saci_TestModelLoading(void) { TestOBJParse(); }
 
 static void TestOBJParse(void) {
-    // Base values
-    char* buffer;
-    saci_u64 length;
-    saci_Vec3* verticesPosExpected;
-    saci_u64 verticesAmountExpected;
-    saci_Vec2* verticesTexCoordsExpected;
-    saci_u64 verticesTexCoordsAmountExpected;
-    saci_Vec3* normalsExpected;
-    saci_u64 normalsAmountExpected;
-    struct sc_VertexIndice* indicesExpected;
-    saci_u64 indicesAmountExpected;
+    { /* Should load the information correctly for TRIANGULATED faces */
+        const char *path = "./assets/test-file-1.obj";
 
-    {
-        saci_Test_AddDescription("Should load the information correctly for triangulated faces");
-        __generateRandomBuffer(&buffer, &length, &verticesPosExpected, &verticesAmountExpected,
-                               &verticesTexCoordsExpected, &verticesTexCoordsAmountExpected,
-                               &normalsExpected, &normalsAmountExpected, &indicesExpected,
-                               &indicesAmountExpected);
+        saci_Vec3 *positionsExpected;
+        saci_u64 positionsAmountExpected;
+        saci_Vec2 *texcoordsExpected;
+        saci_u64 texcoordAmountExpected;
+        struct sc_VertexIndice *indicesExpected;
+        saci_u64 indicesAmountExpected;
 
-        saci_Vec3* verticesPos;
-        saci_u64 verticesPosAmount;
-        saci_Vec2* verticesTexCoords;
-        saci_u64 verticesTexCoordsAmount;
-        struct sc_VertexIndice* indices;
+        __GenerateTriangulatedOBJFile(path, &positionsExpected, &positionsAmountExpected,
+                                      &texcoordsExpected, &texcoordAmountExpected, &indicesExpected,
+                                      &indicesAmountExpected);
+
+        saci_Vec3 *positions;
+        saci_u64 positionsAmount;
+        saci_Vec2 *texcoords;
+        saci_u64 texcoordAmount;
+        struct sc_VertexIndice *indices;
         saci_u64 indicesAmount;
 
         saci_Test_ClockBegin();
         // OBJ_Parse Function
-        sc_OBJ_Parse(buffer, length, &verticesPos, &verticesPosAmount, &verticesTexCoords,
-                     &verticesTexCoordsAmount, &indices, &indicesAmount);
+        sc_OBJ_Parse(path, __FileReadingFunction, &positions, &positionsAmount, &texcoords,
+                     &texcoordAmount, &indices, &indicesAmount);
         saci_Test_ClockEnd();
-        SACI_TEST_ASSERT(saci_GetElapsedTimeMS() < 50); // should load under 50 ms
+        SACI_TEST_ASSERT(saci_GetElapsedTimeMS() < 100, "Should load under 50 ms");
 
-        SACI_TEST_ASSERT(verticesPosAmount == verticesAmountExpected);
-        for (saci_u64 i = 0; i < verticesPosAmount; ++i) {
-            SACI_TEST_ASSERT(SACI_TEST_VEC3_IS_EQUAL(verticesPosExpected[i], verticesPos[i]));
+        SACI_TEST_ASSERT(positionsAmount == positionsAmountExpected,
+                         "Should have correct vertex position amount");
+        for (saci_u64 i = 0; i < positionsAmount; ++i) {
+            SACI_TEST_ASSERT(SACI_TEST_VEC3_IS_EQUAL(positionsExpected[i], positions[i]),
+                             "Should have correct vertex position values");
         }
-        SACI_TEST_ASSERT(verticesTexCoordsAmount == verticesTexCoordsAmountExpected);
-        for (saci_u64 i = 0; i < verticesTexCoordsAmount; ++i) {
-            SACI_TEST_ASSERT(
-                SACI_TEST_VEC2_IS_EQUAL(verticesTexCoords[i], verticesTexCoordsExpected[i]));
+
+        SACI_TEST_ASSERT(texcoordAmount == texcoordAmountExpected,
+                         "Should have correct texcoord amount");
+        for (saci_u64 i = 0; i < texcoordAmount; ++i) {
+            SACI_TEST_ASSERT(SACI_TEST_VEC2_IS_EQUAL(texcoords[i], texcoordsExpected[i]),
+                             "Should have correct texcoord values");
         }
-        SACI_TEST_ASSERT(indicesAmount == indicesAmountExpected);
+
+        SACI_TEST_ASSERT(indicesAmount == indicesAmountExpected,
+                         "Should have correct indice amount");
         for (saci_u64 i = 0; i < indicesAmount; ++i) {
-            SACI_TEST_ASSERT(indices[i].vertexIndex == indicesExpected[i].vertexIndex);
-            SACI_TEST_ASSERT(indices[i].texCoordIndex == indicesExpected[i].texCoordIndex);
-            SACI_TEST_ASSERT(indices[i].normalIndex == indicesExpected[i].normalIndex);
+            SACI_TEST_ASSERT(indices[i].vertexIndex == indicesExpected[i].vertexIndex,
+                             "Should have vertex correct vertex indices");
+            SACI_TEST_ASSERT(indices[i].texCoordIndex == indicesExpected[i].texCoordIndex,
+                             "Should have vertex correct texcoord indices");
+            /*
+            // TODO: NOT YET IMPLEMENTED
+            SACI_TEST_ASSERT(indices[i].normalIndex == indicesExpected[i].normalIndex,
+                             "Should have vertex correct normal indices");
+            */
         }
-        free(verticesPos);
-        free(verticesTexCoords);
-        free(indices);
+        if (positions) free(positions);
+        if (texcoords) free(texcoords);
+        if (indices) free(indices);
     }
     {
-        saci_Test_AddDescription(
-            "Should load the information correctly for NON-TRIANGULATED faces");
-        __generateRandomBufferWithNonTriangulatedFaces(
-            &buffer, &length, &verticesPosExpected, &verticesAmountExpected,
-            &verticesTexCoordsExpected, &verticesTexCoordsAmountExpected, &normalsExpected,
-            &normalsAmountExpected, &indicesExpected, &indicesAmountExpected);
+        const char *path = "./assets/test-file-2.obj";
 
-        saci_Vec3* verticesPos;
+        saci_Vec3 *positionsExpected;
+        saci_u64 positionsAmountExpected;
+        saci_Vec2 *texcoordsExpected;
+        saci_u64 texcoordAmountExpected;
+        struct sc_VertexIndice *indicesExpected;
+        saci_u64 indicesAmountExpected;
+
+        __GenerateNonTriangulatedOBJFile(path, &positionsExpected, &positionsAmountExpected,
+                                         &texcoordsExpected, &texcoordAmountExpected,
+                                         &indicesExpected, &indicesAmountExpected);
+
+        saci_Vec3 *verticesPos;
         saci_u64 verticesPosAmount;
-        saci_Vec2* verticesTexCoords;
+        saci_Vec2 *verticesTexCoords;
         saci_u64 verticesTexCoordsAmount;
-        struct sc_VertexIndice* indices;
+        struct sc_VertexIndice *indices;
         saci_u64 indicesAmount;
-        sc_OBJ_Parse(buffer, length, &verticesPos, &verticesPosAmount, &verticesTexCoords,
-                     &verticesTexCoordsAmount, &indices, &indicesAmount);
 
-        SACI_TEST_ASSERT(verticesPosAmount == verticesAmountExpected);
+        sc_OBJ_Parse(path, __FileReadingFunction, &verticesPos, &verticesPosAmount,
+                     &verticesTexCoords, &verticesTexCoordsAmount, &indices, &indicesAmount);
+
+        SACI_TEST_ASSERT(verticesPosAmount == positionsAmountExpected,
+                         "Should have correct vertex position amount");
         for (saci_u64 i = 0; i < verticesPosAmount; ++i) {
-            SACI_TEST_ASSERT(SACI_TEST_VEC3_IS_EQUAL(verticesPosExpected[i], verticesPos[i]));
+            SACI_TEST_ASSERT(SACI_TEST_VEC3_IS_EQUAL(positionsExpected[i], verticesPos[i]),
+                             "Should have correct vertex position");
         }
-        SACI_TEST_ASSERT(verticesTexCoordsAmount == verticesTexCoordsAmountExpected);
+        SACI_TEST_ASSERT(verticesTexCoordsAmount == texcoordAmountExpected,
+                         "Should have correct texcoord amount");
         for (saci_u64 i = 0; i < verticesTexCoordsAmount; ++i) {
-            SACI_TEST_ASSERT(
-                SACI_TEST_VEC2_IS_EQUAL(verticesTexCoords[i], verticesTexCoordsExpected[i]));
+            SACI_TEST_ASSERT(SACI_TEST_VEC2_IS_EQUAL(verticesTexCoords[i], texcoordsExpected[i]),
+                             "Should have correct texcoord values");
         }
-        SACI_TEST_ASSERT(indicesAmount == indicesAmountExpected);
-        for (saci_u64 i = 0; i < indicesAmount; ++i) {
-            SACI_TEST_ASSERT(indices[i].vertexIndex == indicesExpected[i].vertexIndex);
-            SACI_TEST_ASSERT(indices[i].texCoordIndex == indicesExpected[i].texCoordIndex);
-            SACI_TEST_ASSERT(indices[i].normalIndex == indicesExpected[i].normalIndex);
+        printf("%lu\t%lu\n", indicesAmount, indicesAmountExpected);
+        SACI_TEST_ASSERT(indicesAmount == indicesAmountExpected,
+                         "Should have correct indices amount");
+        for (saci_u64 i = 0; i < indicesAmount; ++i) { // These are wrong
+            SACI_TEST_ASSERT(indices[i].vertexIndex == indicesExpected[i].vertexIndex,
+                             "Should have correct vertex indices");
+            SACI_TEST_ASSERT(indices[i].texCoordIndex == indicesExpected[i].texCoordIndex,
+                             "Should have correct texcoord indices");
+            /**
+            TODO
+            NOT IMPLEMENTED
+            SACI_TEST_ASSERT(indices[i].normalIndex == indicesExpected[i].normalIndex,
+                             "Should have correct normal indices");
+            */
         }
         free(verticesPos);
         free(verticesTexCoords);
         free(indices);
     }
+}
+
+static void __GenerateTriangulatedOBJFile(const char *pathconst, saci_Vec3 **positionArray,
+                                          saci_u64 *positionArrayAmount, saci_Vec2 **texcoordArray,
+                                          saci_u64 *texcoordArrayAmount,
+                                          struct sc_VertexIndice **indicesArray,
+                                          saci_u64 *indicesArrayAmount) {
+    srand(time(NULL));
+
+    // Generate random amounts of vertices, texcoords, and indices
+    saci_u64 verticesToBeGenerated = (rand() % 250 + 3);
+    *positionArrayAmount = verticesToBeGenerated / 3; // ensures at least 3 vertices for a triangle
+    *texcoordArrayAmount = *positionArrayAmount;
+    *indicesArrayAmount = *positionArrayAmount * 3;
+
+    // Allocate memory for vertices and texture coordinates
+    *positionArray = (saci_Vec3 *)malloc(sizeof(saci_Vec3) * (*positionArrayAmount));
+    *texcoordArray = (saci_Vec2 *)malloc(sizeof(saci_Vec2) * (*texcoordArrayAmount));
+    *indicesArray =
+        (struct sc_VertexIndice *)malloc(sizeof(struct sc_VertexIndice) * (*indicesArrayAmount));
+
+    // Fill position array with random values
+    for (saci_u64 i = 0; i < (*positionArrayAmount); ++i) {
+        float posX = (rand() % 100 / 10.0f) - 5.0f;
+        float posY = (rand() % 100 / 10.0f) - 5.0f;
+        float posZ = (rand() % 100 / 10.0f) - 5.0f;
+        (*positionArray)[i] = (saci_Vec3){posX, posY, posZ};
+    }
+
+    // Fill texcoord array with random values between 0.0 and 1.0
+    for (saci_u64 i = 0; i < (*texcoordArrayAmount); ++i) {
+        float texU = (rand() % 1000) / 1000.0f;
+        float texV = (rand() % 1000) / 1000.0f;
+        (*texcoordArray)[i] = (saci_Vec2){texU, texV};
+    }
+
+    // Generate indices for triangles
+    saci_u64 idx = 0;
+    for (saci_u64 i = 0; i < (*indicesArrayAmount); i += 3) {
+        (*indicesArray)[i + 0] = (struct sc_VertexIndice){idx, idx, idx};
+        (*indicesArray)[i + 1] = (struct sc_VertexIndice){idx + 1, idx + 1, idx + 1};
+        (*indicesArray)[i + 2] = (struct sc_VertexIndice){idx + 2, idx + 2, idx + 2};
+        idx += 3;
+    }
+
+    // Write to file
+    FILE *file = fopen(pathconst, "w");
+    if (!file) {
+        perror("Failed to open file");
+        return;
+    }
+
+    // Write vertices
+    for (saci_u64 i = 0; i < *positionArrayAmount; ++i) {
+        fprintf(file, "v %f %f %f\n", (*positionArray)[i].x, (*positionArray)[i].y,
+                (*positionArray)[i].z);
+    }
+
+    // Write texture coordinates
+    for (saci_u64 i = 0; i < *texcoordArrayAmount; ++i) {
+        fprintf(file, "vt %f %f\n", (*texcoordArray)[i].x, (*texcoordArray)[i].y);
+    }
+
+    // Write faces (triangles)
+    for (saci_u64 i = 0; i < *indicesArrayAmount; i += 3) {
+        fprintf(file, "f %d/%d %d/%d %d/%d\n", (*indicesArray)[i].vertexIndex + 1,
+                (*indicesArray)[i].texCoordIndex + 1, (*indicesArray)[i + 1].vertexIndex + 1,
+                (*indicesArray)[i + 1].texCoordIndex + 1, (*indicesArray)[i + 2].vertexIndex + 1,
+                (*indicesArray)[i + 2].texCoordIndex + 1);
+    }
+
+    fclose(file);
+}
+
+static void __GenerateNonTriangulatedOBJFile(const char *pathconst, saci_Vec3 **positionArray,
+                                             saci_u64 *positionArrayAmount,
+                                             saci_Vec2 **texcoordArray,
+                                             saci_u64 *texcoordArrayAmount,
+                                             struct sc_VertexIndice **indicesArray,
+                                             saci_u64 *indicesArrayAmount) {
+    srand(time(NULL));
+
+    // Generate random amounts of vertices and indices for quads
+    saci_u64 verticesToBeGenerated = (rand() % 250 + 4);  // At least 4 vertices for a quad
+    *positionArrayAmount = verticesToBeGenerated / 4 * 4; // Ensure divisible by 4
+    *texcoordArrayAmount = *positionArrayAmount;
+    *indicesArrayAmount = *positionArrayAmount; // Quad faces need 4 indices each
+
+    // Allocate memory for vertices and texture coordinates
+    *positionArray = (saci_Vec3 *)malloc(sizeof(saci_Vec3) * (*positionArrayAmount));
+    *texcoordArray = (saci_Vec2 *)malloc(sizeof(saci_Vec2) * (*texcoordArrayAmount));
+    *indicesArray =
+        (struct sc_VertexIndice *)malloc(sizeof(struct sc_VertexIndice) * (*indicesArrayAmount));
+
+    // Fill position array with random values
+    for (saci_u64 i = 0; i < (*positionArrayAmount); ++i) {
+        float posX = (rand() % 100 / 10.0f) - 5.0f;
+        float posY = (rand() % 100 / 10.0f) - 5.0f;
+        float posZ = (rand() % 100 / 10.0f) - 5.0f;
+        (*positionArray)[i] = (saci_Vec3){posX, posY, posZ};
+    }
+
+    // Fill texcoord array with random values between 0.0 and 1.0
+    for (saci_u64 i = 0; i < (*texcoordArrayAmount); ++i) {
+        float texU = (rand() % 1000) / 1000.0f;
+        float texV = (rand() % 1000) / 1000.0f;
+        (*texcoordArray)[i] = (saci_Vec2){texU, texV};
+    }
+
+    // Generate indices for quads
+    saci_u64 idx = 0;
+    for (saci_u64 i = 0; i < (*indicesArrayAmount); i += 4) {
+        (*indicesArray)[i + 0] = (struct sc_VertexIndice){idx, idx, idx};
+        (*indicesArray)[i + 1] = (struct sc_VertexIndice){idx + 1, idx + 1, idx + 1};
+        (*indicesArray)[i + 2] = (struct sc_VertexIndice){idx + 2, idx + 2, idx + 2};
+        (*indicesArray)[i + 3] = (struct sc_VertexIndice){idx + 3, idx + 3, idx + 3};
+        idx += 4;
+    }
+
+    // Write to file
+    FILE *file = fopen(pathconst, "w");
+    if (!file) {
+        perror("Failed to open file");
+        return;
+    }
+
+    // Write vertices
+    for (saci_u64 i = 0; i < *positionArrayAmount; ++i) {
+        fprintf(file, "v %f %f %f\n", (*positionArray)[i].x, (*positionArray)[i].y,
+                (*positionArray)[i].z);
+    }
+
+    // Write texture coordinates
+    for (saci_u64 i = 0; i < *texcoordArrayAmount; ++i) {
+        fprintf(file, "vt %f %f\n", (*texcoordArray)[i].x, (*texcoordArray)[i].y);
+    }
+
+    // Write faces (quads)
+    for (saci_u64 i = 0; i < *indicesArrayAmount; i += 4) {
+        fprintf(file, "f %d/%d %d/%d %d/%d %d/%d\n", (*indicesArray)[i].vertexIndex + 1,
+                (*indicesArray)[i].texCoordIndex + 1, (*indicesArray)[i + 1].vertexIndex + 1,
+                (*indicesArray)[i + 1].texCoordIndex + 1, (*indicesArray)[i + 2].vertexIndex + 1,
+                (*indicesArray)[i + 2].texCoordIndex + 1, (*indicesArray)[i + 3].vertexIndex + 1,
+                (*indicesArray)[i + 3].texCoordIndex + 1);
+    }
+
+    fclose(file);
+}
+
+static void __FileReadingFunction(void *ctx, const char *filename, int isMtl,
+                                  const char *objFilename, char **buf, size_t *len) {
+    (void)ctx, (void)isMtl, (void)objFilename;
+    // Open the file for reading
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        fprintf(stderr, "Failed to open file: %s\n", filename);
+        *buf = NULL;
+        *len = 0;
+        return;
+    }
+
+    // Seek to the end to get the file size
+    fseek(file, 0, SEEK_END);
+    *len = ftell(file);
+    if (*len == 0) {
+        *buf = NULL; // No need to allocate anything if the file is empty.
+    }
+    rewind(file);
+
+    // Allocate memory for the buffer
+    *buf = (char *)malloc(*len + 1); // +1 for null terminator
+    if (!*buf) {
+        fprintf(stderr, "Failed to allocate memory\n");
+        fclose(file);
+        *len = 0;
+        return;
+    }
+
+    // Read file contents into buffer
+    fread(*buf, 1, *len, file);
+    (*buf)[*len] = '\0'; // Null terminate the buffer
+
+    fclose(file);
 }

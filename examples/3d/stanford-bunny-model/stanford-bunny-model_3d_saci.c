@@ -9,8 +9,8 @@
 #include <time.h>
 #include <unistd.h>
 
-sc_Window* window;
-sc_Renderer* renderer;
+sc_Window *window;
+sc_Renderer *renderer;
 sc_Camera camera;
 
 void init_saci() {
@@ -31,36 +31,42 @@ void init_saci() {
 
     sc_Renderer_EnableZBuffer();
     sc_Renderer_SetProjectionMode(SACI_RENDER_PERSPECTIVE_PROJECTION);
-    // sc_Renderer_SetNoFillMode();
+    sc_Renderer_SetNoFillMode();
 }
 
-void read_file(const char* path, char** buffer, saci_u64* length) {
-    FILE* file = fopen(path, "rb");
-    if (file == NULL) {
-        fprintf(stderr, "Error: Could not open file %s\n", path);
-        *buffer = NULL;
-        *length = 0;
+void file_read(void *ctx, const char *filename, int isMtl, const char *objFilename, char **buf,
+               size_t *len) {
+    (void)ctx, (void)isMtl, (void)objFilename;
+    // Open the file for reading
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        fprintf(stderr, "Failed to open file: %s\n", filename);
+        *buf = NULL;
+        *len = 0;
         return;
     }
 
-    // Seek to the end to determine the file size
+    // Seek to the end to get the file size
     fseek(file, 0, SEEK_END);
-    *length = (saci_u64)ftell(file); // Get the size of the file
-    fseek(file, 0, SEEK_SET);        // Go back to the beginning
+    *len = ftell(file);
+    if (*len == 0) {
+        *buf = NULL; // No need to allocate anything if the file is empty.
+    }
+    rewind(file);
 
-    // Allocate a buffer to hold the contents of the file
-    *buffer = (char*)malloc(*length);
-    if (*buffer == NULL) {
-        fprintf(stderr, "Error: Could not allocate memory\n");
-        *length = 0;
+    // Allocate memory for the buffer
+    *buf = (char *)malloc(*len + 1); // +1 for null terminator
+    if (!*buf) {
+        fprintf(stderr, "Failed to allocate memory\n");
         fclose(file);
+        *len = 0;
         return;
     }
 
-    // Read the file into the buffer
-    fread(*buffer, 1, *length, file);
+    // Read file contents into buffer
+    fread(*buf, 1, *len, file);
+    (*buf)[*len] = '\0'; // Null terminate the buffer
 
-    // Close the file
     fclose(file);
 }
 
@@ -69,18 +75,18 @@ int main() {
     saci_Color bgColor =
         saci_ColorFromU8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
 
-    sc_ModelMesh* mesh;
+    sc_ModelMesh *mesh;
 
     {
-        const char* filePath = "./3d/stanford-bunny-model/bunny.obj";
-        sc_Model_FileReadingFunction func = read_file;
+        const char *filePath = "./3d/stanford-bunny-model/bunny.obj";
+        sc_OBJ_ModelFileReadingFunction func = file_read;
 
         mesh = sc_ModelMesh_Load(filePath, func);
     }
 
     assert(mesh);
     saci_Mat4 modelMatrix;
-    saci_Vec3 modelPos = {1, 0, 1};
+    saci_Vec3 modelPos = {0, 0, 0};
     saci_Vec3 modelRot = {0, 0, 0};
     saci_Vec3 modelScale = {1, 1, 1};
     modelMatrix = saci_Mat4_ModelMatrix(modelPos, modelRot, modelScale);
@@ -90,7 +96,6 @@ int main() {
         sc_Renderer_Begin(renderer);
         sc_Renderer_PushModelMesh(renderer, mesh, modelMatrix, 0);
         sc_Renderer_End(renderer, &camera);
-        camera.position.z -= 0.003;
         sc_Window_SwapBuffer(window);
 
         sc_Event_Poll();

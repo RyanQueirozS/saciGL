@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)  # Updated to version 3.11 to use CMP0072cmake
+cmake_minimum_required(VERSION 3.11)  # Version 3.11 to use CMP0072cmake
 
 # Set the project name
 project(saci LANGUAGES C)
@@ -43,6 +43,7 @@ target_include_directories(saci PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"  # Root include directory
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/stb" # STB image headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/include" # Glad headers
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/model-loading/" # Model Loaders headers
     ${GLFW_INCLUDE_DIRS}   # Include GLFW headers
 )
 
@@ -56,12 +57,7 @@ target_link_libraries(saci PUBLIC
     m                    # Link math library (libm)
 )
 
-# Add compiler flags
-target_compile_options(saci PRIVATE
-    -Wall         # Enable all warnings
-    -Wextra       # Enable extra warnings
-    -O2           # Optimization level
-)
+set_property(TARGET saci PROPERTY C_STANDARD 11)
 
 if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/../.git")
     message(STATUS "Git repository detected. Enabling SACI_DEBUG_MODE.")
@@ -70,8 +66,13 @@ else()
     message(STATUS "No Git repository detected. SACI_DEBUG_MODE will not be defined.")
 endif()
 
-# Optionally, you can still conditionally add debug symbols or further define macros for different configurations
+# Add compiler flags
 target_compile_options(saci PRIVATE
+    -Wall         # Enable all warnings
+    -Wextra       # Enable extra warnings
+    -O2           # Optimization level
     $<$<CONFIG:Debug>:-g>      # Debugging information in Debug mode
     $<$<CONFIG:Release>:-O3>   # Higher optimization in Release mode
 )
+
+

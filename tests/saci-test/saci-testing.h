@@ -4,33 +4,34 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <math.h>
 
-#define SACI_TEST_VEC3_IS_EQUAL(v1, v2) ((v1.x == v2.x) && (v1.y == v2.y) && (v1.z == v2.z))
-#define SACI_TEST_VEC2_IS_EQUAL(v1, v2) ((v1.x == v2.x) && (v1.y == v2.y))
+#define SACI_EPSILON 1e-6 // Tolerance for floating values
 
-extern void saci_Test_Begin(void);
+#define SACI_TEST_VEC3_IS_EQUAL(v1, v2)                                              \
+    (fabs((v1.x) - (v2.x)) < SACI_EPSILON && fabs((v1.y) - (v2.y)) < SACI_EPSILON && \
+     fabs((v1.z) - (v2.z)) < SACI_EPSILON)
 
-extern void saci_Test_End(void);
+#define SACI_TEST_VEC2_IS_EQUAL(v1, v2) \
+    (fabs((v1.x) - (v2.x)) < SACI_EPSILON && fabs((v1.y) - (v2.y)) < SACI_EPSILON)
+
+extern void saci_Test_AddDescription(char* description); // TODO
 
 extern void saci_Test_End(void);
 
 extern void saci_Test_PrintPassed(bool enable);
 
-extern void saci_Test_Passed(char* func, char* file, int line);
+extern void saci_Test_Passed(char* func, char* file, int line, const char* description);
 
-extern void saci_Test_DidNotPass(char* func, char* file, int line);
+void saci_Test_DidNotPass(char* func, char* file, int line, const char* description);
 
-extern void saci_Test_AddDescription(char* description);
-
-extern void saci_Test_Assert(bool condition);
-
-#define SACI_TEST_ASSERT(condition)                                    \
-    do {                                                               \
-        if (condition) {                                               \
-            saci_Test_Passed((char*)__func__, __FILE__, __LINE__);     \
-        } else {                                                       \
-            saci_Test_DidNotPass((char*)__func__, __FILE__, __LINE__); \
-        }                                                              \
+#define SACI_TEST_ASSERT(condition, description)                                    \
+    do {                                                                            \
+        if (condition) {                                                            \
+            saci_Test_Passed((char*)__func__, __FILE__, __LINE__, description);     \
+        } else {                                                                    \
+            saci_Test_DidNotPass((char*)__func__, __FILE__, __LINE__, description); \
+        }                                                                           \
     } while (0);
 
 extern void saci_Test_ClockBegin(void);

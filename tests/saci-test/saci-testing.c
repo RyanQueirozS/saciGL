@@ -23,49 +23,41 @@ struct Error {
     char* description;
 } __errors[SACI_TEST_ERROR_MAXIMUM];
 
-static char* __saci_testDescription = "";
-
 static clock_t __saci_testTimeStart = 0;
 static clock_t __saci_testTimeEnd = 0;
 
 static bool __printPassed = 0;
 
-void saci_Test_Passed(char* func, char* file, int line) {
+void saci_Test_Passed(char* func, char* file, int line, const char* description) {
     for (size_t i = 0; i < __successIndex; ++i) {
         struct Success success = __successes[i];
-        if (success.description == __saci_testDescription && success.file == file &&
-            success.line == line && success.function == func)
+        if (success.description == description && success.file == file && success.line == line &&
+            success.function == func)
             return;
     }
     __successes[__successIndex++] = (struct Success){
         .function = func,
         .file = file,
         .line = line,
-        .description = __saci_testDescription,
+        .description = (char*)description,
     };
 }
 
 void saci_Test_PrintPassed(bool enable) { __printPassed = enable; }
 
-void saci_Test_DidNotPass(char* func, char* file, int line) {
+void saci_Test_DidNotPass(char* func, char* file, int line, const char* description) {
     for (size_t i = 0; i < __errorIndex; ++i) {
         struct Error error = __errors[i];
-        if (error.description == __saci_testDescription && error.file == file &&
-            error.line == line && error.function == func)
+        if (error.description == description && error.file == file && error.line == line &&
+            error.function == func)
             return;
     }
     __errors[__errorIndex++] = (struct Error){
         .function = func,
         .file = file,
         .line = line,
-        .description = __saci_testDescription,
+        .description = (char*)description,
     };
-}
-
-void saci_Test_Begin(void) {
-    __errorIndex = 0;
-    __successIndex = 0;
-    __saci_testDescription = "UNDEFINED";
 }
 
 void saci_Test_End(void) {
@@ -84,8 +76,6 @@ void saci_Test_End(void) {
     printf("\033[0;32mPassed: %lu\033[0m\n", __successIndex);
     printf("\033[0;31mDid NOT pass: %lu\033[0m\n", __errorIndex);
 }
-
-void saci_Test_AddDescription(char* description) { __saci_testDescription = description; }
 
 void saci_Test_ClockBegin(void) { __saci_testTimeStart = clock(); }
 

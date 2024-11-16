@@ -363,18 +363,14 @@ sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3* verticesPos, saci_u64 verticePosAmo
     return mesh;
 }
 
-sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_Model_FileReadingFunction fileReader) {
-    char* buffer = 0;
-    saci_u64 lenght = 0;
-    fileReader(path, &buffer, &lenght);
-
+sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_OBJ_ModelFileReadingFunction fileReader) {
     saci_Vec3* verticesPos = NULL;
     saci_u64 verticesAmount = 0;
     saci_Vec2* verticesTexCoords = NULL;
     saci_u64 verticesTexCoordsAmount = 0;
     struct sc_VertexIndice* indices = NULL;
     saci_u64 indicesAmount = 0;
-    if (!sc_OBJ_Parse(buffer, lenght, &verticesPos, &verticesAmount, &verticesTexCoords,
+    if (!sc_OBJ_Parse(path, fileReader, &verticesPos, &verticesAmount, &verticesTexCoords,
                       &verticesTexCoordsAmount, &indices, &indicesAmount)) {
         return NULL;
     }

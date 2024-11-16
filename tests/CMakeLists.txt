@@ -1,5 +1,3 @@
-# /tests/CMakeLists.txt
-
 # Minimum CMake version and project setup
 cmake_minimum_required(VERSION 3.10)
 project(saci_tests)
@@ -28,4 +26,11 @@ target_link_libraries(saci_tests PRIVATE saci)
 
 # Specify C standard and enable compiler warnings
 set_property(TARGET saci_tests PROPERTY C_STANDARD 11)
-target_compile_options(saci_tests PRIVATE -Wall -Wextra -pedantic)
+target_compile_options(saci_tests PRIVATE -Wall -Wextra -pedantic -g)
+
+# Copy assets after build
+add_custom_command(TARGET saci_tests POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/assets" "${CMAKE_BINARY_DIR}/assets"
+)
+

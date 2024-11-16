@@ -36,6 +36,4 @@
  */
 #define SACI_ARRLEN(array) (sizeof(array) / sizeof(array[0]))
 
-int saci_Atoi(const char* c);
-
 #endif
