@@ -100,4 +100,5 @@ int main() {
 
         sc_Event_Poll();
     }
+    sc_ModelMesh_Delete(mesh);
 }

@@ -145,25 +145,16 @@ typedef struct sc_Renderer sc_Renderer;
 typedef struct sc_Vertice sc_Vertice;
 
 // TODO doc
-saci_Vec3 sc_Vertice_GetPos(const sc_Vertice vertice);
-saci_Color sc_Vertice_GetColor(const sc_Vertice vertice);
-saci_Vec2 sc_Vertice_GetTexcoord(const sc_Vertice vertice);
+saci_Vec3 sc_Vertice_GetPos(const sc_Vertice* vertice);
+saci_Color sc_Vertice_GetColor(const sc_Vertice* vertice);
+saci_Vec2 sc_Vertice_GetTexcoord(const sc_Vertice* vertice);
 
-/**
- * @brief Creates an array of @ref sc_Vertice.
- *
- * @param positions The array containing position of the vertices.
- * @param colors    The array containing colors of the vertices.
- * @param texcoords The array containing texcoords of the vertices.
- * @param amount    The amount of @ref sc_Vertices to be generated.
- *
- * @note
- * Param `amount` should be the same size of positions, colors and texcoords. A field can be
- * completelly null, but the size must be the same.
- *
- * @internal
- * TODO: Fix the above.
- */
+// TODO doc
+sc_Vertice* sc_Vertice_CreateVertice(saci_Vec3 position, saci_Color color, saci_Vec2 texcood);
+
+void sc_Vertice_GetArrayInfo(sc_Vertice* vertexArray, saci_u64 vertexArraySize,
+                             saci_Vec3** positions, saci_Color** colors, saci_Vec2** texcoords);
+
 sc_Vertice* sc_Vertice_CreateVerticesArray(saci_Vec3* positions, saci_Color* colors,
                                            saci_Vec2* texcoords, saci_u64 amount);
 

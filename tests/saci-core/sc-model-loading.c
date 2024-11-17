@@ -123,7 +123,6 @@ static void TestOBJParse(void) {
             SACI_TEST_ASSERT(SACI_TEST_VEC2_IS_EQUAL(verticesTexCoords[i], texcoordsExpected[i]),
                              "Should have correct texcoord values");
         }
-        printf("%lu\t%lu\n", indicesAmount, indicesAmountExpected);
         SACI_TEST_ASSERT(indicesAmount == indicesAmountExpected,
                          "Should have correct indices amount");
         for (saci_u64 i = 0; i < indicesAmount; ++i) { // These are wrong

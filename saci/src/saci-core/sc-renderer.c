@@ -6,6 +6,7 @@
 #include "saci-core/sc-gl.h"
 #include "saci-utils/su-debug.h"
 #include "saci-utils/su-math.h"
+#include "saci-utils/su-types.h"
 
 /* === Structs for Helper Functions === */
 
@@ -158,11 +159,38 @@ typedef struct sc_ModelMesh {
 
 /* === Renderer Implementation === */
 
-saci_Vec3 sc_Vertice_GetPos(const sc_Vertice vertice) { return vertice.pos; }
+saci_Vec3 sc_Vertice_GetPos(const sc_Vertice* vertice) { return vertice->pos; }
 
-saci_Color sc_Vertice_GetColor(const sc_Vertice vertice) { return vertice.color; }
+saci_Color sc_Vertice_GetColor(const sc_Vertice* vertice) { return vertice->color; }
 
-saci_Vec2 sc_Vertice_GetTexcoord(const sc_Vertice vertice) { return vertice.texCoord; }
+saci_Vec2 sc_Vertice_GetTexcoord(const sc_Vertice* vertice) { return vertice->texCoord; }
+
+sc_Vertice* sc_Vertice_CreateVertice(saci_Vec3 position, saci_Color color, saci_Vec2 texcood) {
+    sc_Vertice* vertice = (sc_Vertice*)malloc(sizeof(sc_Vertice));
+    vertice->pos = position;
+    vertice->color = color;
+    vertice->texCoord = texcood;
+    return vertice;
+}
+
+void sc_Vertice_GetArrayInfo(sc_Vertice* vertexArray, saci_u64 vertexArraySize,
+                             saci_Vec3** positions, saci_Color** colors, saci_Vec2** texcoords) {
+    if (!vertexArray) {
+        // LOG TODO
+        return;
+    }
+    *positions = (saci_Vec3*)malloc(sizeof(saci_Vec3) * vertexArraySize);
+    *colors = (saci_Color*)malloc(sizeof(saci_Color) * vertexArraySize);
+    *texcoords = (saci_Vec2*)malloc(sizeof(saci_Vec2) * vertexArraySize);
+    // TODO check errors
+
+    for (saci_u64 i = 0; i < vertexArraySize; ++i) {
+        sc_Vertice vertex = vertexArray[i];
+        (*positions)[i] = vertex.pos;
+        (*colors)[i] = vertex.color;
+        (*texcoords)[i] = vertex.texCoord;
+    }
+}
 
 sc_Vertice* sc_Vertice_CreateVerticesArray(saci_Vec3* positions, saci_Color* colors,
                                            saci_Vec2* texcoords, saci_u64 amount) {
@@ -207,7 +235,11 @@ sc_Renderer* sc_Renderer_Create(saci_Bool generateDefaults) {
 }
 
 void sc_Renderer_Delete(sc_Renderer* renderer) {
-    glDeleteBuffers(1, &renderer->vbo);
+    if (!renderer) {
+        // TODO
+        // create log
+        return;
+    }
     glDeleteVertexArrays(1, &renderer->vao);
 
     glDeleteProgram(renderer->shaderProgram);

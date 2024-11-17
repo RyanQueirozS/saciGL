@@ -15,6 +15,17 @@
 #define SACI_TEST_VEC2_IS_EQUAL(v1, v2) \
     (fabs((v1.x) - (v2.x)) < SACI_EPSILON && fabs((v1.y) - (v2.y)) < SACI_EPSILON)
 
+#define SACI_TEST_COLOR_IS_EQUAL(c1, c2)                                             \
+    (fabs((c1.r) - (c2.r)) < SACI_EPSILON && fabs((c1.g) - (c2.g)) < SACI_EPSILON && \
+     fabs((c1.b) - (c2.b)) < SACI_EPSILON && fabs((c1.a) - (c2.a)) < SACI_EPSILON)
+
+#define SACI_RAND_RANGE_INT(max, goNegative) \
+    ((goNegative) ? (rand() % ((max)*2 + 1) - (max)) : (rand() % ((max) + 1)))
+
+#define SACI_RAND_RANGE_FLOAT(max, goNegative)                            \
+    ((goNegative) ? (((float)rand() / (float)RAND_MAX) * (max)*2 - (max)) \
+                  : (((float)rand() / (float)RAND_MAX) * (max)))
+
 extern void saci_Test_AddDescription(char* description); // TODO
 
 extern void saci_Test_End(void);
