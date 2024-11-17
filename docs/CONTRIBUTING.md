@@ -8,6 +8,7 @@ Take a look at the [conventions](/docs/CONVENTIONS.md)!
 
 ## Table of Contents
 
+- [How to contribute?](#how-to-contribute)
 - [Project Goal](#project-goal)
   - [Philosophy](#philosophy)
     - [What saciGL is](#what-sacigl-is)
@@ -19,6 +20,17 @@ Take a look at the [conventions](/docs/CONVENTIONS.md)!
   - [Commit Messages](#commit-messages)
   - [Workflow](#workflow)
 
+## How to contribute
+
+There are many ways to contribute to SACI, feel free to:
+- Add or improve documentation
+- Add or improve testing
+- Fixing typos (The core maintainer isn't a native english speaker)
+- Adding features
+- Fixing inconsistencies
+
+The list goes on and on. And since this projects is at its beginning stages, any
+contribution has a big chance of being added!
 
 ## Project Goal
 
