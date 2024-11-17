@@ -1,24 +1,22 @@
 #include <glad/glad.h>
-
-#include <GLFW/glfw3.h>
 #include <stdio.h>
-#include "saci-core.h"
-#include "saci-utils/su-types.h"
+
+#include "saci-core/sc-gl.h"
 #include "saci-utils/su-debug.h"
 
-//----------------------------------------------------------------------------//
-// Helper functions
-//----------------------------------------------------------------------------//
+/* === Helper === */
 
-void __sc_OpenGL_initializeDebugger();
+/**
+ * @brief Generates the default OpenGL debuger.
+ */
+void __sc_OpenGL_InitializeDebugger();
 
-//----------------------------------------------------------------------------//
+/* === Main declaration=== */
 
 saci_Bool sc_GLFW_Init(void) {
     int success = glfwInit();
     if (!success) {
-        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL,
-                       "Couldn't load glfw");
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, "Couldn't load glfw");
         return SACI_FALSE;
     }
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Loaded glfw");
@@ -32,12 +30,11 @@ saci_Bool sc_GLFW_Init(void) {
 
 saci_Bool sc_GLAD_Init(void) {
     if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != SACI_TRUE) {
-        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL,
-                       "Couldn't Load glad");
+        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_OPENGL, "Couldn't Load glad");
         return SACI_FALSE;
     }
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Loaded glad");
-    __sc_OpenGL_initializeDebugger();
+    __sc_OpenGL_InitializeDebugger();
 
 #if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_WINDOWING)
     const saci_u8* version = glGetString(GL_VERSION);
@@ -53,23 +50,19 @@ sc_Window* sc_Window_Create(int width, int height, const char* title, sc_Monitor
                             sc_Window* share) {
     return glfwCreateWindow(width, height, title, monitor, share);
 }
+
 void sc_Window_MakeContext(sc_Window* window) { glfwMakeContextCurrent(window); }
 
-saci_Bool sc_Window_ShouldClose(sc_Window* window) {
-    return glfwWindowShouldClose(window);
-}
+saci_Bool sc_Window_ShouldClose(sc_Window* window) { return glfwWindowShouldClose(window); }
 
 void sc_Window_SetPosHandler(sc_Window* window, sc_Window_PosHandler windowPosHandler) {
     glfwSetWindowPosCallback(window, windowPosHandler);
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL,
-                   "Set window pos handler");
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Set window pos handler");
 }
 
-void sc_Window_SetSizeHandler(sc_Window* window,
-                              sc_Window_SizeHandler windowSizeHandler) {
+void sc_Window_SetSizeHandler(sc_Window* window, sc_Window_SizeHandler windowSizeHandler) {
     glfwSetWindowSizeCallback(window, windowSizeHandler);
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL,
-                   "Set window size callback");
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Set window size callback");
 }
 
 void sc_Window_Terminate(void) {
@@ -84,16 +77,13 @@ void sc_Window_ClearColor(saci_Color color) {
 
 void sc_Window_SwapBuffer(sc_Window* window) { glfwSwapBuffers(window); }
 
-//----------------------------------------------------------------------------//
-// Helper functions
-//----------------------------------------------------------------------------//
+/* === Helper === */
 
-void __sc_OpenGL_initializeDebugger() {
+void __sc_OpenGL_InitializeDebugger() {
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(saci_OpenGLDebugMessageCallback, NULL);
 #ifdef SACI_DEBUG_MODE
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_OPENGL,
-                   "Loaded OpenGL debugger");
+    SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_OPENGL, "Loaded OpenGL debugger");
 #endif
 }

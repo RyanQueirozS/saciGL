@@ -31,8 +31,10 @@ typedef enum saci_LogLevel {
  */
 typedef enum saci_ContextLevel {
     SACI_LOG_CONTEXT_OPENGL = 0,
-    SACI_LOG_CONTEXT_RENDERER = 1,
-    SACI_LOG_CONTEXT_STBI = 2,
+    SACI_LOG_CONTEXT_RENDERER,
+    SACI_LOG_CONTEXT_OBJ_LOADING,
+    SACI_LOG_CONTEXT_STBI,
+    SACI_LOG_CONTEXT_MEMORY_ALLOCATION,
 } saci_ContextLevel;
 
 /**
@@ -57,8 +59,7 @@ typedef enum saci_ContextLevel {
  * @param file The file it happened
  * @param line The line it happened
  */
-void saci_LogMessage(int level, int context, const char* message, const char* file,
-                     int line);
+void saci_LogMessage(int level, int context, const char* message, const char* file, int line);
 
 /**
  * @brief OpenGL message logger
@@ -66,8 +67,7 @@ void saci_LogMessage(int level, int context, const char* message, const char* fi
  * @note see:
  * https://registry.khronos.org/OpenGL-Refpages/gl4/html/glDebugMessageCallback.xhtml
  */
-void saci_OpenGLDebugMessageCallback(saci_u32 source, saci_u32 type, saci_u32 id,
-                                     saci_u32 severity, int length, const char* msg,
-                                     const void* data);
+void saci_OpenGLDebugMessageCallback(saci_u32 source, saci_u32 type, saci_u32 id, saci_u32 severity,
+                                     int length, const char* msg, const void* data);
 
 #endif

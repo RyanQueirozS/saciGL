@@ -41,6 +41,7 @@ typedef struct sc_TextureData {
     int nrChannels; /**< Number of color channels (e.g., RGB or RGBA) */
     saci_u8* data;  /**< Pointer to the raw texture data */
 } sc_TextureData;
+// TODO make the above private or remove it entirely
 
 /* === Texture Loading Functions === */
 

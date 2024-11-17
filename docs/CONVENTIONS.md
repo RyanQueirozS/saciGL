@@ -312,6 +312,8 @@ Whenever defining **LOCAL** level code, each element should precede a:
 - `__sl_` if part of saciLib.
 - `__saci_` if part of saciUtil.
 
+**NOTE:** tests do not need these.
+
 ### Naming guidelines
 
 C has many naming conventions with many different reasons to use each one of
@@ -377,6 +379,11 @@ Files should be named:
     └── saci-utils/  
         └── **[ALL OF SACI UTILITY SOURCE FILES]**  
 ```
+
+In saci-core:
+- `sc-rendering` uses (includes) all of the other files in `saci-core`
+- All files in `saci-core` use (include) only the `saci-utils` files, and never
+  any other `saci-core` file
 
 ### Header Files
 
