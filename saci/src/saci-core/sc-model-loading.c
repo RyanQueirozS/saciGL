@@ -50,5 +50,9 @@ saci_Bool sc_OBJ_Parse(const char* filePath, sc_OBJ_ModelFileReadingFunction fil
         (*indices)[i].normalIndex = attribute.faces[i].vn_idx;
     }
 
+    tinyobj_attrib_free(&attribute);
+    tinyobj_shapes_free(shapeArray, shapeArrayAmount);
+    tinyobj_materials_free(materialArray, materialArraySize);
+
     return true;
 }

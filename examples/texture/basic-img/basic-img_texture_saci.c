@@ -75,7 +75,8 @@ int main() {
         sc_Window_ClearColor(bgColor);
 
         sc_Renderer_Begin(renderer);
-        sc_Renderer_PushVertices(renderer, vertices, 4, indices, 6, modelMatrix, tex);
+        saci_u32 ibo = sc_GL_CreateIndexBuffer(indices, 6);
+        sc_Renderer_PushVertices(renderer, vertices, 4, indices, 6, modelMatrix, tex, ibo);
         sc_Renderer_End(renderer, &camera);
         sc_Window_SwapBuffer(window);
 

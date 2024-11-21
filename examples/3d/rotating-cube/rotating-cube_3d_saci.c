@@ -3,6 +3,7 @@
 #include "saci-core/sc-event.h"
 #include "saci-core/sc-gl.h"
 #include "saci-utils/su-math.h"
+#include "saci-utils/su-types.h"
 #include <saci-utils/su-general.h>
 #include <stdlib.h>
 
@@ -81,8 +82,9 @@ int main() {
         sc_Window_ClearColor(bgColor);
 
         sc_Renderer_Begin(renderer);
+        saci_u32 ibo = sc_GL_CreateIndexBuffer(cubeIndices, indiceAmount);
         sc_Renderer_PushVertices(renderer, vertices, verticeAmount, cubeIndices, indiceAmount,
-                                 modelMatrix, 0);
+                                 modelMatrix, 0, ibo);
         sc_Renderer_End(renderer, &camera);
         sc_Window_SwapBuffer(window);
 

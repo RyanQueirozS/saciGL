@@ -9,11 +9,12 @@
 #include <time.h>
 #include <unistd.h>
 
-sc_Window *window;
+sc_Window   *window;
 sc_Renderer *renderer;
-sc_Camera camera;
+sc_Camera    camera;
+const float  cameraSpeed = 0.3f;
 
-void init_saci() {
+void init_saci(void) {
     saci_InitMath();
     assert(sc_GLFW_Init());
     window = sc_Window_Create(1600, 900, "SACI ROTATING-CUBE 3D", NULL, NULL);
@@ -24,14 +25,35 @@ void init_saci() {
     renderer = sc_Renderer_Create(true);
     assert(renderer);
 
-    camera = sc_Camera_GetDefault3DCamera();
+    camera             = sc_Camera_GetDefault3DCamera();
     camera.aspectRatio = 1600.0f / 900.0f;
-    camera.position.z = 5.0f; // Change as you may
-    camera.position.y = 0.0f;
 
     sc_Renderer_EnableZBuffer();
     sc_Renderer_SetProjectionMode(SACI_RENDER_PERSPECTIVE_PROJECTION);
-    sc_Renderer_SetNoFillMode();
+}
+
+void handle_keyboard(void) {
+    saci_Vec3 forward = saci_NormalizeVec3(saci_SubtractVec3(camera.target, camera.position));
+    saci_Vec3 right   = saci_NormalizeVec3(saci_CrossVec3(forward, camera.up));
+    saci_Vec3 up      = saci_CrossVec3(right, forward); // Ensure orthogonality (optional)
+    if (sc_Event_IsKeyPressed(window, SACI_KEY_W)) {
+        camera.position = saci_AddVec3(camera.position, saci_MultiplyVec3(forward, cameraSpeed));
+    };
+    if (sc_Event_IsKeyPressed(window, SACI_KEY_A)) {
+        camera.position = saci_SubtractVec3(camera.position, saci_MultiplyVec3(right, cameraSpeed));
+    };
+    if (sc_Event_IsKeyPressed(window, SACI_KEY_S)) {
+        camera.position = saci_SubtractVec3(camera.position, saci_MultiplyVec3(forward, cameraSpeed));
+    };
+    if (sc_Event_IsKeyPressed(window, SACI_KEY_D)) {
+        camera.position = saci_AddVec3(camera.position, saci_MultiplyVec3(right, cameraSpeed));
+    };
+    if (sc_Event_IsKeyPressed(window, SACI_KEY_SPACE)) {
+        camera.position.y += cameraSpeed;
+    }
+    if (sc_Event_IsKeyPressed(window, SACI_KEY_LEFT_SHIFT)) {
+        camera.position.y -= cameraSpeed;
+    }
 }
 
 void file_read(void *ctx, const char *filename, int isMtl, const char *objFilename, char **buf,
@@ -70,7 +92,7 @@ void file_read(void *ctx, const char *filename, int isMtl, const char *objFilena
     fclose(file);
 }
 
-int main() {
+int main(void) {
     init_saci();
     saci_Color bgColor =
         saci_ColorFromU8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
@@ -78,20 +100,25 @@ int main() {
     sc_ModelMesh *mesh;
 
     {
-        const char *filePath = "./3d/stanford-bunny-model/bunny.obj";
-        sc_OBJ_ModelFileReadingFunction func = file_read;
+        const char                     *filePath = "./3d/stanford-bunny-model/bunny.obj";
+        sc_OBJ_ModelFileReadingFunction func     = file_read;
 
         mesh = sc_ModelMesh_Load(filePath, func);
     }
 
     assert(mesh);
     saci_Mat4 modelMatrix;
-    saci_Vec3 modelPos = {0, 0, 0};
-    saci_Vec3 modelRot = {0, 0, 0};
+    saci_Vec3 modelPos   = {0, 0, 0};
+    saci_Vec3 modelRot   = {0, 0, 0};
     saci_Vec3 modelScale = {1, 1, 1};
+    camera.position.z    = -3;
+    camera.target        = modelPos;
+
     modelMatrix = saci_Mat4_ModelMatrix(modelPos, modelRot, modelScale);
+
     while (!sc_Window_ShouldClose(window)) {
         sc_Window_ClearColor(bgColor);
+        handle_keyboard();
 
         sc_Renderer_Begin(renderer);
         sc_Renderer_PushModelMesh(renderer, mesh, modelMatrix, 0);
@@ -101,4 +128,7 @@ int main() {
         sc_Event_Poll();
     }
     sc_ModelMesh_Delete(mesh);
+    sc_Renderer_Delete(renderer);
+    sc_Window_Free(window);
+    sc_Window_Terminate();
 }

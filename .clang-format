@@ -1,7 +1,20 @@
-BasedOnStyle: Google
-SortIncludes: false # Can break stb and opengl
+# General options
+SortIncludes: false                    # Can break STB and OpenGL
+
+ColumnLimit: 0                         # this can create some really ugly indentation, so try to avoid over 80 char per line. 100 is the maximum
+
 IndentWidth: 4
-ColumnLimit: 100  # this can create some really ugly indentation,
-                  # so try to avoid over 80 char per line. 100 is the maximum
-CommentPragmas: true
-SpacesBeforeTrailingComments: 1
+
+# Function formatting
+AllowShortFunctionsOnASingleLine: None # Prevent auto-formatting of functions
+BreakBeforeBraces: Custom              # Do not automatically reformat function braces
+BraceWrapping:
+  AfterFunction: false
+
+# Comments formatting
+AlignTrailingComments: true            # Align trailing comments
+
+# Variable alignment
+AlignConsecutiveDeclarations: true     # Align variable definitions and const declarations
+AlignConsecutiveAssignments: true      # Align assignments
+AlignTrailingComments: true            # Align comments following each other

@@ -23,8 +23,9 @@ include_directories(${SACI_DIR})
 # Create the executable
 add_executable(stanford-bunny_3d stanford-bunny-model_3d_saci.c)
 
+target_compile_options(stanford-bunny_3d PRIVATE -Wall -Wextra -pedantic -g)
+
 # Link libraries
 target_link_libraries(stanford-bunny_3d PRIVATE 
     saci
 )
-

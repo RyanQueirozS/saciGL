@@ -1,5 +1,7 @@
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "saci-core/sc-gl.h"
 #include "saci-utils/su-debug.h"
@@ -50,6 +52,8 @@ sc_Window* sc_Window_Create(int width, int height, const char* title, sc_Monitor
                             sc_Window* share) {
     return glfwCreateWindow(width, height, title, monitor, share);
 }
+
+void sc_Window_Free(sc_Window* window) { glfwDestroyWindow(window); }
 
 void sc_Window_MakeContext(sc_Window* window) { glfwMakeContextCurrent(window); }
 
