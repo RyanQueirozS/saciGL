@@ -9,8 +9,8 @@
 #include <time.h>
 #include <unistd.h>
 
-sc_Window   *window;
-sc_Renderer *renderer;
+sc_Window*   window;
+sc_Renderer* renderer;
 sc_Camera    camera;
 const float  cameraSpeed = 0.3f;
 
@@ -56,11 +56,11 @@ void handle_keyboard(void) {
     }
 }
 
-void file_read(void *ctx, const char *filename, int isMtl, const char *objFilename, char **buf,
-               size_t *len) {
+void file_read(void* ctx, const char* filename, int isMtl, const char* objFilename, char** buf,
+               size_t* len) {
     (void)ctx, (void)isMtl, (void)objFilename;
     // Open the file for reading
-    FILE *file = fopen(filename, "rb");
+    FILE* file = fopen(filename, "rb");
     if (!file) {
         fprintf(stderr, "Failed to open file: %s\n", filename);
         *buf = NULL;
@@ -77,7 +77,7 @@ void file_read(void *ctx, const char *filename, int isMtl, const char *objFilena
     rewind(file);
 
     // Allocate memory for the buffer
-    *buf = (char *)malloc(*len + 1); // +1 for null terminator
+    *buf = (char*)malloc(*len + 1); // +1 for null terminator
     if (!*buf) {
         fprintf(stderr, "Failed to allocate memory\n");
         fclose(file);
@@ -97,10 +97,10 @@ int main(void) {
     saci_Color bgColor =
         saci_ColorFromU8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
 
-    sc_ModelMesh *mesh;
+    sc_ModelMesh* mesh;
 
     {
-        const char                     *filePath = "./3d/stanford-bunny-model/bunny.obj";
+        const char*                     filePath = "./3d/stanford-bunny-model/bunny.obj";
         sc_OBJ_ModelFileReadingFunction func     = file_read;
 
         mesh = sc_ModelMesh_Load(filePath, func);

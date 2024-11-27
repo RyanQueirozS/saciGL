@@ -10,6 +10,8 @@
 #ifndef __SACI_UTILS_SU_GENERAL_H__
 #define __SACI_UTILS_SU_GENERAL_H__
 
+#include "saci-utils/su-types.h"
+
 #ifdef __cplusplus
 /**
  * @def SACI_PI
@@ -35,5 +37,10 @@
  * @return The length of the array
  */
 #define SACI_ARRLEN(array) (sizeof(array) / sizeof(array[0]))
+
+#ifndef SACI_ASSERT
+#include <assert.h>
+#define SACI_ASSERT assert
+#endif // SACI_ASSERT
 
 #endif

@@ -18,3 +18,7 @@ AlignTrailingComments: true            # Align trailing comments
 AlignConsecutiveDeclarations: true     # Align variable definitions and const declarations
 AlignConsecutiveAssignments: true      # Align assignments
 AlignTrailingComments: true            # Align comments following each other
+
+# Asterisk closest to the type
+DerivePointerAlignment: false
+PointerAlignment: Left

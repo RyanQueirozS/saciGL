@@ -5,7 +5,7 @@
 #include "saci-utils/su-debug.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <stbi/stb_image.h>
+#include "stbi/stb_image.h"
 
 //----------------------------------------------------------------------------//
 // Helper functions
@@ -124,8 +124,10 @@ saci_Bool __sc_Image_IsLoaded(saci_u8* data) {
 }
 
 saci_s32 __sc_Texture_DetermineFormat(int nrChannels) {
-    if (nrChannels == 3) return GL_RGB;
-    if (nrChannels == 4) return GL_RGBA;
+    if (nrChannels == 3)
+        return GL_RGB;
+    if (nrChannels == 4)
+        return GL_RGBA;
     SACI_LOG_PRINT(SACI_LOG_LEVEL_WARN, SACI_LOG_CONTEXT_OPENGL,
                    "Texture coudn't be laoded: Unsupported number of channels");
     return 0;

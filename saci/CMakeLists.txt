@@ -42,6 +42,7 @@ add_library(saci STATIC ${SOURCES})
 target_include_directories(saci PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"  # Root include directory
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/stb" # STB image headers
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/arena" # Arena headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/include" # Glad headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/model-loading/" # Model Loaders headers
     ${GLFW_INCLUDE_DIRS}   # Include GLFW headers
