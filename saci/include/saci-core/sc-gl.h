@@ -34,7 +34,7 @@ typedef GLFWwindow sc_Window;
  * @param posx The new X position of the window.
  * @param posy The new Y position of the window.
  */
-typedef void (*sc_Window_PosHandler)(sc_Window *window, int posx, int posy);
+typedef void (*sc_Window_PosHandler)(sc_Window* window, int posx, int posy);
 
 /**
  * @typedef sc_WindowSizeHandler
@@ -44,7 +44,7 @@ typedef void (*sc_Window_PosHandler)(sc_Window *window, int posx, int posy);
  * @param width The new width of the window.
  * @param height The new height of the window.
  */
-typedef void (*sc_Window_SizeHandler)(sc_Window *window, int width, int height);
+typedef void (*sc_Window_SizeHandler)(sc_Window* window, int width, int height);
 
 /**
  * @brief Initializes the GLFW library for window management.
@@ -71,11 +71,11 @@ saci_Bool sc_GLAD_Init(void);
  * @return A pointer to the created sc_Window. This function does not check if the window
  * is null.
  */
-sc_Window *sc_Window_Create(int width, int height, const char *title, sc_Monitor *monitor,
-                            sc_Window *share);
+sc_Window* sc_Window_Create(int width, int height, const char* title, sc_Monitor* monitor,
+                            sc_Window* share);
 
 // TODO doc
-void sc_Window_Free(sc_Window *window);
+void sc_Window_Free(sc_Window* window);
 
 /**
  * @brief Makes the specified window the current OpenGL context.
@@ -83,7 +83,7 @@ void sc_Window_Free(sc_Window *window);
  * @param window The window to make the current context.
  * @note Needed to initialize GLAD.
  */
-void sc_Window_MakeContext(sc_Window *window);
+void sc_Window_MakeContext(sc_Window* window);
 
 /**
  * @brief Checks if the window should close.
@@ -91,7 +91,7 @@ void sc_Window_MakeContext(sc_Window *window);
  * @param window The window to check.
  * @return SACI_TRUE if the window should close, SACI_FALSE otherwise.
  */
-saci_Bool sc_Window_ShouldClose(sc_Window *window);
+saci_Bool sc_Window_ShouldClose(sc_Window* window);
 
 /**
  * @brief Sets a callback function for handling window position changes.
@@ -99,7 +99,7 @@ saci_Bool sc_Window_ShouldClose(sc_Window *window);
  * @param window The window to set the position handler for.
  * @param windowPosHandler The callback function to handle position changes.
  */
-void sc_Window_SetPosHandler(sc_Window *window, sc_Window_PosHandler windowPosHandler);
+void sc_Window_SetPosHandler(sc_Window* window, sc_Window_PosHandler windowPosHandler);
 
 /**
  * @brief Sets a callback function for handling window size changes.
@@ -107,7 +107,7 @@ void sc_Window_SetPosHandler(sc_Window *window, sc_Window_PosHandler windowPosHa
  * @param window The window to set the size handler for.
  * @param windowSizeHandler The callback function to handle size changes.
  */
-void sc_Window_SetSizeHandler(sc_Window *window, sc_Window_SizeHandler windowSizeHandler);
+void sc_Window_SetSizeHandler(sc_Window* window, sc_Window_SizeHandler windowSizeHandler);
 
 /**
  * @brief Terminates the windowing system, cleaning up resources.
@@ -127,7 +127,7 @@ void sc_Window_ClearColor(const saci_Color color);
  * @param window The window whose buffer will be swapped.
  * @note If not called, nothing will show on screen.
  */
-void sc_Window_SwapBuffer(sc_Window *window);
+void sc_Window_SwapBuffer(sc_Window* window);
 
 /* === Renderer === */
 
@@ -148,18 +148,18 @@ typedef struct sc_Renderer sc_Renderer;
 typedef struct sc_Vertice sc_Vertice;
 
 // TODO doc
-saci_Vec3  sc_Vertice_GetPos(const sc_Vertice *vertice);
-saci_Color sc_Vertice_GetColor(const sc_Vertice *vertice);
-saci_Vec2  sc_Vertice_GetTexcoord(const sc_Vertice *vertice);
+saci_Vec3  sc_Vertice_GetPos(const sc_Vertice* vertice);
+saci_Color sc_Vertice_GetColor(const sc_Vertice* vertice);
+saci_Vec2  sc_Vertice_GetTexcoord(const sc_Vertice* vertice);
 
 // TODO doc
-sc_Vertice *sc_Vertice_CreateVertice(saci_Vec3 position, saci_Color color, saci_Vec2 texcood);
+sc_Vertice* sc_Vertice_CreateVertice(saci_Vec3 position, saci_Color color, saci_Vec2 texcood);
 
-void sc_Vertice_GetArrayInfo(sc_Vertice *vertexArray, saci_u64 vertexArraySize,
-                             saci_Vec3 **positions, saci_Color **colors, saci_Vec2 **texcoords);
+void sc_Vertice_GetArrayInfo(sc_Vertice* vertexArray, saci_u64 vertexArraySize,
+                             saci_Vec3** positions, saci_Color** colors, saci_Vec2** texcoords);
 
-sc_Vertice *sc_Vertice_CreateVerticesArray(saci_Vec3 *positions, saci_Color *colors,
-                                           saci_Vec2 *texcoords, saci_u64 amount);
+sc_Vertice* sc_Vertice_CreateVerticesArray(saci_Vec3* positions, saci_Color* colors,
+                                           saci_Vec2* texcoords, saci_u64 amount);
 
 /**
  * @struct sc_ModelMesh
@@ -169,13 +169,13 @@ typedef struct sc_ModelMesh sc_ModelMesh;
 
 // TODO doc
 // TODO create a const alternative
-sc_Vertice *sc_ModelMesh_GetVertices(const sc_ModelMesh *modelMesh);
+sc_Vertice* sc_ModelMesh_GetVertices(const sc_ModelMesh* modelMesh);
 
-saci_u64 sc_ModelMesh_GetVerticesAmount(const sc_ModelMesh *modelMesh);
+saci_u64 sc_ModelMesh_GetVerticesAmount(const sc_ModelMesh* modelMesh);
 
-saci_u32 *sc_ModelMesh_GetIndices(const sc_ModelMesh *modelMesh);
+saci_u32* sc_ModelMesh_GetIndices(const sc_ModelMesh* modelMesh);
 
-saci_u64 sc_ModelMesh_GetIndicesAmount(const sc_ModelMesh *modelMesh);
+saci_u64 sc_ModelMesh_GetIndicesAmount(const sc_ModelMesh* modelMesh);
 
 /**
  * @brief Creates the sc_Renderer struct
@@ -187,7 +187,7 @@ saci_u64 sc_ModelMesh_GetIndicesAmount(const sc_ModelMesh *modelMesh);
  * @param generateDefaults A boolean to generate defaulted shaders and OpenGL context.
  * @return A new sc_Renderer* either defaulted or not. Can return null
  */
-sc_Renderer *sc_Renderer_Create(saci_Bool generateDefaults);
+sc_Renderer* sc_Renderer_Create(saci_Bool generateDefaults);
 
 /**
  * @brief Deletes the sc_Renderer struct
@@ -197,7 +197,7 @@ sc_Renderer *sc_Renderer_Create(saci_Bool generateDefaults);
  *
  * @param renderer The renderer to be deleted
  */
-void sc_Renderer_Delete(sc_Renderer *renderer);
+void sc_Renderer_Delete(sc_Renderer* renderer);
 
 /**
  * @brief Sets renderer to not fill shapes
@@ -259,7 +259,7 @@ void sc_Renderer_SetCustomProjectionModeFunction(
  *
  * @param renderer The renderer to setup
  */
-void sc_Renderer_Begin(sc_Renderer *renderer);
+void sc_Renderer_Begin(sc_Renderer* renderer);
 
 /**
  * @brief Draws the RenderCalls in the sc_Renderer
@@ -267,22 +267,11 @@ void sc_Renderer_Begin(sc_Renderer *renderer);
  * @param renderer The renderer to setup.
  * @param camera The camera to setup rendering enviroment.
  */
-void sc_Renderer_End(sc_Renderer *renderer, const sc_Camera *camera);
+void sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera);
 
-/**
- * @brief Pushes vertices to the @ref sc_Renderer.
- *
- * @param renderer The renderer that will get data pushed.
- * @param vertices The array vertex information.
- * @param verticeAmount The amount of vertices.
- * @param indices The indices of the vertices.
- * @param indiceAmount The amount of indices.
- * @param modelMatrix The model matrix to explain how to draw the model.
- * @param texID The OpenGL index of the texture.
- */
 // TODO doc
-void sc_Renderer_PushVertices(sc_Renderer *renderer, sc_Vertice *vertices, saci_u64 verticeAmount,
-                              saci_u32 *indices, saci_u64 indiceAmount, saci_Mat4 modelMatrix,
+void sc_Renderer_PushVertices(sc_Renderer* renderer, sc_Vertice* vertices, saci_u64 verticeAmount,
+                              saci_u64 indiceAmount, saci_Mat4 modelMatrix,
                               saci_TextureID texID, saci_u32 ibo);
 
 /**
@@ -293,14 +282,14 @@ void sc_Renderer_PushVertices(sc_Renderer *renderer, sc_Vertice *vertices, saci_
  * @param modelMatrix The model matrix to explain how to draw the model.
  * @param texID The OpenGL index of the texture.
  */
-void sc_Renderer_PushModelMesh(sc_Renderer *renderer, sc_ModelMesh *mesh, saci_Mat4 modelMatrix,
+void sc_Renderer_PushModelMesh(sc_Renderer* renderer, sc_ModelMesh* mesh, saci_Mat4 modelMatrix,
                                saci_TextureID texID);
 
 /* === Model Creation === */
 
 // todo doc
-typedef void (*sc_OBJ_ModelFileReadingFunction)(void *ctx, const char *filename, int isMtl,
-                                                const char *objFilename, char **buf, size_t *len);
+typedef void (*sc_OBJ_ModelFileReadingFunction)(void* ctx, const char* filename, int isMtl,
+                                                const char* objFilename, char** buf, size_t* len);
 
 /**
  * @brief Creates a @ref sc_ModelMesh containing the info in the provided path.
@@ -308,7 +297,7 @@ typedef void (*sc_OBJ_ModelFileReadingFunction)(void *ctx, const char *filename,
  * @param path The path for the model file.
  * @param fileReader The file reading function to load the model information.
  */
-sc_ModelMesh *sc_ModelMesh_Load(const char *path, sc_OBJ_ModelFileReadingFunction fileReader);
+sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_OBJ_ModelFileReadingFunction fileReader);
 
 /**
  * @brief Structure to hold Vertex Indice information.
@@ -326,17 +315,17 @@ struct sc_VertexIndice {
 };
 
 // todo doc
-saci_Bool sc_OBJ_Parse(const char *filePath, sc_OBJ_ModelFileReadingFunction fileReader,
-                       saci_Vec3 **positions, saci_u64 *positionsCount, saci_Vec2 **texcoords,
-                       saci_u64 *texcoordCount, struct sc_VertexIndice **indices,
-                       saci_u64 *indicesCount);
+saci_Bool sc_OBJ_Parse(const char* filePath, sc_OBJ_ModelFileReadingFunction fileReader,
+                       saci_Vec3** positions, saci_u64* positionsCount, saci_Vec2** texcoords,
+                       saci_u64* texcoordCount, struct sc_VertexIndice** indices,
+                       saci_u64* indicesCount);
 
 /**
  * @brief Frees a model mesh from memory.
  *
  * @param modelMesh The model mesh to be freed.
  */
-void sc_ModelMesh_Delete(sc_ModelMesh *modelMesh);
+void sc_ModelMesh_Delete(sc_ModelMesh* modelMesh);
 
 /* === OpenGL Helpers === */
 
@@ -346,7 +335,7 @@ void sc_ModelMesh_Delete(sc_ModelMesh *modelMesh);
  * @param indices The indices to fill the IBO.
  * @param indiceAmount The amount of indices.
  */
-saci_u32 sc_GL_CreateIndexBuffer(saci_u32 *indices, saci_u64 indiceAmount);
+saci_u32 sc_GL_CreateIndexBuffer(saci_u32* indices, saci_u64 indiceAmount);
 
 /**
  * @brief resizes the VBO in the renderer to a newCapacity
@@ -371,7 +360,7 @@ void sc_GL_ResizeVBO(saci_u32 vaoID, saci_u32 vboID, saci_u32 newCapacity,
  * @param source The source code of the vertex shader as a string.
  * @return A saci_ShaderID representing the compiled vertex shader.
  */
-saci_u32 sc_Shader_CompileShaderV(const char *source);
+saci_u32 sc_Shader_CompileShaderV(const char* source);
 
 /**
  * @brief Compiles a fragment shader from source code.
@@ -383,7 +372,7 @@ saci_u32 sc_Shader_CompileShaderV(const char *source);
  * @param source The source code of the fragment shader as a string.
  * @return A saci_ShaderID representing the compiled fragment shader.
  */
-saci_u32 sc_Shader_CompileShaderF(const char *source);
+saci_u32 sc_Shader_CompileShaderF(const char* source);
 
 /**
  * @brief Compiles a geometry shader from source code.
@@ -395,7 +384,7 @@ saci_u32 sc_Shader_CompileShaderF(const char *source);
  * @param source The source code of the geometry shader as a string.
  * @return A saci_ShaderID representing the compiled geometry shader.
  */
-saci_u32 sc_Shader_CompileShaderG(const char *source);
+saci_u32 sc_Shader_CompileShaderG(const char* source);
 
 /**
  * @brief Links a vertex shader and fragment shader into a shader program.

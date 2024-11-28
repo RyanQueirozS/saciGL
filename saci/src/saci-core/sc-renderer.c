@@ -257,6 +257,7 @@ void sc_Renderer_Delete(sc_Renderer* renderer) {
         return;
     }
     sc_Renderer_Begin(renderer);
+    ArenaDelete(&renderer->memoryContext);
     free(renderer->renderBatch.renderCalls);
 
     glDeleteVertexArrays(1, &renderer->vao);
@@ -353,7 +354,7 @@ void sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera) {
 }
 
 void sc_Renderer_PushVertices(sc_Renderer* renderer, sc_Vertice* vertices,
-                              saci_u64 verticeAmount, saci_u32* indices,
+                              saci_u64 verticeAmount,
                               saci_u64 indiceAmount, saci_Mat4 modelMatrix,
                               saci_TextureID texID, saci_u32 ibo) {
     if (!vertices) {
@@ -373,7 +374,7 @@ void sc_Renderer_PushModelMesh(sc_Renderer* renderer, sc_ModelMesh* mesh,
         exit(1);
     }
     sc_Renderer_PushVertices(renderer, mesh->vertices, mesh->verticesAmount,
-                             mesh->indices, mesh->indicesAmount, modelMatrix,
+                             mesh->indicesAmount, modelMatrix,
                              texID, mesh->ibo);
 }
 
@@ -383,11 +384,6 @@ sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3*              verticesPos,
                                   saci_u64                verticesTexcoordAmount,
                                   struct sc_VertexIndice* indices,
                                   saci_u64                indiceAmount) {
-    // TODO
-    // if (verticePosAmount != verticesTexcoordAmount) {
-    //     return NULL;
-    // }
-
     sc_ModelMesh* mesh = (sc_ModelMesh*)malloc(sizeof(sc_ModelMesh));
     if (!mesh) {
         return NULL;
@@ -436,8 +432,7 @@ sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3*              verticesPos,
     return mesh;
 }
 
-sc_ModelMesh* sc_ModelMesh_Load(const char*                     path,
-                                sc_OBJ_ModelFileReadingFunction fileReader) {
+sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_OBJ_ModelFileReadingFunction fileReader) {
     saci_Vec3*              verticesPos             = NULL;
     saci_u64                verticesAmount          = 0;
     saci_Vec2*              verticesTexCoords       = NULL;

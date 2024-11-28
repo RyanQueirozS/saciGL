@@ -10,8 +10,6 @@
 #ifndef __SACI_UTILS_SU_GENERAL_H__
 #define __SACI_UTILS_SU_GENERAL_H__
 
-#include "saci-utils/su-types.h"
-
 #ifdef __cplusplus
 /**
  * @def SACI_PI
