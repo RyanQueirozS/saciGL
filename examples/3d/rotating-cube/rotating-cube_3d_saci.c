@@ -55,7 +55,7 @@ void init_saci() {
     sc_Window_MakeContext(window);
     assert(sc_GLAD_Init());
 
-    renderer = sc_Renderer_Create(true);
+    renderer = sc_Renderer_CreateDefault();
     assert(renderer);
 
     camera = sc_Camera_GetDefault3DCamera();
@@ -83,7 +83,7 @@ int main() {
 
         sc_Renderer_Begin(renderer);
         saci_u32 ibo = sc_GL_CreateIndexBuffer(cubeIndices, indiceAmount);
-        sc_Renderer_PushVertices(renderer, vertices, verticeAmount, cubeIndices, indiceAmount,
+        sc_Renderer_PushVertices(renderer, vertices, verticeAmount, indiceAmount,
                                  modelMatrix, 0, ibo);
         sc_Renderer_End(renderer, &camera);
         sc_Window_SwapBuffer(window);

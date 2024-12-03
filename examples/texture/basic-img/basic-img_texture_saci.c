@@ -24,8 +24,8 @@ saci_Color vertexColors[4] = {
     {0.0f, 1.0f, 0.0f, 1.0f}, // Green color for Vertex 2
     {0.0f, 0.0f, 1.0f, 1.0f}, // Blue color for Vertex 3
     {1.0f, 1.0f, 0.0f, 1.0f}  // Yellow color for Vertex 4
-}; // NOTE: If you want the image to have it's "natural color", just set everything to
-   // white aka {1.0f,1.0f,1.0f,1.0f}
+};                            // NOTE: If you want the image to have it's "natural color", just set everything to
+                              // white aka {1.0f,1.0f,1.0f,1.0f}
 
 saci_Vec2 uvCoords[4] = {
     {0.0f, 0.0f}, // UV for Vertex 1 (bottom-left)
@@ -47,7 +47,7 @@ static void init_saci() {
     sc_Window_MakeContext(window);
     assert(sc_GLAD_Init());
 
-    renderer = sc_Renderer_Create(true);
+    renderer = sc_Renderer_CreateDefault();
     assert(renderer);
 
     camera = sc_Camera_GetDefault3DCamera();
@@ -76,7 +76,7 @@ int main() {
 
         sc_Renderer_Begin(renderer);
         saci_u32 ibo = sc_GL_CreateIndexBuffer(indices, 6);
-        sc_Renderer_PushVertices(renderer, vertices, 4, indices, 6, modelMatrix, tex, ibo);
+        sc_Renderer_PushVertices(renderer, vertices, 4, 6, modelMatrix, tex, ibo);
         sc_Renderer_End(renderer, &camera);
         sc_Window_SwapBuffer(window);
 

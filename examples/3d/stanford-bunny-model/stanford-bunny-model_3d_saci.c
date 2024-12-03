@@ -9,10 +9,10 @@
 #include <time.h>
 #include <unistd.h>
 
-sc_Window*   window;
+sc_Window* window;
 sc_Renderer* renderer;
-sc_Camera    camera;
-const float  cameraSpeed = 0.3f;
+sc_Camera camera;
+const float cameraSpeed = 0.3f;
 
 void init_saci(void) {
     saci_InitMath();
@@ -22,10 +22,10 @@ void init_saci(void) {
     sc_Window_MakeContext(window);
     assert(sc_GLAD_Init());
 
-    renderer = sc_Renderer_Create(true);
+    renderer = sc_Renderer_CreateDefault();
     assert(renderer);
 
-    camera             = sc_Camera_GetDefault3DCamera();
+    camera = sc_Camera_GetDefault3DCamera();
     camera.aspectRatio = 1600.0f / 900.0f;
 
     sc_Renderer_EnableZBuffer();
@@ -34,20 +34,19 @@ void init_saci(void) {
 
 void handle_keyboard(void) {
     saci_Vec3 forward = saci_NormalizeVec3(saci_SubtractVec3(camera.target, camera.position));
-    saci_Vec3 right   = saci_NormalizeVec3(saci_CrossVec3(forward, camera.up));
-    saci_Vec3 up      = saci_CrossVec3(right, forward); // Ensure orthogonality (optional)
+    saci_Vec3 right = saci_NormalizeVec3(saci_CrossVec3(forward, camera.up));
     if (sc_Event_IsKeyPressed(window, SACI_KEY_W)) {
         camera.position = saci_AddVec3(camera.position, saci_MultiplyVec3(forward, cameraSpeed));
-    };
+    }
     if (sc_Event_IsKeyPressed(window, SACI_KEY_A)) {
         camera.position = saci_SubtractVec3(camera.position, saci_MultiplyVec3(right, cameraSpeed));
-    };
+    }
     if (sc_Event_IsKeyPressed(window, SACI_KEY_S)) {
         camera.position = saci_SubtractVec3(camera.position, saci_MultiplyVec3(forward, cameraSpeed));
-    };
+    }
     if (sc_Event_IsKeyPressed(window, SACI_KEY_D)) {
         camera.position = saci_AddVec3(camera.position, saci_MultiplyVec3(right, cameraSpeed));
-    };
+    }
     if (sc_Event_IsKeyPressed(window, SACI_KEY_SPACE)) {
         camera.position.y += cameraSpeed;
     }
@@ -100,19 +99,19 @@ int main(void) {
     sc_ModelMesh* mesh;
 
     {
-        const char*                     filePath = "./3d/stanford-bunny-model/bunny.obj";
-        sc_OBJ_ModelFileReadingFunction func     = file_read;
+        const char* filePath = "./3d/stanford-bunny-model/bunny.obj";
+        sc_OBJ_ModelFileReadingFunction func = file_read;
 
         mesh = sc_ModelMesh_Load(filePath, func);
     }
 
     assert(mesh);
     saci_Mat4 modelMatrix;
-    saci_Vec3 modelPos   = {0, 0, 0};
-    saci_Vec3 modelRot   = {0, 0, 0};
+    saci_Vec3 modelPos = {0, 0, 0};
+    saci_Vec3 modelRot = {0, 0, 0};
     saci_Vec3 modelScale = {1, 1, 1};
-    camera.position.z    = -3;
-    camera.target        = modelPos;
+    camera.position.z = -3;
+    camera.target = modelPos;
 
     modelMatrix = saci_Mat4_ModelMatrix(modelPos, modelRot, modelScale);
 

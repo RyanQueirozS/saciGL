@@ -45,7 +45,7 @@ int main() {
     }
 
     // Generates defaulted shaders, vertex and array objects
-    renderer = sc_Renderer_Create(true);
+    renderer = sc_Renderer_CreateDefault();
     assert(renderer);
 
     saci_Color bgColor = saci_ColorFromU8(25, 70, 125, 255);
@@ -59,7 +59,7 @@ int main() {
 
         sc_Renderer_Begin(renderer);
         saci_u32 ibo = sc_GL_CreateIndexBuffer(indices, indiceAmount);
-        sc_Renderer_PushVertices(renderer, vertices, verticeAmount, indices, indiceAmount,
+        sc_Renderer_PushVertices(renderer, vertices, verticeAmount, indiceAmount,
                                  modelMatrix, 0, ibo);
         sc_Renderer_End(renderer, NULL);
         sc_Window_SwapBuffer(window);
