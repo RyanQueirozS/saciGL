@@ -48,23 +48,29 @@ saci_Bool sc_GLAD_Init(void) {
     return SACI_TRUE;
 }
 
-sc_Window* sc_Window_Create(int width, int height, const char* title, sc_Monitor* monitor,
-                            sc_Window* share) {
+sc_Window_t* sc_Window_Create(int width, int height, const char* title,
+                              sc_Monitor_t* monitor, sc_Window_t* share) {
     return glfwCreateWindow(width, height, title, monitor, share);
 }
 
-void sc_Window_Free(sc_Window* window) { glfwDestroyWindow(window); }
+void sc_Window_Free(sc_Window_t* window) {
+    glfwDestroyWindow(window);
+}
 
-void sc_Window_MakeContext(sc_Window* window) { glfwMakeContextCurrent(window); }
+void sc_Window_Make_Context(sc_Window_t* window) {
+    glfwMakeContextCurrent(window);
+}
 
-saci_Bool sc_Window_ShouldClose(sc_Window* window) { return glfwWindowShouldClose(window); }
+saci_Bool sc_Window_Should_Close(sc_Window_t* window) {
+    return glfwWindowShouldClose(window);
+}
 
-void sc_Window_SetPosHandler(sc_Window* window, sc_Window_PosHandler windowPosHandler) {
+void sc_Window_Set_Pos_Handler(sc_Window_t* window, sc_Window_PosHandler_t windowPosHandler) {
     glfwSetWindowPosCallback(window, windowPosHandler);
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Set window pos handler");
 }
 
-void sc_Window_SetSizeHandler(sc_Window* window, sc_Window_SizeHandler windowSizeHandler) {
+void sc_Window_Set_Size_Handler(sc_Window_t* window, sc_Window_SizeHandler_t windowSizeHandler) {
     glfwSetWindowSizeCallback(window, windowSizeHandler);
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Set window size callback");
 }
@@ -74,12 +80,14 @@ void sc_Window_Terminate(void) {
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_OPENGL, "Terminated glfw");
 }
 
-void sc_Window_ClearColor(saci_Color color) {
+void sc_Window_Clear_Color(saci_Color color) {
     glClearColor(color.r, color.g, color.b, color.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void sc_Window_SwapBuffer(sc_Window* window) { glfwSwapBuffers(window); }
+void sc_Window_Swap_Buffer(sc_Window_t* window) {
+    glfwSwapBuffers(window);
+}
 
 /* === Helper === */
 

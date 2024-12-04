@@ -9,8 +9,8 @@
 #include <time.h>
 #include <unistd.h>
 
-sc_Window* window;
-sc_Renderer* renderer;
+sc_Window_t* window;
+sc_Renderer_t* renderer;
 sc_Camera camera;
 const float cameraSpeed = 0.3f;
 
@@ -19,38 +19,38 @@ void init_saci(void) {
     assert(sc_GLFW_Init());
     window = sc_Window_Create(1600, 900, "SACI ROTATING-CUBE 3D", NULL, NULL);
     assert(window);
-    sc_Window_MakeContext(window);
+    sc_Window_Make_Context(window);
     assert(sc_GLAD_Init());
 
     renderer = sc_Renderer_CreateDefault();
     assert(renderer);
 
-    camera = sc_Camera_GetDefault3DCamera();
+    camera = sc_Camera_Get_Default();
     camera.aspectRatio = 1600.0f / 900.0f;
 
     sc_Renderer_EnableZBuffer();
-    sc_Renderer_SetProjectionMode(SACI_RENDER_PERSPECTIVE_PROJECTION);
+    sc_Renderer_SetProjectionMode(sa_RENDER_PERSPECTIVE_PROJECTION);
 }
 
 void handle_keyboard(void) {
     saci_Vec3 forward = saci_NormalizeVec3(saci_SubtractVec3(camera.target, camera.position));
     saci_Vec3 right = saci_NormalizeVec3(saci_CrossVec3(forward, camera.up));
-    if (sc_Event_IsKeyPressed(window, SACI_KEY_W)) {
+    if (sc_Event_IsKeyPressed(window, sa_KEY_W)) {
         camera.position = saci_AddVec3(camera.position, saci_MultiplyVec3(forward, cameraSpeed));
     }
-    if (sc_Event_IsKeyPressed(window, SACI_KEY_A)) {
+    if (sc_Event_IsKeyPressed(window, sa_KEY_A)) {
         camera.position = saci_SubtractVec3(camera.position, saci_MultiplyVec3(right, cameraSpeed));
     }
-    if (sc_Event_IsKeyPressed(window, SACI_KEY_S)) {
+    if (sc_Event_IsKeyPressed(window, sa_KEY_S)) {
         camera.position = saci_SubtractVec3(camera.position, saci_MultiplyVec3(forward, cameraSpeed));
     }
-    if (sc_Event_IsKeyPressed(window, SACI_KEY_D)) {
+    if (sc_Event_IsKeyPressed(window, sa_KEY_D)) {
         camera.position = saci_AddVec3(camera.position, saci_MultiplyVec3(right, cameraSpeed));
     }
-    if (sc_Event_IsKeyPressed(window, SACI_KEY_SPACE)) {
+    if (sc_Event_IsKeyPressed(window, sa_KEY_SPACE)) {
         camera.position.y += cameraSpeed;
     }
-    if (sc_Event_IsKeyPressed(window, SACI_KEY_LEFT_SHIFT)) {
+    if (sc_Event_IsKeyPressed(window, sa_KEY_LEFT_SHIFT)) {
         camera.position.y -= cameraSpeed;
     }
 }
@@ -96,7 +96,7 @@ int main(void) {
     saci_Color bgColor =
         saci_ColorFromU8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
 
-    sc_ModelMesh* mesh;
+    struct sc_ModelMesh_c* mesh;
 
     {
         const char* filePath = "./3d/stanford-bunny-model/bunny.obj";
@@ -115,14 +115,14 @@ int main(void) {
 
     modelMatrix = saci_Mat4_ModelMatrix(modelPos, modelRot, modelScale);
 
-    while (!sc_Window_ShouldClose(window)) {
-        sc_Window_ClearColor(bgColor);
+    while (!sc_Window_Should_Close(window)) {
+        sc_Window_Clear_Color(bgColor);
         handle_keyboard();
 
         sc_Renderer_Begin(renderer);
         sc_Renderer_PushModelMesh(renderer, mesh, modelMatrix, 0);
         sc_Renderer_End(renderer, &camera);
-        sc_Window_SwapBuffer(window);
+        sc_Window_Swap_Buffer(window);
 
         sc_Event_Poll();
     }

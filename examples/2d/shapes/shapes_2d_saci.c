@@ -7,8 +7,8 @@
 
 #include <unistd.h>
 
-static sc_Window* window;
-static sc_Renderer* renderer;
+static sc_Window_t* window;
+static sc_Renderer_t* renderer;
 
 const int screen_width = 1600;
 const int screen_height = 900;
@@ -39,7 +39,7 @@ int main() {
         assert(sc_GLFW_Init());
         window = sc_Window_Create(screen_width, screen_height, "SACI SHAPES 2D", NULL, NULL);
         assert(window);
-        sc_Window_MakeContext(window);
+        sc_Window_Make_Context(window);
         assert(sc_GLAD_Init());
         saci_InitMath();
     }
@@ -49,20 +49,20 @@ int main() {
     assert(renderer);
 
     saci_Color bgColor = saci_ColorFromU8(25, 70, 125, 255);
-    sc_Vertice* vertices =
+    struct sc_Vertice_c* vertices =
         sc_Vertice_CreateVerticesArray(triangleVert, triangleColor, NULL, verticeAmount);
 
     saci_Mat4 modelMatrix = saci_IdentityMat4(); // Generate a defaulted mat4 as modelMatrix
 
-    while (!sc_Window_ShouldClose(window)) {
-        sc_Window_ClearColor(bgColor);
+    while (!sc_Window_Should_Close(window)) {
+        sc_Window_Clear_Color(bgColor);
 
         sc_Renderer_Begin(renderer);
         saci_u32 ibo = sc_GL_CreateIndexBuffer(indices, indiceAmount);
         sc_Renderer_PushVertices(renderer, vertices, verticeAmount, indiceAmount,
                                  modelMatrix, 0, ibo);
         sc_Renderer_End(renderer, NULL);
-        sc_Window_SwapBuffer(window);
+        sc_Window_Swap_Buffer(window);
 
         sc_Event_Poll();
     }

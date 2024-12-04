@@ -95,7 +95,7 @@ will be used in multiple places and will always represent the same thing. As a r
 
 Enum members should always begin with the enum name. Example: 
 ```c
-typedef enum sa_Log_Level_e {
+enum sa_Log_Level_e {
     SA_LEVEL_INFO // BAD
     SA_LOG_LEVEL_DEBUG // GOOD
 }
@@ -239,6 +239,58 @@ A good mindset to have is:
 
 **DO NOT LET THE USER SCREW UP**.
 
+### Code organization
+
+Follow this order:
+
+- Header files: 
+    1. File documentation
+    2. Header guard
+    3. Includes
+    4. Defines
+    5. Constants
+    6. Variables
+    7. Macros
+    8. Typedefs
+    9. Structs
+    10. Enums
+    11. Functions
+
+- Source files:
+    3. Includes
+    4. Defines
+    5. Constants
+    6. Variables
+    7. Macros
+    8. Helper Typedefs
+    9. Helper Structus
+    10. Helper Enums
+    11. Helper functions
+    12. Typedefs
+    13. Structs
+    14. Enums
+    15. Functions
+
+Each code portion should be subdivided. Example:
+```c
+/* === Helper === */
+// helper code goes here
+
+
+/* === Implementations === */
+// Implementations should go here
+```
+When in a HEADER FILE:
+
+```c
+/* === Renderering === */
+// Rendering related code
+
+
+/* === Model loading === */
+// Model loading related code
+```
+
 ### Logging
 
 Use `sa_LOG_PRINT_m` for significant actions (e.g., creation,
@@ -319,6 +371,37 @@ Use `#define` only when needed.
 ### Constants
 
 Same rules as variables.
+
+### Typedefs
+
+Whenever defining a type, prefere the raw `struct` or `enum` form. Only use
+`typedef` when **DEFINING A TYPE THAT WILL BE USED FREQUENTLY** and:
+- is a opaque type;
+OR
+- is a type that adds context for a given functionality;
+
+Example:
+```c
+typedef int32_t sa_s32; // OK; reausable, common, usefull.
+
+typedef sa_s32 sa_TextureID // GOOD; adds context.
+
+typedef struct {
+    float value1, value2;
+    const char* STRING;
+} sc_My_Internal_Struct_t // BAD. Will rarelly be used by the user.
+```
+
+Imagine reading the following:
+```c
+void sc_My_Func(sc_My_Data data) { // is sc_My_Data a struct, an enum? You cannot tell!
+    ...
+}
+
+void sc_My_Func(struct sc_My_Data data) { // this is more readable, obviously a struct.
+    ...
+}
+```
 
 ### Enum
 

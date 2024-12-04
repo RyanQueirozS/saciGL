@@ -8,119 +8,119 @@
 
 /* === Windowing === */
 
-typedef GLFWmonitor sc_Monitor;
+typedef GLFWmonitor sc_Monitor_t;
 
-typedef GLFWwindow  sc_Window;
+typedef GLFWwindow  sc_Window_t;
 
-typedef void (*sc_Window_PosHandler)(sc_Window* window, int posx, int posy);
+typedef void (*sc_Window_PosHandler_t)(sc_Window_t* window, int pos_x, int pos_y);
 
-typedef void (*sc_Window_SizeHandler)(sc_Window* window, int width, int height);
+typedef void (*sc_Window_SizeHandler_t)(sc_Window_t* window, int width, int height);
 
-saci_Bool  sc_GLFW_Init(void);
+saci_Bool    sc_GLFW_Init(void);
 
-saci_Bool  sc_GLAD_Init(void);
+saci_Bool    sc_GLAD_Init(void);
 
-sc_Window* sc_Window_Create(int width, int height, const char* title,
-                            sc_Monitor* monitor, sc_Window* share);
+sc_Window_t* sc_Window_Create(int width, int height, const char* title,
+                              sc_Monitor_t* monitor, sc_Window_t* share);
 
-void       sc_Window_Free(sc_Window* window);
+void         sc_Window_Free(sc_Window_t* window);
 
-void       sc_Window_MakeContext(sc_Window* window);
+void         sc_Window_Make_Context(sc_Window_t* window);
 
-saci_Bool  sc_Window_ShouldClose(sc_Window* window);
+saci_Bool    sc_Window_Should_Close(sc_Window_t* window);
 
-void       sc_Window_SetPosHandler(sc_Window* window, sc_Window_PosHandler windowPosHandler);
+void         sc_Window_Set_Pos_Handler(sc_Window_t* window, sc_Window_PosHandler_t windowPosHandler);
 
-void       sc_Window_SetSizeHandler(sc_Window* window, sc_Window_SizeHandler windowSizeHandler);
+void         sc_Window_Set_Size_Handler(sc_Window_t* window, sc_Window_SizeHandler_t windowSizeHandler);
 
-void       sc_Window_Terminate(void);
+void         sc_Window_Terminate(void);
 
-void       sc_Window_ClearColor(const saci_Color color);
+void         sc_Window_Clear_Color(const saci_Color color);
 
-void       sc_Window_SwapBuffer(sc_Window* window);
+void         sc_Window_Swap_Buffer(sc_Window_t* window);
 
 /* === Renderer === */
 
-typedef struct sc_Renderer  sc_Renderer;
+typedef struct sc_Renderer sc_Renderer_t;
 
-typedef struct sc_Vertice   sc_Vertice;
+typedef saci_Mat4 (*sc_Renderer_Custom_Projection_Func)(sc_Camera camera);
 
-typedef struct sc_ModelMesh sc_ModelMesh;
+struct sc_ModelMesh_c;
 
-typedef saci_Mat4 (*sc_Renderer_CustomProjectionFunction)(sc_Camera camera);
+struct sc_Vertice_c;
 
-typedef enum sc_RenderProjectionMode {
-    SACI_RENDER_ORTHOGRAPHIC_PROJECTION = 0,
-    SACI_RENDER_PERSPECTIVE_PROJECTION,
-    SACI_RENDER_CUSTOM_PROJECTION,
-} sc_RendererProjectionMode;
+enum sc_Renderer_Projection_Mode_e {
+    sa_RENDER_ORTHOGRAPHIC_PROJECTION = 0,
+    sa_RENDER_PERSPECTIVE_PROJECTION,
+    sa_RENDER_CUSTOM_PROJECTION,
+};
 
-saci_Vec3     sc_Vertice_GetPos(const sc_Vertice* vertice);
+saci_Vec3            sc_Vertice_GetPos(const struct sc_Vertice_c* vertice);
 
-saci_Color    sc_Vertice_GetColor(const sc_Vertice* vertice);
+saci_Color           sc_Vertice_GetColor(const struct sc_Vertice_c* vertice);
 
-saci_Vec2     sc_Vertice_GetTexcoord(const sc_Vertice* vertice);
+saci_Vec2            sc_Vertice_GetTexcoord(const struct sc_Vertice_c* vertice);
 
-sc_Vertice*   sc_Vertice_CreateVertice(saci_Vec3 position, saci_Color color, saci_Vec2 texcood);
+struct sc_Vertice_c* sc_Vertice_CreateVertice(saci_Vec3 position, saci_Color color, saci_Vec2 texcood);
 
-void          sc_Vertice_GetArrayInfo(sc_Vertice* vertexArray, saci_u64 vertexArraySize,
-                                      saci_Vec3**  positions,
-                                      saci_Color** colors,
-                                      saci_Vec2**  texcoords);
+void                 sc_Vertice_GetArrayInfo(struct sc_Vertice_c* vertexArray, saci_u64 vertexArraySize,
+                                             saci_Vec3**  positions,
+                                             saci_Color** colors,
+                                             saci_Vec2**  texcoords);
 
-sc_Vertice*   sc_Vertice_CreateVerticesArray(saci_Vec3* positions, saci_Color* colors,
-                                             saci_Vec2* texcoords, saci_u64 amount);
+struct sc_Vertice_c* sc_Vertice_CreateVerticesArray(saci_Vec3* positions, saci_Color* colors,
+                                                    saci_Vec2* texcoords, saci_u64 amount);
 
-sc_Vertice*   sc_ModelMesh_GetVertices(const sc_ModelMesh* modelMesh);
+struct sc_Vertice_c* sc_ModelMesh_GetVertices(const struct sc_ModelMesh_c* modelMesh);
 
-saci_u64      sc_ModelMesh_GetVerticesAmount(const sc_ModelMesh* modelMesh);
+saci_u64             sc_ModelMesh_GetVerticesAmount(const struct sc_ModelMesh_c* modelMesh);
 
-saci_u32*     sc_ModelMesh_GetIndices(const sc_ModelMesh* modelMesh);
+saci_u32*            sc_ModelMesh_GetIndices(const struct sc_ModelMesh_c* modelMesh);
 
-saci_u64      sc_ModelMesh_GetIndicesAmount(const sc_ModelMesh* modelMesh);
+saci_u64             sc_ModelMesh_GetIndicesAmount(const struct sc_ModelMesh_c* modelMesh);
 
-sc_Renderer*  sc_Renderer_CreateEmpty();
+sc_Renderer_t*       sc_Renderer_CreateEmpty();
 
-sc_Renderer*  sc_Renderer_CreateDefault();
+sc_Renderer_t*       sc_Renderer_CreateDefault();
 
-void          sc_Renderer_InitMemoryContext(sc_Renderer* renderer, saci_u64 size);
+void                 sc_Renderer_InitMemoryContext(sc_Renderer_t* renderer, saci_u64 size);
 
-void          sc_Renderer_ResizeRenderBuffer(sc_Renderer* renderer, saci_u64 size);
+void                 sc_Renderer_ResizeRenderBuffer(sc_Renderer_t* renderer, saci_u64 size);
 
-saci_ShaderID sc_Renderer_GetShaderProgram(sc_Renderer* renderer);
+saci_ShaderID        sc_Renderer_GetShaderProgram(sc_Renderer_t* renderer);
 
-void          sc_Renderer_SetShaderProgram(sc_Renderer* renderer, saci_ShaderID shaderID);
+void                 sc_Renderer_SetShaderProgram(sc_Renderer_t* renderer, saci_ShaderID shaderID);
 
-void          sc_Renderer_Delete(sc_Renderer* renderer);
+void                 sc_Renderer_Delete(sc_Renderer_t* renderer);
 
-void          sc_Renderer_SetNoFillMode(void);
+void                 sc_Renderer_SetNoFillMode(void);
 
-void          sc_Renderer_SetFillMode(void);
+void                 sc_Renderer_SetFillMode(void);
 
-void          sc_Renderer_EnableZBuffer(void);
+void                 sc_Renderer_EnableZBuffer(void);
 
-void          sc_Renderer_SetProjectionMode(sc_RendererProjectionMode renderProjectionMode);
+void                 sc_Renderer_SetProjectionMode(enum sc_Renderer_Projection_Mode_e renderProjectionMode);
 
-void          sc_Renderer_SetCustomProjectionModeFunction(sc_Renderer_CustomProjectionFunction
-                                                              renderCustomProjectionModeFunction);
+void                 sc_Renderer_SetCustomProjectionModeFunction(sc_Renderer_Custom_Projection_Func
+                                                                     renderCustomProjectionModeFunction);
 
-void          sc_Renderer_Begin(sc_Renderer* renderer);
+void                 sc_Renderer_Begin(sc_Renderer_t* renderer);
 
-void          sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera);
+void                 sc_Renderer_End(sc_Renderer_t* renderer, const sc_Camera* camera);
 
-void          sc_Renderer_PushVertices(sc_Renderer* renderer,
-                                       sc_Vertice* vertices, saci_u64 verticeAmount,
-                                       saci_u64 indiceAmount, saci_Mat4 modelMatrix,
-                                       saci_TextureID texID, saci_u32 ibo);
+void                 sc_Renderer_PushVertices(sc_Renderer_t*       renderer,
+                                              struct sc_Vertice_c* vertices, saci_u64 verticeAmount,
+                                              saci_u64 indiceAmount, saci_Mat4 modelMatrix,
+                                              saci_TextureID texID, saci_u32 ibo);
 
-void          sc_Renderer_PushModelMesh(sc_Renderer* renderer, sc_ModelMesh* mesh,
-                                        saci_Mat4 modelMatrix, saci_TextureID texID);
+void                 sc_Renderer_PushModelMesh(sc_Renderer_t* renderer, struct sc_ModelMesh_c* mesh,
+                                               saci_Mat4 modelMatrix, saci_TextureID texID);
 
 // TODO remove
 typedef void (*sc_OBJ_ModelFileReadingFunction)(void* ctx, const char* filename, int isMtl,
                                                 const char* objFilename, char** buf, size_t* len);
 
-sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_OBJ_ModelFileReadingFunction fileReader);
+struct sc_ModelMesh_c* sc_ModelMesh_Load(const char* path, sc_OBJ_ModelFileReadingFunction fileReader);
 
 /* === Model Parsing === */
 
@@ -135,7 +135,7 @@ saci_Bool sc_OBJ_Parse(const char* filePath, sc_OBJ_ModelFileReadingFunction fil
                        saci_u64* texcoordCount, struct sc_VertexIndice** indices,
                        saci_u64* indicesCount);
 
-void      sc_ModelMesh_Delete(sc_ModelMesh* modelMesh);
+void      sc_ModelMesh_Delete(struct sc_ModelMesh_c* modelMesh);
 
 /* === OpenGL Helpers === */
 
