@@ -111,9 +111,9 @@ saci_Vec2 sc_Vertice_GetTexcoord(const sc_Vertice* vertice) {
 
 sc_Vertice* sc_Vertice_CreateVertice(saci_Vec3 position, saci_Color color, saci_Vec2 texcood) {
     sc_Vertice* vertice = (sc_Vertice*)malloc(sizeof(sc_Vertice));
-    vertice->pos        = position;
-    vertice->color      = color;
-    vertice->texCoord   = texcood;
+    vertice->pos = position;
+    vertice->color = color;
+    vertice->texCoord = texcood;
     return vertice;
 }
 
@@ -126,15 +126,15 @@ void sc_Vertice_GetArrayInfo(sc_Vertice* vertexArray, saci_u64 vertexArraySize,
         return;
     }
     *positions = (saci_Vec3*)malloc(sizeof(saci_Vec3) * vertexArraySize);
-    *colors    = (saci_Color*)malloc(sizeof(saci_Color) * vertexArraySize);
+    *colors = (saci_Color*)malloc(sizeof(saci_Color) * vertexArraySize);
     *texcoords = (saci_Vec2*)malloc(sizeof(saci_Vec2) * vertexArraySize);
     // TODO check errors
 
     for (saci_u64 i = 0; i < vertexArraySize; ++i) {
         sc_Vertice vertex = vertexArray[i];
-        (*positions)[i]   = vertex.pos;
-        (*colors)[i]      = vertex.color;
-        (*texcoords)[i]   = vertex.texCoord;
+        (*positions)[i] = vertex.pos;
+        (*colors)[i] = vertex.color;
+        (*texcoords)[i] = vertex.texCoord;
     }
 }
 
@@ -221,7 +221,7 @@ void sc_Renderer_ResizeRenderBuffer(sc_Renderer* renderer, saci_u64 newSize) {
     memcpy(newRenderCalls, renderBatch->renderCalls, renderBatch->renderCallCount * sizeof(sc_RenderCall));
     free(renderBatch->renderCalls);
     renderBatch->renderCalls = newRenderCalls;
-    renderBatch->capacity    = newSize;
+    renderBatch->capacity = newSize;
     SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_RENDERER,
                    "RenderBatch resized successfully");
     assert(renderer->renderBatch.renderCalls); // TODO SACI_ASSERT
@@ -369,7 +369,7 @@ sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3* verticesPos,
     assert(verticePosAmount < SACI_RENDER_BATCH_DEFAULT_CAPACITY);
 
     mesh->verticesAmount = verticePosAmount;
-    mesh->indicesAmount  = indiceAmount;
+    mesh->indicesAmount = indiceAmount;
 
     mesh->vertices =
         (sc_Vertice*)malloc(sizeof(sc_Vertice) * mesh->verticesAmount);
@@ -381,9 +381,9 @@ sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3* verticesPos,
     for (saci_u64 i = 0; i < verticePosAmount; i++) {
         float r =
             (rand() % 10001) / 10000.0f; // Generates a float between 0 and 1
-        float g                    = (rand() % 10001) / 10000.0f;
-        float b                    = (rand() % 10001) / 10000.0f;
-        mesh->vertices[i].pos      = verticesPos[i];
+        float g = (rand() % 10001) / 10000.0f;
+        float b = (rand() % 10001) / 10000.0f;
+        mesh->vertices[i].pos = verticesPos[i];
         mesh->vertices[i].texCoord = verticesTexcoord[i];
         mesh->vertices[i].color =
             (saci_Color){r, g, b, 1.0f}; // Default white color
@@ -410,12 +410,12 @@ sc_ModelMesh* sc_ModelMesh_Create(saci_Vec3* verticesPos,
 }
 
 sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_OBJ_ModelFileReadingFunction fileReader) {
-    saci_Vec3* verticesPos           = NULL;
-    saci_u64 verticesAmount          = 0;
-    saci_Vec2* verticesTexCoords     = NULL;
+    saci_Vec3* verticesPos = NULL;
+    saci_u64 verticesAmount = 0;
+    saci_Vec2* verticesTexCoords = NULL;
     saci_u64 verticesTexCoordsAmount = 0;
-    struct sc_VertexIndice* indices  = NULL;
-    saci_u64 indicesAmount           = 0;
+    struct sc_VertexIndice* indices = NULL;
+    saci_u64 indicesAmount = 0;
 
     if (!sc_OBJ_Parse(path, fileReader, &verticesPos, &verticesAmount,
                       &verticesTexCoords, &verticesTexCoordsAmount, &indices,
@@ -441,11 +441,11 @@ void sc_ModelMesh_Delete(sc_ModelMesh* modelMesh) {
 /* === Helper Implementation === */
 
 void __sc_Renderer_RemoveGarbageNumbers(sc_Renderer* renderer) {
-    renderer->renderBatch.renderCalls     = NULL;
+    renderer->renderBatch.renderCalls = NULL;
     renderer->renderBatch.renderCallCount = 0;
-    renderer->renderBatch.capacity        = 0;
-    renderer->vao                         = 0;
-    renderer->vbo                         = 0;
+    renderer->renderBatch.capacity = 0;
+    renderer->vao = 0;
+    renderer->vbo = 0;
 }
 
 void __sc_Renderer_InitAll(sc_Renderer* renderer) {
@@ -472,14 +472,14 @@ sc_RenderCall __sc_RenderCall_Create(Arena* arena, sc_Vertice* vertices, saci_u6
     memcpy(arenaVertices, vertices, sizeof(sc_Vertice) * verticesAmount);
 
     sc_RenderCall renderCall = {
-        .vertices      = arenaVertices,
+        .vertices = arenaVertices,
         .verticeAmount = verticesAmount,
 
         .indiceAmount = indicesAmount,
 
         .renderMode = renderMode,
-        .textureID  = texID,
-        .ibo        = ibo,
+        .textureID = texID,
+        .ibo = ibo,
 
         .modelMatrix = modelMatrix,
     };
@@ -500,7 +500,7 @@ void __sc_RenderBatch_Push(sc_RenderBatch* renderBatch,
 
 void __sc_RenderBatch_Empty(sc_RenderBatch* renderBatch) {
     renderBatch->renderCallCount = 0;
-    renderBatch->renderCalls     = NULL;
+    renderBatch->renderCalls = NULL;
 }
 
 void __sc_RenderBatch_Free(sc_RenderBatch* renderBatch) {
@@ -585,15 +585,15 @@ void __sc_Renderer_InitShaderProgram(sc_Renderer* renderer) {
 
 void __sc_Renderer_SetUniform(sc_Renderer* renderer, const sc_Camera* camera,
                               saci_Mat4 modelMatrix, bool useTexture) {
-    saci_Mat4 view       = {0};
+    saci_Mat4 view = {0};
     saci_Mat4 projection = {0};
 
-    int viewLoc         = glGetUniformLocation(renderer->shaderProgram, "uViewMatrix");
-    int projLoc         = glGetUniformLocation(renderer->shaderProgram, "uProjectionMatrix");
-    int useCamLoc       = glGetUniformLocation(renderer->shaderProgram, "uUseCam");
+    int viewLoc = glGetUniformLocation(renderer->shaderProgram, "uViewMatrix");
+    int projLoc = glGetUniformLocation(renderer->shaderProgram, "uProjectionMatrix");
+    int useCamLoc = glGetUniformLocation(renderer->shaderProgram, "uUseCam");
     int uModelMatrixLoc = glGetUniformLocation(renderer->shaderProgram, "uModelMatrix");
-    int uTextureLoc     = glGetUniformLocation(renderer->shaderProgram, "uTexture");
-    int uUseTextureLoc  = glGetUniformLocation(renderer->shaderProgram, "uUseTexture");
+    int uTextureLoc = glGetUniformLocation(renderer->shaderProgram, "uTexture");
+    int uUseTextureLoc = glGetUniformLocation(renderer->shaderProgram, "uUseTexture");
 
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view.m[0][0]);
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m[0][0]);

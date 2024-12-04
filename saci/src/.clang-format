@@ -2,9 +2,9 @@
 IndentWidth: 4
 ColumnLimit: 0
 SortIncludes: false                    # DO NOT CHANGE
-AlignTrailingComments: false           # Do not align comments
+AlignTrailingComments: true            # Do not align comments
 AlignConsecutiveDeclarations: false    # Align consecutive declarations
-AlignConsecutiveAssignments: true      # Align consecutive assignments
+AlignConsecutiveAssignments: false     # Align consecutive assignments
 PointerAlignment: Left                 # Asterisk closest to type
 AllowShortFunctionsOnASingleLine: None
 BreakBeforeBraces: Custom
