@@ -11,7 +11,7 @@
 
 sc_Window_t* window;
 sc_Renderer_t* renderer;
-sc_Camera camera;
+struct sc_Camera_c camera;
 const float cameraSpeed = 0.3f;
 
 void init_saci(void) {

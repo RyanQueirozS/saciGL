@@ -12,7 +12,7 @@
 
 typedef void (*sc_Event_Mouse_Pos_Handler_t)(sc_Window_t* window, double posx, double posy);
 
-typedef enum sc_Keycode_e {
+enum sc_Keycode_e {
     sa_KEY_SPACE         = 32,
     sa_KEY_APOSTROPHE    = 39, /* ' */
     sa_KEY_COMMA         = 44, /* , */
@@ -134,7 +134,7 @@ typedef enum sc_Keycode_e {
     sa_KEY_RIGHT_SUPER   = 347,
     sa_KEY_MENU          = 348,
     sa_KEY_LAST          = sa_KEY_MENU,
-} sc_Keycode;
+};
 
 void      sc_Event_Poll();
 
@@ -146,6 +146,6 @@ void      sc_Event_Post_Empty();
 
 void      sc_Event_SetMousePosHandler(sc_Window_t* window, sc_Event_Mouse_Pos_Handler_t mouse_pos_handler);
 
-saci_Bool sc_Event_IsKeyPressed(sc_Window_t* window, sc_Keycode keycode);
+saci_Bool sc_Event_IsKeyPressed(sc_Window_t* window, enum sc_Keycode_e keycode);
 
 #endif

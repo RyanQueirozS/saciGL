@@ -7,7 +7,7 @@
 
 #include "saci-utils/su-types.h"
 
-typedef struct sc_Camera {
+struct sc_Camera_c {
     saci_Vec3 position;
     saci_Vec3 target;
     saci_Vec3 up;
@@ -16,8 +16,8 @@ typedef struct sc_Camera {
     float     aspectRatio;
     float     near;
     float     far;
-} sc_Camera;
+};
 
-sc_Camera sc_Camera_Get_Default(void);
+struct sc_Camera_c sc_Camera_Get_Default(void);
 
 #endif

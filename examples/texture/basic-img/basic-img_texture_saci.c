@@ -10,7 +10,7 @@
 
 sc_Window_t* window;
 sc_Renderer_t* renderer;
-sc_Camera camera;
+struct sc_Camera_c camera;
 
 saci_Vec3 triangleVertices[4] = {
     {-1.0f, -1.0f, 0.0f}, // Vertex 1: bottom-left corner

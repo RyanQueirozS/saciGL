@@ -29,9 +29,9 @@ void         sc_Window_Make_Context(sc_Window_t* window);
 
 saci_Bool    sc_Window_Should_Close(sc_Window_t* window);
 
-void         sc_Window_Set_Pos_Handler(sc_Window_t* window, sc_Window_PosHandler_t windowPosHandler);
+void         sc_Window_Set_Pos_Handler(sc_Window_t* window, sc_Window_PosHandler_t window_pos_handler);
 
-void         sc_Window_Set_Size_Handler(sc_Window_t* window, sc_Window_SizeHandler_t windowSizeHandler);
+void         sc_Window_Set_Size_Handler(sc_Window_t* window, sc_Window_SizeHandler_t window_size_handler);
 
 void         sc_Window_Terminate(void);
 
@@ -43,7 +43,7 @@ void         sc_Window_Swap_Buffer(sc_Window_t* window);
 
 typedef struct sc_Renderer sc_Renderer_t;
 
-typedef saci_Mat4 (*sc_Renderer_Custom_Projection_Func)(sc_Camera camera);
+typedef saci_Mat4 (*sc_Renderer_Custom_Projection_Func)(struct sc_Camera_c camera);
 
 struct sc_ModelMesh_c;
 
@@ -61,16 +61,14 @@ saci_Color           sc_Vertice_GetColor(const struct sc_Vertice_c* vertice);
 
 saci_Vec2            sc_Vertice_GetTexcoord(const struct sc_Vertice_c* vertice);
 
+void                 sc_Vertice_GetArrayInfo(struct sc_Vertice_c* vertex_array, saci_u64 vertex_array_size_out,
+                                             saci_Vec3**  positions_out,
+                                             saci_Color** colors_out,
+                                             saci_Vec2**  texcoords_out);
 struct sc_Vertice_c* sc_Vertice_CreateVertice(saci_Vec3 position, saci_Color color, saci_Vec2 texcood);
-
-void                 sc_Vertice_GetArrayInfo(struct sc_Vertice_c* vertexArray, saci_u64 vertexArraySize,
-                                             saci_Vec3**  positions,
-                                             saci_Color** colors,
-                                             saci_Vec2**  texcoords);
 
 struct sc_Vertice_c* sc_Vertice_CreateVerticesArray(saci_Vec3* positions, saci_Color* colors,
                                                     saci_Vec2* texcoords, saci_u64 amount);
-
 struct sc_Vertice_c* sc_ModelMesh_GetVertices(const struct sc_ModelMesh_c* modelMesh);
 
 saci_u64             sc_ModelMesh_GetVerticesAmount(const struct sc_ModelMesh_c* modelMesh);
@@ -106,7 +104,7 @@ void                 sc_Renderer_SetCustomProjectionModeFunction(sc_Renderer_Cus
 
 void                 sc_Renderer_Begin(sc_Renderer_t* renderer);
 
-void                 sc_Renderer_End(sc_Renderer_t* renderer, const sc_Camera* camera);
+void                 sc_Renderer_End(sc_Renderer_t* renderer, const struct sc_Camera_c* camera);
 
 void                 sc_Renderer_PushVertices(sc_Renderer_t*       renderer,
                                               struct sc_Vertice_c* vertices, saci_u64 verticeAmount,

@@ -21,7 +21,7 @@ void sc_Event_SetMousePosHandler(sc_Window_t* window,
     glfwSetCursorPosCallback(window, mouse_pos_handler);
 }
 
-saci_Bool sc_Event_IsKeyPressed(sc_Window_t* window, sc_Keycode keycode) {
+saci_Bool sc_Event_IsKeyPressed(sc_Window_t* window, enum sc_Keycode_e keycode) {
     int key_state = glfwGetKey(window, keycode);
     if (key_state == GLFW_PRESS)
         return SACI_TRUE;

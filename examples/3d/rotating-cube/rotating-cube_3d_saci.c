@@ -7,7 +7,7 @@
 #include <saci-utils/su-general.h>
 #include <stdlib.h>
 
-sc_Camera camera;
+struct sc_Camera_c camera;
 sc_Renderer_t* renderer;
 sc_Window_t* window;
 
