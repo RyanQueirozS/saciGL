@@ -40,7 +40,7 @@ saci_u32 indices[6] = {
 };
 
 static void init_saci() {
-    saci_InitMath();
+    sa_Math_Init();
     assert(sc_GLFW_Init());
     window = sc_Window_Create(1600, 900, "SACI ROTATING-CUBE 3D", NULL, NULL);
     assert(window);
@@ -67,10 +67,10 @@ int main() {
     int tex = sc_Texture_Load("./texture/basic-img/cat-standing-up.png", false);
     assert(tex);
     saci_Color bgColor =
-        saci_ColorFromU8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
+        sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
     struct sc_Vertice_c* vertices =
         sc_Vertice_CreateVerticesArray(triangleVertices, vertexColors, uvCoords, 4);
-    saci_Mat4 modelMatrix = saci_IdentityMat4();
+    saci_Mat4 modelMatrix = sa_Mat4_Identity();
     while (!sc_Window_Should_Close(window)) {
         sc_Window_Clear_Color(bgColor);
 

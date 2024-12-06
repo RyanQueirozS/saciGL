@@ -11,34 +11,22 @@
 #define __SACI_UTILS_SU_GENERAL_H__
 
 #ifdef __cplusplus
-/**
- * @def SACI_PI
- * @brief Casts a type using static_cast from C++
- * @param type Type to cast
- */
-#define SACI_SCAST_TO(type) static_cast<type>
+
+#define sa_SCAST_TO_m(type) static_cast<type>
 #else
-/**
- * @def SACI_PI
- * @brief Casts a type using C style casting
- *
- * @param type Type to cast
- */
-#define SACI_SCAST_TO(type) (type)
+#define sa_SCAST_TO_m(type) (type)
 #endif
 
-/**
- * @def SACI_ARRLEN
- * @brief Macro to get array length
- *
- * @param array Array to get length
- * @return The length of the array
- */
-#define SACI_ARRLEN(array) (sizeof(array) / sizeof(array[0]))
+#define sa_ARRLEN_m(array) (sizeof(array) / sizeof(array[0]))
 
-#ifndef SACI_ASSERT
+#ifndef sa_MALLOC
+#include <malloc.h>
+#define sa_MALLOC malloc
+#endif // sa_MALLOC
+
+#ifndef sa_ASSERT
 #include <assert.h>
-#define SACI_ASSERT assert
-#endif // SACI_ASSERT
+#define sa_ASSERT assert
+#endif // sa_ASSERT
 
 #endif

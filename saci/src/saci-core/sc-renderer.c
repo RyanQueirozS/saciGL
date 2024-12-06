@@ -463,11 +463,11 @@ sc_RenderCall __sc_RenderCall_Create(Arena* arena, struct sc_Vertice_c* vertices
                                      saci_u64 indicesAmount,
                                      int renderMode, saci_TextureID texID, saci_u32 ibo,
                                      saci_Mat4 modelMatrix) {
-    SACI_ASSERT(arena);
-    SACI_ASSERT(vertices);
+    sa_ASSERT(arena);
+    sa_ASSERT(vertices);
 
     struct sc_Vertice_c* arenaVertices = ArenaAlloc(arena, sizeof(struct sc_Vertice_c) * verticesAmount);
-    SACI_ASSERT(arenaVertices);
+    sa_ASSERT(arenaVertices);
 
     memcpy(arenaVertices, vertices, sizeof(struct sc_Vertice_c) * verticesAmount);
 
@@ -612,16 +612,16 @@ void __sc_Renderer_SetUniform(sc_Renderer_t* renderer, const struct sc_Camera_c*
         return;
     }
 
-    view = saci_LookAtMat4(camera->position, camera->target, camera->up);
+    view = sa_Mat4_Look_At(camera->position, camera->target, camera->up);
 
     switch (sc_RenderConfig.projectionMode) {
     case sa_RENDER_ORTHOGRAPHIC_PROJECTION: {
-        projection = saci_OrthoMat4(-1, 1, -1, 1, camera->near, camera->far);
+        projection = sa_Mat4_Ortho(-1, 1, -1, 1, camera->near, camera->far);
         break;
     }
     case sa_RENDER_PERSPECTIVE_PROJECTION: {
-        projection = saci_PerspectiveMat4(camera->fov, camera->aspectRatio,
-                                          camera->near, camera->far);
+        projection = sa_Mat4_Perspective(camera->fov, camera->aspectRatio,
+                                         camera->near, camera->far);
         break;
     }
     case sa_RENDER_CUSTOM_PROJECTION: {

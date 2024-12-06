@@ -48,7 +48,7 @@ saci_u32 cubeIndices[] = {
 };
 
 void init_saci() {
-    saci_InitMath();
+    sa_Math_Init();
     assert(sc_GLFW_Init());
     window = sc_Window_Create(1600, 900, "SACI ROTATING-CUBE 3D", NULL, NULL);
     assert(window);
@@ -74,10 +74,10 @@ int main() {
 
     saci_Vec3 rotation = {0, 0, 0};
     saci_Mat4 modelMatrix =
-        saci_Mat4_ModelMatrix((saci_Vec3){0, 0, 0}, rotation, (saci_Vec3){1, 1, 1});
+        sa_Mat4_Model_Matrix((saci_Vec3){0, 0, 0}, rotation, (saci_Vec3){1, 1, 1});
 
     saci_Color bgColor =
-        saci_ColorFromU8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
+        sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
     while (!sc_Window_Should_Close(window)) {
         sc_Window_Clear_Color(bgColor);
 
@@ -93,8 +93,7 @@ int main() {
             rotation.x += 0.01;
             rotation.z += 0.01;
             rotation.y += 0.01;
-            modelMatrix =
-                saci_Mat4_ModelMatrix((saci_Vec3){0, 0, 0}, rotation, (saci_Vec3){1, 1, 1});
+            modelMatrix = sa_Mat4_Model_Matrix((saci_Vec3){0, 0, 0}, rotation, (saci_Vec3){1, 1, 1});
         }
     }
 }

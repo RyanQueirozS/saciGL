@@ -12,10 +12,8 @@
 
 #include "saci-utils/su-types.h"
 
-// TODO add a level and a type log
-
 enum sa_Log_Type_e {
-    sa_LOG_TYPE_DEBUG = -1, // Should not be used unless debug enabled
+    sa_LOG_TYPE_DEBUG = -1,
     sa_LOG_TYPE_INFO  = 0,
 
     sa_LOG_TYPE_WARN  = 1,

@@ -15,7 +15,7 @@ struct sc_Camera_c camera;
 const float cameraSpeed = 0.3f;
 
 void init_saci(void) {
-    saci_InitMath();
+    sa_Math_Init();
     assert(sc_GLFW_Init());
     window = sc_Window_Create(1600, 900, "SACI ROTATING-CUBE 3D", NULL, NULL);
     assert(window);
@@ -33,19 +33,19 @@ void init_saci(void) {
 }
 
 void handle_keyboard(void) {
-    saci_Vec3 forward = saci_NormalizeVec3(saci_SubtractVec3(camera.target, camera.position));
-    saci_Vec3 right = saci_NormalizeVec3(saci_CrossVec3(forward, camera.up));
+    saci_Vec3 forward = sa_Vec3_Normalize(sa_Vec3_Subtract(camera.target, camera.position));
+    saci_Vec3 right = sa_Vec3_Normalize(sa_Vec3_Cross(forward, camera.up));
     if (sc_Event_IsKeyPressed(window, sa_KEY_W)) {
-        camera.position = saci_AddVec3(camera.position, saci_MultiplyVec3(forward, cameraSpeed));
+        camera.position = sa_Vec3_Add(camera.position, sa_Vec3_Scale(forward, cameraSpeed));
     }
     if (sc_Event_IsKeyPressed(window, sa_KEY_A)) {
-        camera.position = saci_SubtractVec3(camera.position, saci_MultiplyVec3(right, cameraSpeed));
+        camera.position = sa_Vec3_Subtract(camera.position, sa_Vec3_Scale(right, cameraSpeed));
     }
     if (sc_Event_IsKeyPressed(window, sa_KEY_S)) {
-        camera.position = saci_SubtractVec3(camera.position, saci_MultiplyVec3(forward, cameraSpeed));
+        camera.position = sa_Vec3_Subtract(camera.position, sa_Vec3_Scale(forward, cameraSpeed));
     }
     if (sc_Event_IsKeyPressed(window, sa_KEY_D)) {
-        camera.position = saci_AddVec3(camera.position, saci_MultiplyVec3(right, cameraSpeed));
+        camera.position = sa_Vec3_Add(camera.position, sa_Vec3_Scale(right, cameraSpeed));
     }
     if (sc_Event_IsKeyPressed(window, sa_KEY_SPACE)) {
         camera.position.y += cameraSpeed;
@@ -94,7 +94,7 @@ void file_read(void* ctx, const char* filename, int isMtl, const char* objFilena
 int main(void) {
     init_saci();
     saci_Color bgColor =
-        saci_ColorFromU8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
+        sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
 
     struct sc_ModelMesh_c* mesh;
 
@@ -113,7 +113,7 @@ int main(void) {
     camera.position.z = -3;
     camera.target = modelPos;
 
-    modelMatrix = saci_Mat4_ModelMatrix(modelPos, modelRot, modelScale);
+    modelMatrix = sa_Mat4_Model_Matrix(modelPos, modelRot, modelScale);
 
     while (!sc_Window_Should_Close(window)) {
         sc_Window_Clear_Color(bgColor);

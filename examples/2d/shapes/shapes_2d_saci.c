@@ -41,18 +41,18 @@ int main() {
         assert(window);
         sc_Window_Make_Context(window);
         assert(sc_GLAD_Init());
-        saci_InitMath();
+        sa_Math_Init();
     }
 
     // Generates defaulted shaders, vertex and array objects
     renderer = sc_Renderer_CreateDefault();
     assert(renderer);
 
-    saci_Color bgColor = saci_ColorFromU8(25, 70, 125, 255);
+    saci_Color bgColor = sa_Color_From_U8(25, 70, 125, 255);
     struct sc_Vertice_c* vertices =
         sc_Vertice_CreateVerticesArray(triangleVert, triangleColor, NULL, verticeAmount);
 
-    saci_Mat4 modelMatrix = saci_IdentityMat4(); // Generate a defaulted mat4 as modelMatrix
+    saci_Mat4 modelMatrix = sa_Mat4_Identity(); // Generate a defaulted mat4 as modelMatrix
 
     while (!sc_Window_Should_Close(window)) {
         sc_Window_Clear_Color(bgColor);

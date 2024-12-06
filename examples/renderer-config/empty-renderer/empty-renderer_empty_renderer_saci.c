@@ -7,7 +7,7 @@
 #define MY_RENDER_BATCH_SIZE 1024 // doesn't need to be the same as the above
 
 void init_saci(void) {
-    saci_InitMath();
+    sa_Math_Init();
 
     sc_Renderer_t* renderer = sc_Renderer_CreateEmpty();
     sc_Renderer_InitMemoryContext(renderer, MY_MEMORY_ARENA_CONTEXT_SIZE);
