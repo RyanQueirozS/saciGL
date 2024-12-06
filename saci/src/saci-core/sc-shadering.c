@@ -9,27 +9,27 @@
  * @param shaderSource The source code of the shader.
  * @param shaderType The shader type (SACI_SHADER_VERTEX, SACI_SHADER_FRAGMENT...).
  */
-saci_u32 __sc_shader_compile(const char* shaderSource, saci_u32 shaderType);
+sa_U32_t __sc_shader_compile(const char* shaderSource, sa_U32_t shaderType);
 
-saci_u32 sc_Shader_CompileShaderV(const char* source) {
+sa_U32_t sc_Shader_CompileShaderV(const char* source) {
     return __sc_shader_compile(source, GL_VERTEX_SHADER);
 }
 
-saci_u32 sc_Shader_CompileShaderF(const char* source) {
+sa_U32_t sc_Shader_CompileShaderF(const char* source) {
     return __sc_shader_compile(source, GL_FRAGMENT_SHADER);
 }
 
-saci_u32 sc_Shader_CompileShaderG(const char* source) {
+sa_U32_t sc_Shader_CompileShaderG(const char* source) {
     return __sc_shader_compile(source, GL_GEOMETRY_SHADER);
 }
 
-saci_u32 sc_Shader_GetShaderProgram(saci_u32 vshader, saci_u32 fshader) {
-    saci_u32 programID = glCreateProgram();
+sa_U32_t sc_Shader_GetShaderProgram(sa_U32_t vshader, sa_U32_t fshader) {
+    sa_U32_t programID = glCreateProgram();
     glAttachShader(programID, vshader);
     glAttachShader(programID, fshader);
     glLinkProgram(programID);
 
-    saci_s32 success = GL_FALSE;
+    sa_S32_t success = GL_FALSE;
     glGetProgramiv(programID, GL_LINK_STATUS, &success);
     if (!success) {
         char glErrMessage[1024];
@@ -51,14 +51,14 @@ saci_u32 sc_Shader_GetShaderProgram(saci_u32 vshader, saci_u32 fshader) {
     return programID;
 }
 
-saci_u32 sc_Shader_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u32 gshader) {
-    saci_u32 programID = glCreateProgram();
+sa_U32_t sc_Shader_GetShaderProgramg(sa_U32_t vshader, sa_U32_t fshader, sa_U32_t gshader) {
+    sa_U32_t programID = glCreateProgram();
     glAttachShader(programID, vshader);
     glAttachShader(programID, fshader);
     glAttachShader(programID, gshader);
     glLinkProgram(programID);
 
-    saci_s32 success = GL_FALSE;
+    sa_S32_t success = GL_FALSE;
     glGetProgramiv(programID, GL_LINK_STATUS, &success);
     if (!success) {
         char glErrMessage[1024];
@@ -83,8 +83,8 @@ saci_u32 sc_Shader_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u3
 }
 
 // helper
-saci_u32 __sc_shader_compile(const char* shaderSource, saci_u32 shaderType) {
-    saci_u32 shaderID = glCreateShader(shaderType);
+sa_U32_t __sc_shader_compile(const char* shaderSource, sa_U32_t shaderType) {
+    sa_U32_t shaderID = glCreateShader(shaderType);
 
     glShaderSource(shaderID, 1, &shaderSource, NULL);
     glCompileShader(shaderID);

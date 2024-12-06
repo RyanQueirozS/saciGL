@@ -8,9 +8,9 @@
 #include "saci-utils/su-types.h"
 
 struct sc_Camera_c {
-    saci_Vec3 position;
-    saci_Vec3 target;
-    saci_Vec3 up;
+    sa_Vec3_t position;
+    sa_Vec3_t target;
+    sa_Vec3_t up;
 
     float     fov;
     float     aspectRatio;

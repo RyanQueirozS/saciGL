@@ -8,13 +8,13 @@
 #include "saci-testing.h"
 #include "saci-utils/su-types.h"
 
-static void __GenerateTriangulatedOBJFile(const char *path, saci_Vec3 **positionArray,
+static void __GenerateTriangulatedOBJFile(const char *path, sa_Vec3_t **positionArray,
                                           saci_u64 *positionArrayAmount, saci_Vec2 **texcoordArray,
                                           saci_u64 *texcoordArrayAmount,
                                           struct sc_VertexIndice **indicesArray,
                                           saci_u64 *indicesArrayAmount);
 
-static void __GenerateNonTriangulatedOBJFile(const char *pathconst, saci_Vec3 **positionArray,
+static void __GenerateNonTriangulatedOBJFile(const char *pathconst, sa_Vec3_t **positionArray,
                                              saci_u64 *positionArrayAmount,
                                              saci_Vec2 **texcoordArray,
                                              saci_u64 *texcoordArrayAmount,
@@ -31,7 +31,7 @@ static void TestOBJParse(void) {
     { /* Should load the information correctly for TRIANGULATED faces */
         const char *path = "./assets/test-file-1.obj";
 
-        saci_Vec3 *positionsExpected;
+        sa_Vec3_t *positionsExpected;
         saci_u64 positionsAmountExpected;
         saci_Vec2 *texcoordsExpected;
         saci_u64 texcoordAmountExpected;
@@ -42,7 +42,7 @@ static void TestOBJParse(void) {
                                       &texcoordsExpected, &texcoordAmountExpected, &indicesExpected,
                                       &indicesAmountExpected);
 
-        saci_Vec3 *positions;
+        sa_Vec3_t *positions;
         saci_u64 positionsAmount;
         saci_Vec2 *texcoords;
         saci_u64 texcoordAmount;
@@ -90,7 +90,7 @@ static void TestOBJParse(void) {
     {
         const char *path = "./assets/test-file-2.obj";
 
-        saci_Vec3 *positionsExpected;
+        sa_Vec3_t *positionsExpected;
         saci_u64 positionsAmountExpected;
         saci_Vec2 *texcoordsExpected;
         saci_u64 texcoordAmountExpected;
@@ -101,7 +101,7 @@ static void TestOBJParse(void) {
                                          &texcoordsExpected, &texcoordAmountExpected,
                                          &indicesExpected, &indicesAmountExpected);
 
-        saci_Vec3 *verticesPos;
+        sa_Vec3_t *verticesPos;
         saci_u64 verticesPosAmount;
         saci_Vec2 *verticesTexCoords;
         saci_u64 verticesTexCoordsAmount;
@@ -143,7 +143,7 @@ static void TestOBJParse(void) {
     }
 }
 
-static void __GenerateTriangulatedOBJFile(const char *pathconst, saci_Vec3 **positionArray,
+static void __GenerateTriangulatedOBJFile(const char *pathconst, sa_Vec3_t **positionArray,
                                           saci_u64 *positionArrayAmount, saci_Vec2 **texcoordArray,
                                           saci_u64 *texcoordArrayAmount,
                                           struct sc_VertexIndice **indicesArray,
@@ -157,7 +157,7 @@ static void __GenerateTriangulatedOBJFile(const char *pathconst, saci_Vec3 **pos
     *indicesArrayAmount = *positionArrayAmount * 3;
 
     // Allocate memory for vertices and texture coordinates
-    *positionArray = (saci_Vec3 *)malloc(sizeof(saci_Vec3) * (*positionArrayAmount));
+    *positionArray = (sa_Vec3_t *)malloc(sizeof(sa_Vec3_t) * (*positionArrayAmount));
     *texcoordArray = (saci_Vec2 *)malloc(sizeof(saci_Vec2) * (*texcoordArrayAmount));
     *indicesArray =
         (struct sc_VertexIndice *)malloc(sizeof(struct sc_VertexIndice) * (*indicesArrayAmount));
@@ -167,7 +167,7 @@ static void __GenerateTriangulatedOBJFile(const char *pathconst, saci_Vec3 **pos
         float posX = (rand() % 100 / 10.0f) - 5.0f;
         float posY = (rand() % 100 / 10.0f) - 5.0f;
         float posZ = (rand() % 100 / 10.0f) - 5.0f;
-        (*positionArray)[i] = (saci_Vec3){posX, posY, posZ};
+        (*positionArray)[i] = (sa_Vec3_t){posX, posY, posZ};
     }
 
     // Fill texcoord array with random values between 0.0 and 1.0
@@ -215,7 +215,7 @@ static void __GenerateTriangulatedOBJFile(const char *pathconst, saci_Vec3 **pos
     fclose(file);
 }
 
-static void __GenerateNonTriangulatedOBJFile(const char *pathconst, saci_Vec3 **positionArray,
+static void __GenerateNonTriangulatedOBJFile(const char *pathconst, sa_Vec3_t **positionArray,
                                              saci_u64 *positionArrayAmount,
                                              saci_Vec2 **texcoordArray,
                                              saci_u64 *texcoordArrayAmount,
@@ -230,7 +230,7 @@ static void __GenerateNonTriangulatedOBJFile(const char *pathconst, saci_Vec3 **
     *indicesArrayAmount = *positionArrayAmount; // Quad faces need 4 indices each
 
     // Allocate memory for vertices and texture coordinates
-    *positionArray = (saci_Vec3 *)malloc(sizeof(saci_Vec3) * (*positionArrayAmount));
+    *positionArray = (sa_Vec3_t *)malloc(sizeof(sa_Vec3_t) * (*positionArrayAmount));
     *texcoordArray = (saci_Vec2 *)malloc(sizeof(saci_Vec2) * (*texcoordArrayAmount));
     *indicesArray =
         (struct sc_VertexIndice *)malloc(sizeof(struct sc_VertexIndice) * (*indicesArrayAmount));
@@ -240,7 +240,7 @@ static void __GenerateNonTriangulatedOBJFile(const char *pathconst, saci_Vec3 **
         float posX = (rand() % 100 / 10.0f) - 5.0f;
         float posY = (rand() % 100 / 10.0f) - 5.0f;
         float posZ = (rand() % 100 / 10.0f) - 5.0f;
-        (*positionArray)[i] = (saci_Vec3){posX, posY, posZ};
+        (*positionArray)[i] = (sa_Vec3_t){posX, posY, posZ};
     }
 
     // Fill texcoord array with random values between 0.0 and 1.0

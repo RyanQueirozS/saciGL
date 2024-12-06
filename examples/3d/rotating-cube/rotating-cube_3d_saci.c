@@ -12,8 +12,8 @@ sc_Renderer_t* renderer;
 sc_Window_t* window;
 
 // Define the 8 vertices of a cube centered at the origin with side length 2
-saci_u64 verticeAmount = 8;
-saci_Vec3 verticesPos[] = {
+sa_U64_t verticeAmount = 8;
+sa_Vec3_t verticesPos[] = {
     {-1.0f, -1.0f, -1.0f}, // v0: Bottom-left-back
     {1.0f, -1.0f, -1.0f},  // v1: Bottom-right-back
     {1.0f, 1.0f, -1.0f},   // v2: Top-right-back
@@ -25,7 +25,7 @@ saci_Vec3 verticesPos[] = {
 };
 
 // Define colors for each vertex
-saci_Color colors[] = {
+sa_Color_t colors[] = {
     {1.0f, 0.0f, 0.0f, 1.0f}, // color0: Red
     {0.0f, 1.0f, 0.0f, 1.0f}, // color1: Green
     {0.0f, 0.0f, 1.0f, 1.0f}, // color2: Blue
@@ -37,8 +37,8 @@ saci_Color colors[] = {
 };
 
 // Define the indices for the triangles of each face of the cube
-saci_u64 indiceAmount = 36;
-saci_u32 cubeIndices[] = {
+sa_U64_t indiceAmount = 36;
+sa_U32_t cubeIndices[] = {
     0, 1, 2, 0, 2, 3, // Back face
     4, 5, 6, 4, 6, 7, // Front face
     0, 1, 5, 0, 5, 4, // Bottom face
@@ -72,17 +72,17 @@ int main() {
 
     struct sc_Vertice_c* vertices = sc_Vertice_CreateVerticesArray(verticesPos, colors, NULL, 8);
 
-    saci_Vec3 rotation = {0, 0, 0};
-    saci_Mat4 modelMatrix =
-        sa_Mat4_Model_Matrix((saci_Vec3){0, 0, 0}, rotation, (saci_Vec3){1, 1, 1});
+    sa_Vec3_t rotation = {0, 0, 0};
+    sa_Mat4_t modelMatrix =
+        sa_Mat4_Model_Matrix((sa_Vec3_t){0, 0, 0}, rotation, (sa_Vec3_t){1, 1, 1});
 
-    saci_Color bgColor =
+    sa_Color_t bgColor =
         sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
     while (!sc_Window_Should_Close(window)) {
         sc_Window_Clear_Color(bgColor);
 
         sc_Renderer_Begin(renderer);
-        saci_u32 ibo = sc_GL_CreateIndexBuffer(cubeIndices, indiceAmount);
+        sa_U32_t ibo = sc_GL_CreateIndexBuffer(cubeIndices, indiceAmount);
         sc_Renderer_PushVertices(renderer, vertices, verticeAmount, indiceAmount,
                                  modelMatrix, 0, ibo);
         sc_Renderer_End(renderer, &camera);
@@ -93,7 +93,7 @@ int main() {
             rotation.x += 0.01;
             rotation.z += 0.01;
             rotation.y += 0.01;
-            modelMatrix = sa_Mat4_Model_Matrix((saci_Vec3){0, 0, 0}, rotation, (saci_Vec3){1, 1, 1});
+            modelMatrix = sa_Mat4_Model_Matrix((sa_Vec3_t){0, 0, 0}, rotation, (sa_Vec3_t){1, 1, 1});
         }
     }
 }

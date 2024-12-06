@@ -13,26 +13,26 @@ static sc_Renderer_t* renderer;
 const int screen_width = 1600;
 const int screen_height = 900;
 
-saci_Vec3 triangleVert[3] = {
-    (saci_Vec3){.x = 1, .y = 0.4, 0},
-    (saci_Vec3){.x = 0.8, .y = 0.7, 0},
-    (saci_Vec3){.x = 0.3, .y = 0.1, 0},
+sa_Vec3_t triangleVert[3] = {
+    (sa_Vec3_t){.x = 1, .y = 0.4, 0},
+    (sa_Vec3_t){.x = 0.8, .y = 0.7, 0},
+    (sa_Vec3_t){.x = 0.3, .y = 0.1, 0},
 };
 
-saci_Color triangleColor[3] = {
-    (saci_Color){1, 0, 0, 1},
-    (saci_Color){0, 1, 0, 1},
-    (saci_Color){0, 0, 1, 1},
+sa_Color_t triangleColor[3] = {
+    (sa_Color_t){1, 0, 0, 1},
+    (sa_Color_t){0, 1, 0, 1},
+    (sa_Color_t){0, 0, 1, 1},
 };
 
-saci_u32 indices[3] = {
+sa_U32_t indices[3] = {
     0, // triangleVert[0]
     1, // triangleVert[1]
     2, // triangleVert[2]
 };
 
-saci_u64 verticeAmount = 3;
-saci_u64 indiceAmount = 3;
+sa_U64_t verticeAmount = 3;
+sa_U64_t indiceAmount = 3;
 
 int main() {
     {
@@ -48,17 +48,17 @@ int main() {
     renderer = sc_Renderer_CreateDefault();
     assert(renderer);
 
-    saci_Color bgColor = sa_Color_From_U8(25, 70, 125, 255);
+    sa_Color_t bgColor = sa_Color_From_U8(25, 70, 125, 255);
     struct sc_Vertice_c* vertices =
         sc_Vertice_CreateVerticesArray(triangleVert, triangleColor, NULL, verticeAmount);
 
-    saci_Mat4 modelMatrix = sa_Mat4_Identity(); // Generate a defaulted mat4 as modelMatrix
+    sa_Mat4_t modelMatrix = sa_Mat4_Identity(); // Generate a defaulted mat4 as modelMatrix
 
     while (!sc_Window_Should_Close(window)) {
         sc_Window_Clear_Color(bgColor);
 
         sc_Renderer_Begin(renderer);
-        saci_u32 ibo = sc_GL_CreateIndexBuffer(indices, indiceAmount);
+        sa_U32_t ibo = sc_GL_CreateIndexBuffer(indices, indiceAmount);
         sc_Renderer_PushVertices(renderer, vertices, verticeAmount, indiceAmount,
                                  modelMatrix, 0, ibo);
         sc_Renderer_End(renderer, NULL);

@@ -36,10 +36,10 @@
  * A pointer to the texture's raw pixel data.
  */
 typedef struct sc_TextureData {
-    int width;      /**< Width of the texture */
-    int height;     /**< Height of the texture */
-    int nrChannels; /**< Number of color channels (e.g., RGB or RGBA) */
-    saci_u8* data;  /**< Pointer to the raw texture data */
+    int      width;      /**< Width of the texture */
+    int      height;     /**< Height of the texture */
+    int      nrChannels; /**< Number of color channels (e.g., RGB or RGBA) */
+    sa_U8_t* data;       /**< Pointer to the raw texture data */
 } sc_TextureData;
 // TODO make the above private or remove it entirely
 
@@ -54,7 +54,7 @@ typedef struct sc_TextureData {
  * @param texData A pointer to an sc_TextureData structure that will hold the loaded
  * texture information.
  */
-void sc_Texture_LoadData(const char* path, saci_Bool flipImg, sc_TextureData* texData);
+void sc_Texture_LoadData(const char* path, sa_Bool_t flipImg, sc_TextureData* texData);
 
 /**
  * @brief Loads a texture from a file and creates an OpenGL texture.
@@ -68,7 +68,7 @@ void sc_Texture_LoadData(const char* path, saci_Bool flipImg, sc_TextureData* te
  * @param flipImg A boolean indicating whether the image should be flipped vertically.
  * @return A saci_TextureID representing the loaded texture in the GPU.
  */
-saci_TextureID sc_Texture_Load(const char* path, saci_Bool flipImg);
+sa_Texture_ID sc_Texture_Load(const char* path, sa_Bool_t flipImg);
 
 /**
  * @brief Frees the memory associated with an OpenGL texture.
@@ -79,6 +79,6 @@ saci_TextureID sc_Texture_Load(const char* path, saci_Bool flipImg);
  *
  * @param textureID The saci_TextureID of the texture to free.
  */
-void sc_Texture_Free(saci_TextureID textureID);
+void sc_Texture_Free(sa_Texture_ID textureID);
 
 #endif

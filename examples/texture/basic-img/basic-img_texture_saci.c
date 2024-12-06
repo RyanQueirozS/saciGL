@@ -12,14 +12,14 @@ sc_Window_t* window;
 sc_Renderer_t* renderer;
 struct sc_Camera_c camera;
 
-saci_Vec3 triangleVertices[4] = {
+sa_Vec3_t triangleVertices[4] = {
     {-1.0f, -1.0f, 0.0f}, // Vertex 1: bottom-left corner
     {1.0f, -1.0f, 0.0f},  // Vertex 2: bottom-right corner
     {-1.0f, 1.0f, 0.0f},  // Vertex 3: top-left corner
     {1.0f, 1.0f, 0.0f}    // Vertex 3: top-right corner
 };
 
-saci_Color vertexColors[4] = {
+sa_Color_t vertexColors[4] = {
     {1.0f, 0.0f, 0.0f, 1.0f}, // Red color for Vertex 1
     {0.0f, 1.0f, 0.0f, 1.0f}, // Green color for Vertex 2
     {0.0f, 0.0f, 1.0f, 1.0f}, // Blue color for Vertex 3
@@ -27,14 +27,14 @@ saci_Color vertexColors[4] = {
 };                            // NOTE: If you want the image to have it's "natural color", just set everything to
                               // white aka {1.0f,1.0f,1.0f,1.0f}
 
-saci_Vec2 uvCoords[4] = {
+sa_Vec2_t uvCoords[4] = {
     {0.0f, 0.0f}, // UV for Vertex 1 (bottom-left)
     {1.0f, 0.0f}, // UV for Vertex 2 (bottom-right)
     {0.0f, 1.0f}, // UV for Vertex 3 (top-left)
     {1.0f, 1.0f}  // UV for Vertex 4 (top-right)
 };
 
-saci_u32 indices[6] = {
+sa_U32_t indices[6] = {
     0, 1, 2, // first triangle
     1, 2, 3, // second triangle
 };
@@ -66,16 +66,16 @@ int main() {
     init_saci();
     int tex = sc_Texture_Load("./texture/basic-img/cat-standing-up.png", false);
     assert(tex);
-    saci_Color bgColor =
+    sa_Color_t bgColor =
         sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
     struct sc_Vertice_c* vertices =
         sc_Vertice_CreateVerticesArray(triangleVertices, vertexColors, uvCoords, 4);
-    saci_Mat4 modelMatrix = sa_Mat4_Identity();
+    sa_Mat4_t modelMatrix = sa_Mat4_Identity();
     while (!sc_Window_Should_Close(window)) {
         sc_Window_Clear_Color(bgColor);
 
         sc_Renderer_Begin(renderer);
-        saci_u32 ibo = sc_GL_CreateIndexBuffer(indices, 6);
+        sa_U32_t ibo = sc_GL_CreateIndexBuffer(indices, 6);
         sc_Renderer_PushVertices(renderer, vertices, 4, 6, modelMatrix, tex, ibo);
         sc_Renderer_End(renderer, &camera);
         sc_Window_Swap_Buffer(window);

@@ -5,19 +5,19 @@
 #include "saci-testing.h"
 #include "saci-utils/su-types.h"
 
-static saci_Vec3 __RandVec3(void) {
+static sa_Vec3_t __RandVec3(void) {
     float x = SACI_RAND_RANGE_FLOAT(5, true),
           y = SACI_RAND_RANGE_FLOAT(5, true),
           z = SACI_RAND_RANGE_FLOAT(5, true);
-    return (saci_Vec3){x, y, z};
+    return (sa_Vec3_t){x, y, z};
 }
 
-static saci_Color __RandColor(void) {
+static sa_Color_t __RandColor(void) {
     float r = SACI_RAND_RANGE_FLOAT(1, false),
           g = SACI_RAND_RANGE_FLOAT(1, false),
           b = SACI_RAND_RANGE_FLOAT(1, false),
           a = SACI_RAND_RANGE_FLOAT(1, false);
-    return (saci_Color){r, g, b, a};
+    return (sa_Color_t){r, g, b, a};
 }
 
 static saci_Vec2 __RandVec2(void) {
@@ -32,8 +32,8 @@ void saci_TestRendering(void) { saci_Test_Vertices(); }
 
 static void saci_Test_Vertices(void) {
     { /** === Creating vertices === **/
-        saci_Vec3 position = __RandVec3();
-        saci_Color color = __RandColor();
+        sa_Vec3_t position = __RandVec3();
+        sa_Color_t color = __RandColor();
         saci_Vec2 texcoord = __RandVec2();
         sc_Vertice *vertice =
             sc_Vertice_CreateVertice(position, color, texcoord);
@@ -51,9 +51,9 @@ static void saci_Test_Vertices(void) {
         free(vertice);
     }
     { /** === Creating vertice array === **/
-        saci_Vec3 positionsExpected[4] = {__RandVec3(), __RandVec3(),
+        sa_Vec3_t positionsExpected[4] = {__RandVec3(), __RandVec3(),
                                           __RandVec3(), __RandVec3()};
-        saci_Color colorsExpected[4] = {__RandColor(), __RandColor(),
+        sa_Color_t colorsExpected[4] = {__RandColor(), __RandColor(),
                                         __RandColor(), __RandColor()};
         saci_Vec2 texcoordsExpected[4] = {__RandVec2(), __RandVec2(),
                                           __RandVec2(), __RandVec2()};
@@ -61,8 +61,8 @@ static void saci_Test_Vertices(void) {
             positionsExpected, colorsExpected, texcoordsExpected, 4);
         assert(vertices);
 
-        saci_Vec3 *positions;
-        saci_Color *colors;
+        sa_Vec3_t *positions;
+        sa_Color_t *colors;
         saci_Vec2 *texcoords;
         sc_Vertice_GetArrayInfo(vertices, 4, &positions, &colors, &texcoords);
 

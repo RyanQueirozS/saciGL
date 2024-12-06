@@ -32,46 +32,46 @@ void sa_Math_Init();
 
 /* === Vec3 Operations === */
 
-saci_Vec3 sa_Vec3_Subtract(saci_Vec3 a, saci_Vec3 b);
+sa_Vec3_t sa_Vec3_Subtract(sa_Vec3_t a, sa_Vec3_t b);
 
-saci_Vec3 sa_Vec3_Add(saci_Vec3 a, saci_Vec3 b);
+sa_Vec3_t sa_Vec3_Add(sa_Vec3_t a, sa_Vec3_t b);
 
-saci_Vec3 sa_Vec3_Scale(saci_Vec3 v, float scalar);
+sa_Vec3_t sa_Vec3_Scale(sa_Vec3_t v, float scalar);
 
-saci_Vec3 sa_Vec3_Normalize(saci_Vec3 v);
+sa_Vec3_t sa_Vec3_Normalize(sa_Vec3_t v);
 
-saci_Vec3 sa_Vec3_Cross(saci_Vec3 a, saci_Vec3 b);
+sa_Vec3_t sa_Vec3_Cross(sa_Vec3_t a, sa_Vec3_t b);
 
-float     sa_Vec3_Dot(saci_Vec3 a, saci_Vec3 b);
+float     sa_Vec3_Dot(sa_Vec3_t a, sa_Vec3_t b);
 
 /* === Color Operations === */
 
-saci_Color sa_Color_From_Hex(saci_u32 hex);
+sa_Color_t sa_Color_From_Hex(sa_U32_t hex);
 
-saci_Color sa_Color_From_U8(saci_u8 r, saci_u8 g, saci_u8 b, saci_u8 a);
+sa_Color_t sa_Color_From_U8(sa_U8_t r, sa_U8_t g, sa_U8_t b, sa_U8_t a);
 
-saci_u32   sa_Color_To_Hex(saci_Color color);
+sa_U32_t   sa_Color_To_Hex(sa_Color_t color);
 
 /* === Mat Operations === */
 
-saci_Mat4 sa_Mat4_Multiply(saci_Mat4 a, saci_Mat4 b);
+sa_Mat4_t sa_Mat4_Multiply(sa_Mat4_t a, sa_Mat4_t b);
 
-saci_Mat4 sa_Mat4_Identity();
+sa_Mat4_t sa_Mat4_Identity();
 
-saci_Mat4 sa_Mat4_Look_At(saci_Vec3 eye, saci_Vec3 center, saci_Vec3 up);
+sa_Mat4_t sa_Mat4_Look_At(sa_Vec3_t eye, sa_Vec3_t center, sa_Vec3_t up);
 
-saci_Mat4 sa_Mat4_Perspective(float fov, float aspect, float near, float far);
+sa_Mat4_t sa_Mat4_Perspective(float fov, float aspect, float near, float far);
 
-saci_Mat4 sa_Mat4_Ortho(float left, float right, float bottom, float top, float near, float far);
+sa_Mat4_t sa_Mat4_Ortho(float left, float right, float bottom, float top, float near, float far);
 
-saci_Mat4 sa_Mat4_Rotate_X(saci_Mat4 mat, float angle);
+sa_Mat4_t sa_Mat4_Rotate_X(sa_Mat4_t mat, float angle);
 
-saci_Mat4 sa_Mat_Rotate_Y(saci_Mat4 mat, float angle);
+sa_Mat4_t sa_Mat_Rotate_Y(sa_Mat4_t mat, float angle);
 
-saci_Mat4 acMat4_Scale(float sx, float sy, float sz);
+sa_Mat4_t acMat4_Scale(float sx, float sy, float sz);
 
-saci_Mat4 sa_Mat4_Translate(float tx, float ty, float tz);
+sa_Mat4_t sa_Mat4_Translate(float tx, float ty, float tz);
 
-saci_Mat4 sa_Mat4_Model_Matrix(saci_Vec3 position, saci_Vec3 rotation, saci_Vec3 scale);
+sa_Mat4_t sa_Mat4_Model_Matrix(sa_Vec3_t position, sa_Vec3_t rotation, sa_Vec3_t scale);
 
 #endif

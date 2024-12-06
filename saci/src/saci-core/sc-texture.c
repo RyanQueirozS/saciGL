@@ -11,13 +11,13 @@
 // Helper functions
 //----------------------------------------------------------------------------//
 
-saci_Bool __sc_Image_IsLoaded(saci_u8* data);
+sa_Bool_t __sc_Image_IsLoaded(sa_U8_t* data);
 
-saci_s32 __sc_Texture_DetermineFormat(int nrChannels);
+sa_S32_t __sc_Texture_DetermineFormat(int nrChannels);
 
 //----------------------------------------------------------------------------//
 
-void sc_Texture_LoadData(const char* path, saci_Bool flipImg, sc_TextureData* texData) {
+void sc_Texture_LoadData(const char* path, sa_Bool_t flipImg, sc_TextureData* texData) {
     // @note flipImg is used with a `!` operator because stbi automatically flips the image
     stbi_set_flip_vertically_on_load(!flipImg);
     texData->data = stbi_load(path, &texData->width, &texData->height, &texData->nrChannels, 0);
@@ -27,7 +27,7 @@ void sc_Texture_LoadData(const char* path, saci_Bool flipImg, sc_TextureData* te
     }
 }
 
-saci_TextureID sc_Texture_Load(const char* path, saci_Bool flipImg) {
+sa_Texture_ID sc_Texture_Load(const char* path, sa_Bool_t flipImg) {
     sc_TextureData texData = {0};
     sc_Texture_LoadData(path, flipImg, &texData);
 
@@ -37,7 +37,7 @@ saci_TextureID sc_Texture_Load(const char* path, saci_Bool flipImg) {
         return 0;
     }
 
-    saci_s32 format = __sc_Texture_DetermineFormat(texData.nrChannels);
+    sa_S32_t format = __sc_Texture_DetermineFormat(texData.nrChannels);
     if (format == 0) {
         stbi_image_free(texData.data);
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
@@ -45,7 +45,7 @@ saci_TextureID sc_Texture_Load(const char* path, saci_Bool flipImg) {
         return 0;
     }
 
-    saci_TextureID id;
+    sa_Texture_ID id;
     glGenTextures(1, &id);
 
     glBindTexture(GL_TEXTURE_2D, id);
@@ -76,7 +76,7 @@ saci_TextureID sc_Texture_Load(const char* path, saci_Bool flipImg) {
     return id;
 }
 
-void sc_Texture_Free(saci_TextureID textureID) {
+void sc_Texture_Free(sa_Texture_ID textureID) {
 #if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_TEXTURE)
     char debugMsg[128];
     snprintf(debugMsg, sizeof(debugMsg), "Freed texture, id: %d", textureID);
@@ -89,11 +89,11 @@ void sc_Texture_Free(saci_TextureID textureID) {
 // Helper functions
 //----------------------------------------------------------------------------//
 
-saci_Bool __sc_Image_IsLoaded(saci_u8* data) {
+sa_Bool_t __sc_Image_IsLoaded(sa_U8_t* data) {
     return (data == NULL);
 }
 
-saci_s32 __sc_Texture_DetermineFormat(int nrChannels) {
+sa_S32_t __sc_Texture_DetermineFormat(int nrChannels) {
     if (nrChannels == 3)
         return GL_RGB;
     if (nrChannels == 4)

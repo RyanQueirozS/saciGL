@@ -33,8 +33,8 @@ void init_saci(void) {
 }
 
 void handle_keyboard(void) {
-    saci_Vec3 forward = sa_Vec3_Normalize(sa_Vec3_Subtract(camera.target, camera.position));
-    saci_Vec3 right = sa_Vec3_Normalize(sa_Vec3_Cross(forward, camera.up));
+    sa_Vec3_t forward = sa_Vec3_Normalize(sa_Vec3_Subtract(camera.target, camera.position));
+    sa_Vec3_t right = sa_Vec3_Normalize(sa_Vec3_Cross(forward, camera.up));
     if (sc_Event_IsKeyPressed(window, sa_KEY_W)) {
         camera.position = sa_Vec3_Add(camera.position, sa_Vec3_Scale(forward, cameraSpeed));
     }
@@ -93,7 +93,7 @@ void file_read(void* ctx, const char* filename, int isMtl, const char* objFilena
 
 int main(void) {
     init_saci();
-    saci_Color bgColor =
+    sa_Color_t bgColor =
         sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
 
     struct sc_ModelMesh_c* mesh;
@@ -106,10 +106,10 @@ int main(void) {
     }
 
     assert(mesh);
-    saci_Mat4 modelMatrix;
-    saci_Vec3 modelPos = {0, 0, 0};
-    saci_Vec3 modelRot = {0, 0, 0};
-    saci_Vec3 modelScale = {1, 1, 1};
+    sa_Mat4_t modelMatrix;
+    sa_Vec3_t modelPos = {0, 0, 0};
+    sa_Vec3_t modelRot = {0, 0, 0};
+    sa_Vec3_t modelScale = {1, 1, 1};
     camera.position.z = -3;
     camera.target = modelPos;
 

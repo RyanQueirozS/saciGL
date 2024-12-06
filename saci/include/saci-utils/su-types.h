@@ -17,142 +17,69 @@
 
 /* === Typedefs === */
 
-/**
- * @typedef saci_u64
- * @brief Unsigned 64-bit integer.
- */
-typedef uint64_t saci_u64;
+typedef uint64_t sa_U64_t;
 
-/**
- * @typedef saci_u32
- * @brief Unsigned 32-bit integer.
- */
-typedef uint32_t saci_u32;
+typedef uint32_t sa_U32_t;
 
-/**
- * @typedef saci_u16
- * @brief Unsigned 16-bit integer.
- */
-typedef uint16_t saci_u16;
+typedef uint16_t sa_U16_t;
 
-/**
- * @typedef saci_u8
- * @brief Unsigned 8-bit integer.
- */
-typedef uint8_t saci_u8;
+typedef uint8_t  sa_U8_t;
 
-/**
- * @typedef saci_s64
- * @brief Signed 64-bit integer.
- */
-typedef int64_t saci_s64;
+typedef int64_t  sa_S64_t;
 
-/**
- * @typedef saci_s32
- * @brief Signed 32-bit integer.
- */
-typedef int32_t saci_s32;
+typedef int32_t  sa_S32_t;
 
-/**
- * @typedef saci_s16
- * @brief Signed 16-bit integer.
- */
-typedef int16_t saci_s16;
+typedef int16_t  sa_S16_t;
 
-/**
- * @typedef saci_s8
- * @brief Signed 8-bit integer.
- */
-typedef int8_t saci_s8;
+typedef int8_t   sa_S8_t;
 
 /* === Boolean Constants === */
 
-/**
- * @def SACI_TRUE
- * @brief boolean true constant
- */
-#define SACI_TRUE true
+#define sa_TRUE true
 
-/**
- * @def SACI_FALSE
- * @brief boolean false constant
- */
-#define SACI_FALSE false
+#define sa_FALSE false
 
-/**
- * @typedef saci_Bool
- * @brief Boolean type for representing true/false.
- */
-typedef bool saci_Bool;
+typedef bool sa_Bool_t;
 
 /* === Identifiers === */
 
-/**
- * @typedef saci_ShaderID
- * @brief Represents an identifier for shaders (32-bit unsigned integer).
- */
-typedef saci_u32 saci_ShaderID;
+typedef sa_U32_t sa_Shader_ID;
 
-/**
- * @typedef saci_TextureID
- * @brief Represents an identifier for textures (32-bit unsigned integer).
- */
-typedef saci_u32 saci_TextureID;
+typedef sa_U32_t sa_Texture_ID;
 
 /* === Vector Structures === */
 
-/**
- * @struct saci_Vec2
- * @brief Represents a 2D vector with X and Y components.
- */
-typedef struct saci_Vec2 {
+typedef struct {
     float x; /**< X compoonent */
     float y; /**< Y compoonent */
-} saci_Vec2;
+} sa_Vec2_t;
 
-/**
- * @struct saci_Vec3
- * @brief Represents a 3D vector with X, Y, and Z components.
- */
-typedef struct saci_Vec3 {
+typedef struct {
     float x; /**< X compoonent */
     float y; /**< Y compoonent */
     float z; /**< Z compoonent */
-} saci_Vec3;
+} sa_Vec3_t;
 
-/**
- * @struct saci_Vec4
- * @brief Represents a 4D vector with X, Y, Z, and W components.
- */
-typedef struct saci_Vec4 {
+typedef struct {
     float x; /**< X compoonent */
     float y; /**< Y compoonent */
     float z; /**< Z compoonent */
     float w; /**< W compoonent */
-} saci_Vec4;
+} sa_Vec4_t;
 
 /* === Color Structure === */
 
-/**
- * @struct saci_Color
- * @brief Represents a color with red, green, blue, and alpha components (RGBA).
- * @note values should be stored from 0 to 1.
- */
-typedef struct saci_Color {
+typedef struct sa_Color_t {
     float r; /**< Red compoonent */
     float g; /**< Green compoonent */
     float b; /**< Blue compoonent */
     float a; /**< Alpha (transparency) compoonent */
-} saci_Color;
+} sa_Color_t;
 
 /* === Matrix Structure === */
 
-/**
- * @struct saci_Mat4
- * @brief Represents a 4x4 matrix used for transformations.
- */
-typedef struct saci_Mat4 {
+typedef struct sa_Mat4_t {
     float m[4][4]; /**< 4x4 matrix of floats */
-} saci_Mat4;
+} sa_Mat4_t;
 
 #endif

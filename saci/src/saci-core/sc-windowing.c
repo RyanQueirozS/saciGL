@@ -15,11 +15,11 @@ void __sc_OpenGL_InitializeDebugger();
 
 /* === Main declaration=== */
 
-saci_Bool sc_GLFW_Init(void) {
+sa_Bool_t sc_GLFW_Init(void) {
     int success = glfwInit();
     if (!success) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, "Couldn't load glfw");
-        return SACI_FALSE;
+        return sa_FALSE;
     }
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Loaded glfw");
     // TODO make user defined version
@@ -27,25 +27,25 @@ saci_Bool sc_GLFW_Init(void) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    return SACI_TRUE;
+    return sa_TRUE;
 }
 
-saci_Bool sc_GLAD_Init(void) {
-    if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != SACI_TRUE) {
+sa_Bool_t sc_GLAD_Init(void) {
+    if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != sa_TRUE) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, "Couldn't Load glad");
-        return SACI_FALSE;
+        return sa_FALSE;
     }
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Loaded glad");
     __sc_OpenGL_InitializeDebugger();
 
 #if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_WINDOWING)
-    const saci_u8* version = glGetString(GL_VERSION);
+    const sa_U8_t* version = glGetString(GL_VERSION);
     char versionStr[256];
     snprintf(versionStr, sizeof(versionStr), "Using OpenGL version: %s", version);
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_OPENGL, versionStr);
 #endif
 
-    return SACI_TRUE;
+    return sa_TRUE;
 }
 
 sc_Window_t* sc_Window_Create(int width, int height, const char* title,
@@ -61,7 +61,7 @@ void sc_Window_Make_Context(sc_Window_t* window) {
     glfwMakeContextCurrent(window);
 }
 
-saci_Bool sc_Window_Should_Close(sc_Window_t* window) {
+sa_Bool_t sc_Window_Should_Close(sc_Window_t* window) {
     return glfwWindowShouldClose(window);
 }
 
@@ -80,7 +80,7 @@ void sc_Window_Terminate(void) {
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Terminated glfw");
 }
 
-void sc_Window_Clear_Color(saci_Color color) {
+void sc_Window_Clear_Color(sa_Color_t color) {
     glClearColor(color.r, color.g, color.b, color.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
