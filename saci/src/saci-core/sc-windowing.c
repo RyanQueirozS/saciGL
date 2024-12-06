@@ -18,10 +18,10 @@ void __sc_OpenGL_InitializeDebugger();
 saci_Bool sc_GLFW_Init(void) {
     int success = glfwInit();
     if (!success) {
-        sa_LOG_PRINT_m(sa_LOG_LEVEL_ERROR, sa_LOG_CONTEXT_OPENGL, "Couldn't load glfw");
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, "Couldn't load glfw");
         return SACI_FALSE;
     }
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_OPENGL, "Loaded glfw");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Loaded glfw");
     // TODO make user defined version
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -32,17 +32,17 @@ saci_Bool sc_GLFW_Init(void) {
 
 saci_Bool sc_GLAD_Init(void) {
     if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != SACI_TRUE) {
-        sa_LOG_PRINT_m(sa_LOG_LEVEL_ERROR, sa_LOG_CONTEXT_OPENGL, "Couldn't Load glad");
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, "Couldn't Load glad");
         return SACI_FALSE;
     }
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_OPENGL, "Loaded glad");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Loaded glad");
     __sc_OpenGL_InitializeDebugger();
 
 #if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_WINDOWING)
     const saci_u8* version = glGetString(GL_VERSION);
     char versionStr[256];
     snprintf(versionStr, sizeof(versionStr), "Using OpenGL version: %s", version);
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_DEBUG, sa_LOG_CONTEXT_OPENGL, versionStr);
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_OPENGL, versionStr);
 #endif
 
     return SACI_TRUE;
@@ -67,17 +67,17 @@ saci_Bool sc_Window_Should_Close(sc_Window_t* window) {
 
 void sc_Window_Set_Pos_Handler(sc_Window_t* window, sc_Window_PosHandler_t windowPosHandler) {
     glfwSetWindowPosCallback(window, windowPosHandler);
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_OPENGL, "Set window pos handler");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Set window pos handler");
 }
 
 void sc_Window_Set_Size_Handler(sc_Window_t* window, sc_Window_SizeHandler_t windowSizeHandler) {
     glfwSetWindowSizeCallback(window, windowSizeHandler);
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_OPENGL, "Set window size callback");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Set window size callback");
 }
 
 void sc_Window_Terminate(void) {
     glfwTerminate();
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_OPENGL, "Terminated glfw");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Terminated glfw");
 }
 
 void sc_Window_Clear_Color(saci_Color color) {
@@ -96,6 +96,6 @@ void __sc_OpenGL_InitializeDebugger() {
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(sa_OpenGL_Debug_Message_Callback, NULL);
 #ifdef SACI_DEBUG_MODE
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_DEBUG, sa_LOG_CONTEXT_OPENGL, "Loaded OpenGL debugger");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_OPENGL, "Loaded OpenGL debugger");
 #endif
 }

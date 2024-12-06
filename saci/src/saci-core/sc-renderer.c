@@ -144,8 +144,8 @@ struct sc_Vertice_c* sc_Vertice_CreateVerticesArray(saci_Vec3* positions,
                                                     saci_u64 amount) {
     struct sc_Vertice_c* vertices = (struct sc_Vertice_c*)malloc(sizeof(struct sc_Vertice_c) * amount);
     if (!vertices) {
-        sa_LOG_PRINT_m(sa_LOG_LEVEL_ERROR, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
-                       "Could not allocate new vertices");
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
+                             "Could not allocate new vertices");
         return NULL;
     }
     for (saci_u64 i = 0; i < amount; ++i) {
@@ -178,8 +178,8 @@ saci_u64 sc_ModelMesh_GetIndicesAmount(const struct sc_ModelMesh_c* modelMesh) {
 sc_Renderer_t* sc_Renderer_CreateEmpty() {
     sc_Renderer_t* renderer = (sc_Renderer_t*)malloc(sizeof(sc_Renderer_t));
     if (!renderer) {
-        sa_LOG_PRINT_m(sa_LOG_LEVEL_ERROR, sa_LOG_CONTEXT_RENDERER,
-                       "Renderer could not be initialized");
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
+                             "Renderer could not be initialized");
         return NULL;
     }
     __sc_Renderer_RemoveGarbageNumbers(renderer);
@@ -189,15 +189,15 @@ sc_Renderer_t* sc_Renderer_CreateEmpty() {
 sc_Renderer_t* sc_Renderer_CreateDefault() {
     sc_Renderer_t* renderer = sc_Renderer_CreateEmpty();
     if (!renderer) {
-        sa_LOG_PRINT_m(sa_LOG_LEVEL_ERROR, sa_LOG_CONTEXT_RENDERER,
-                       "Renderer could not be initialized");
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
+                             "Renderer could not be initialized");
         return NULL;
     }
     sc_Renderer_InitMemoryContext(renderer, SACI_RENDER_BATCH_DEFAULT_CAPACITY);
 
     __sc_Renderer_InitAll(renderer);
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_RENDERER,
-                   "Renderer created successfully");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
+                        "Renderer created successfully");
     return renderer;
 }
 
@@ -208,22 +208,22 @@ void sc_Renderer_InitMemoryContext(sc_Renderer_t* renderer, saci_u64 size) {
 void sc_Renderer_ResizeRenderBuffer(sc_Renderer_t* renderer, saci_u64 newSize) {
     sc_RenderBatch* renderBatch = &renderer->renderBatch;
     if (newSize <= 0 || newSize <= renderBatch->renderCallCount) {
-        sa_LOG_PRINT_m(sa_LOG_LEVEL_ERROR, sa_LOG_CONTEXT_RENDERER,
-                       "RenderBatch new size is not valid");
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
+                             "RenderBatch new size is not valid");
         return;
     }
     sc_RenderCall* newRenderCalls = (sc_RenderCall*)malloc(newSize * sizeof(sc_RenderCall));
     if (!newRenderCalls) {
-        sa_LOG_PRINT_m(sa_LOG_LEVEL_ERROR, sa_LOG_CONTEXT_RENDERER,
-                       "RenderBatch Couldn't create new render call");
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
+                             "RenderBatch Couldn't create new render call");
         return;
     }
     memcpy(newRenderCalls, renderBatch->renderCalls, renderBatch->renderCallCount * sizeof(sc_RenderCall));
     free(renderBatch->renderCalls);
     renderBatch->renderCalls = newRenderCalls;
     renderBatch->capacity = newSize;
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_RENDERER,
-                   "RenderBatch resized successfully");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
+                        "RenderBatch resized successfully");
     assert(renderer->renderBatch.renderCalls); // TODO SACI_ASSERT
 }
 
@@ -240,46 +240,46 @@ void sc_Renderer_Delete(sc_Renderer_t* renderer) {
     glDeleteVertexArrays(1, &renderer->vao);
     glDeleteProgram(renderer->shaderProgram);
 
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_RENDERER,
-                   "Renderer deleted successfully");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
+                        "Renderer deleted successfully");
 }
 
 void sc_Renderer_SetNoFillMode(void) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     sc_RenderConfig.shouldFillShape = SACI_FALSE;
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_RENDERER,
-                   "Renderer set no fill mode");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
+                        "Renderer set no fill mode");
 }
 
 void sc_Renderer_SetFillMode(void) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     sc_RenderConfig.shouldFillShape = SACI_TRUE;
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_RENDERER,
-                   "Renderer set fill mode");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
+                        "Renderer set fill mode");
 }
 
 void sc_Renderer_EnableZBuffer(void) {
     glEnable(GL_DEPTH_TEST);
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_RENDERER,
-                   "Renderer enabled Z buffer");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
+                        "Renderer enabled Z buffer");
 }
 
 void sc_Renderer_SetProjectionMode(enum sc_Renderer_Projection_Mode_e renderProjectionMode) {
     sc_RenderConfig.projectionMode = renderProjectionMode;
     switch (renderProjectionMode) {
     case sa_RENDER_ORTHOGRAPHIC_PROJECTION: {
-        sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_RENDERER,
-                       "Renderer set projection mode to ORTHOGRAPHIC");
+        sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
+                            "Renderer set projection mode to ORTHOGRAPHIC");
         break;
     }
     case sa_RENDER_PERSPECTIVE_PROJECTION: {
-        sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_RENDERER,
-                       "Renderer set projection mode to PERSPECTIVE");
+        sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
+                            "Renderer set projection mode to PERSPECTIVE");
         break;
     }
     case sa_RENDER_CUSTOM_PROJECTION: {
-        sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_RENDERER,
-                       "Renderer set projection mode to CUSTOM");
+        sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
+                            "Renderer set projection mode to CUSTOM");
         break;
     }
     }
@@ -288,8 +288,8 @@ void sc_Renderer_SetProjectionMode(enum sc_Renderer_Projection_Mode_e renderProj
 void sc_Renderer_SetCustomProjectionModeFunction(
     sc_Renderer_Custom_Projection_Func renderCustomProjectionMode) {
     sc_RenderConfig.customProjectionFunction = renderCustomProjectionMode;
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_RENDERER,
-                   "Renderer set custom projection mode function");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
+                        "Renderer set custom projection mode function");
 }
 
 void sc_Renderer_Begin(sc_Renderer_t* renderer) {
@@ -335,7 +335,7 @@ void sc_Renderer_PushVertices(sc_Renderer_t* renderer, struct sc_Vertice_c* vert
                               saci_u64 indiceAmount, saci_Mat4 modelMatrix,
                               saci_TextureID texID, saci_u32 ibo) {
     if (!vertices) {
-        sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_RENDERER, "Invalid vertices");
+        sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER, "Invalid vertices");
         return;
     }
     sc_RenderCall renderCall = __sc_RenderCall_Create(&renderer->memoryContext,
@@ -454,8 +454,8 @@ void __sc_Renderer_InitAll(sc_Renderer_t* renderer) {
     __sc_Renderer_InitGLVertexAttribContext(renderer);
     __sc_Renderer_InitShaderProgram(renderer);
 #if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_RENDERING)
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_DEBUG, sa_LOG_CONTEXT_RENDERER,
-                   "Renderer initialized successfully");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
+                        "Renderer initialized successfully");
 #endif
 }
 
@@ -490,8 +490,8 @@ void __sc_RenderBatch_Push(sc_RenderBatch* renderBatch,
                            sc_RenderCall renderCall) {
     if (renderBatch->capacity <= renderBatch->renderCallCount) {
         // todo add option to resize after size reached
-        sa_LOG_PRINT_m(sa_LOG_LEVEL_WARN, sa_LOG_CONTEXT_RENDERER,
-                       "RenderBatch RenderCount exceeded Capacity ");
+        sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
+                            "RenderBatch RenderCount exceeded Capacity ");
         return;
     }
     renderBatch->renderCalls[renderBatch->renderCallCount] = renderCall;
@@ -626,8 +626,8 @@ void __sc_Renderer_SetUniform(sc_Renderer_t* renderer, const struct sc_Camera_c*
     }
     case sa_RENDER_CUSTOM_PROJECTION: {
         if (sc_RenderConfig.customProjectionFunction == NULL) {
-            sa_LOG_PRINT_m(sa_LOG_LEVEL_ERROR, sa_LOG_CONTEXT_RENDERER,
-                           "Custom projection mode function not set");
+            sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
+                                "Custom projection mode function not set");
             return;
         }
         projection = sc_RenderConfig.customProjectionFunction(*camera);

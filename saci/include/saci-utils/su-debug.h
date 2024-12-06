@@ -14,14 +14,21 @@
 
 // TODO add a level and a type log
 
-enum sa_Log_Level {
-    sa_LOG_LEVEL_DEBUG = -1, // Should not be used unless debug enabled
-    sa_LOG_LEVEL_INFO  = 0,
-    sa_LOG_LEVEL_WARN  = 1,
-    sa_LOG_LEVEL_ERROR = 2,
+enum sa_Log_Type_e {
+    sa_LOG_TYPE_DEBUG = -1, // Should not be used unless debug enabled
+    sa_LOG_TYPE_INFO  = 0,
+
+    sa_LOG_TYPE_WARN  = 1,
+    sa_LOG_TYPE_ERROR = 2,
 };
 
-enum sa_Log_Context {
+enum sa_Log_Severity_e {
+    sa_LOG_SEVERITY_LOW = 0,
+    sa_LOG_SEVERITY_MEDIUM,
+    sa_LOG_SEVERITY_HIGH,
+};
+
+enum sa_Log_Context_e {
     sa_LOG_CONTEXT_OPENGL = 0,
     sa_LOG_CONTEXT_RENDERER,
     sa_LOG_CONTEXT_OBJ_LOADING,
@@ -29,11 +36,23 @@ enum sa_Log_Context {
     sa_LOG_CONTEXT_MEMORY_ALLOCATION,
 };
 
-void sa_Log_Message(int level, int context, const char* message, const char* file, int line);
+void sa_Log_Should_Print_Origin(saci_Bool enable);
 
-#define sa_LOG_PRINT_m(level, context, message)                      \
-    do {                                                             \
-        sa_Log_Message(level, context, message, __FILE__, __LINE__); \
+void sa_Log_Error(enum sa_Log_Type_e type, enum sa_Log_Severity_e severity,
+                  enum sa_Log_Context_e context,
+                  const char* message, const char* file, int line);
+
+void sa_Log_Info(enum sa_Log_Type_e type, enum sa_Log_Context_e context,
+                 const char* message, const char* file, int line);
+
+#define sa_LOG_INFO_PRINT_m(type, context, message)              \
+    do {                                                         \
+        sa_Log_Info(type, context, message, __FILE__, __LINE__); \
+    } while (0)
+
+#define sa_LOG_ERROR_PRINT_m(type, severity, context, message)              \
+    do {                                                                    \
+        sa_Log_Error(type, severity, context, message, __FILE__, __LINE__); \
     } while (0)
 
 void sa_OpenGL_Debug_Message_Callback(saci_u32 source, saci_u32 type, saci_u32 id, saci_u32 severity,

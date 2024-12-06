@@ -38,7 +38,7 @@ saci_u32 sc_Shader_GetShaderProgram(saci_u32 vshader, saci_u32 fshader) {
         glGetProgramInfoLog(programID, 2048, &sizeReturned, glErrMessage);
         snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s",
                  glErrMessage);
-        sa_LOG_PRINT_m(sa_LOG_LEVEL_ERROR, sa_LOG_CONTEXT_OPENGL, errMessage);
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, errMessage);
         return 0;
     }
     glDetachShader(programID, vshader);
@@ -46,8 +46,8 @@ saci_u32 sc_Shader_GetShaderProgram(saci_u32 vshader, saci_u32 fshader) {
     glDeleteShader(vshader);
     glDeleteShader(fshader);
 
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_OPENGL,
-                   "Shader program loaded successfully");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL,
+                        "Shader program loaded successfully");
     return programID;
 }
 
@@ -67,7 +67,7 @@ saci_u32 sc_Shader_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u3
         glGetProgramInfoLog(programID, 2048, &sizeReturned, glErrMessage);
         snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s",
                  glErrMessage);
-        sa_LOG_PRINT_m(sa_LOG_LEVEL_ERROR, sa_LOG_CONTEXT_OPENGL, errMessage);
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, errMessage);
         return 0;
     }
     glDetachShader(programID, vshader);
@@ -76,8 +76,8 @@ saci_u32 sc_Shader_GetShaderProgramg(saci_u32 vshader, saci_u32 fshader, saci_u3
     glDeleteShader(vshader);
     glDeleteShader(fshader);
     glDeleteShader(gshader);
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_OPENGL,
-                   "Shader program be loaded successfully");
+    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL,
+                        "Shader program be loaded successfully");
 
     return programID;
 }
@@ -97,19 +97,36 @@ saci_u32 __sc_shader_compile(const char* shaderSource, saci_u32 shaderType) {
         glGetShaderInfoLog(shaderID, 2048, &sizeReturned, &errMessage[0]);
 
         glDeleteShader(shaderID);
-        sa_LOG_PRINT_m(
-            sa_LOG_LEVEL_ERROR, sa_LOG_CONTEXT_OPENGL,
-            shaderType == GL_VERTEX_SHADER
-                ? "Vertex shader couldn't be loaded"
-                : (shaderType == GL_FRAGMENT_SHADER ? "Fragment shader couldn't be loaded"
-                                                    : "Geometry shader couldn't be loaded"));
+        { // Logging
+            char* logMessage = "";
+            if (shaderType == GL_VERTEX_SHADER) {
+                logMessage = "Vertex shader couldn't be loaded";
+            }
+            if (shaderType == GL_FRAGMENT_SHADER) {
+                logMessage = "Fragment shader couldn't be loaded";
+            }
+            if (shaderType == GL_GEOMETRY_SHADER) {
+                logMessage = "Geometry shader couldn't be loaded";
+            }
+            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+                                 sa_LOG_CONTEXT_OPENGL, logMessage);
+        }
         return 0;
     }
-    sa_LOG_PRINT_m(sa_LOG_LEVEL_INFO, sa_LOG_CONTEXT_OPENGL,
-                   shaderType == GL_VERTEX_SHADER ? "Vertex shader loaded successfully"
-                                                  : (shaderType == GL_FRAGMENT_SHADER
-                                                         ? "Fragment shader loaded successfully"
-                                                         : "Geometry shader loaded successfully"));
+    {
+        char* logMessage = "";
+        if (shaderType == GL_VERTEX_SHADER) {
+            logMessage = "Vertex shader loaded succesfully";
+        }
+        if (shaderType == GL_FRAGMENT_SHADER) {
+            logMessage = "Fragment shader loaded succesfully";
+        }
+        if (shaderType == GL_GEOMETRY_SHADER) {
+            logMessage = "Geometry shader loaded succesfully";
+        }
+        sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO,
+                            sa_LOG_CONTEXT_OPENGL, logMessage);
+    }
 
     return shaderID;
 }

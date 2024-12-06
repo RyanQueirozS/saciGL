@@ -32,13 +32,12 @@
 |----------------------|------------------------|---------------------------|-----------------------------|------------------------|
 | **Header Guard**     | `__` + ALL_CAPS + `__` | `__MY_COMPLETE_PATH_H__`  | **N/A**                     | **N/A**                |
 | **Defines**          | ALL_CAPS               | `sa_HEADER_DEFINE`        | `__sa_SOURCE_DEFINE`        | `LOCAL_DEFINE`         |
-| **Defines const**    | ALL_CAPS + `_k`        | `sa_HEADER_DEFINE_k`      | `__sa_SOURCE_DEFINE_k`      | `LOCAL_DEFINE_k`       |
 | **Macros**           | ALL_CAPS + `_m`        | `sa_HEADER_MACRO_m(x)`    | `__sa_SOURCE_MACRO_m(x)`    | `LOCAL_MACRO_m(x)`     |
 | **Variables**        | lower_case             | `sc_header_var`           | `__sc_source_var`           | `local_var`            |
-| **Constants**        | ALL_CAPS + `_k`        | `sc_HEADER_CONST_k`       | `__sc_SOURCE_CONST_k`       | `LOCAL_CONST_k`        |
+| **Constants**        | ALL_CAPS               | `sc_HEADER_CONST_k`       | `__sc_SOURCE_CONST_k`       | `LOCAL_CONST_k`        |
 | **Static**           | lower_case + `_s`      | `sc_static_header_var_s`  | `__sc_static_source_var_s`  | `static_local_var_s`   |
 | **Enum**             | Pascal_Case + `_e`     | `sa_Header_Enum_e`        | `__sa_Source_Enum_e`        | `Local_Enum_e`         |
-| **Enum Members**     | ALL_CAPS + `_k`        | `sa_HEADER_ENUM_MEMBER_k` | `__sa_SOURCE_ENUM_MEMBER_k` | `SOURCE_ENUM_MEMBER_k` |
+| **Enum Members**     | ALL_CAPS               | `sa_HEADER_ENUM_MEMBER_k` | `__sa_SOURCE_ENUM_MEMBER_k` | `SOURCE_ENUM_MEMBER_k` |
 | **Structs**          | Pascal_Case + `_c`     | `sl_Header_Struct_c`      | `__sl_Source_Struct_c`      | `Local_Struct_c`       |
 | **Struct Members**   | local_case             | **N/A**                   | **N/A**                     | `struct_member`        |
 | **Functions**        | Pascal_Case            | `sc_Function_Def`         | `__sc_Function_Def`         | **N/A**                |
@@ -240,36 +239,6 @@ A good mindset to have is:
 **DO NOT LET THE USER SCREW UP**.
 
 ### Code organization
-
-Follow this order:
-
-- Header files: 
-    1. File documentation
-    2. Header guard
-    3. Includes
-    4. Defines
-    5. Constants
-    6. Variables
-    7. Macros
-    8. Typedefs
-    9. Structs
-    10. Enums
-    11. Functions
-
-- Source files:
-    3. Includes
-    4. Defines
-    5. Constants
-    6. Variables
-    7. Macros
-    8. Helper Typedefs
-    9. Helper Structus
-    10. Helper Enums
-    11. Helper functions
-    12. Typedefs
-    13. Structs
-    14. Enums
-    15. Functions
 
 Each code portion should be subdivided. Example:
 ```c
