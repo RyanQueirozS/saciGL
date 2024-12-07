@@ -11,7 +11,7 @@
 
 /* === Main Implementation === */
 
-void sc_GL_ResizeVertexBuffer(sa_U32_t vaoID, sa_U32_t vboID, sa_U64_t newSize) {
+void sc_GL_Resize_Vertex_Buffer(sa_U32_t vaoID, sa_U32_t vboID, sa_U64_t newSize) {
     glBindVertexArray(vaoID);
 
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
@@ -21,7 +21,7 @@ void sc_GL_ResizeVertexBuffer(sa_U32_t vaoID, sa_U32_t vboID, sa_U64_t newSize) 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-sa_U32_t sc_GL_CreateIndexBuffer(sa_U32_t* indices, sa_U64_t indiceAmount) {
+sa_U32_t sc_GL_Create_Index_Buffer(sa_U32_t* indices, sa_U64_t indiceAmount) {
     sa_U32_t ibo;
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -33,19 +33,19 @@ sa_U32_t sc_GL_CreateIndexBuffer(sa_U32_t* indices, sa_U64_t indiceAmount) {
 }
 
 // todo export
-void sc_GL_CreateVertexArray(sa_U64_t size, sa_U32_t* arrays) {
+void sc_GL_Create_Vertex_Array(sa_U64_t size, sa_U32_t* arrays) {
     return glGenVertexArrays(size, arrays);
 }
 
-void sc_GL_BindVertexArray(sa_U32_t array) {
+void sc_GL_Bind_Vertex_Array(sa_U32_t array) {
     return glBindVertexArray(array);
 }
 
-void sc_GL_BindVertexBuffer(sa_U32_t vbo) {
+void sc_GL_Bind_Vertex_Buffer(sa_U32_t vbo) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 }
 
-sa_U32_t sc_GL_CreateVertexBuffer(sa_U64_t size, const void* data, sa_U32_t usage) {
+sa_U32_t sc_GL_Create_Vertex_Buffer(sa_U64_t size, const void* data, sa_U32_t usage) {
     sa_U32_t vbo = 0;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -54,10 +54,10 @@ sa_U32_t sc_GL_CreateVertexBuffer(sa_U64_t size, const void* data, sa_U32_t usag
     return vbo;
 }
 
-void sc_GL_SetVertexAttribPointer(sa_U32_t index, int size, sa_U32_t type, sa_Bool_t normalized, sa_U64_t stride, void* ptr) {
+void sc_GL_Set_Vertex_Attrib_Pointer(sa_U32_t index, int size, sa_U32_t type, sa_Bool_t normalized, sa_U64_t stride, void* ptr) {
     glVertexAttribPointer(index, size, type, normalized, stride, ptr);
 }
 
-void sc_GL_EnableVertexAttribArray(sa_U32_t id) {
+void sc_GL_Enable_Vertex_Attrib_Array(sa_U32_t id) {
     glEnableVertexAttribArray(id);
 }

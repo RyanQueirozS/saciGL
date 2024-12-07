@@ -65,12 +65,12 @@ sa_Bool_t sc_Window_Should_Close(sc_Window_t* window) {
     return glfwWindowShouldClose(window);
 }
 
-void sc_Window_Set_Pos_Handler(sc_Window_t* window, sc_Window_PosHandler_t windowPosHandler) {
+void sc_Window_Set_Pos_Handler(sc_Window_t* window, sc_Window_Pos_Handler_t windowPosHandler) {
     glfwSetWindowPosCallback(window, windowPosHandler);
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Set window pos handler");
 }
 
-void sc_Window_Set_Size_Handler(sc_Window_t* window, sc_Window_SizeHandler_t windowSizeHandler) {
+void sc_Window_Set_Size_Handler(sc_Window_t* window, sc_Window_Size_Handler_t windowSizeHandler) {
     glfwSetWindowSizeCallback(window, windowSizeHandler);
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Set window size callback");
 }

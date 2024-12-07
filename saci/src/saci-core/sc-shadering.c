@@ -11,19 +11,19 @@
  */
 sa_U32_t __sc_shader_compile(const char* shaderSource, sa_U32_t shaderType);
 
-sa_U32_t sc_Shader_CompileShaderV(const char* source) {
+sa_U32_t sc_Shader_Compile_Shader_V(const char* source) {
     return __sc_shader_compile(source, GL_VERTEX_SHADER);
 }
 
-sa_U32_t sc_Shader_CompileShaderF(const char* source) {
+sa_U32_t sc_Shader_Compile_Shader_F(const char* source) {
     return __sc_shader_compile(source, GL_FRAGMENT_SHADER);
 }
 
-sa_U32_t sc_Shader_CompileShaderG(const char* source) {
+sa_U32_t sc_Shader_Compile_Shader_G(const char* source) {
     return __sc_shader_compile(source, GL_GEOMETRY_SHADER);
 }
 
-sa_U32_t sc_Shader_GetShaderProgram(sa_U32_t vshader, sa_U32_t fshader) {
+sa_U32_t sc_Shader_Create_Shader_Program(sa_U32_t vshader, sa_U32_t fshader) {
     sa_U32_t programID = glCreateProgram();
     glAttachShader(programID, vshader);
     glAttachShader(programID, fshader);
@@ -51,7 +51,7 @@ sa_U32_t sc_Shader_GetShaderProgram(sa_U32_t vshader, sa_U32_t fshader) {
     return programID;
 }
 
-sa_U32_t sc_Shader_GetShaderProgramg(sa_U32_t vshader, sa_U32_t fshader, sa_U32_t gshader) {
+sa_U32_t sc_Shader_Create_Shader_Program_G(sa_U32_t vshader, sa_U32_t fshader, sa_U32_t gshader) {
     sa_U32_t programID = glCreateProgram();
     glAttachShader(programID, vshader);
     glAttachShader(programID, fshader);

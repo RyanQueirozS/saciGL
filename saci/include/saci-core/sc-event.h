@@ -144,8 +144,8 @@ void      sc_Event_Wait_For_Timeout(double timeout);
 
 void      sc_Event_Post_Empty();
 
-void      sc_Event_SetMousePosHandler(sc_Window_t* window, sc_Event_Mouse_Pos_Handler_t mouse_pos_handler);
+void      sc_Event_Set_Mouse_Pos_Handler(sc_Window_t* window, sc_Event_Mouse_Pos_Handler_t mouse_pos_handler);
 
-sa_Bool_t sc_Event_IsKeyPressed(sc_Window_t* window, enum sc_Keycode_e keycode);
+sa_Bool_t sc_Event_Is_Key_Pressed(sc_Window_t* window, enum sc_Keycode_e keycode);
 
 #endif

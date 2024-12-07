@@ -47,7 +47,7 @@ static void init_saci() {
     sc_Window_Make_Context(window);
     assert(sc_GLAD_Init());
 
-    renderer = sc_Renderer_CreateDefault();
+    renderer = sc_Renderer_Create_Default();
     assert(renderer);
 
     camera = sc_Camera_Get_Default();
@@ -58,25 +58,23 @@ static void init_saci() {
         camera.position.z = 5.0f;
     }
 
-    sc_Renderer_EnableZBuffer();
-    sc_Renderer_SetProjectionMode(sa_RENDER_PERSPECTIVE_PROJECTION);
+    sc_Renderer_Enable_Z_Buffer();
+    sc_Renderer_Set_Projection_Mode(sa_RENDERER_PROJECTION_MODE_PERSPECTIVE);
 }
 
 int main() {
     init_saci();
     int tex = sc_Texture_Load("./texture/basic-img/cat-standing-up.png", false);
     assert(tex);
-    sa_Color_t bgColor =
-        sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
-    struct sc_Vertice_c* vertices =
-        sc_Vertice_CreateVerticesArray(triangleVertices, vertexColors, uvCoords, 4);
+    sa_Color_t bgColor = sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
+    struct sc_Vertice_c* vertices = sc_Vertice_Create_Vertices_Array(triangleVertices, vertexColors, uvCoords, 4);
     sa_Mat4_t modelMatrix = sa_Mat4_Identity();
     while (!sc_Window_Should_Close(window)) {
         sc_Window_Clear_Color(bgColor);
 
         sc_Renderer_Begin(renderer);
-        sa_U32_t ibo = sc_GL_CreateIndexBuffer(indices, 6);
-        sc_Renderer_PushVertices(renderer, vertices, 4, 6, modelMatrix, tex, ibo);
+        sa_U32_t ibo = sc_GL_Create_Index_Buffer(indices, 6);
+        sc_Renderer_Push_Vertices(renderer, vertices, 4, 6, modelMatrix, tex, ibo);
         sc_Renderer_End(renderer, &camera);
         sc_Window_Swap_Buffer(window);
 

@@ -45,12 +45,12 @@ int main() {
     }
 
     // Generates defaulted shaders, vertex and array objects
-    renderer = sc_Renderer_CreateDefault();
+    renderer = sc_Renderer_Create_Default();
     assert(renderer);
 
     sa_Color_t bgColor = sa_Color_From_U8(25, 70, 125, 255);
     struct sc_Vertice_c* vertices =
-        sc_Vertice_CreateVerticesArray(triangleVert, triangleColor, NULL, verticeAmount);
+        sc_Vertice_Create_Vertices_Array(triangleVert, triangleColor, NULL, verticeAmount);
 
     sa_Mat4_t modelMatrix = sa_Mat4_Identity(); // Generate a defaulted mat4 as modelMatrix
 
@@ -58,9 +58,9 @@ int main() {
         sc_Window_Clear_Color(bgColor);
 
         sc_Renderer_Begin(renderer);
-        sa_U32_t ibo = sc_GL_CreateIndexBuffer(indices, indiceAmount);
-        sc_Renderer_PushVertices(renderer, vertices, verticeAmount, indiceAmount,
-                                 modelMatrix, 0, ibo);
+        sa_U32_t ibo = sc_GL_Create_Index_Buffer(indices, indiceAmount);
+        sc_Renderer_Push_Vertices(renderer, vertices, verticeAmount, indiceAmount,
+                                  modelMatrix, 0, ibo);
         sc_Renderer_End(renderer, NULL);
         sc_Window_Swap_Buffer(window);
 

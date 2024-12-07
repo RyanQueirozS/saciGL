@@ -55,7 +55,7 @@ void init_saci() {
     sc_Window_Make_Context(window);
     assert(sc_GLAD_Init());
 
-    renderer = sc_Renderer_CreateDefault();
+    renderer = sc_Renderer_Create_Default();
     assert(renderer);
 
     camera = sc_Camera_Get_Default();
@@ -63,14 +63,14 @@ void init_saci() {
     camera.position.z = -10.0f; // Change as you may
     camera.position.y = 0.0f;
 
-    sc_Renderer_EnableZBuffer();
-    sc_Renderer_SetProjectionMode(sa_RENDER_PERSPECTIVE_PROJECTION);
+    sc_Renderer_Enable_Z_Buffer();
+    sc_Renderer_Set_Projection_Mode(sa_RENDERER_PROJECTION_MODE_PERSPECTIVE);
 }
 
 int main() {
     init_saci();
 
-    struct sc_Vertice_c* vertices = sc_Vertice_CreateVerticesArray(verticesPos, colors, NULL, 8);
+    struct sc_Vertice_c* vertices = sc_Vertice_Create_Vertices_Array(verticesPos, colors, NULL, 8);
 
     sa_Vec3_t rotation = {0, 0, 0};
     sa_Mat4_t modelMatrix =
@@ -82,9 +82,9 @@ int main() {
         sc_Window_Clear_Color(bgColor);
 
         sc_Renderer_Begin(renderer);
-        sa_U32_t ibo = sc_GL_CreateIndexBuffer(cubeIndices, indiceAmount);
-        sc_Renderer_PushVertices(renderer, vertices, verticeAmount, indiceAmount,
-                                 modelMatrix, 0, ibo);
+        sa_U32_t ibo = sc_GL_Create_Index_Buffer(cubeIndices, indiceAmount);
+        sc_Renderer_Push_Vertices(renderer, vertices, verticeAmount, indiceAmount,
+                                  modelMatrix, 0, ibo);
         sc_Renderer_End(renderer, &camera);
         sc_Window_Swap_Buffer(window);
 

@@ -22,35 +22,35 @@ void init_saci(void) {
     sc_Window_Make_Context(window);
     assert(sc_GLAD_Init());
 
-    renderer = sc_Renderer_CreateDefault();
+    renderer = sc_Renderer_Create_Default();
     assert(renderer);
 
     camera = sc_Camera_Get_Default();
     camera.aspectRatio = 1600.0f / 900.0f;
 
-    sc_Renderer_EnableZBuffer();
-    sc_Renderer_SetProjectionMode(sa_RENDER_PERSPECTIVE_PROJECTION);
+    sc_Renderer_Enable_Z_Buffer();
+    sc_Renderer_Set_Projection_Mode(sa_RENDERER_PROJECTION_MODE_PERSPECTIVE);
 }
 
 void handle_keyboard(void) {
     sa_Vec3_t forward = sa_Vec3_Normalize(sa_Vec3_Subtract(camera.target, camera.position));
     sa_Vec3_t right = sa_Vec3_Normalize(sa_Vec3_Cross(forward, camera.up));
-    if (sc_Event_IsKeyPressed(window, sa_KEY_W)) {
+    if (sc_Event_Is_Key_Pressed(window, sa_KEY_W)) {
         camera.position = sa_Vec3_Add(camera.position, sa_Vec3_Scale(forward, cameraSpeed));
     }
-    if (sc_Event_IsKeyPressed(window, sa_KEY_A)) {
+    if (sc_Event_Is_Key_Pressed(window, sa_KEY_A)) {
         camera.position = sa_Vec3_Subtract(camera.position, sa_Vec3_Scale(right, cameraSpeed));
     }
-    if (sc_Event_IsKeyPressed(window, sa_KEY_S)) {
+    if (sc_Event_Is_Key_Pressed(window, sa_KEY_S)) {
         camera.position = sa_Vec3_Subtract(camera.position, sa_Vec3_Scale(forward, cameraSpeed));
     }
-    if (sc_Event_IsKeyPressed(window, sa_KEY_D)) {
+    if (sc_Event_Is_Key_Pressed(window, sa_KEY_D)) {
         camera.position = sa_Vec3_Add(camera.position, sa_Vec3_Scale(right, cameraSpeed));
     }
-    if (sc_Event_IsKeyPressed(window, sa_KEY_SPACE)) {
+    if (sc_Event_Is_Key_Pressed(window, sa_KEY_SPACE)) {
         camera.position.y += cameraSpeed;
     }
-    if (sc_Event_IsKeyPressed(window, sa_KEY_LEFT_SHIFT)) {
+    if (sc_Event_Is_Key_Pressed(window, sa_KEY_LEFT_SHIFT)) {
         camera.position.y -= cameraSpeed;
     }
 }
@@ -100,9 +100,9 @@ int main(void) {
 
     {
         const char* filePath = "./3d/stanford-bunny-model/bunny.obj";
-        sc_OBJ_ModelFileReadingFunction func = file_read;
+        sc_OBJ_File_Reading_Function func = file_read;
 
-        mesh = sc_ModelMesh_Load(filePath, func);
+        mesh = sc_Model_Mesh_Load(filePath, func);
     }
 
     assert(mesh);
@@ -120,13 +120,13 @@ int main(void) {
         handle_keyboard();
 
         sc_Renderer_Begin(renderer);
-        sc_Renderer_PushModelMesh(renderer, mesh, modelMatrix, 0);
+        sc_Renderer_Push_Model_Mesh(renderer, mesh, modelMatrix, 0);
         sc_Renderer_End(renderer, &camera);
         sc_Window_Swap_Buffer(window);
 
         sc_Event_Poll();
     }
-    sc_ModelMesh_Delete(mesh);
+    sc_Model_Mesh_Delete(mesh);
     sc_Renderer_Delete(renderer);
     sc_Window_Free(window);
     sc_Window_Terminate();
