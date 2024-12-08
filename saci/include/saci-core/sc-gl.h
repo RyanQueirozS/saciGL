@@ -41,11 +41,11 @@ void         sc_Window_Swap_Buffer(sc_Window_t* window);
 
 /* === Renderer === */
 
-typedef struct sc_Renderer sc_Renderer_t;
+typedef struct sc_Renderer_c sc_Renderer_t;
 
 typedef sa_Mat4_t (*sc_Renderer_Custom_Projection_Func)(struct sc_Camera_c camera);
 
-struct sc_ModelMesh_c;
+struct sc_Model_Mesh_c;
 
 struct sc_Vertice_c;
 
@@ -70,13 +70,13 @@ struct sc_Vertice_c* sc_Vertice_Create_Vertice(sa_Vec3_t position, sa_Color_t co
 struct sc_Vertice_c* sc_Vertice_Create_Vertices_Array(sa_Vec3_t* positions, sa_Color_t* colors,
                                                       sa_Vec2_t* texcoords, sa_U64_t amount);
 // TODO remove and use a sc_ModelMesh_Get_Array_Info
-struct sc_Vertice_c* sc_ModelMesh_Get_Vertices(const struct sc_ModelMesh_c* modelMesh);
+struct sc_Vertice_c* sc_ModelMesh_Get_Vertices(const struct sc_Model_Mesh_c* modelMesh);
 
-sa_U64_t             sc_ModelMesh_Get_Vertices_Amount(const struct sc_ModelMesh_c* modelMesh);
+sa_U64_t             sc_ModelMesh_Get_Vertices_Amount(const struct sc_Model_Mesh_c* modelMesh);
 
-sa_U32_t*            sc_ModelMesh_Get_Indices(const struct sc_ModelMesh_c* modelMesh);
+sa_U32_t*            sc_ModelMesh_Get_Indices(const struct sc_Model_Mesh_c* modelMesh);
 
-sa_U64_t             sc_ModelMesh_GetIndicesAmount(const struct sc_ModelMesh_c* modelMesh);
+sa_U64_t             sc_ModelMesh_GetIndicesAmount(const struct sc_Model_Mesh_c* modelMesh);
 
 sc_Renderer_t*       sc_Renderer_Create_Empty();
 
@@ -112,14 +112,14 @@ void                 sc_Renderer_Push_Vertices(sc_Renderer_t*       renderer,
                                                sa_U64_t indiceAmount, sa_Mat4_t modelMatrix,
                                                sa_Texture_ID texID, sa_U32_t ibo);
 
-void                 sc_Renderer_Push_Model_Mesh(sc_Renderer_t* renderer, struct sc_ModelMesh_c* mesh,
+void                 sc_Renderer_Push_Model_Mesh(sc_Renderer_t* renderer, struct sc_Model_Mesh_c* mesh,
                                                  sa_Mat4_t modelMatrix, sa_Texture_ID texID);
 
 // TODO remove
 typedef void (*sc_OBJ_File_Reading_Function)(void* ctx, const char* filename, int isMtl,
                                              const char* objFilename, char** buf, size_t* len);
 
-struct sc_ModelMesh_c* sc_Model_Mesh_Load(const char* path, sc_OBJ_File_Reading_Function fileReader);
+struct sc_Model_Mesh_c* sc_Model_Mesh_Load(const char* path, sc_OBJ_File_Reading_Function fileReader);
 
 /* === Model Parsing === */
 
@@ -134,7 +134,7 @@ sa_Bool_t sc_OBJ_Parse(const char* file_path, sc_OBJ_File_Reading_Function file_
                        sa_Vec2_t** texcoords_out, sa_U64_t* texcoord_count_out,
                        struct sc_Vertex_Indice** indices_out, sa_U64_t* indices_count_out);
 
-void      sc_Model_Mesh_Delete(struct sc_ModelMesh_c* model_mesh);
+void      sc_Model_Mesh_Delete(struct sc_Model_Mesh_c* model_mesh);
 
 /* === OpenGL Helpers === */
 

@@ -71,7 +71,7 @@ typedef struct sc_RenderBatch {
 } sc_RenderBatch;
 
 // TODO doc
-struct sc_Renderer {
+struct sc_Renderer_c {
     sa_U32_t vao, vbo;
     sa_U32_t shaderProgram;
 
@@ -86,7 +86,7 @@ static struct sc_RenderConfig {
     bool shouldFillShape;
 } sc_RenderConfig;
 
-struct sc_ModelMesh_c {
+struct sc_Model_Mesh_c {
     struct sc_Vertice_c* vertices;
     sa_U64_t verticesAmount;
 
@@ -159,19 +159,19 @@ struct sc_Vertice_c* sc_Vertice_Create_Vertices_Array(sa_Vec3_t* positions,
     return vertices;
 }
 
-struct sc_Vertice_c* sc_ModelMesh_Get_Vertices(const struct sc_ModelMesh_c* modelMesh) {
+struct sc_Vertice_c* sc_ModelMesh_Get_Vertices(const struct sc_Model_Mesh_c* modelMesh) {
     return modelMesh->vertices;
 }
 
-sa_U64_t sc_ModelMesh_Get_Vertices_Amount(const struct sc_ModelMesh_c* modelMesh) {
+sa_U64_t sc_ModelMesh_Get_Vertices_Amount(const struct sc_Model_Mesh_c* modelMesh) {
     return modelMesh->verticesAmount;
 }
 
-sa_U32_t* sc_ModelMesh_Get_Indices(const struct sc_ModelMesh_c* modelMesh) {
+sa_U32_t* sc_ModelMesh_Get_Indices(const struct sc_Model_Mesh_c* modelMesh) {
     return modelMesh->indices;
 }
 
-sa_U64_t sc_ModelMesh_GetIndicesAmount(const struct sc_ModelMesh_c* modelMesh) {
+sa_U64_t sc_ModelMesh_GetIndicesAmount(const struct sc_Model_Mesh_c* modelMesh) {
     return modelMesh->indicesAmount;
 }
 
@@ -345,7 +345,7 @@ void sc_Renderer_Push_Vertices(sc_Renderer_t* renderer, struct sc_Vertice_c* ver
     __sc_RenderBatch_Push(&renderer->renderBatch, renderCall);
 }
 
-void sc_Renderer_Push_Model_Mesh(sc_Renderer_t* renderer, struct sc_ModelMesh_c* mesh,
+void sc_Renderer_Push_Model_Mesh(sc_Renderer_t* renderer, struct sc_Model_Mesh_c* mesh,
                                  sa_Mat4_t modelMatrix, sa_Texture_ID texID) {
     if (!mesh) {
         exit(1);
@@ -355,13 +355,13 @@ void sc_Renderer_Push_Model_Mesh(sc_Renderer_t* renderer, struct sc_ModelMesh_c*
                               texID, mesh->ibo);
 }
 
-struct sc_ModelMesh_c* sc_ModelMesh_Create(sa_Vec3_t* verticesPos,
-                                           sa_U64_t verticePosAmount,
-                                           sa_Vec2_t* verticesTexcoord,
-                                           sa_U64_t verticesTexcoordAmount,
-                                           struct sc_Vertex_Indice* indices,
-                                           sa_U64_t indiceAmount) {
-    struct sc_ModelMesh_c* mesh = (struct sc_ModelMesh_c*)malloc(sizeof(struct sc_ModelMesh_c));
+struct sc_Model_Mesh_c* sc_ModelMesh_Create(sa_Vec3_t* verticesPos,
+                                            sa_U64_t verticePosAmount,
+                                            sa_Vec2_t* verticesTexcoord,
+                                            sa_U64_t verticesTexcoordAmount,
+                                            struct sc_Vertex_Indice* indices,
+                                            sa_U64_t indiceAmount) {
+    struct sc_Model_Mesh_c* mesh = (struct sc_Model_Mesh_c*)malloc(sizeof(struct sc_Model_Mesh_c));
     if (!mesh) {
         return NULL;
     }
@@ -409,7 +409,7 @@ struct sc_ModelMesh_c* sc_ModelMesh_Create(sa_Vec3_t* verticesPos,
     return mesh;
 }
 
-struct sc_ModelMesh_c* sc_Model_Mesh_Load(const char* path, sc_OBJ_File_Reading_Function fileReader) {
+struct sc_Model_Mesh_c* sc_Model_Mesh_Load(const char* path, sc_OBJ_File_Reading_Function fileReader) {
     sa_Vec3_t* verticesPos = NULL;
     sa_U64_t verticesAmount = 0;
     sa_Vec2_t* verticesTexCoords = NULL;
@@ -426,7 +426,7 @@ struct sc_ModelMesh_c* sc_Model_Mesh_Load(const char* path, sc_OBJ_File_Reading_
                                verticesTexCoordsAmount, indices, indicesAmount);
 }
 
-void sc_Model_Mesh_Delete(struct sc_ModelMesh_c* modelMesh) {
+void sc_Model_Mesh_Delete(struct sc_Model_Mesh_c* modelMesh) {
     if (!modelMesh)
         return;
     if (modelMesh->indices)

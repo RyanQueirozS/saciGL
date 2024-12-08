@@ -65,12 +65,6 @@ void sa_Log_Should_Print_Origin(sa_Bool_t enable) {
 
 void sa_Log_Info(enum sa_Log_Type_e type, enum sa_Log_Context_e context,
                  const char* message, const char* file, int line) {
-#if !(defined(SACI_DEBUG_MODE))
-    if (type == sa_LOG_TYPE_DEBUG) {
-        return;
-    }
-#endif
-
     if (__sa_should_log_source_s) {
         printf("[%s] %s: %s: [FILE:%s][LINE:%d]\n",
                __sa_Log_Context_To_String(context),

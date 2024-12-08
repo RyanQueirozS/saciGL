@@ -23,6 +23,12 @@
      - `UPPER_CASE`
 
 5. Prefixes and suffixes should maintain their defined casing and should not affect overall casing.
+ 
+6. Names should work kind of like a filter, go from most important to least. Example: 
+    - A function pushes `model mesh` information into a `renderer`. First of
+      all, it is a renderer method, so the name should begin with `Renderer`
+      and then the information needed: `Push Model Mesh`. Because it is a global
+      header function, the full name should be: `sc_Renderer_Push_Model_Mesh`.
 
 ---
 
@@ -34,10 +40,10 @@
 | **Defines**          | ALL_CAPS               | `sa_HEADER_DEFINE`        | `__sa_SOURCE_DEFINE`        | `LOCAL_DEFINE`         |
 | **Macros**           | ALL_CAPS + `_m`        | `sa_HEADER_MACRO_m(x)`    | `__sa_SOURCE_MACRO_m(x)`    | `LOCAL_MACRO_m(x)`     |
 | **Variables**        | lower_case             | `sc_header_var`           | `__sc_source_var`           | `local_var`            |
-| **Constants**        | ALL_CAPS               | `sc_HEADER_CONST_k`       | `__sc_SOURCE_CONST_k`       | `LOCAL_CONST_k`        |
+| **Constants**        | ALL_CAPS               | `sc_HEADER_CONST`         | `__sc_SOURCE_CONST`         | `LOCAL_CONST`          |
 | **Static**           | lower_case + `_s`      | `sc_static_header_var_s`  | `__sc_static_source_var_s`  | `static_local_var_s`   |
 | **Enum**             | Pascal_Case + `_e`     | `sa_Header_Enum_e`        | `__sa_Source_Enum_e`        | `Local_Enum_e`         |
-| **Enum Members**     | ALL_CAPS               | `sa_HEADER_ENUM_MEMBER_k` | `__sa_SOURCE_ENUM_MEMBER_k` | `SOURCE_ENUM_MEMBER_k` |
+| **Enum Members**     | ALL_CAPS               | `sa_HEADER_ENUM_MEMBER`   | `__sa_SOURCE_ENUM_MEMBER`   | `SOURCE_ENUM_MEMBER`   |
 | **Structs**          | Pascal_Case + `_c`     | `sl_Header_Struct_c`      | `__sl_Source_Struct_c`      | `Local_Struct_c`       |
 | **Struct Members**   | local_case             | **N/A**                   | **N/A**                     | `struct_member`        |
 | **Functions**        | Pascal_Case            | `sc_Function_Def`         | `__sc_Function_Def`         | **N/A**                |
@@ -47,17 +53,15 @@
 NOTE:
 1. `Header guards` should contain the full path related to `/saci/include/`.
    Example: `/saci/include/my-dir/my-file.h` will be `__MY_DIR_MY_FILE_H__`
-2. `Defines` and `define consts` are different in the sense that, a define
-   won't necessarelly 'contain' a value.
-3. `Static` values should be in **ALL CAPS** if a const and **lower case** if a
-   variable, if a const there is no need for `_k` suffix, use the `_s`
-4. Struct Members are **Non applicable** in global space, because a member is
+2. `Static` values should be in **ALL CAPS** if a const and **lower case** if a
+   variable. The suffix `_s` should remain on either.
+3. Struct Members are **Non applicable** in global space, because a member is
    obviously defined locally inside a struct, obviously. Same thing as function
    parameters.
-5. Functions are **Non applicable** in local space, because **C** doesn't allow
+4. Functions are **Non applicable** in local space, because **C** doesn't allow
    it, there cannot be a function defined/implemented inside another. And even
    if it could it would be an aberration.
-6. When defining a **STRUCT**, if it is a defined as a **TYPE**, it should be
+5. When defining a **STRUCT**, if it is a defined as a **TYPE**, it should be
    suffixed with a `_t`, and not a `_c`. `Types > Classes` when reading.
    
 ### Naming guidelines
@@ -131,14 +135,13 @@ accepted.
 
 #### Braces
 
-If should contain braces if there the code in the if statement does more than one thing. Example:
+`if` should contain braces whenthe code in the `if` statement does more than one thing. Example:
 
 ```c
 // This ifstatement does more than one thing:
 if (condition) valueTwo = 2, valueThree = 3;
 
 // The correct way:
-
 if (condition) {
     valueTwo = 2; // could be a ; or ,
     valueThree = 3; 
@@ -154,12 +157,12 @@ NEEDED**.
 
 #### Nesting
 
-**DO NOT** nest ifs and elses. Simple as that.
+**DO NOT** nest `if`s and `else`s. Simple as that.
 
 ### Line limit
 
 **Lines should be kept at 80 CHARS** whenever possible. The `.clang-format` file does not
-break lines, because sometimes it forces some ugly indentations. Prefere
+break lines, because sometimes it forces some ugly indentations. Prefere a
 **READABLE over a 80 CHAR LINE**, if you need to break at 60, 90, or a 100, do
 it. **DO NOT GO OVER 110** and whenever possible **BREAK AT 80 CHARS**.
 
@@ -167,14 +170,13 @@ it. **DO NOT GO OVER 110** and whenever possible **BREAK AT 80 CHARS**.
 
 #### Empty lines
 
-There should be a empty line within each function, struct and enum. Example: 
+There should be a empty line per function, struct and enum. Example: 
 ```c
 // Without whitespace
 void My_Func();
 void Another_Func();
 
-//Should b:
-
+// Should be:
 void My_Func();
 
 void Another_Func();
@@ -345,7 +347,7 @@ Same rules as variables.
 
 Whenever defining a type, prefere the raw `struct` or `enum` form. Only use
 `typedef` when **DEFINING A TYPE THAT WILL BE USED FREQUENTLY** and:
-- is a opaque type;
+- is a opaque type;  
 OR
 - is a type that adds context for a given functionality;
 
@@ -382,7 +384,7 @@ Only use enums when:
 
 **Never**:
 - Create overly-complicated functions.
-    - Each function should be easy to reed and not require a computer science
+    - Each function should be easy to read and not require a computer science
       degree to understand.
 - Do multiple things in a single function. 
     - **ONLY WHEN NEEDED** a function can do multiple things, like
