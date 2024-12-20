@@ -3,13 +3,14 @@
 #include <glad/glad.h>
 #include <stdio.h>
 #include "saci-utils/su-debug.h"
+#include "saci-utils/su-general.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stbi/stb_image.h"
 
 /* === Helper Func declarations === */
 
-sa_s32_t __sc_Texture_Determine_Format(int nrChannels);
+sa_u32_t __sc_Texture_Determine_Format(int nrChannels);
 
 /* === Header impl === */
 
@@ -36,7 +37,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool_t flipImg) {
         return 0;
     }
 
-    sa_s32_t format = __sc_Texture_Determine_Format(nr_channels);
+    sa_u32_t format = __sc_Texture_Determine_Format(nr_channels);
     if (format == 0) {
         stbi_image_free(data); // Todo move to sa_FREE
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
@@ -49,7 +50,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool_t flipImg) {
 
     glBindTexture(GL_TEXTURE_2D, id);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
+    glTexImage2D(GL_TEXTURE_2D, 0, sa_SCAST_TO_m(int)(format), width, height, 0, format,
                  GL_UNSIGNED_BYTE, data);
 
     int glWidth = 0, glHeight = 0;
@@ -86,7 +87,7 @@ void sc_Texture_Free(sa_textureId textureID) {
 
 /* === Helper Func impl === */
 
-sa_s32_t __sc_Texture_Determine_Format(int nrChannels) {
+sa_u32_t __sc_Texture_Determine_Format(int nrChannels) {
     if (nrChannels == 3)
         return GL_RGB;
     if (nrChannels == 4)

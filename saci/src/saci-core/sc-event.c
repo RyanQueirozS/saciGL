@@ -4,17 +4,17 @@
 
 // todo move to opengl.h
 
-void sc_Event_Poll() {
+void sc_Event_Poll(void) {
     glfwPollEvents();
 }
-void sc_Event_Wait() {
+void sc_Event_Wait(void) {
     glfwWaitEvents();
 }
-void sc_Event_WaitForTimeout(double timeout) {
+void sc_Event_Wait_For_Timeout(double timeout) {
     glfwWaitEventsTimeout(timeout);
 }
 
-void sc_Event_PostEmpty() {
+void sc_Event_Post_Empty(void) {
     glfwPostEmptyEvent();
 }
 

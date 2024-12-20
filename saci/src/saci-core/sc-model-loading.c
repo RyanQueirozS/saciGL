@@ -5,7 +5,7 @@
 #include "saci-utils/su-general.h"
 
 #define TINYOBJ_LOADER_C_IMPLEMENTATION
-#include "tinyobj-loader_c/tinyobj_loader_c.h"
+#include "tinyobj_loader_c/tinyobj_loader_c.h"
 
 sa_bool_t sc_OBJ_Parse(const char* filePath, sc_OBJ_File_Reading_Function file_reader,
                        sa_Vec3_t** positions_out, sa_u64_t* positions_count_out,
@@ -47,9 +47,9 @@ sa_bool_t sc_OBJ_Parse(const char* filePath, sc_OBJ_File_Reading_Function file_r
     *indices_count_out = attribute.num_faces;
     *indices_out = sa_SCAST_TO_m(struct sc_VertexIndice_c*) sa_MALLOC(sizeof(struct sc_VertexIndice_c) * (*indices_count_out));
     for (sa_u64_t i = 0; i < (attribute.num_faces); ++i) {
-        (*indices_out)[i].vertexIndex = attribute.faces[i].v_idx;
-        (*indices_out)[i].texCoordIndex = attribute.faces[i].vt_idx;
-        (*indices_out)[i].normalIndex = attribute.faces[i].vn_idx;
+        (*indices_out)[i].vertexIndex = sa_SCAST_TO_m(sa_u32_t)(attribute.faces[i].v_idx);
+        (*indices_out)[i].texCoordIndex = sa_SCAST_TO_m(sa_u32_t) attribute.faces[i].vt_idx;
+        (*indices_out)[i].normalIndex = sa_SCAST_TO_m(sa_u32_t) attribute.faces[i].vn_idx;
     }
 
     tinyobj_attrib_free(&attribute);

@@ -1,4 +1,6 @@
 #include "saci-utils/su-math.h"
+#include "saci-utils/su-general.h"
+
 #include <math.h>
 #include <string.h>
 
@@ -22,7 +24,7 @@ static struct {
 // Init
 //------------------------------------------------------------------------------
 
-void sa_Math_Init() {
+void sa_Math_Init(void) {
     __sa_math_preferences.sqrt_function = __sa_default_sqrt; // defaults the sqrt
                                                              // operation to C's math.h
                                                              // sqrt function'
@@ -50,7 +52,7 @@ sa_Vec3_t sa_Vec3_Scale(sa_Vec3_t v, float scalar) {
 }
 
 sa_Vec3_t sa_Vec3_Normalize(sa_Vec3_t v) {
-    float mag = __sa_math_preferences.sqrt_function(v.x * v.x + v.y * v.y + v.z * v.z);
+    float mag = sa_SCAST_TO_m(float)(__sa_math_preferences.sqrt_function(v.x * v.x + v.y * v.y + v.z * v.z));
     if (mag == 0.0f) {
         return (sa_Vec3_t){0.0f, 0.0f, 0.0f};
     }
@@ -73,13 +75,10 @@ float sa_Vec3_Dot(sa_Vec3_t a, sa_Vec3_t b) {
 
 sa_Color_t sa_Color_From_Hex(sa_u32_t hex) {
     sa_Color_t color;
-    color.r =
-        ((hex >> 24) & 0xFF) * sa_COLOR_8BIT_INVERSE_MAX; // Extract and convert red component
-    color.g =
-        ((hex >> 16) & 0xFF) * sa_COLOR_8BIT_INVERSE_MAX; // Extract and convert green component
-    color.b =
-        ((hex >> 8) & 0xFF) * sa_COLOR_8BIT_INVERSE_MAX; // Extract and convert blue component
-    color.a = (hex & 0xFF) * sa_COLOR_8BIT_INVERSE_MAX;  // Extract and convert alpha component
+    color.r = ((hex >> 24) & 0xFF) * sa_SCAST_TO_m(sa_u32_t)(sa_COLOR_8BIT_INVERSE_MAX);
+    color.g = ((hex >> 16) & 0xFF) * sa_SCAST_TO_m(sa_u32_t)(sa_COLOR_8BIT_INVERSE_MAX);
+    color.b = ((hex >> 8) & 0xFF) * sa_SCAST_TO_m(sa_u32_t)(sa_COLOR_8BIT_INVERSE_MAX);
+    color.a = (hex & 0xFF) * sa_SCAST_TO_m(sa_u32_t)(sa_COLOR_8BIT_INVERSE_MAX);
     return color;
 }
 
@@ -116,7 +115,7 @@ sa_Mat4_t sa_Mat4_Multiply(sa_Mat4_t a, sa_Mat4_t b) {
     return result;
 }
 
-sa_Mat4_t sa_Mat4_Identity() {
+sa_Mat4_t sa_Mat4_Identity(void) {
     sa_Mat4_t result = {{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}}};
     return result;
 }
@@ -145,7 +144,7 @@ sa_Mat4_t sa_Mat4_Look_At(sa_Vec3_t eye, sa_Vec3_t center, sa_Vec3_t up) {
 
 sa_Mat4_t sa_Mat4_Perspective(float fov, float aspect, float near, float far) {
     sa_Mat4_t result = {0};
-    float tanHalfFov = __sa_math_preferences.tan_function(sa_DEG2RAD_m(fov) / 2.0f);
+    float tanHalfFov = sa_SCAST_TO_m(float)(__sa_math_preferences.tan_function(sa_DEG2RAD_m(fov) / 2.0f));
 
     result.m[0][0] = 1.0f / (aspect * tanHalfFov);
     result.m[1][1] = 1.0f / tanHalfFov;
@@ -196,7 +195,7 @@ sa_Mat4_t sa_Mat4_Rotate_Y(sa_Mat4_t mat, float angle) {
     return sa_Mat4_Multiply(mat, rotation);
 }
 
-sa_Mat4_t sa_RotateMat4_Z(sa_Mat4_t mat, float angle) {
+sa_Mat4_t sa_Mat4_Rotate_Z(sa_Mat4_t mat, float angle) {
     sa_Mat4_t rotation = sa_Mat4_Identity();
     float cosA = cosf(angle);
     float sinA = sinf(angle);
@@ -229,11 +228,11 @@ sa_Mat4_t sa_Mat4_Model_Matrix(sa_Vec3_t position, sa_Vec3_t rotation, sa_Vec3_t
     sa_Mat4_t scaleMat = sa_Mat4_Scale(scale.x, scale.y, scale.z);
 
     sa_Mat4_t rotationX =
-        sa_Mat4_Rotate_X(sa_Mat4_Identity(), rotation.x); // Rotate around X-axis
+        sa_Mat4_Rotate_Z(sa_Mat4_Identity(), rotation.x); // Rotate around X-axis
     sa_Mat4_t rotationY =
         sa_Mat4_Rotate_Y(sa_Mat4_Identity(), rotation.y); // Rotate around Y-axis
     sa_Mat4_t rotationZ =
-        sa_RotateMat4_Z(sa_Mat4_Identity(), rotation.z); // Rotate around Z-axis
+        sa_Mat4_Rotate_Z(sa_Mat4_Identity(), rotation.z); // Rotate around Z-axis
 
     sa_Mat4_t rotationMat = sa_Mat4_Multiply(rotationZ, sa_Mat4_Multiply(rotationY, rotationX));
 

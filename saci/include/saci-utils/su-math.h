@@ -24,7 +24,7 @@
 
 /* === Initialization === */
 
-void sa_Math_Init();
+void sa_Math_Init(void);
 
 /* === Vec3 Operations === */
 
@@ -44,12 +44,13 @@ sa_u32_t sa_Color_To_Hex(sa_Color_t color);
 /* === Mat Operations === */
 
 sa_Mat4_t sa_Mat4_Multiply(sa_Mat4_t a, sa_Mat4_t b);
-sa_Mat4_t sa_Mat4_Identity();
+sa_Mat4_t sa_Mat4_Identity(void);
 sa_Mat4_t sa_Mat4_Look_At(sa_Vec3_t eye, sa_Vec3_t center, sa_Vec3_t up);
 sa_Mat4_t sa_Mat4_Perspective(float fov, float aspect, float near, float far);
 sa_Mat4_t sa_Mat4_Ortho(float left, float right, float bottom, float top, float near, float far);
 sa_Mat4_t sa_Mat4_Rotate_X(sa_Mat4_t mat, float angle);
 sa_Mat4_t sa_Mat4_Rotate_Y(sa_Mat4_t mat, float angle);
+sa_Mat4_t sa_Mat4_Rotate_Z(sa_Mat4_t mat, float angle);
 sa_Mat4_t sa_Mat4_Scale(float sx, float sy, float sz);
 sa_Mat4_t sa_Mat4_Translate(float tx, float ty, float tz);
 sa_Mat4_t sa_Mat4_Model_Matrix(sa_Vec3_t position, sa_Vec3_t rotation, sa_Vec3_t scale);

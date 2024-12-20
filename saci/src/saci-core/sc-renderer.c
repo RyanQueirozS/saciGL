@@ -22,7 +22,7 @@ typedef struct sc_RenderBatch sc_RenderBatch;
 void __sc_Renderer_Remove_Garbage_Numbers(sc_Renderer_t* renderer);
 
 sc_RenderCall __sc_RenderCall_Create(Arena* arena, struct sc_Vertice_c* vertices, sa_u64_t vertices_amount,
-                                     sa_u64_t indices_amount, int render_mode, sa_textureId tex_id,
+                                     sa_u64_t indices_amount, sa_u32_t render_mode, sa_textureId tex_id,
                                      sa_u32_t ibo, sa_Mat4_t model_matrix);
 
 void __sc_RenderBatch_Push(sc_RenderBatch* render_batch, sc_RenderCall render_call);
@@ -61,7 +61,7 @@ typedef struct sc_RenderCall {
     sa_u64_t m_indice_amount;
     sa_u32_t m_ibo;
 
-    int m_render_mode; // LINE TRIANGLE or QUAD
+    sa_u32_t m_render_mode; // LINE TRIANGLE or QUAD
     sa_textureId m_texture_id;
 
     sa_Mat4_t m_model_matrix;
@@ -171,7 +171,7 @@ sa_u64_t sc_ModelMesh_GetIndicesAmount(const struct sc_ModelMesh_c* modelMesh) {
     return modelMesh->m_indices_amount;
 }
 
-sc_Renderer_t* sc_Renderer_Create_Empty() {
+sc_Renderer_t* sc_Renderer_Create_Empty(void) {
     sc_Renderer_t* renderer = (sc_Renderer_t*)malloc(sizeof(sc_Renderer_t));
     if (!renderer) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
@@ -182,7 +182,7 @@ sc_Renderer_t* sc_Renderer_Create_Empty() {
     return renderer;
 }
 
-sc_Renderer_t* sc_Renderer_Create_Default() {
+sc_Renderer_t* sc_Renderer_Create_Default(void) {
     sc_Renderer_t* renderer = sc_Renderer_Create_Empty();
     if (!renderer) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
@@ -217,7 +217,7 @@ void sc_Renderer_Resize_Render_Buffer(sc_Renderer_t* renderer, sa_u64_t newSize)
     memcpy(newRenderCalls, renderBatch->m_render_calls, renderBatch->m_render_call_count * sizeof(sc_RenderCall));
     free(renderBatch->m_render_calls);
     renderBatch->m_render_calls = newRenderCalls;
-    renderBatch->m_capacity = newSize;
+    renderBatch->m_capacity = sa_SCAST_TO_m(sa_u32_t)(newSize);
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
                         "RenderBatch resized successfully");
     assert(renderer->m_render_batch.m_render_calls); // TODO SACI_ASSERT
@@ -312,10 +312,10 @@ void sc_Renderer_End(sc_Renderer_t* renderer, const struct sc_Camera_c* camera) 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, call->m_ibo);
 
         glBufferSubData(GL_ARRAY_BUFFER, 0,
-                        sizeof(struct sc_Vertice_c) * call->m_vertice_amount,
+                        sa_SCAST_TO_m(long int)(sizeof(struct sc_Vertice_c) * call->m_vertice_amount),
                         call->m_vertices);
 
-        glDrawElements(call->m_render_mode, call->m_indice_amount, GL_UNSIGNED_INT,
+        glDrawElements(call->m_render_mode, sa_SCAST_TO_m(int)(call->m_indice_amount), GL_UNSIGNED_INT,
                        0);
 
         if (call->m_texture_id != 0) {
@@ -375,14 +375,10 @@ struct sc_ModelMesh_c* sc_ModelMesh_Create(sa_Vec3_t* verticesPos,
     }
 
     for (sa_u64_t i = 0; i < verticePosAmount; i++) {
-        float r =
-            (rand() % 10001) / 10000.0f; // Generates a float between 0 and 1
-        float g = (rand() % 10001) / 10000.0f;
-        float b = (rand() % 10001) / 10000.0f;
         mesh->m_vertices[i].m_pos = verticesPos[i];
         mesh->m_vertices[i].m_texcoord = verticesTexcoord[i];
         mesh->m_vertices[i].m_color =
-            (sa_Color_t){r, g, b, 1.0f}; // Default white color
+            (sa_Color_t){1.0f, 1.0f, 1.0f, 1.0f}; // Default white color
     }
 
     mesh->m_indices = (sa_u32_t*)malloc(sizeof(sa_u32_t) * mesh->m_indices_amount);
@@ -457,7 +453,7 @@ void __sc_Renderer_Init_All(sc_Renderer_t* renderer) {
 
 sc_RenderCall __sc_RenderCall_Create(Arena* arena, struct sc_Vertice_c* vertices, sa_u64_t verticesAmount,
                                      sa_u64_t indicesAmount,
-                                     int renderMode, sa_textureId texID, sa_u32_t ibo,
+                                     sa_u32_t renderMode, sa_textureId texID, sa_u32_t ibo,
                                      sa_Mat4_t modelMatrix) {
     sa_ASSERT(arena);
     sa_ASSERT(vertices);

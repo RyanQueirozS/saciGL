@@ -11,7 +11,7 @@
 /**
  * @brief Generates the default OpenGL debuger.
  */
-void __sc_OpenGL_InitializeDebugger();
+void __sc_OpenGL_InitializeDebugger(void);
 
 /* === Main declaration=== */
 

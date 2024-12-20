@@ -136,13 +136,13 @@ enum sc_Keycode_e {
     sc_KEY_LAST = sc_KEY_MENU,
 };
 
-void sc_Event_Poll();
+void sc_Event_Poll(void);
 
-void sc_Events_Wait();
+void sc_Event_Wait(void);
 
 void sc_Event_Wait_For_Timeout(double timeout);
 
-void sc_Event_Post_Empty();
+void sc_Event_Post_Empty(void);
 
 void sc_Event_Set_Mouse_Pos_Handler(sc_Window_t* window, sc_Event_MousePosHandler_t mouse_pos_handler);
 

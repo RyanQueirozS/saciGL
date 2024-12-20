@@ -12,7 +12,7 @@ static sa_bool_t __sa_should_log_source_s = sa_FALSE;
 
 /* === Helpers === */
 
-const char* __sa_Log_Type_To_String(enum sa_Log_Type_e type) {
+static const char* __sa_Log_Type_To_String(enum sa_Log_Type_e type) {
     switch (type) {
     case sa_LOG_TYPE_ERROR:
         return "ERROR";
@@ -27,7 +27,7 @@ const char* __sa_Log_Type_To_String(enum sa_Log_Type_e type) {
     }
 }
 
-const char* __sa_Log_Severity_To_String(enum sa_Log_Severity_e severity) {
+static const char* __sa_Log_Severity_To_String(enum sa_Log_Severity_e severity) {
     switch (severity) {
     case sa_LOG_SEVERITY_LOW:
         return "LOW";
@@ -40,7 +40,7 @@ const char* __sa_Log_Severity_To_String(enum sa_Log_Severity_e severity) {
     }
 }
 
-const char* __sa_Log_Context_To_String(enum sa_Log_Context_e context) {
+static const char* __sa_Log_Context_To_String(enum sa_Log_Context_e context) {
     switch (context) {
     case sa_LOG_CONTEXT_OPENGL:
         return "OpenGL";

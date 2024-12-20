@@ -72,15 +72,29 @@ struct sc_Vertice_c* sc_Vertice_Create_Vertices_Array(sa_Vec3_t* positions, sa_C
 // TODO remove and use a sc_ModelMesh_Get_Array_Info
 struct sc_Vertice_c* sc_ModelMesh_Get_Vertices(const struct sc_ModelMesh_c* modelMesh);
 
+// TODO redo file organization
+struct sc_VertexIndice_c {
+    sa_u32_t vertexIndex;
+    sa_u32_t texCoordIndex;
+    sa_u32_t normalIndex;
+};
+
+struct sc_ModelMesh_c* sc_ModelMesh_Create(sa_Vec3_t* verticesPos,
+                                           sa_u64_t verticePosAmount,
+                                           sa_Vec2_t* verticesTexcoord,
+                                           sa_u64_t verticesTexcoordAmount,
+                                           struct sc_VertexIndice_c* indices,
+                                           sa_u64_t indiceAmount);
+
 sa_u64_t sc_ModelMesh_Get_Vertices_Amount(const struct sc_ModelMesh_c* modelMesh);
 
 sa_u32_t* sc_ModelMesh_Get_Indices(const struct sc_ModelMesh_c* modelMesh);
 
 sa_u64_t sc_ModelMesh_GetIndicesAmount(const struct sc_ModelMesh_c* modelMesh);
 
-sc_Renderer_t* sc_Renderer_Create_Empty();
+sc_Renderer_t* sc_Renderer_Create_Empty(void);
 
-sc_Renderer_t* sc_Renderer_Create_Default();
+sc_Renderer_t* sc_Renderer_Create_Default(void);
 
 void sc_Renderer_Init_Memory_Context(sc_Renderer_t* renderer, sa_u64_t size);
 
@@ -122,12 +136,6 @@ typedef void (*sc_OBJ_File_Reading_Function)(void* ctx, const char* filename, in
 struct sc_ModelMesh_c* sc_Model_Mesh_Load(const char* path, sc_OBJ_File_Reading_Function fileReader);
 
 /* === Model Parsing === */
-
-struct sc_VertexIndice_c {
-    sa_u32_t vertexIndex;
-    sa_u32_t texCoordIndex;
-    sa_u32_t normalIndex;
-};
 
 sa_bool_t sc_OBJ_Parse(const char* file_path, sc_OBJ_File_Reading_Function file_reader,
                        sa_Vec3_t** positions_out, sa_u64_t* positions_count_out,
