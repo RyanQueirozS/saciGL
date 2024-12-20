@@ -39,8 +39,8 @@ endif()
 # Create the static library
 add_library(saci STATIC ${SOURCES})
 
-# Set C standard to C11
-set_property(TARGET saci PROPERTY C_STANDARD 11)
+# Set C standard to C99
+set_property(TARGET saci PROPERTY C_STANDARD 99)
 
 # Include directories
 target_include_directories(saci SYSTEM PRIVATE
@@ -56,6 +56,8 @@ target_include_directories(saci SYSTEM PRIVATE
 
 # Add Glad source file to the library
 target_sources(saci PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/src/glad.c")
+# Disable warnings for glad.c
+set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/src/glad.c" PROPERTIES COMPILE_OPTIONS "-w")
 
 # --- Link Libraries ---
 target_link_libraries(saci PUBLIC
@@ -75,7 +77,7 @@ else()
 endif()
 
 # --- Compiler Flags ---
-# Default compiler flags for all source files (except glad.c)
+# Default compiler flags for all source files in saci (except glad.c)
 target_compile_options(saci PRIVATE
     -Wall                      # Enable all warnings
     -Wextra                    # Enable extra warnings
@@ -84,26 +86,16 @@ target_compile_options(saci PRIVATE
     -Wshadow                   # Warn when a local variable or function shadows another
     -Wconversion               # Warn about implicit type conversions that may lose data
     -Wunreachable-code         # Warn about code that will never be executed
-    -Wstrict-prototypes        # Warn if a function declaration doesn't include argument types
+    -Wstrict-prototypes        # Warn if a function declaration doesn't include argument types # For some reason doesn't work :p
     -Wmissing-declarations     # Warn when a function is used but not declared
     -Wno-unused-parameter      # Ignore unused parameter warnings
     -Wvla                      # Warn if variable-length arrays (VLAs) are used (C99 feature)
     -Wno-unused-function       # Avoid warning for unused static functions
-    -std=c11                   # Enforce C11 standard
+    -std=c99                   # Enforce C99 standard
     -pedantic-errors           # Make pedantic warnings fatal
 
     # Debug and release-specific flags
     $<$<CONFIG:DEBUG>:-g>       # Debugging information for debug mode
     $<$<CONFIG:RELEASE>:-O3>    # Higher optimization in release mode
 )
-
-# Exclude glad.c from these flags by applying different flags for glad.c
-set(GLAD_COMPILE_OPTIONS)
-list(APPEND GLAD_COMPILE_OPTIONS
-    # No warnings or different flags for glad.c
-    -w  # Disable warnings for glad.c
-)
-
-# Apply compiler options specifically to glad.c
-set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/src/glad.c" PROPERTIES COMPILE_OPTIONS "${GLAD_COMPILE_OPTIONS}")
 

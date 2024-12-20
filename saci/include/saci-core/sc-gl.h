@@ -8,15 +8,19 @@
 
 /* === Windowing === */
 
+#ifndef SACI_GLFW_MONITOR_T
 typedef GLFWmonitor sc_Monitor_t;
+#endif
 
+#ifndef SACI_GLFW_WINDOW_T
 typedef GLFWwindow sc_Window_t;
+#endif
 
 typedef void (*sc_Window_PosHandler_t)(sc_Window_t* window, int pos_x, int pos_y);
 
 typedef void (*sc_Window_SizeHandler_t)(sc_Window_t* window, int width, int height);
 
-sa_bool_t sc_GLFW_Init(void);
+sa_bool_t sc_GLFW_Init();
 
 sa_bool_t sc_GLAD_Init(void);
 
@@ -41,7 +45,9 @@ void sc_Window_Swap_Buffer(sc_Window_t* window);
 
 /* === Renderer === */
 
+#ifndef SACI_RENDERER_T
 typedef struct sc_Renderer_c sc_Renderer_t;
+#endif
 
 typedef sa_Mat4_t (*sc_Renderer_ProjectionFunc)(struct sc_Camera_c camera);
 

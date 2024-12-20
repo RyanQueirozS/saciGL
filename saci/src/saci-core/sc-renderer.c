@@ -14,8 +14,24 @@
 
 /* === Structs for Helper Functions === */
 
-typedef struct sc_RenderCall sc_RenderCall;
-typedef struct sc_RenderBatch sc_RenderBatch;
+typedef struct sc_RenderCall {
+    struct sc_Vertice_c* m_vertices;
+    sa_u64_t m_vertice_amount;
+
+    sa_u64_t m_indice_amount;
+    sa_u32_t m_ibo;
+
+    sa_u32_t m_render_mode; // LINE TRIANGLE or QUAD
+    sa_textureId m_texture_id;
+
+    sa_Mat4_t m_model_matrix;
+} sc_RenderCall;
+
+typedef struct sc_RenderBatch {
+    sc_RenderCall* m_render_calls;
+    sa_u32_t m_capacity;
+    sa_u32_t m_render_call_count;
+} sc_RenderBatch;
 
 /* === Helper Functions === */
 
@@ -53,25 +69,6 @@ struct sc_Vertice_c {
     sa_Color_t m_color;
     sa_Vec2_t m_texcoord;
 };
-
-typedef struct sc_RenderCall {
-    struct sc_Vertice_c* m_vertices;
-    sa_u64_t m_vertice_amount;
-
-    sa_u64_t m_indice_amount;
-    sa_u32_t m_ibo;
-
-    sa_u32_t m_render_mode; // LINE TRIANGLE or QUAD
-    sa_textureId m_texture_id;
-
-    sa_Mat4_t m_model_matrix;
-} sc_RenderCall;
-
-typedef struct sc_RenderBatch {
-    sc_RenderCall* m_render_calls;
-    sa_u32_t m_capacity;
-    sa_u32_t m_render_call_count;
-} sc_RenderBatch;
 
 // TODO doc
 struct sc_Renderer_c {

@@ -36,34 +36,37 @@ typedef void (*sc_Event_MousePosHandler_t)(sc_Window_t* window, double posx, dou
 
 ### Element-Specific Naming Rules
 
-| ELEMENT              | Convention             | GLOBAL HEADER             | GLOBAL SOURCE               | LOCAL                  |
-|----------------------|------------------------|---------------------------|-----------------------------|------------------------|
-| **Header Guard**     | `__` + ALL_CAPS + `__` | `__MY_COMPLETE_PATH_H__`  | **N/A**                     | **N/A**                |
-| **Defines**          | ALL_CAPS               | `sa_HEADER_DEFINE`        | `__sa_SOURCE_DEFINE`        | `LOCAL_DEFINE`         |
-| **Macros**           | ALL_CAPS + `_m`        | `sa_HEADER_MACRO_m(x)`    | `__sa_SOURCE_MACRO_m(x)`    | `LOCAL_MACRO_m(x)`     |
-| **Variables**        | lower_case             | `sc_header_var`           | `__sc_source_var`           | `local_var`            |
-| **Constants**        | ALL_CAPS               | `sc_HEADER_CONST`         | `__sc_SOURCE_CONST`         | `LOCAL_CONST`          |
-| **Static**           | lower_case + `_s`      | `sc_static_header_var_s`  | `__sc_static_source_var_s`  | `static_local_var_s`   |
-| **Enum**             | camelCase + `_e`       | `sa_Header_Enum_e`        | `__sa_Source_Enum_e`        | `Local_Enum_e`         |
-| **Enum Members**     | ALL_CAPS               | `sa_HEADER_ENUM_MEMBER`   | `__sa_SOURCE_ENUM_MEMBER`   | `SOURCE_ENUM_MEMBER`   |
-| **Structs**          | camelCase + `_c`       | `sl_Header_Struct_c`      | `__sl_Source_Struct_c`      | `Local_Struct_c`       |
-| **Struct Members**   | `m_` + lower_case      | **N/A**                   | **N/A**                     | `m_struct_member`      |
-| **Functions**        | Pascal_Case            | `sc_Function_Def`         | `__sc_Function_Def`         | **N/A**                |
-| **Functions Params** | lower_case             | **N/A**                   | **N/A**                     | `func_param`           |
-| **Typedefs**         | camelCase + `_t`       | `sc_Header_Type_t`        | `__sc_Source_Type_t`        | `My_Local_Type_t`      |
+| ELEMENT              | Convention             | GLOBAL HEADER             | GLOBAL SOURCE               | LOCAL                 |
+|----------------------|------------------------|---------------------------|-----------------------------|-----------------------|
+| **Header Guard**     | `__` + ALL_CAPS + `__` | `__MY_COMPLETE_PATH_H__`  | **N/A**                     | **N/A**               |
+| **Defines**          | ALL_CAPS               | `SACI_HEADER_DEFINE`      | `SACI_SOURCE_DEFINE`        | `SACI_LOCAL_DEFINE`   |
+| **Define values**    | ALL_CAPS               | `sa_HEADER_DEFINE_VALUES` | `__sa_SOURCE_DEFINE_VALUES` | `LOCAL_DEFINE_VALUES` |
+| **Macros**           | ALL_CAPS + `_m`        | `sa_HEADER_MACRO_m(x)`    | `__sa_SOURCE_MACRO_m(x)`    | `LOCAL_MACRO_m(x)`    |
+| **Variables**        | lower_case             | `sc_header_var`           | `__sc_source_var`           | `local_var`           |
+| **Constants**        | ALL_CAPS               | `sc_HEADER_CONST`         | `__sc_SOURCE_CONST`         | `LOCAL_CONST`         |
+| **Static**           | lower_case + `_s`      | `sc_static_header_var_s`  | `__sc_static_source_var_s`  | `static_local_var_s`  |
+| **Enum**             | camelCase + `_e`       | `sa_Header_Enum_e`        | `__sa_Source_Enum_e`        | `Local_Enum_e`        |
+| **Enum Members**     | ALL_CAPS               | `sa_HEADER_ENUM_MEMBER`   | `__sa_SOURCE_ENUM_MEMBER`   | `SOURCE_ENUM_MEMBER`  |
+| **Structs**          | camelCase + `_c`       | `sl_Header_Struct_c`      | `__sl_Source_Struct_c`      | `Local_Struct_c`      |
+| **Struct Members**   | `m_` + lower_case      | **N/A**                   | **N/A**                     | `m_struct_member`     |
+| **Functions**        | Pascal_Case            | `sc_Function_Def`         | `__sc_Function_Def`         | **N/A**               |
+| **Functions Params** | lower_case             | **N/A**                   | **N/A**                     | `func_param`          |
+| **Typedefs**         | camelCase + `_t`       | `sc_Header_Type_t`        | `__sc_Source_Type_t`        | `My_Local_Type_t`     |
 
 NOTE:
-1. `Header guards` should contain the full path related to `/saci/include/`.
+1. `Defines` and `Define Consts` are different in the sense that a define might
+   not contain a value.
+2. `Header guards` should contain the full path related to `/saci/include/`.
    Example: `/saci/include/my-dir/my-file.h` will be `__MY_DIR_MY_FILE_H__`
-2. `Static` values should be in **ALL CAPS** if a const and **lower case** if a
+3. `Static` values should be in **ALL CAPS** if a const and **lower case** if a
    variable. The suffix `_s` should remain on either.
-3. Struct Members are **Non applicable** in global space, because a member is
+4. Struct Members are **Non applicable** in global space, because a member is
    obviously defined locally inside a struct, obviously. Same thing as function
    parameters.
-4. Functions are **Non applicable** in local space, because **C** doesn't allow
+5. Functions are **Non applicable** in local space, because **C** doesn't allow
    it, there cannot be a function defined/implemented inside another. And even
    if it could it would be an aberration.
-5. When defining a **STRUCT**, if it is a defined as a **TYPE**, it should be
+6. When defining a **STRUCT**, if it is a defined as a **TYPE**, it should be
    suffixed with a `_t`, and not a `_c`. `Types > Classes` when reading.
    
 ### Naming guidelines
