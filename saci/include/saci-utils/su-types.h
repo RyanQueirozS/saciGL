@@ -69,7 +69,7 @@ typedef struct {
 
 /* === Color Structure === */
 
-typedef struct sa_Color_t {
+typedef struct {
     float r; /**< Red compoonent */
     float g; /**< Green compoonent */
     float b; /**< Blue compoonent */
@@ -78,7 +78,7 @@ typedef struct sa_Color_t {
 
 /* === Matrix Structure === */
 
-typedef struct sa_Mat4_t {
+typedef struct {
     float m[4][4]; /**< 4x4 matrix of floats */
 } sa_Mat4_t;
 

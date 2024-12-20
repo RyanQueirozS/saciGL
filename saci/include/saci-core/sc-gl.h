@@ -158,15 +158,15 @@ void     sc_GL_Enable_Vertex_Attrib_Array(sa_u32_t id);
 
 /* === Shader Functions === */
 
-sa_u32_t sc_Shader_Compile_Shader_V(const char* source);
+sa_u32_t sc_Shader_Compile_Shader_Vert(const char* source);
 
-sa_u32_t sc_Shader_Compile_Shader_F(const char* source);
+sa_u32_t sc_Shader_Compile_Shader_Frag(const char* source);
 
-sa_u32_t sc_Shader_Compile_Shader_G(const char* source);
+sa_u32_t sc_Shader_Compile_Shader_Geom(const char* source);
 
 sa_u32_t sc_Shader_Create_Shader_Program(sa_shaderId vshader, sa_shaderId fshader);
 
-sa_u32_t sc_Shader_Create_Shader_Program_G(sa_shaderId vshader, sa_shaderId fshader,
-                                           sa_shaderId gshader);
+sa_u32_t sc_Shader_Create_Shader_Program_Geom(sa_shaderId vshader, sa_shaderId fshader,
+                                              sa_shaderId gshader);
 
 #endif

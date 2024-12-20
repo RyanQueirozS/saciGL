@@ -562,8 +562,8 @@ void __sc_Renderer_Init_Shader_Program(sc_Renderer_t* renderer) {
         "   }\n"
         "}\n\0";
 
-    sa_u32_t vShader = sc_Shader_Compile_Shader_V(vShaderSource);
-    sa_u32_t fShader = sc_Shader_Compile_Shader_F(fShaderSource);
+    sa_u32_t vShader = sc_Shader_Compile_Shader_Vert(vShaderSource);
+    sa_u32_t fShader = sc_Shader_Compile_Shader_Frag(fShaderSource);
     assert(vShader != 0 && fShader != 0);
     renderer->m_shader_program = sc_Shader_Create_Shader_Program(vShader, fShader);
     assert(renderer->m_shader_program);

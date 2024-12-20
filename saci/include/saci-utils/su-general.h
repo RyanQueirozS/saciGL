@@ -11,7 +11,6 @@
 #define __SACI_UTILS_SU_GENERAL_H__
 
 #ifdef __cplusplus
-
 #define sa_SCAST_TO_m(type) static_cast<type>
 #else
 #define sa_SCAST_TO_m(type) (type)

@@ -161,15 +161,15 @@ it. **DO NOT GO OVER 110** and whenever possible **BREAK AT 80 CHARS**.
 
 #### Empty lines
 
-There should be a empty line per function, struct and enum. Example: 
+There should **NOT** be a empty line per function, struct and enum. Example: 
 ```c
-// Without whitespace
+// Without be:
 void My_Func();
+
 void Another_Func();
 
 // Should be:
 void My_Func();
-
 void Another_Func();
 ```
 

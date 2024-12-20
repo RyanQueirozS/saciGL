@@ -183,7 +183,7 @@ sa_Mat4_t sa_Mat4_Rotate_X(sa_Mat4_t mat, float angle) {
     return sa_Mat4_Multiply(mat, rotation);
 }
 
-sa_Mat4_t sa_Mat_Rotate_Y(sa_Mat4_t mat, float angle) {
+sa_Mat4_t sa_Mat4_Rotate_Y(sa_Mat4_t mat, float angle) {
     sa_Mat4_t rotation = sa_Mat4_Identity();
     float cosA = cosf(angle);
     float sinA = sinf(angle);
@@ -231,7 +231,7 @@ sa_Mat4_t sa_Mat4_Model_Matrix(sa_Vec3_t position, sa_Vec3_t rotation, sa_Vec3_t
     sa_Mat4_t rotationX =
         sa_Mat4_Rotate_X(sa_Mat4_Identity(), rotation.x); // Rotate around X-axis
     sa_Mat4_t rotationY =
-        sa_Mat_Rotate_Y(sa_Mat4_Identity(), rotation.y); // Rotate around Y-axis
+        sa_Mat4_Rotate_Y(sa_Mat4_Identity(), rotation.y); // Rotate around Y-axis
     sa_Mat4_t rotationZ =
         sa_RotateMat4_Z(sa_Mat4_Identity(), rotation.z); // Rotate around Z-axis
 

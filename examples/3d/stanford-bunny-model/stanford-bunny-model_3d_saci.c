@@ -35,22 +35,22 @@ void init_saci(void) {
 void handle_keyboard(void) {
     sa_Vec3_t forward = sa_Vec3_Normalize(sa_Vec3_Subtract(camera.m_target, camera.m_position));
     sa_Vec3_t right = sa_Vec3_Normalize(sa_Vec3_Cross(forward, camera.m_up));
-    if (sc_Event_Is_Key_Pressed(window, sa_KEY_W)) {
+    if (sc_Event_Is_Key_Pressed(window, sc_KEY_W)) {
         camera.m_position = sa_Vec3_Add(camera.m_position, sa_Vec3_Scale(forward, cameraSpeed));
     }
-    if (sc_Event_Is_Key_Pressed(window, sa_KEY_A)) {
+    if (sc_Event_Is_Key_Pressed(window, sc_KEY_A)) {
         camera.m_position = sa_Vec3_Subtract(camera.m_position, sa_Vec3_Scale(right, cameraSpeed));
     }
-    if (sc_Event_Is_Key_Pressed(window, sa_KEY_S)) {
+    if (sc_Event_Is_Key_Pressed(window, sc_KEY_S)) {
         camera.m_position = sa_Vec3_Subtract(camera.m_position, sa_Vec3_Scale(forward, cameraSpeed));
     }
-    if (sc_Event_Is_Key_Pressed(window, sa_KEY_D)) {
+    if (sc_Event_Is_Key_Pressed(window, sc_KEY_D)) {
         camera.m_position = sa_Vec3_Add(camera.m_position, sa_Vec3_Scale(right, cameraSpeed));
     }
-    if (sc_Event_Is_Key_Pressed(window, sa_KEY_SPACE)) {
+    if (sc_Event_Is_Key_Pressed(window, sc_KEY_SPACE)) {
         camera.m_position.y += cameraSpeed;
     }
-    if (sc_Event_Is_Key_Pressed(window, sa_KEY_LEFT_SHIFT)) {
+    if (sc_Event_Is_Key_Pressed(window, sc_KEY_LEFT_SHIFT)) {
         camera.m_position.y -= cameraSpeed;
     }
 }
