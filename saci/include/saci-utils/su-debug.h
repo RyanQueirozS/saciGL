@@ -14,9 +14,9 @@
 
 enum sa_Log_Type_e {
     sa_LOG_TYPE_DEBUG = -1,
-    sa_LOG_TYPE_INFO  = 0,
+    sa_LOG_TYPE_INFO = 0,
 
-    sa_LOG_TYPE_WARN  = 1,
+    sa_LOG_TYPE_WARN = 1,
     sa_LOG_TYPE_ERROR = 2,
 };
 

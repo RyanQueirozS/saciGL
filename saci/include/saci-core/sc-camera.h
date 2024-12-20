@@ -12,10 +12,10 @@ struct sc_Camera_c {
     sa_Vec3_t m_target;
     sa_Vec3_t m_up;
 
-    float     m_fov;
-    float     m_aspect_ratio;
-    float     m_near;
-    float     m_far;
+    float m_fov;
+    float m_aspect_ratio;
+    float m_near;
+    float m_far;
 };
 
 struct sc_Camera_c sc_Camera_Get_Default(void);

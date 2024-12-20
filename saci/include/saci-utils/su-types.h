@@ -23,15 +23,15 @@ typedef uint32_t sa_u32_t;
 
 typedef uint16_t sa_u16_t;
 
-typedef uint8_t  sa_u8_t;
+typedef uint8_t sa_u8_t;
 
-typedef int64_t  sa_s64_t;
+typedef int64_t sa_s64_t;
 
-typedef int32_t  sa_s32_t;
+typedef int32_t sa_s32_t;
 
-typedef int16_t  sa_s16_t;
+typedef int16_t sa_s16_t;
 
-typedef int8_t   sa_s8_t;
+typedef int8_t sa_s8_t;
 
 /* === Boolean Constants === */
 

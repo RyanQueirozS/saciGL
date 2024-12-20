@@ -33,13 +33,13 @@ sa_Vec3_t sa_Vec3_Add(sa_Vec3_t a, sa_Vec3_t b);
 sa_Vec3_t sa_Vec3_Scale(sa_Vec3_t v, float scalar);
 sa_Vec3_t sa_Vec3_Normalize(sa_Vec3_t v);
 sa_Vec3_t sa_Vec3_Cross(sa_Vec3_t a, sa_Vec3_t b);
-float     sa_Vec3_Dot(sa_Vec3_t a, sa_Vec3_t b);
+float sa_Vec3_Dot(sa_Vec3_t a, sa_Vec3_t b);
 
 /* === Color Operations === */
 
 sa_Color_t sa_Color_From_Hex(sa_u32_t hex);
 sa_Color_t sa_Color_From_U8(sa_u8_t r, sa_u8_t g, sa_u8_t b, sa_u8_t a);
-sa_u32_t   sa_Color_To_Hex(sa_Color_t color);
+sa_u32_t sa_Color_To_Hex(sa_Color_t color);
 
 /* === Mat Operations === */
 
