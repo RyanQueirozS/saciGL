@@ -34,7 +34,7 @@ sa_Vec2_t uvCoords[4] = {
     {1.0f, 1.0f}  // UV for Vertex 4 (top-right)
 };
 
-sa_U32_t indices[6] = {
+sa_u32_t indices[6] = {
     0, 1, 2, // first triangle
     1, 2, 3, // second triangle
 };
@@ -51,11 +51,11 @@ static void init_saci() {
     assert(renderer);
 
     camera = sc_Camera_Get_Default();
-    camera.aspectRatio = 1600.0f / 900.0f;
+    camera.m_aspect_ratio = 1600.0f / 900.0f;
     { // Change as you may
-        camera.position.x = -1.0f;
-        camera.position.y = 3.0f;
-        camera.position.z = 5.0f;
+        camera.m_position.x = -1.0f;
+        camera.m_position.y = 3.0f;
+        camera.m_position.z = 5.0f;
     }
 
     sc_Renderer_Enable_Z_Buffer();
@@ -73,7 +73,7 @@ int main() {
         sc_Window_Clear_Color(bgColor);
 
         sc_Renderer_Begin(renderer);
-        sa_U32_t ibo = sc_GL_Create_Index_Buffer(indices, 6);
+        sa_u32_t ibo = sc_GL_Create_Index_Buffer(indices, 6);
         sc_Renderer_Push_Vertices(renderer, vertices, 4, 6, modelMatrix, tex, ibo);
         sc_Renderer_End(renderer, &camera);
         sc_Window_Swap_Buffer(window);

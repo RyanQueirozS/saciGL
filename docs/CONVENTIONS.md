@@ -15,20 +15,22 @@
 
 3. Rules 1 and 2 **do not apply** in **LOCAL** scopes (e.g., inside functions, structs, etc.).
 
-4. Names should be divided with underscores (`_`).
-   - **DO NOT** use `camelCase` or `PascalCase` alone.
-   - Use one of the following styles:
-     - `lower_case`
-     - `Pascal_Case`
-     - `UPPER_CASE`
-
-5. Prefixes and suffixes should maintain their defined casing and should not affect overall casing.
+4. Prefixes and suffixes should maintain their defined casing and should not affect overall casing.
  
-6. Names should work kind of like a filter, go from most important to least. Example: 
-    - A function pushes `model mesh` information into a `renderer`. First of
-      all, it is a renderer method, so the name should begin with `Renderer`
-      and then the information needed: `Push Model Mesh`. Because it is a global
-      header function, the full name should be: `sc_Renderer_Push_Model_Mesh`.
+5. Names should use keywords that go from most important to least, and separate
+   the **what it is RELATED to (SCOPE)**. Example: 
+```c
+// Bad:
+typedef void (*sc_FunctionPtrToHandleMousePos_t)(sc_Window_t* window, double posx, double posy);
+// We defined a type for a function ptr, that only tells what it is used for in
+// the end `HandleMousePos`
+
+// Good:
+typedef void (*sc_Event_MousePosHandler_t)(sc_Window_t* window, double posx, double posy);
+// We defined a type for a function ptr, that tells the SCOPE first (separated
+// between underlines), and then we explain what it does in simple terms, it's a
+// `mouse pos handler`.
+```
 
 ---
 
@@ -42,13 +44,13 @@
 | **Variables**        | lower_case             | `sc_header_var`           | `__sc_source_var`           | `local_var`            |
 | **Constants**        | ALL_CAPS               | `sc_HEADER_CONST`         | `__sc_SOURCE_CONST`         | `LOCAL_CONST`          |
 | **Static**           | lower_case + `_s`      | `sc_static_header_var_s`  | `__sc_static_source_var_s`  | `static_local_var_s`   |
-| **Enum**             | Pascal_Case + `_e`     | `sa_Header_Enum_e`        | `__sa_Source_Enum_e`        | `Local_Enum_e`         |
+| **Enum**             | camelCase + `_e`       | `sa_Header_Enum_e`        | `__sa_Source_Enum_e`        | `Local_Enum_e`         |
 | **Enum Members**     | ALL_CAPS               | `sa_HEADER_ENUM_MEMBER`   | `__sa_SOURCE_ENUM_MEMBER`   | `SOURCE_ENUM_MEMBER`   |
-| **Structs**          | Pascal_Case + `_c`     | `sl_Header_Struct_c`      | `__sl_Source_Struct_c`      | `Local_Struct_c`       |
-| **Struct Members**   | local_case             | **N/A**                   | **N/A**                     | `struct_member`        |
+| **Structs**          | camelCase + `_c`       | `sl_Header_Struct_c`      | `__sl_Source_Struct_c`      | `Local_Struct_c`       |
+| **Struct Members**   | `m_` + lower_case      | **N/A**                   | **N/A**                     | `m_struct_member`      |
 | **Functions**        | Pascal_Case            | `sc_Function_Def`         | `__sc_Function_Def`         | **N/A**                |
 | **Functions Params** | lower_case             | **N/A**                   | **N/A**                     | `func_param`           |
-| **Typedefs**         | Pascal_Case + `_t`     | `sc_Header_Type_t`        | `__sc_Source_Type_t`        | `My_Local_Type_t`      |
+| **Typedefs**         | camelCase + `_t`       | `sc_Header_Type_t`        | `__sc_Source_Type_t`        | `My_Local_Type_t`      |
 
 NOTE:
 1. `Header guards` should contain the full path related to `/saci/include/`.
@@ -83,17 +85,6 @@ int tmp = 0; // GREAT
 int adwadawhdkawj = 0; // AWFUL
 ```
 
-Hungarian notation can be used, but avoid using it unnecessarily. One example
-is `sa_TextureID` which represents a unsigned int32, this is good because it
-will be used in multiple places and will always represent the same thing. As a rule:
-- **DO NOT create types that will be used in few places**.
-- DO NOT overcomplicate the workings of a function
-    - Example: 
-      ```c
-      AppleCount Get_Apple_Count(); //BAD. You should just return a integer, it's simpler...
-      
-      int Get_Apple_Count(); // GOOD.
-      ```
 #### Enum Members
 
 Enum members should always begin with the enum name. Example: 

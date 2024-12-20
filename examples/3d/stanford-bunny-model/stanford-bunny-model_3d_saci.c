@@ -26,32 +26,32 @@ void init_saci(void) {
     assert(renderer);
 
     camera = sc_Camera_Get_Default();
-    camera.aspectRatio = 1600.0f / 900.0f;
+    camera.m_aspect_ratio = 1600.0f / 900.0f;
 
     sc_Renderer_Enable_Z_Buffer();
     sc_Renderer_Set_Projection_Mode(sa_RENDERER_PROJECTION_MODE_PERSPECTIVE);
 }
 
 void handle_keyboard(void) {
-    sa_Vec3_t forward = sa_Vec3_Normalize(sa_Vec3_Subtract(camera.target, camera.position));
-    sa_Vec3_t right = sa_Vec3_Normalize(sa_Vec3_Cross(forward, camera.up));
+    sa_Vec3_t forward = sa_Vec3_Normalize(sa_Vec3_Subtract(camera.m_target, camera.m_position));
+    sa_Vec3_t right = sa_Vec3_Normalize(sa_Vec3_Cross(forward, camera.m_up));
     if (sc_Event_Is_Key_Pressed(window, sa_KEY_W)) {
-        camera.position = sa_Vec3_Add(camera.position, sa_Vec3_Scale(forward, cameraSpeed));
+        camera.m_position = sa_Vec3_Add(camera.m_position, sa_Vec3_Scale(forward, cameraSpeed));
     }
     if (sc_Event_Is_Key_Pressed(window, sa_KEY_A)) {
-        camera.position = sa_Vec3_Subtract(camera.position, sa_Vec3_Scale(right, cameraSpeed));
+        camera.m_position = sa_Vec3_Subtract(camera.m_position, sa_Vec3_Scale(right, cameraSpeed));
     }
     if (sc_Event_Is_Key_Pressed(window, sa_KEY_S)) {
-        camera.position = sa_Vec3_Subtract(camera.position, sa_Vec3_Scale(forward, cameraSpeed));
+        camera.m_position = sa_Vec3_Subtract(camera.m_position, sa_Vec3_Scale(forward, cameraSpeed));
     }
     if (sc_Event_Is_Key_Pressed(window, sa_KEY_D)) {
-        camera.position = sa_Vec3_Add(camera.position, sa_Vec3_Scale(right, cameraSpeed));
+        camera.m_position = sa_Vec3_Add(camera.m_position, sa_Vec3_Scale(right, cameraSpeed));
     }
     if (sc_Event_Is_Key_Pressed(window, sa_KEY_SPACE)) {
-        camera.position.y += cameraSpeed;
+        camera.m_position.y += cameraSpeed;
     }
     if (sc_Event_Is_Key_Pressed(window, sa_KEY_LEFT_SHIFT)) {
-        camera.position.y -= cameraSpeed;
+        camera.m_position.y -= cameraSpeed;
     }
 }
 
@@ -96,7 +96,7 @@ int main(void) {
     sa_Color_t bgColor =
         sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
 
-    struct sc_Model_Mesh_c* mesh;
+    struct sc_ModelMesh_c* mesh;
 
     {
         const char* filePath = "./3d/stanford-bunny-model/bunny.obj";
@@ -110,8 +110,8 @@ int main(void) {
     sa_Vec3_t modelPos = {0, 0, 0};
     sa_Vec3_t modelRot = {0, 0, 0};
     sa_Vec3_t modelScale = {1, 1, 1};
-    camera.position.z = -3;
-    camera.target = modelPos;
+    camera.m_position.z = -3;
+    camera.m_target = modelPos;
 
     modelMatrix = sa_Mat4_Model_Matrix(modelPos, modelRot, modelScale);
 

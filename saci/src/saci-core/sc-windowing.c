@@ -15,7 +15,7 @@ void __sc_OpenGL_InitializeDebugger();
 
 /* === Main declaration=== */
 
-sa_Bool_t sc_GLFW_Init(void) {
+sa_bool_t sc_GLFW_Init(void) {
     int success = glfwInit();
     if (!success) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, "Couldn't load glfw");
@@ -30,7 +30,7 @@ sa_Bool_t sc_GLFW_Init(void) {
     return sa_TRUE;
 }
 
-sa_Bool_t sc_GLAD_Init(void) {
+sa_bool_t sc_GLAD_Init(void) {
     if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != sa_TRUE) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, "Couldn't Load glad");
         return sa_FALSE;
@@ -39,7 +39,7 @@ sa_Bool_t sc_GLAD_Init(void) {
     __sc_OpenGL_InitializeDebugger();
 
 #if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_WINDOWING)
-    const sa_U8_t* version = glGetString(GL_VERSION);
+    const sa_u8_t* version = glGetString(GL_VERSION);
     char versionStr[256];
     snprintf(versionStr, sizeof(versionStr), "Using OpenGL version: %s", version);
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_OPENGL, versionStr);
@@ -61,16 +61,16 @@ void sc_Window_Make_Context(sc_Window_t* window) {
     glfwMakeContextCurrent(window);
 }
 
-sa_Bool_t sc_Window_Should_Close(sc_Window_t* window) {
+sa_bool_t sc_Window_Should_Close(sc_Window_t* window) {
     return glfwWindowShouldClose(window);
 }
 
-void sc_Window_Set_Pos_Handler(sc_Window_t* window, sc_Window_Pos_Handler_t windowPosHandler) {
+void sc_Window_Set_Pos_Handler(sc_Window_t* window, sc_Window_PosHandler_t windowPosHandler) {
     glfwSetWindowPosCallback(window, windowPosHandler);
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Set window pos handler");
 }
 
-void sc_Window_Set_Size_Handler(sc_Window_t* window, sc_Window_Size_Handler_t windowSizeHandler) {
+void sc_Window_Set_Size_Handler(sc_Window_t* window, sc_Window_SizeHandler_t windowSizeHandler) {
     glfwSetWindowSizeCallback(window, windowSizeHandler);
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Set window size callback");
 }

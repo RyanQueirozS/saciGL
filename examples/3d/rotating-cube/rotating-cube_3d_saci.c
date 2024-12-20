@@ -12,7 +12,7 @@ sc_Renderer_t* renderer;
 sc_Window_t* window;
 
 // Define the 8 vertices of a cube centered at the origin with side length 2
-sa_U64_t verticeAmount = 8;
+sa_u64_t verticeAmount = 8;
 sa_Vec3_t verticesPos[] = {
     {-1.0f, -1.0f, -1.0f}, // v0: Bottom-left-back
     {1.0f, -1.0f, -1.0f},  // v1: Bottom-right-back
@@ -37,8 +37,8 @@ sa_Color_t colors[] = {
 };
 
 // Define the indices for the triangles of each face of the cube
-sa_U64_t indiceAmount = 36;
-sa_U32_t cubeIndices[] = {
+sa_u64_t indiceAmount = 36;
+sa_u32_t cubeIndices[] = {
     0, 1, 2, 0, 2, 3, // Back face
     4, 5, 6, 4, 6, 7, // Front face
     0, 1, 5, 0, 5, 4, // Bottom face
@@ -59,9 +59,9 @@ void init_saci() {
     assert(renderer);
 
     camera = sc_Camera_Get_Default();
-    camera.aspectRatio = 1600.0f / 900.0f;
-    camera.position.z = -10.0f; // Change as you may
-    camera.position.y = 0.0f;
+    camera.m_aspect_ratio = 1600.0f / 900.0f;
+    camera.m_position.z = -10.0f; // Change as you may
+    camera.m_position.y = 0.0f;
 
     sc_Renderer_Enable_Z_Buffer();
     sc_Renderer_Set_Projection_Mode(sa_RENDERER_PROJECTION_MODE_PERSPECTIVE);
@@ -82,7 +82,7 @@ int main() {
         sc_Window_Clear_Color(bgColor);
 
         sc_Renderer_Begin(renderer);
-        sa_U32_t ibo = sc_GL_Create_Index_Buffer(cubeIndices, indiceAmount);
+        sa_u32_t ibo = sc_GL_Create_Index_Buffer(cubeIndices, indiceAmount);
         sc_Renderer_Push_Vertices(renderer, vertices, verticeAmount, indiceAmount,
                                   modelMatrix, 0, ibo);
         sc_Renderer_End(renderer, &camera);

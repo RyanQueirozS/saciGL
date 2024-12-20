@@ -46,11 +46,11 @@ float     sa_Vec3_Dot(sa_Vec3_t a, sa_Vec3_t b);
 
 /* === Color Operations === */
 
-sa_Color_t sa_Color_From_Hex(sa_U32_t hex);
+sa_Color_t sa_Color_From_Hex(sa_u32_t hex);
 
-sa_Color_t sa_Color_From_U8(sa_U8_t r, sa_U8_t g, sa_U8_t b, sa_U8_t a);
+sa_Color_t sa_Color_From_U8(sa_u8_t r, sa_u8_t g, sa_u8_t b, sa_u8_t a);
 
-sa_U32_t   sa_Color_To_Hex(sa_Color_t color);
+sa_u32_t   sa_Color_To_Hex(sa_Color_t color);
 
 /* === Mat Operations === */
 

@@ -25,14 +25,14 @@ sa_Color_t triangleColor[3] = {
     (sa_Color_t){0, 0, 1, 1},
 };
 
-sa_U32_t indices[3] = {
+sa_u32_t indices[3] = {
     0, // triangleVert[0]
     1, // triangleVert[1]
     2, // triangleVert[2]
 };
 
-sa_U64_t verticeAmount = 3;
-sa_U64_t indiceAmount = 3;
+sa_u64_t verticeAmount = 3;
+sa_u64_t indiceAmount = 3;
 
 int main() {
     {
@@ -58,7 +58,7 @@ int main() {
         sc_Window_Clear_Color(bgColor);
 
         sc_Renderer_Begin(renderer);
-        sa_U32_t ibo = sc_GL_Create_Index_Buffer(indices, indiceAmount);
+        sa_u32_t ibo = sc_GL_Create_Index_Buffer(indices, indiceAmount);
         sc_Renderer_Push_Vertices(renderer, vertices, verticeAmount, indiceAmount,
                                   modelMatrix, 0, ibo);
         sc_Renderer_End(renderer, NULL);

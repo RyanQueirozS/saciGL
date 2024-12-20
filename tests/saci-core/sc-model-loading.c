@@ -11,14 +11,14 @@
 static void __GenerateTriangulatedOBJFile(const char *path, sa_Vec3_t **positionArray,
                                           saci_u64 *positionArrayAmount, saci_Vec2 **texcoordArray,
                                           saci_u64 *texcoordArrayAmount,
-                                          struct sc_VertexIndice **indicesArray,
+                                          struct sc_VertexIndice_c **indicesArray,
                                           saci_u64 *indicesArrayAmount);
 
 static void __GenerateNonTriangulatedOBJFile(const char *pathconst, sa_Vec3_t **positionArray,
                                              saci_u64 *positionArrayAmount,
                                              saci_Vec2 **texcoordArray,
                                              saci_u64 *texcoordArrayAmount,
-                                             struct sc_VertexIndice **indicesArray,
+                                             struct sc_VertexIndice_c **indicesArray,
                                              saci_u64 *indicesArrayAmount);
 
 static void __FileReadingFunction(void *ctx, const char *filename, int isMtl,

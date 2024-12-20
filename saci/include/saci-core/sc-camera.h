@@ -8,14 +8,14 @@
 #include "saci-utils/su-types.h"
 
 struct sc_Camera_c {
-    sa_Vec3_t position;
-    sa_Vec3_t target;
-    sa_Vec3_t up;
+    sa_Vec3_t m_position;
+    sa_Vec3_t m_target;
+    sa_Vec3_t m_up;
 
-    float     fov;
-    float     aspectRatio;
-    float     near;
-    float     far;
+    float     m_fov;
+    float     m_aspect_ratio;
+    float     m_near;
+    float     m_far;
 };
 
 struct sc_Camera_c sc_Camera_Get_Default(void);

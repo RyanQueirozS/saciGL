@@ -71,7 +71,7 @@ float sa_Vec3_Dot(sa_Vec3_t a, sa_Vec3_t b) {
 // Color
 //------------------------------------------------------------------------------
 
-sa_Color_t sa_Color_From_Hex(sa_U32_t hex) {
+sa_Color_t sa_Color_From_Hex(sa_u32_t hex) {
     sa_Color_t color;
     color.r =
         ((hex >> 24) & 0xFF) * sa_COLOR_8BIT_INVERSE_MAX; // Extract and convert red component
@@ -83,7 +83,7 @@ sa_Color_t sa_Color_From_Hex(sa_U32_t hex) {
     return color;
 }
 
-sa_Color_t sa_Color_From_U8(sa_U8_t r, sa_U8_t g, sa_U8_t b, sa_U8_t a) {
+sa_Color_t sa_Color_From_U8(sa_u8_t r, sa_u8_t g, sa_u8_t b, sa_u8_t a) {
     sa_Color_t color;
     color.r = r * sa_COLOR_8BIT_INVERSE_MAX;
     color.g = g * sa_COLOR_8BIT_INVERSE_MAX;
@@ -92,11 +92,11 @@ sa_Color_t sa_Color_From_U8(sa_U8_t r, sa_U8_t g, sa_U8_t b, sa_U8_t a) {
     return color;
 }
 
-sa_U32_t sa_Color_To_Hex(sa_Color_t color) {
-    sa_U32_t hex = ((sa_U32_t)(color.r * sa_COLOR_8BIT_MAX) << 24) |
-                   ((sa_U32_t)(color.g * sa_COLOR_8BIT_MAX) << 16) |
-                   ((sa_U32_t)(color.b * sa_COLOR_8BIT_MAX) << 8) |
-                   (sa_U32_t)(color.a * sa_COLOR_8BIT_MAX);
+sa_u32_t sa_Color_To_Hex(sa_Color_t color) {
+    sa_u32_t hex = ((sa_u32_t)(color.r * sa_COLOR_8BIT_MAX) << 24) |
+                   ((sa_u32_t)(color.g * sa_COLOR_8BIT_MAX) << 16) |
+                   ((sa_u32_t)(color.b * sa_COLOR_8BIT_MAX) << 8) |
+                   (sa_u32_t)(color.a * sa_COLOR_8BIT_MAX);
     return hex;
 }
 //------------------------------------------------------------------------------
