@@ -50,36 +50,36 @@ typedef sa_u32_t sa_textureId;
 /* === Vector Structures === */
 
 typedef struct {
-    float x; /**< X compoonent */
-    float y; /**< Y compoonent */
-} sa_Vec2_t;
+    float m_x; /**< X compoonent */
+    float m_y; /**< Y compoonent */
+} sa_vec2_t;
 
 typedef struct {
-    float x; /**< X compoonent */
-    float y; /**< Y compoonent */
-    float z; /**< Z compoonent */
-} sa_Vec3_t;
+    float m_x; /**< X compoonent */
+    float m_y; /**< Y compoonent */
+    float m_z; /**< Z compoonent */
+} sa_vec3_t;
 
 typedef struct {
-    float x; /**< X compoonent */
-    float y; /**< Y compoonent */
-    float z; /**< Z compoonent */
-    float w; /**< W compoonent */
-} sa_Vec4_t;
+    float m_x; /**< X compoonent */
+    float m_y; /**< Y compoonent */
+    float m_z; /**< Z compoonent */
+    float m_w; /**< W compoonent */
+} sa_vec4_t;
 
 /* === Color Structure === */
 
 typedef struct {
-    float r; /**< Red compoonent */
-    float g; /**< Green compoonent */
-    float b; /**< Blue compoonent */
-    float a; /**< Alpha (transparency) compoonent */
-} sa_Color_t;
+    float m_r; /**< Red compoonent */
+    float m_g; /**< Green compoonent */
+    float m_b; /**< Blue compoonent */
+    float m_a; /**< Alpha (transparency) compoonent */
+} sa_color_t;
 
 /* === Matrix Structure === */
 
 typedef struct {
-    float m[4][4]; /**< 4x4 matrix of floats */
-} sa_Mat4_t;
+    float m_data[4][4]; /**< 4x4 matrix of floats */
+} sa_mat4_t;
 
 #endif

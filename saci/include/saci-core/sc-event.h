@@ -1,8 +1,3 @@
-/**
- * @file sc-windowing.h
- * @brief This header defines event related funtions regarding saciCORE
- */
-
 #ifndef __SACI_CORE_SC_EVENT_H__
 #define __SACI_CORE_SC_EVENT_H__
 
@@ -10,9 +5,12 @@
 
 /* === Event Handling === */
 
-typedef void (*sc_Event_MousePosHandler_t)(sc_Window_t* window, double posx, double posy);
+#ifndef SACI_EVENT_MOUSE_POS_HANDLER_t
+#define SACI_EVENT_MOUSE_POS_HANDLER_t
+typedef void (*sc_event_mousePosHandler_t)(sc_window_t* window, double posx, double posy);
+#endif
 
-enum sc_Keycode_e {
+enum sc_keycode_e {
     sc_KEY_SPACE = 32,
     sc_KEY_APOSTROPHE = 39, /* ' */
     sc_KEY_COMMA = 44,      /* , */
@@ -144,8 +142,8 @@ void sc_Event_Wait_For_Timeout(double timeout);
 
 void sc_Event_Post_Empty(void);
 
-void sc_Event_Set_Mouse_Pos_Handler(sc_Window_t* window, sc_Event_MousePosHandler_t mouse_pos_handler);
+void sc_Event_Set_Mouse_Pos_Handler(sc_window_t* window, sc_event_mousePosHandler_t mouse_pos_handler);
 
-sa_bool_t sc_Event_Is_Key_Pressed(sc_Window_t* window, enum sc_Keycode_e keycode);
+sa_bool_t sc_Event_Is_Key_Pressed(sc_window_t* window, enum sc_keycode_e keycode);
 
 #endif

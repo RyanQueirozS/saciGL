@@ -113,6 +113,80 @@ Files should be named:
 - In lower-case with dashes(`-`) separating each word.
 - Be descriptive of what they try to acomplish.
  
+### List of common names
+   
+It's best to keep common terms for each name. Use these terms whenever needed:
+   
+| **Name**       | **Used In**                                      |
+|----------------|--------------------------------------------------|
+| `sys`          | System-level components                          |
+| `os`           | Operating system-level functionality             |
+| `lib`          | Library or reusable module                       |
+| `mod`          | A module within the system                       |
+| `drv`          | Driver-related code                              |
+| `arch`         | Architecture-specific code                       |
+| `net`          | Networking-related functionality                 |
+| `dev`          | Device management or drivers                     |
+| `io`           | Input/Output functionality                       |
+| `mem`          | Memory-related utilities                         |
+| `proc`         | Process management                               |
+| `usr`          | User-space components                            |
+| `cfg`          | Configuration utilities                          |
+| `gfx`          | Graphics-related code                            |
+| `audio`        | Audio handling                                   |
+| `fs`           | Filesystem-related code                          |
+| `db`           | Database utilities                               |
+| `ui`           | User interface components                        |
+| `cli`          | Command-line interface utilities                 |
+| `api`          | API definitions or interactions                  |
+| `vm`           | Virtual memory or virtual machine                |
+| `sync`         | Synchronization primitives (mutexes, semaphores) |
+| `log`          | Logging-related utilities                        |
+| `dbg`          | Debugging utilities                              |
+| `perf`         | Performance monitoring and profiling             |
+| `test`         | Testing utilities or test cases                  |
+| `handler`      | Handles events or requests                       |
+| `manager`      | Manages resources or lifecycle                   |
+| `controller`   | Coordinates multiple components                  |
+| `factory`      | Creates or initializes objects                   |
+| `helper`       | Helper utilities                                 |
+| `parser`       | Parses data or files                             |
+| `reader`       | Reads data                                       |
+| `writer`       | Writes data                                      |
+| `loader`       | Loads modules or data                            |
+| `serializer`   | Converts data to a serial format                 |
+| `deserializer` | Converts serialized data back                    |
+| `cache`        | Caching functionality                            |
+| `queue`        | Queues for managing data flow                    |
+| `pool`         | Object or memory pooling                         |
+| `timer`        | Time-related functionality                       |
+| `info`         | General information structure                    |
+| `data`         | Raw or processed data                            |
+| `state`        | State information                                |
+| `config`       | Configuration options                            |
+| `ctx`          | Context for operations or threads                |
+| `entry`        | A single entry in a table or list                |
+| `list`         | List of items                                    |
+| `node`         | A node in a linked list/tree                     |
+| `map`          | Key-value mapping                                |
+| `table`        | Tabular data or lookup tables                    |
+| `buf`          | Buffers for temporary storage                    |
+| `cmd`          | Command structures                               |
+| `event`        | Event structures                                 |
+| `task`         | Task or job representation                       |
+| `obj`          | General-purpose object                           |
+| `ptr`          | Pointer to a structure or data                   |
+| `lock`         | Locking mechanisms (mutexes, spinlocks)          |
+| `MAX`          | Maximum values (e.g., `MAX_PATH`, `MAX_USERS`)   |
+| `MIN`          | Minimum values (e.g., `MIN_BUFFER`)              |
+| `DEFAULT`      | Default values (e.g., `DEFAULT_TIMEOUT`)         |
+| `ERR`          | Error codes or identifiers (e.g., `ERR_INVALID`) |
+| `FLAG`         | Bit flags (e.g., `FLAG_READONLY`)                |
+| `STATUS`       | Status codes (e.g., `STATUS_OK`, `STATUS_FAIL`)  |
+| `CONFIG`       | Compile-time configuration options               |
+| `OPT`          | Runtime options or flags                         |
+| `DEBUG`        | Debugging-related constants                      |
+
    
 ## Style
 
@@ -498,104 +572,28 @@ placed in: `examples/2d/coodinate-system/`
 
 ### Base Guidelines
 
-All documentation blocks should use JavaDOC:
+Documentation blocks should be simple and discriptive, try to fit a one-line
+that explains each function in their header declaration. Example:
 
 ```c
-/**
- * It should begin in this line, not the above, and use double `*`.
- */
+sc_Renderer_t* sc_Renderer_Create_Empty(void); // Creates a renderer without setting up it's fields'.
+
+sc_Renderer_t* sc_Renderer_Create_Default(void); // Creates a renderer with setup fields.
 ```
 
-tags should begin with `@` :
-
-```c
-/**
- * @brief Begin with @ 
- * \ is bad
- * _ even worse
- */
-```
-
-Member documentation should be as follows:
+Each member should be documented as follows:
 ```c
 typedef struct sa_Vec2 {
-    float x; /**< X compoonent */
-    float y; /**< Y compoonent */
+    float x; // X compoonent
+    float y; // Y compoonent
 } sa_Vec2;
-
-// It begins with `/**<` and ends with `*/`
 ```
 
 ### Files
 
 Header files must:
-- Begin with a brief description (`@file` and `@brief` tags) outlining its
-  purpose and acomplishments.
-  - Example: 
-  ```c
-  /**
-   * @file sc-rendering.h
-   * @brief This header defines rendering related functions and structs for saciCORE.
-   */
-  ```
-- Every Definition must contain it's documentation.
+- Every Declaration must contain a simple documentation.
 
 Source files must:
-- Document the helper functions, local variables etc...
+- Document the `global local` code. 
 - Use little documentation overall, naming and context should be enough.
-
-### Code elements
-
-#### Defines, Global constants and Global Variables
-
-Should contain a `@def` with it's name, and a `@brief` with the description. Example:
-```c
-/**
- * @def SA_PI
- * @brief Constant for PI (3.141592653589793).
- */
-#define SA_PI 3.141592653589793f
-```
-
----
-
-#### Macros and Functions
-
-Should contain a `@brief` with the description. A `@detail` if needed, and all
-of the `@param`s and `@return` if needed. Example:
-
-```c
-/**
- * @brief Creates the sc_Renderer struct
- *
- * @details
- * This functions creates, initializes and sets all of the sc_Renderer related shaders and
- * OpenGL context.
- *
- * @param generateDefaults A boolean to generate defaulted shaders and OpenGL context.
- * @return A new sc_Renderer* either defaulted or not. Can return null
- */
-sc_Renderer* sc_Renderer_Create(sa_Bool generateDefaults);
-```
----
-
-#### Structs and Enums
-
-Should document what it does or is used on and what each member does or is used on:
-
-```c
-/**
- * @struct sc_Camera
- * @brief Represents a 3D camera in the saciCORE.
- */
-typedef struct sc_Camera {
-    sa_Vec3 position; /**< The position of the camera in world space. */
-    sa_Vec3 target;   /**< The point the camera is looking at. */
-    sa_Vec3 up;       /**< The up vector that defines the camera's orientation. */
-
-    float fov;         /**< The field of view angle (in degrees) for the camera. */
-    float aspectRatio; /**< The aspect ratio of the camera (width / height). */
-    float near;        /**< The distance to the near clipping plane. */
-    float far;         /**< The distance to the far clipping plane. */
-} sc_Camera;
-```

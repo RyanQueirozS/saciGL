@@ -15,7 +15,7 @@
 /* === Structs for Helper Functions === */
 
 typedef struct sc_RenderCall {
-    struct sc_Vertice_c* m_vertices;
+    struct sc_vertice_c* m_vertices;
     sa_u64_t m_vertice_amount;
 
     sa_u64_t m_indice_amount;
@@ -24,7 +24,7 @@ typedef struct sc_RenderCall {
     sa_u32_t m_render_mode; // LINE TRIANGLE or QUAD
     sa_textureId m_texture_id;
 
-    sa_Mat4_t m_model_matrix;
+    sa_mat4_t m_model_matrix;
 } sc_RenderCall;
 
 typedef struct sc_RenderBatch {
@@ -35,22 +35,22 @@ typedef struct sc_RenderBatch {
 
 /* === Helper Functions === */
 
-void __sc_Renderer_Remove_Garbage_Numbers(sc_Renderer_t* renderer);
+void __sc_Renderer_Remove_Garbage_Numbers(sc_renderer_t* renderer);
 
-sc_RenderCall __sc_RenderCall_Create(Arena* arena, struct sc_Vertice_c* vertices, sa_u64_t vertices_amount,
+sc_RenderCall __sc_RenderCall_Create(Arena* arena, struct sc_vertice_c* vertices, sa_u64_t vertices_amount,
                                      sa_u64_t indices_amount, sa_u32_t render_mode, sa_textureId tex_id,
-                                     sa_u32_t ibo, sa_Mat4_t model_matrix);
+                                     sa_u32_t ibo, sa_mat4_t model_matrix);
 
 void __sc_RenderBatch_Push(sc_RenderBatch* render_batch, sc_RenderCall render_call);
 
-void __sc_Renderer_Init_GL_Vertex_Attrib_Context(sc_Renderer_t* renderer);
+void __sc_Renderer_Init_GL_Vertex_Attrib_Context(sc_renderer_t* renderer);
 
-void __sc_Renderer_Init_Shader_Program(sc_Renderer_t* renderer);
+void __sc_Renderer_Init_Shader_Program(sc_renderer_t* renderer);
 
-void __sc_Renderer_Init_All(sc_Renderer_t* renderer);
+void __sc_Renderer_Init_All(sc_renderer_t* renderer);
 
-void __sc_Renderer_Set_Uniform(sc_Renderer_t* renderer, const struct sc_Camera_c* camera,
-                               sa_Mat4_t model_matrix, bool use_texture);
+void __sc_Renderer_Set_Uniform(sc_renderer_t* renderer, const struct sc_camera_c* camera,
+                               sa_mat4_t model_matrix, bool use_texture);
 
 /* === Local Definitions === */
 
@@ -58,20 +58,20 @@ void __sc_Renderer_Set_Uniform(sc_Renderer_t* renderer, const struct sc_Camera_c
 #define SACI_DEFAULT_TEXTURE_BUFFER_SIZE 1           // TODO
 
 static struct sc_RenderConfig {
-    enum sc_Renderer_Projection_Mode_e m_projection_mode;
-    sc_Renderer_ProjectionFunc m_custom_projection_func;
+    enum sc_renderer_projectionMode_e m_projection_mode;
+    sc_renderer_projectionFunction_t m_custom_projection_func;
 
     bool m_should_fill_shape;
 } __sc_renderer_config_s;
 
-struct sc_Vertice_c {
-    sa_Vec3_t m_pos;
-    sa_Color_t m_color;
-    sa_Vec2_t m_texcoord;
+struct sc_vertice_c {
+    sa_vec3_t m_pos;
+    sa_color_t m_color;
+    sa_vec2_t m_texcoord;
 };
 
 // TODO doc
-struct sc_Renderer_c {
+struct sc_renderer_c {
     sa_u32_t m_vao, m_vbo;
     sa_u32_t m_shader_program;
 
@@ -79,8 +79,8 @@ struct sc_Renderer_c {
     sc_RenderBatch m_render_batch;
 };
 
-struct sc_ModelMesh_c {
-    struct sc_Vertice_c* m_vertices;
+struct sc_modelMesh_c {
+    struct sc_vertice_c* m_vertices;
     sa_u64_t m_vertices_amount;
 
     sa_u32_t* m_indices;
@@ -90,52 +90,52 @@ struct sc_ModelMesh_c {
 
 /* === Renderer Implementation === */
 
-sa_Vec3_t sc_Vertice_Get_Pos(const struct sc_Vertice_c* vertice) {
+sa_vec3_t sc_Vertice_Get_Pos(const struct sc_vertice_c* vertice) {
     return vertice->m_pos;
 }
 
-sa_Color_t sc_Vertice_Get_Color(const struct sc_Vertice_c* vertice) {
+sa_color_t sc_Vertice_Get_Color(const struct sc_vertice_c* vertice) {
     return vertice->m_color;
 }
 
-sa_Vec2_t sc_Vertice_Get_Texcoord(const struct sc_Vertice_c* vertice) {
+sa_vec2_t sc_Vertice_Get_Texcoord(const struct sc_vertice_c* vertice) {
     return vertice->m_texcoord;
 }
 
-struct sc_Vertice_c* sc_Vertice_Create_Vertice(sa_Vec3_t position, sa_Color_t color, sa_Vec2_t texcood) {
-    struct sc_Vertice_c* vertice = (struct sc_Vertice_c*)malloc(sizeof(struct sc_Vertice_c));
+struct sc_vertice_c* sc_Vertice_Create_Vertice(sa_vec3_t position, sa_color_t color, sa_vec2_t texcood) {
+    struct sc_vertice_c* vertice = (struct sc_vertice_c*)malloc(sizeof(struct sc_vertice_c));
     vertice->m_pos = position;
     vertice->m_color = color;
     vertice->m_texcoord = texcood;
     return vertice;
 }
 
-void sc_Vertice_Get_Array_Info(struct sc_Vertice_c* vertex_array, sa_u64_t vertex_array_size_out,
-                               sa_Vec3_t** positions_out,
-                               sa_Color_t** colors_out,
-                               sa_Vec2_t** texcoords_out) {
+void sc_Vertice_Get_Array_Info(struct sc_vertice_c* vertex_array, sa_u64_t vertex_array_size_out,
+                               sa_vec3_t** positions_out,
+                               sa_color_t** colors_out,
+                               sa_vec2_t** texcoords_out) {
     if (!vertex_array) {
         // LOG TODO
         return;
     }
-    *positions_out = (sa_Vec3_t*)malloc(sizeof(sa_Vec3_t) * vertex_array_size_out);
-    *colors_out = (sa_Color_t*)malloc(sizeof(sa_Color_t) * vertex_array_size_out);
-    *texcoords_out = (sa_Vec2_t*)malloc(sizeof(sa_Vec2_t) * vertex_array_size_out);
+    *positions_out = (sa_vec3_t*)malloc(sizeof(sa_vec3_t) * vertex_array_size_out);
+    *colors_out = (sa_color_t*)malloc(sizeof(sa_color_t) * vertex_array_size_out);
+    *texcoords_out = (sa_vec2_t*)malloc(sizeof(sa_vec2_t) * vertex_array_size_out);
     // TODO check errors
 
     for (sa_u64_t i = 0; i < vertex_array_size_out; ++i) {
-        struct sc_Vertice_c vertex = vertex_array[i];
+        struct sc_vertice_c vertex = vertex_array[i];
         (*positions_out)[i] = vertex.m_pos;
         (*colors_out)[i] = vertex.m_color;
         (*texcoords_out)[i] = vertex.m_texcoord;
     }
 }
 
-struct sc_Vertice_c* sc_Vertice_Create_Vertices_Array(sa_Vec3_t* positions,
-                                                      sa_Color_t* colors,
-                                                      sa_Vec2_t* texcoords,
+struct sc_vertice_c* sc_Vertice_Create_Vertices_Array(sa_vec3_t* positions,
+                                                      sa_color_t* colors,
+                                                      sa_vec2_t* texcoords,
                                                       sa_u64_t amount) {
-    struct sc_Vertice_c* vertices = (struct sc_Vertice_c*)malloc(sizeof(struct sc_Vertice_c) * amount);
+    struct sc_vertice_c* vertices = (struct sc_vertice_c*)malloc(sizeof(struct sc_vertice_c) * amount);
     if (!vertices) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
                              "Could not allocate new vertices");
@@ -152,24 +152,24 @@ struct sc_Vertice_c* sc_Vertice_Create_Vertices_Array(sa_Vec3_t* positions,
     return vertices;
 }
 
-struct sc_Vertice_c* sc_ModelMesh_Get_Vertices(const struct sc_ModelMesh_c* modelMesh) {
+struct sc_vertice_c* sc_ModelMesh_Get_Vertices(const struct sc_modelMesh_c* modelMesh) {
     return modelMesh->m_vertices;
 }
 
-sa_u64_t sc_ModelMesh_Get_Vertices_Amount(const struct sc_ModelMesh_c* modelMesh) {
+sa_u64_t sc_ModelMesh_Get_Vertices_Amount(const struct sc_modelMesh_c* modelMesh) {
     return modelMesh->m_vertices_amount;
 }
 
-sa_u32_t* sc_ModelMesh_Get_Indices(const struct sc_ModelMesh_c* modelMesh) {
+sa_u32_t* sc_ModelMesh_Get_Indices(const struct sc_modelMesh_c* modelMesh) {
     return modelMesh->m_indices;
 }
 
-sa_u64_t sc_ModelMesh_GetIndicesAmount(const struct sc_ModelMesh_c* modelMesh) {
+sa_u64_t sc_ModelMesh_GetIndicesAmount(const struct sc_modelMesh_c* modelMesh) {
     return modelMesh->m_indices_amount;
 }
 
-sc_Renderer_t* sc_Renderer_Create_Empty(void) {
-    sc_Renderer_t* renderer = (sc_Renderer_t*)malloc(sizeof(sc_Renderer_t));
+sc_renderer_t* sc_Renderer_Create_Empty(void) {
+    sc_renderer_t* renderer = (sc_renderer_t*)malloc(sizeof(sc_renderer_t));
     if (!renderer) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
                              "Renderer could not be initialized");
@@ -179,8 +179,8 @@ sc_Renderer_t* sc_Renderer_Create_Empty(void) {
     return renderer;
 }
 
-sc_Renderer_t* sc_Renderer_Create_Default(void) {
-    sc_Renderer_t* renderer = sc_Renderer_Create_Empty();
+sc_renderer_t* sc_Renderer_Create_Default(void) {
+    sc_renderer_t* renderer = sc_Renderer_Create_Empty();
     if (!renderer) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
                              "Renderer could not be initialized");
@@ -194,11 +194,11 @@ sc_Renderer_t* sc_Renderer_Create_Default(void) {
     return renderer;
 }
 
-void sc_Renderer_Init_Memory_Context(sc_Renderer_t* renderer, sa_u64_t size) {
+void sc_Renderer_Init_Memory_Context(sc_renderer_t* renderer, sa_u64_t size) {
     ArenaInit(&renderer->m_memory_context, size);
 }
 
-void sc_Renderer_Resize_Render_Buffer(sc_Renderer_t* renderer, sa_u64_t newSize) {
+void sc_Renderer_Resize_Render_Buffer(sc_renderer_t* renderer, sa_u64_t newSize) {
     sc_RenderBatch* renderBatch = &renderer->m_render_batch;
     if (newSize <= 0 || newSize <= renderBatch->m_render_call_count) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
@@ -220,7 +220,7 @@ void sc_Renderer_Resize_Render_Buffer(sc_Renderer_t* renderer, sa_u64_t newSize)
     assert(renderer->m_render_batch.m_render_calls); // TODO SACI_ASSERT
 }
 
-void sc_Renderer_Delete(sc_Renderer_t* renderer) {
+void sc_Renderer_Delete(sc_renderer_t* renderer) {
     if (!renderer) {
         // TODO
         // create log
@@ -257,7 +257,7 @@ void sc_Renderer_Enable_Z_Buffer(void) {
                         "Renderer enabled Z buffer");
 }
 
-void sc_Renderer_Set_Projection_Mode(enum sc_Renderer_Projection_Mode_e renderProjectionMode) {
+void sc_Renderer_Set_Projection_Mode(enum sc_renderer_projectionMode_e renderProjectionMode) {
     __sc_renderer_config_s.m_projection_mode = renderProjectionMode;
     switch (renderProjectionMode) {
     case sa_RENDERER_PROJECTION_MODE_ORTHO: {
@@ -279,18 +279,18 @@ void sc_Renderer_Set_Projection_Mode(enum sc_Renderer_Projection_Mode_e renderPr
 }
 
 void sc_Renderer_SetCustom_Projection_Function(
-    sc_Renderer_ProjectionFunc renderCustomProjectionMode) {
+    sc_renderer_projectionFunction_t renderCustomProjectionMode) {
     __sc_renderer_config_s.m_custom_projection_func = renderCustomProjectionMode;
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
                         "Renderer set custom projection mode function");
 }
 
-void sc_Renderer_Begin(sc_Renderer_t* renderer) {
+void sc_Renderer_Begin(sc_renderer_t* renderer) {
     ArenaReset(&renderer->m_memory_context);
     renderer->m_render_batch.m_render_call_count = 0;
 }
 
-void sc_Renderer_End(sc_Renderer_t* renderer, const struct sc_Camera_c* camera) {
+void sc_Renderer_End(sc_renderer_t* renderer, const struct sc_camera_c* camera) {
     glUseProgram(renderer->m_shader_program);
 
     glBindVertexArray(renderer->m_vao);
@@ -309,7 +309,7 @@ void sc_Renderer_End(sc_Renderer_t* renderer, const struct sc_Camera_c* camera) 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, call->m_ibo);
 
         glBufferSubData(GL_ARRAY_BUFFER, 0,
-                        sa_SCAST_TO_m(long int)(sizeof(struct sc_Vertice_c) * call->m_vertice_amount),
+                        sa_SCAST_TO_m(long int)(sizeof(struct sc_vertice_c) * call->m_vertice_amount),
                         call->m_vertices);
 
         glDrawElements(call->m_render_mode, sa_SCAST_TO_m(int)(call->m_indice_amount), GL_UNSIGNED_INT,
@@ -323,9 +323,9 @@ void sc_Renderer_End(sc_Renderer_t* renderer, const struct sc_Camera_c* camera) 
     glUseProgram(0);
 }
 
-void sc_Renderer_Push_Vertices(sc_Renderer_t* renderer, struct sc_Vertice_c* vertices,
+void sc_Renderer_Push_Vertices(sc_renderer_t* renderer, struct sc_vertice_c* vertices,
                                sa_u64_t verticeAmount,
-                               sa_u64_t indiceAmount, sa_Mat4_t modelMatrix,
+                               sa_u64_t indiceAmount, sa_mat4_t modelMatrix,
                                sa_textureId texID, sa_u32_t ibo) {
     if (!vertices) {
         sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER, "Invalid vertices");
@@ -338,8 +338,8 @@ void sc_Renderer_Push_Vertices(sc_Renderer_t* renderer, struct sc_Vertice_c* ver
     __sc_RenderBatch_Push(&renderer->m_render_batch, renderCall);
 }
 
-void sc_Renderer_Push_Model_Mesh(sc_Renderer_t* renderer, struct sc_ModelMesh_c* mesh,
-                                 sa_Mat4_t modelMatrix, sa_textureId texID) {
+void sc_Renderer_Push_Model_Mesh(sc_renderer_t* renderer, struct sc_modelMesh_c* mesh,
+                                 sa_mat4_t modelMatrix, sa_textureId texID) {
     if (!mesh) {
         exit(1);
     }
@@ -348,13 +348,13 @@ void sc_Renderer_Push_Model_Mesh(sc_Renderer_t* renderer, struct sc_ModelMesh_c*
                               texID, mesh->m_ibo);
 }
 
-struct sc_ModelMesh_c* sc_ModelMesh_Create(sa_Vec3_t* verticesPos,
+struct sc_modelMesh_c* sc_ModelMesh_Create(sa_vec3_t* verticesPos,
                                            sa_u64_t verticePosAmount,
-                                           sa_Vec2_t* verticesTexcoord,
+                                           sa_vec2_t* verticesTexcoord,
                                            sa_u64_t verticesTexcoordAmount,
-                                           struct sc_VertexIndice_c* indices,
+                                           struct sc_vertexIndice_c* indices,
                                            sa_u64_t indiceAmount) {
-    struct sc_ModelMesh_c* mesh = (struct sc_ModelMesh_c*)malloc(sizeof(struct sc_ModelMesh_c));
+    struct sc_modelMesh_c* mesh = (struct sc_modelMesh_c*)malloc(sizeof(struct sc_modelMesh_c));
     if (!mesh) {
         return NULL;
     }
@@ -365,7 +365,7 @@ struct sc_ModelMesh_c* sc_ModelMesh_Create(sa_Vec3_t* verticesPos,
     mesh->m_indices_amount = indiceAmount;
 
     mesh->m_vertices =
-        (struct sc_Vertice_c*)malloc(sizeof(struct sc_Vertice_c) * mesh->m_vertices_amount);
+        (struct sc_vertice_c*)malloc(sizeof(struct sc_vertice_c) * mesh->m_vertices_amount);
     if (!mesh->m_vertices) {
         free(mesh);
         return NULL;
@@ -375,7 +375,7 @@ struct sc_ModelMesh_c* sc_ModelMesh_Create(sa_Vec3_t* verticesPos,
         mesh->m_vertices[i].m_pos = verticesPos[i];
         mesh->m_vertices[i].m_texcoord = verticesTexcoord[i];
         mesh->m_vertices[i].m_color =
-            (sa_Color_t){1.0f, 1.0f, 1.0f, 1.0f}; // Default white color
+            (sa_color_t){1.0f, 1.0f, 1.0f, 1.0f}; // Default white color
     }
 
     mesh->m_indices = (sa_u32_t*)malloc(sizeof(sa_u32_t) * mesh->m_indices_amount);
@@ -398,12 +398,12 @@ struct sc_ModelMesh_c* sc_ModelMesh_Create(sa_Vec3_t* verticesPos,
     return mesh;
 }
 
-struct sc_ModelMesh_c* sc_Model_Mesh_Load(const char* path, sc_OBJ_File_Reading_Function fileReader) {
-    sa_Vec3_t* verticesPos = NULL;
+struct sc_modelMesh_c* sc_Model_Mesh_Load(const char* path, sc_OBJ_File_Reading_Function fileReader) {
+    sa_vec3_t* verticesPos = NULL;
     sa_u64_t verticesAmount = 0;
-    sa_Vec2_t* verticesTexCoords = NULL;
+    sa_vec2_t* verticesTexCoords = NULL;
     sa_u64_t verticesTexCoordsAmount = 0;
-    struct sc_VertexIndice_c* indices = NULL;
+    struct sc_vertexIndice_c* indices = NULL;
     sa_u64_t indicesAmount = 0;
 
     if (!sc_OBJ_Parse(path, fileReader, &verticesPos, &verticesAmount,
@@ -415,7 +415,7 @@ struct sc_ModelMesh_c* sc_Model_Mesh_Load(const char* path, sc_OBJ_File_Reading_
                                verticesTexCoordsAmount, indices, indicesAmount);
 }
 
-void sc_Model_Mesh_Delete(struct sc_ModelMesh_c* modelMesh) {
+void sc_Model_Mesh_Delete(struct sc_modelMesh_c* modelMesh) {
     if (!modelMesh)
         return;
     if (modelMesh->m_indices)
@@ -429,7 +429,7 @@ void sc_Model_Mesh_Delete(struct sc_ModelMesh_c* modelMesh) {
 
 /* === Helper Implementation === */
 
-void __sc_Renderer_Remove_Garbage_Numbers(sc_Renderer_t* renderer) {
+void __sc_Renderer_Remove_Garbage_Numbers(sc_renderer_t* renderer) {
     renderer->m_render_batch.m_render_calls = NULL;
     renderer->m_render_batch.m_render_call_count = 0;
     renderer->m_render_batch.m_capacity = 0;
@@ -437,7 +437,7 @@ void __sc_Renderer_Remove_Garbage_Numbers(sc_Renderer_t* renderer) {
     renderer->m_vbo = 0;
 }
 
-void __sc_Renderer_Init_All(sc_Renderer_t* renderer) {
+void __sc_Renderer_Init_All(sc_renderer_t* renderer) {
     sc_Renderer_Resize_Render_Buffer(renderer, SACI_RENDER_BATCH_DEFAULT_CAPACITY);
 
     __sc_Renderer_Init_GL_Vertex_Attrib_Context(renderer);
@@ -448,17 +448,17 @@ void __sc_Renderer_Init_All(sc_Renderer_t* renderer) {
 #endif
 }
 
-sc_RenderCall __sc_RenderCall_Create(Arena* arena, struct sc_Vertice_c* vertices, sa_u64_t verticesAmount,
+sc_RenderCall __sc_RenderCall_Create(Arena* arena, struct sc_vertice_c* vertices, sa_u64_t verticesAmount,
                                      sa_u64_t indicesAmount,
                                      sa_u32_t renderMode, sa_textureId texID, sa_u32_t ibo,
-                                     sa_Mat4_t modelMatrix) {
+                                     sa_mat4_t modelMatrix) {
     sa_ASSERT(arena);
     sa_ASSERT(vertices);
 
-    struct sc_Vertice_c* arenaVertices = ArenaAlloc(arena, sizeof(struct sc_Vertice_c) * verticesAmount);
+    struct sc_vertice_c* arenaVertices = ArenaAlloc(arena, sizeof(struct sc_vertice_c) * verticesAmount);
     sa_ASSERT(arenaVertices);
 
-    memcpy(arenaVertices, vertices, sizeof(struct sc_Vertice_c) * verticesAmount);
+    memcpy(arenaVertices, vertices, sizeof(struct sc_vertice_c) * verticesAmount);
 
     sc_RenderCall renderCall = {
         .m_vertices = arenaVertices,
@@ -487,25 +487,25 @@ void __sc_RenderBatch_Push(sc_RenderBatch* renderBatch,
     renderBatch->m_render_call_count++;
 }
 
-void __sc_Renderer_Init_GL_Vertex_Attrib_Context(sc_Renderer_t* renderer) {
+void __sc_Renderer_Init_GL_Vertex_Attrib_Context(sc_renderer_t* renderer) {
     sc_GL_Create_Vertex_Array(1, &renderer->m_vao);
     sc_GL_Bind_Vertex_Array(renderer->m_vao);
 
-    renderer->m_vbo = sc_GL_Create_Vertex_Buffer(renderer->m_render_batch.m_capacity * sizeof(struct sc_Vertice_c), NULL, GL_DYNAMIC_DRAW);
+    renderer->m_vbo = sc_GL_Create_Vertex_Buffer(renderer->m_render_batch.m_capacity * sizeof(struct sc_vertice_c), NULL, GL_DYNAMIC_DRAW);
     sc_GL_Bind_Vertex_Buffer(renderer->m_vbo);
 
-    sc_GL_Set_Vertex_Attrib_Pointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct sc_Vertice_c),
-                                    (void*)offsetof(struct sc_Vertice_c, m_pos));
+    sc_GL_Set_Vertex_Attrib_Pointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct sc_vertice_c),
+                                    (void*)offsetof(struct sc_vertice_c, m_pos));
     sc_GL_Enable_Vertex_Attrib_Array(0);
-    sc_GL_Set_Vertex_Attrib_Pointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(struct sc_Vertice_c),
-                                    (void*)offsetof(struct sc_Vertice_c, m_color));
+    sc_GL_Set_Vertex_Attrib_Pointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(struct sc_vertice_c),
+                                    (void*)offsetof(struct sc_vertice_c, m_color));
     sc_GL_Enable_Vertex_Attrib_Array(1);
-    sc_GL_Set_Vertex_Attrib_Pointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(struct sc_Vertice_c),
-                                    (void*)offsetof(struct sc_Vertice_c, m_texcoord));
+    sc_GL_Set_Vertex_Attrib_Pointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(struct sc_vertice_c),
+                                    (void*)offsetof(struct sc_vertice_c, m_texcoord));
     sc_GL_Enable_Vertex_Attrib_Array(2);
 }
 
-void __sc_Renderer_Init_Shader_Program(sc_Renderer_t* renderer) {
+void __sc_Renderer_Init_Shader_Program(sc_renderer_t* renderer) {
     const char* vShaderSource =
         "#version 330 core\n"
 
@@ -562,10 +562,10 @@ void __sc_Renderer_Init_Shader_Program(sc_Renderer_t* renderer) {
     assert(renderer->m_shader_program);
 }
 
-void __sc_Renderer_Set_Uniform(sc_Renderer_t* renderer, const struct sc_Camera_c* camera,
-                               sa_Mat4_t modelMatrix, bool useTexture) {
-    sa_Mat4_t view = {0};
-    sa_Mat4_t projection = {0};
+void __sc_Renderer_Set_Uniform(sc_renderer_t* renderer, const struct sc_camera_c* camera,
+                               sa_mat4_t modelMatrix, bool useTexture) {
+    sa_mat4_t view = {0};
+    sa_mat4_t projection = {0};
 
     int viewLoc = glGetUniformLocation(renderer->m_shader_program, "uViewMatrix");
     int projLoc = glGetUniformLocation(renderer->m_shader_program, "uProjectionMatrix");
@@ -574,9 +574,9 @@ void __sc_Renderer_Set_Uniform(sc_Renderer_t* renderer, const struct sc_Camera_c
     int uTextureLoc = glGetUniformLocation(renderer->m_shader_program, "uTexture");
     int uUseTextureLoc = glGetUniformLocation(renderer->m_shader_program, "uUseTexture");
 
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view.m[0][0]);
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m[0][0]);
-    glUniformMatrix4fv(uModelMatrixLoc, 1, GL_FALSE, &modelMatrix.m[0][0]);
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view.m_data[0][0]);
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m_data[0][0]);
+    glUniformMatrix4fv(uModelMatrixLoc, 1, GL_FALSE, &modelMatrix.m_data[0][0]);
     glUniform1i(useCamLoc, sa_TRUE);
 
     glUniform1i(uTextureLoc, 0);
@@ -613,6 +613,6 @@ void __sc_Renderer_Set_Uniform(sc_Renderer_t* renderer, const struct sc_Camera_c
         break;
     }
     }
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view.m[0][0]);
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m[0][0]);
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view.m_data[0][0]);
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection.m_data[0][0]);
 }

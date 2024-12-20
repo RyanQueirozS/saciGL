@@ -98,4 +98,3 @@ target_compile_options(saci PRIVATE
     $<$<CONFIG:DEBUG>:-g>       # Debugging information for debug mode
     $<$<CONFIG:RELEASE>:-O3>    # Higher optimization in release mode
 )
-

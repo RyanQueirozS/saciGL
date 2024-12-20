@@ -18,7 +18,7 @@ set(SACI_DIR "${CMAKE_SOURCE_DIR}/../../../saci")
 add_subdirectory(${SACI_DIR} ${CMAKE_BINARY_DIR}/saci_build)
 
 # Include directories for the saci library
-include_directories(${SACI_DIR})
+include_directories(${SACI_DIR}/include)
 
 # Create the executable
 add_executable(stanford-bunny_3d stanford-bunny-model_3d_saci.c)

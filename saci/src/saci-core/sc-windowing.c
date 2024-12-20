@@ -48,29 +48,29 @@ sa_bool_t sc_GLAD_Init(void) {
     return sa_TRUE;
 }
 
-sc_Window_t* sc_Window_Create(int width, int height, const char* title,
-                              sc_Monitor_t* monitor, sc_Window_t* share) {
+sc_window_t* sc_Window_Create(int width, int height, const char* title,
+                              sc_monitor_t* monitor, sc_window_t* share) {
     return glfwCreateWindow(width, height, title, monitor, share);
 }
 
-void sc_Window_Free(sc_Window_t* window) {
+void sc_Window_Free(sc_window_t* window) {
     glfwDestroyWindow(window);
 }
 
-void sc_Window_Make_Context(sc_Window_t* window) {
+void sc_Window_Make_Context(sc_window_t* window) {
     glfwMakeContextCurrent(window);
 }
 
-sa_bool_t sc_Window_Should_Close(sc_Window_t* window) {
+sa_bool_t sc_Window_Should_Close(sc_window_t* window) {
     return glfwWindowShouldClose(window);
 }
 
-void sc_Window_Set_Pos_Handler(sc_Window_t* window, sc_Window_PosHandler_t windowPosHandler) {
+void sc_Window_Set_Pos_Handler(sc_window_t* window, sc_window_posHandler_t windowPosHandler) {
     glfwSetWindowPosCallback(window, windowPosHandler);
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Set window pos handler");
 }
 
-void sc_Window_Set_Size_Handler(sc_Window_t* window, sc_Window_SizeHandler_t windowSizeHandler) {
+void sc_Window_Set_Size_Handler(sc_window_t* window, sc_window_sizeHandler_t windowSizeHandler) {
     glfwSetWindowSizeCallback(window, windowSizeHandler);
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Set window size callback");
 }
@@ -80,18 +80,18 @@ void sc_Window_Terminate(void) {
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Terminated glfw");
 }
 
-void sc_Window_Clear_Color(sa_Color_t color) {
-    glClearColor(color.r, color.g, color.b, color.a);
+void sc_Window_Clear_Color(sa_color_t color) {
+    glClearColor(color.m_r, color.m_g, color.m_b, color.m_a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void sc_Window_Swap_Buffer(sc_Window_t* window) {
+void sc_Window_Swap_Buffer(sc_window_t* window) {
     glfwSwapBuffers(window);
 }
 
 /* === Helper === */
 
-void __sc_OpenGL_InitializeDebugger() {
+void __sc_OpenGL_InitializeDebugger(void) {
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(sa_OpenGL_Debug_Message_Callback, NULL);

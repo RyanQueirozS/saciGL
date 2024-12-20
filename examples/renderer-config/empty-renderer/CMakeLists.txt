@@ -18,7 +18,7 @@ set(SACI_DIR "${CMAKE_SOURCE_DIR}/../../../saci")
 add_subdirectory(${SACI_DIR} ${CMAKE_BINARY_DIR}/saci_build)
 
 # Include directories for the saci library
-include_directories(${SACI_DIR})
+include_directories(${SACI_DIR}/include)
 
 # Create the executable
 add_executable(empty-renderer_renderer_config empty-renderer_empty_renderer_saci.c)
