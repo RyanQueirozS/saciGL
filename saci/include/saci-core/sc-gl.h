@@ -145,15 +145,11 @@ void sc_Renderer_Push_Vertices(sc_renderer_t* renderer,
 void sc_Renderer_Push_Model_Mesh(sc_renderer_t* renderer, struct sc_modelMesh_c* mesh,
                                  sa_mat4_t modelMatrix, sa_textureId texID);
 
-// TODO remove
-typedef void (*sc_OBJ_File_Reading_Function)(void* ctx, const char* filename, int isMtl,
-                                             const char* objFilename, char** buf, size_t* len);
-
-struct sc_modelMesh_c* sc_Model_Mesh_Load(const char* path, sc_OBJ_File_Reading_Function fileReader);
+struct sc_modelMesh_c* sc_Model_Mesh_Load(const char* path);
 
 /* === Model Parsing === */
 
-sa_bool_t sc_OBJ_Parse(const char* file_path, sc_OBJ_File_Reading_Function file_reader,
+sa_bool_t sc_OBJ_Parse(const char* file_path,
                        sa_vec3_t** positions_out, sa_u64_t* positions_count_out,
                        sa_vec2_t** texcoords_out, sa_u64_t* texcoord_count_out,
                        struct sc_vertexIndice_c** indices_out, sa_u64_t* indices_count_out);

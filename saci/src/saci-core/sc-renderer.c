@@ -212,7 +212,7 @@ void sc_Renderer_Resize_Render_Buffer(sc_renderer_t* renderer, sa_u64_t newSize)
         return;
     }
     memcpy(newRenderCalls, renderBatch->m_render_calls, renderBatch->m_render_call_count * sizeof(sc_RenderCall));
-    free(renderBatch->m_render_calls);
+    sa_FREE(renderBatch->m_render_calls);
     renderBatch->m_render_calls = newRenderCalls;
     renderBatch->m_capacity = sa_SCAST_TO_m(sa_u32_t)(newSize);
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER,
@@ -228,7 +228,7 @@ void sc_Renderer_Delete(sc_renderer_t* renderer) {
     }
     sc_Renderer_Begin(renderer);
     ArenaDelete(&renderer->m_memory_context);
-    free(renderer->m_render_batch.m_render_calls);
+    sa_FREE(renderer->m_render_batch.m_render_calls);
 
     glDeleteVertexArrays(1, &renderer->m_vao);
     glDeleteProgram(renderer->m_shader_program);
@@ -367,7 +367,7 @@ struct sc_modelMesh_c* sc_ModelMesh_Create(sa_vec3_t* verticesPos,
     mesh->m_vertices =
         (struct sc_vertice_c*)malloc(sizeof(struct sc_vertice_c) * mesh->m_vertices_amount);
     if (!mesh->m_vertices) {
-        free(mesh);
+        sa_FREE(mesh);
         return NULL;
     }
 
@@ -380,8 +380,8 @@ struct sc_modelMesh_c* sc_ModelMesh_Create(sa_vec3_t* verticesPos,
 
     mesh->m_indices = (sa_u32_t*)malloc(sizeof(sa_u32_t) * mesh->m_indices_amount);
     if (!mesh->m_indices) {
-        free(mesh->m_vertices);
-        free(mesh);
+        sa_FREE(mesh->m_vertices);
+        sa_FREE(mesh);
         return NULL;
     }
 
@@ -391,14 +391,14 @@ struct sc_modelMesh_c* sc_ModelMesh_Create(sa_vec3_t* verticesPos,
 
     mesh->m_ibo = sc_GL_Create_Index_Buffer(mesh->m_indices, indiceAmount);
 
-    free(verticesPos);
-    free(verticesTexcoord);
-    free(indices);
+    sa_FREE(verticesPos);
+    sa_FREE(verticesTexcoord);
+    sa_FREE(indices);
 
     return mesh;
 }
 
-struct sc_modelMesh_c* sc_Model_Mesh_Load(const char* path, sc_OBJ_File_Reading_Function fileReader) {
+struct sc_modelMesh_c* sc_Model_Mesh_Load(const char* path) {
     sa_vec3_t* verticesPos = NULL;
     sa_u64_t verticesAmount = 0;
     sa_vec2_t* verticesTexCoords = NULL;
@@ -406,7 +406,7 @@ struct sc_modelMesh_c* sc_Model_Mesh_Load(const char* path, sc_OBJ_File_Reading_
     struct sc_vertexIndice_c* indices = NULL;
     sa_u64_t indicesAmount = 0;
 
-    if (!sc_OBJ_Parse(path, fileReader, &verticesPos, &verticesAmount,
+    if (!sc_OBJ_Parse(path, &verticesPos, &verticesAmount,
                       &verticesTexCoords, &verticesTexCoordsAmount, &indices,
                       &indicesAmount)) {
         return NULL;
@@ -419,12 +419,12 @@ void sc_Model_Mesh_Delete(struct sc_modelMesh_c* modelMesh) {
     if (!modelMesh)
         return;
     if (modelMesh->m_indices)
-        free(modelMesh->m_indices);
+        sa_FREE(modelMesh->m_indices);
     if (modelMesh->m_vertices)
-        free(modelMesh->m_vertices);
+        sa_FREE(modelMesh->m_vertices);
     if (modelMesh->m_ibo)
         glDeleteBuffers(1, &modelMesh->m_ibo);
-    free(modelMesh);
+    sa_FREE(modelMesh);
 }
 
 /* === Helper Implementation === */

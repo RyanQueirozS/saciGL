@@ -19,7 +19,7 @@
 #define sa_ARRLEN_m(array) (sizeof(array) / sizeof(array[0]))
 
 #ifndef sa_MALLOC
-#include <malloc.h>
+#include <stdlib.h>
 #define sa_MALLOC malloc
 #endif // sa_MALLOC
 
@@ -27,5 +27,14 @@
 #include <assert.h>
 #define sa_ASSERT assert
 #endif // sa_ASSERT
+
+#ifndef sa_FREE
+#include <stdlib.h>
+#define sa_FREE free
+#endif // sa_ASSERT
+
+#ifndef sa_NOT_USED
+#define sa_NOT_USED (void)
+#endif
 
 #endif

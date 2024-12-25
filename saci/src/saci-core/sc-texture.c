@@ -39,7 +39,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool_t flipImg) {
 
     sa_u32_t format = __sc_Texture_Determine_Format(nr_channels);
     if (format == 0) {
-        stbi_image_free(data); // Todo move to sa_FREE
+        sa_FREE(data);
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Unsupported number of channels");
         return 0;
@@ -60,13 +60,13 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool_t flipImg) {
     if (glWidth <= 0 || glHeight <= 0) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Texture Width or Height is equal to 0");
-        stbi_image_free(data);
+        sa_FREE(data);
         return 0;
     }
 
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    stbi_image_free(data);
+    sa_FREE(data);
 #if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_TEXTURE)
     char debugMsg[256];
     snprintf(debugMsg, sizeof(debugMsg), "Loaded texture with %d width, %d height from %s",

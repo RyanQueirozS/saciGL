@@ -9,7 +9,7 @@
 void init_saci(void) {
     sa_Math_Init();
 
-    sc_Renderer_t* renderer = sc_Renderer_Create_Empty();
+    sc_renderer_t* renderer = sc_Renderer_Create_Empty();
     sc_Renderer_Init_Memory_Context(renderer, MY_MEMORY_ARENA_CONTEXT_SIZE);
     sc_Renderer_Resize_Render_Buffer(renderer, MY_RENDER_BATCH_SIZE);
     assert(renderer);

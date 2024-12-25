@@ -9,9 +9,9 @@
 #include <time.h>
 #include <unistd.h>
 
-sc_Window_t* window;
-sc_Renderer_t* renderer;
-struct sc_Camera_c camera;
+sc_window_t* window;
+sc_renderer_t* renderer;
+struct sc_camera_c camera;
 const float cameraSpeed = 0.3f;
 
 void init_saci(void) {
@@ -33,8 +33,8 @@ void init_saci(void) {
 }
 
 void handle_keyboard(void) {
-    sa_Vec3_t forward = sa_Vec3_Normalize(sa_Vec3_Subtract(camera.m_target, camera.m_position));
-    sa_Vec3_t right = sa_Vec3_Normalize(sa_Vec3_Cross(forward, camera.m_up));
+    sa_vec3_t forward = sa_Vec3_Normalize(sa_Vec3_Subtract(camera.m_target, camera.m_position));
+    sa_vec3_t right = sa_Vec3_Normalize(sa_Vec3_Cross(forward, camera.m_up));
     if (sc_Event_Is_Key_Pressed(window, sc_KEY_W)) {
         camera.m_position = sa_Vec3_Add(camera.m_position, sa_Vec3_Scale(forward, cameraSpeed));
     }
@@ -48,10 +48,10 @@ void handle_keyboard(void) {
         camera.m_position = sa_Vec3_Add(camera.m_position, sa_Vec3_Scale(right, cameraSpeed));
     }
     if (sc_Event_Is_Key_Pressed(window, sc_KEY_SPACE)) {
-        camera.m_position.y += cameraSpeed;
+        camera.m_position.m_y += cameraSpeed;
     }
     if (sc_Event_Is_Key_Pressed(window, sc_KEY_LEFT_SHIFT)) {
-        camera.m_position.y -= cameraSpeed;
+        camera.m_position.m_y -= cameraSpeed;
     }
 }
 
@@ -93,24 +93,22 @@ void file_read(void* ctx, const char* filename, int isMtl, const char* objFilena
 
 int main(void) {
     init_saci();
-    sa_Color_t bgColor =
+    sa_color_t bgColor =
         sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
 
-    struct sc_ModelMesh_c* mesh;
+    struct sc_modelMesh_c* mesh;
 
     {
         const char* filePath = "./3d/stanford-bunny-model/bunny.obj";
-        sc_OBJ_File_Reading_Function func = file_read;
-
-        mesh = sc_Model_Mesh_Load(filePath, func);
+        mesh = sc_Model_Mesh_Load(filePath);
     }
 
     assert(mesh);
-    sa_Mat4_t modelMatrix;
-    sa_Vec3_t modelPos = {0, 0, 0};
-    sa_Vec3_t modelRot = {0, 0, 0};
-    sa_Vec3_t modelScale = {1, 1, 1};
-    camera.m_position.z = -3;
+    sa_mat4_t modelMatrix;
+    sa_vec3_t modelPos = {0, 0, 0};
+    sa_vec3_t modelRot = {0, 0, 0};
+    sa_vec3_t modelScale = {1, 1, 1};
+    camera.m_position.m_z = -3;
     camera.m_target = modelPos;
 
     modelMatrix = sa_Mat4_Model_Matrix(modelPos, modelRot, modelScale);

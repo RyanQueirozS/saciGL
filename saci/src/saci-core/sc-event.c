@@ -19,7 +19,7 @@ void sc_Event_Post_Empty(void) {
     glfwPostEmptyEvent();
 }
 
-void sc_Event_Set_Mouse_Pos_Handler(sc_window_t* window, sc_Event_Mouse_Pos_Handler_t mouse_pos_handler) {
+void sc_Event_Set_Mouse_Pos_Handler(sc_window_t* window, sc_event_mousePosHandler_t mouse_pos_handler) {
     glfwSetCursorPosCallback(window, mouse_pos_handler);
 }
 
