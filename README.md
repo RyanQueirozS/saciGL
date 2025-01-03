@@ -17,6 +17,12 @@ the base rendering process by providing low-level abstractions and memory safety
 
 ## Installing
 
+### Dependencies
+
+- GLFW3
+- OpenGL
+- GCC (Project uses C99)
+
 ### Building
 
 The building process has only been tested on Linux, feel free to try on other

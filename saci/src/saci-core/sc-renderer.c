@@ -1,4 +1,6 @@
+#include <time.h>
 #include <glad/glad.h>
+#include <stdio.h>
 
 #define ARENA_ALLOCATOR_IMPL
 #include "arena.h"

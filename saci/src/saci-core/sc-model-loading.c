@@ -11,7 +11,7 @@
 
 /* === Helper definitions === */
 
-static char** __sc_buffer = NULL; // buffer for the file reader function.
+static char* __sc_buffer = NULL; // buffer for the file reader function.
 
 static void __sc_File_Reader_Function(void* ctx, const char* filename, int isMtl,
                                       const char* objFilename, char** buf, size_t* len);
@@ -35,7 +35,7 @@ sa_bool_t sc_OBJ_Parse(const char* filePath,
     if (!(*positions_count_out)) {
         fprintf(stderr, "Malloc Error\n");
     }
-    *positions_out = sa_SCAST_TO_m(sa_vec3_t*) sa_MALLOC(sizeof(sa_vec3_t) * (*positions_count_out));
+    *positions_out = sa_MALLOC(sizeof(sa_vec3_t) * (*positions_count_out));
     if (!(*positions_out)) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM,
                              sa_LOG_CONTEXT_OBJ_LOADING, "Couldn't malloc positions");
@@ -49,7 +49,7 @@ sa_bool_t sc_OBJ_Parse(const char* filePath,
     }
 
     *texcoord_count_out = attribute.num_texcoords;
-    *texcoords_out = sa_SCAST_TO_m(sa_vec2_t*) sa_MALLOC(sizeof(sa_vec2_t) * (*texcoord_count_out));
+    *texcoords_out = sa_MALLOC(sizeof(sa_vec2_t) * (*texcoord_count_out));
     for (sa_u64_t i = 0; i < (*texcoord_count_out); ++i) {
         float u = attribute.texcoords[2 * i + 0];
         float v = attribute.texcoords[2 * i + 1];
@@ -57,15 +57,15 @@ sa_bool_t sc_OBJ_Parse(const char* filePath,
     }
 
     *indices_count_out = attribute.num_faces;
-    *indices_out = sa_SCAST_TO_m(struct sc_vertexIndice_c*) sa_MALLOC(sizeof(struct sc_vertexIndice_c) * (*indices_count_out));
+    *indices_out = sa_MALLOC(sizeof(struct sc_vertexIndice_c) * (*indices_count_out));
+
     for (sa_u64_t i = 0; i < (attribute.num_faces); ++i) {
         (*indices_out)[i].vertexIndex = sa_SCAST_TO_m(sa_u32_t)(attribute.faces[i].v_idx);
         (*indices_out)[i].texCoordIndex = sa_SCAST_TO_m(sa_u32_t) attribute.faces[i].vt_idx;
         (*indices_out)[i].normalIndex = sa_SCAST_TO_m(sa_u32_t) attribute.faces[i].vn_idx;
     }
 
-    // These will not be changed to sa_FREE, since they are already changed
-    // through macro
+    // These will not be changed to sa_FREE, since they are already changed through macro
     tinyobj_attrib_free(&attribute);
     tinyobj_shapes_free(shape_array, shape_array_amount);
     tinyobj_materials_free(material_array, material_array_size);
@@ -78,51 +78,33 @@ sa_bool_t sc_OBJ_Parse(const char* filePath,
 
 static void __sc_File_Reader_Function(void* ctx, const char* filename, int isMtl,
                                       const char* objFilename, char** buf, size_t* len) {
-    sa_NOT_USED(buf);
+    (void)ctx, (void)isMtl, (void)objFilename;
     FILE* file = fopen(filename, "rb");
     if (!file) {
-        fprintf(stderr, "Error: Unable to open file '%s'\n", filename);
-        *__sc_buffer = NULL;
+        fprintf(stderr, "Failed to open file: %s\n", filename);
+        *buf = NULL;
         *len = 0;
         return;
     }
 
-    if (fseek(file, 0, SEEK_END) != 0) {
-        fprintf(stderr, "Error: Failed to determine file size for '%s'\n", filename);
-        fclose(file);
-        *__sc_buffer = NULL;
-        *len = 0;
-        return;
+    fseek(file, 0, SEEK_END);
+    *len = (size_t)ftell(file);
+    if (*len == 0) {
+        *buf = NULL;
     }
-
-    sa_s64_t file_size = ftell(file);
-    if (file_size < 0) {
-        fprintf(stderr, "Error: Failed to get file size for '%s'\n", filename);
-        fclose(file);
-        *__sc_buffer = NULL;
-        *len = 0;
-        return;
-    }
-
-    *__sc_buffer = (char*)malloc(sa_SCAST_TO_m(sa_u64_t)(file_size));
-    if (!*__sc_buffer) {
-        fprintf(stderr, "Error: Memory allocation failed for file '%s'\n", filename);
-        fclose(file);
-        *len = 0;
-        return;
-    }
-
     rewind(file);
-    size_t bytes_read = fread(*__sc_buffer, 1, sa_SCAST_TO_m(sa_u64_t)(file_size), file);
-    if (bytes_read != (size_t)file_size) {
-        fprintf(stderr, "Error: File read error for '%s'\n", filename);
-        sa_FREE(*__sc_buffer);
-        *__sc_buffer = NULL;
-        *len = 0;
+
+    *buf = (char*)malloc(*len + 1);
+    if (!*buf) {
+        fprintf(stderr, "Failed to allocate memory\n");
         fclose(file);
+        *len = 0;
         return;
     }
 
-    *len = (size_t)file_size;
+    fread(*buf, 1, *len, file);
+    (*buf)[*len] = '\0';
+    __sc_buffer = *buf;
+
     fclose(file);
 }

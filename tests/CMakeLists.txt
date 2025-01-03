@@ -8,13 +8,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory("${CMAKE_SOURCE_DIR}/../saci" "${CMAKE_BINARY_DIR}/saci_build")
 
 # Collect the sources for the test executable
-file(GLOB_RECURSE SACI_TEST_SOURCES "saci-core/*.c" "main.c")
-
-file(GLOB_RECURSE DEPENDENCIES_SOURCES "saci-test/*.c")
+file(GLOB_RECURSE SACI_TEST_SOURCES "integration/*.c" "unit/*.c" "main.c")
 
 # Include directories
 include_directories(
-    "${CMAKE_SOURCE_DIR}/saci-test/"
+    "${CMAKE_SOURCE_DIR}/deps/" # saci testing
     "${CMAKE_SOURCE_DIR}/../saci/include"
 )
 

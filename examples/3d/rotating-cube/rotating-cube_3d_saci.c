@@ -81,7 +81,9 @@ int main() {
     sa_color_t bgColor =
         sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
     sa_u32_t ibo = sc_GL_Create_Index_Buffer(cubeIndices, indiceAmount);
-    while (!sc_Window_Should_Close(window)) {
+    size_t iteratiosn = 0;
+    glfwSwapInterval(0);
+    while (iteratiosn < 100) {
         sc_Window_Clear_Color(bgColor);
 
         sc_Renderer_Begin(renderer);
@@ -98,5 +100,6 @@ int main() {
             rotation.m_y += 0.03;
             modelMatrix = sa_Mat4_Model_Matrix((sa_vec3_t){0, 0, 0}, rotation, (sa_vec3_t){1, 1, 1});
         }
+        iteratiosn++;
     }
 }

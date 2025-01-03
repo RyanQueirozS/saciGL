@@ -5,3 +5,6 @@ Makefile
 bin/
 build/
 .cache/
+tests/assets
+analysis.txt
+gmon.out

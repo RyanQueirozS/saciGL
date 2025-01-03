@@ -7,6 +7,10 @@ project(rotating-cube_3d LANGUAGES C)
 
 set(CMAKE_C_STANDARD 99)
 
+# Add the -pg flag for profiling
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")  # Ensure it's applied to the linker
+
 # Find required packages
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
@@ -27,4 +31,3 @@ add_executable(rotating-cube_3d rotating-cube_3d_saci.c)
 target_link_libraries(rotating-cube_3d PRIVATE 
     saci
 )
-
