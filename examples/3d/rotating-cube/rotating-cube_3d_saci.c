@@ -1,6 +1,4 @@
 #include <assert.h>
-#include "saci-core/sc-camera.h"
-#include "saci-core/sc-event.h"
 #include "saci-core/sc-gl.h"
 #include "saci-utils/su-math.h"
 #include "saci-utils/su-types.h"
@@ -9,8 +7,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-struct sc_camera_c camera;
-sc_renderer_t* renderer;
 sc_window_t* window;
 
 // Define the 8 vertices of a cube centered at the origin with side length 2
@@ -25,6 +21,8 @@ sa_vec3_t verticesPos[] = {
     {1.0f, 1.0f, 1.0f},    // v6: Top-right-front
     {-1.0f, 1.0f, 1.0f}    // v7: Top-left-front
 };
+
+sa_uv verticesUV[8] = {0};
 
 // Define colors for each vertex
 sa_color_t colors[] = {
@@ -57,22 +55,14 @@ void init_saci() {
     sc_Window_Make_Context(window);
     assert(sc_GLAD_Init());
 
-    renderer = sc_Renderer_Create_Default();
-    assert(renderer);
+    sc_Renderer_Init();
 
-    camera = sc_Camera_Get_Default();
-    camera.m_aspect_ratio = 1600.0f / 900.0f;
-    camera.m_position.m_z = -10.0f; // Change as you may
-    camera.m_position.m_y = 0.0f;
-
-    sc_Renderer_Enable_Z_Buffer();
-    sc_Renderer_Set_Projection_Mode(sa_RENDERER_PROJECTION_MODE_PERSPECTIVE);
+    // sc_Renderer_Enable_Z_Buffer();
+    // sc_Renderer_Set_Projection_Mode(sa_RENDERER_PROJECTION_MODE_PERSPECTIVE);
 }
 
 int main() {
     init_saci();
-
-    struct sc_vertice_c* vertices = sc_Vertice_Create_Vertices_Array(verticesPos, colors, NULL, 8);
 
     sa_vec3_t rotation = {0, 0, 0};
     sa_mat4_t modelMatrix =
@@ -80,15 +70,14 @@ int main() {
 
     sa_color_t bgColor =
         sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
-    sa_u32_t ibo = sc_GL_Create_Index_Buffer(cubeIndices, indiceAmount);
     while (!sc_Window_Should_Close(window)) {
         sc_Window_Clear_Color(bgColor);
 
-        sc_Renderer_Begin(renderer);
+        sc_Renderer_Begin();
         sc_Window_Clear_Color(bgColor);
-        sc_Renderer_Push_Vertices(renderer, vertices, verticeAmount, indiceAmount,
-                                  modelMatrix, 0, ibo);
-        sc_Renderer_End(renderer, &camera);
+        sc_Renderer_Bind_Index_Buffer(cubeIndices, indiceAmount);
+        sc_Renderer_Push_Vertex(verticesPos, verticesUV, colors, verticeAmount);
+        sc_Renderer_End();
         sc_Window_Swap_Buffer(window);
 
         sc_Event_Poll();

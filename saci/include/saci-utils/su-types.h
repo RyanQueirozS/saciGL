@@ -47,7 +47,14 @@ typedef sa_u32_t sa_shaderId;
 
 typedef sa_u32_t sa_textureId;
 
+typedef sa_u32_t sa_bufferId;
+
 /* === Vector Structures === */
+
+typedef struct {
+    float u; /**< U compoonent */
+    float v; /**< V compoonent */
+} sa_uv;
 
 typedef struct {
     float m_x; /**< X compoonent */

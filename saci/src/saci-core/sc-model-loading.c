@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "saci-core/sc-gl.h"
+#include "saci-core/sc-model.h"
 #include "saci-utils/su-types.h"
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-debug.h"

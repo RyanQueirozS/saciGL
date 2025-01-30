@@ -82,17 +82,15 @@ target_compile_options(saci PRIVATE
     -Wall                      # Enable all warnings
     -Wextra                    # Enable extra warnings
     -Wpedantic                 # Enable pedantic warnings
-    -Werror                    # Treat all warnings as errors
     -Wshadow                   # Warn when a local variable or function shadows another
     -Wconversion               # Warn about implicit type conversions that may lose data
     -Wunreachable-code         # Warn about code that will never be executed
     -Wstrict-prototypes        # Warn if a function declaration doesn't include argument types # For some reason doesn't work :p
     -Wmissing-declarations     # Warn when a function is used but not declared
-    -Wno-unused-parameter      # Ignore unused parameter warnings
+    -Wunused-parameter         # Ignore unused parameter warnings
     -Wvla                      # Warn if variable-length arrays (VLAs) are used (C99 feature)
-    -Wno-unused-function       # Avoid warning for unused static functions
+    -Wunused-function          # Avoid warning for unused static functions
     -std=c99                   # Enforce C99 standard
-    -pedantic-errors           # Make pedantic warnings fatal
 
     # Debug and release-specific flags
     $<$<CONFIG:DEBUG>:-g>       # Debugging information for debug mode
