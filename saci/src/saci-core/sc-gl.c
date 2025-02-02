@@ -278,29 +278,28 @@ SA_API void sc_Renderer_End(void) {
     glBindVertexArray(__sc_renderer.vao);
     glBindBuffer(GL_ARRAY_BUFFER, __sc_renderer.vbo);
 
-    for (sa_u32_t i = 0; i < __sc_renderer.batch.m_render_call_count; ++i) {
-        sc_RenderCall* call = &renderer->m_render_batch.m_render_calls[i];
-        __sc_Renderer_Set_Uniform(renderer, camera, call->m_model_matrix,
-                                  call->m_texture_id);
+    glBufferSubData(GL_ARRAY_BUFFER, 0,
+                    sa_SCAST_TO_m(long int)(sizeof(struct __sc_vertex) * __sc_renderer.batch.vertex_array_count),
+                    __sc_renderer.batch.vertex_array);
 
-        if (call->m_texture_id != 0) {
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, call->m_texture_id);
-        }
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, __sc_renderer.ibo);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
+                    sa_SCAST_TO_m(long int)(sizeof(sa_u32_t) * __sc_renderer.batch.index_array_count),
+                    __sc_renderer.batch.index_array);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, call->m_ibo);
+    // __sc_Renderer_Set_Uniform(renderer, camera, call->m_model_matrix,
+    //                           call->m_texture_id);
 
-        glBufferSubData(GL_ARRAY_BUFFER, 0,
-                        sa_SCAST_TO_m(long int)(sizeof(struct sc_vertice_c) * call->m_vertice_amount),
-                        call->m_vertices);
+    // if (call->m_texture_id != 0) {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    // }
 
-        glDrawElements(call->m_render_mode, sa_SCAST_TO_m(int)(call->m_indice_amount), GL_UNSIGNED_INT,
-                       0);
+    glDrawElements(GL_TRIANGLES, sa_SCAST_TO_m(int)(__sc_renderer.batch.index_array_count), GL_UNSIGNED_INT,
+                   0);
 
-        if (call->m_texture_id != 0) {
-            glBindTexture(GL_TEXTURE_2D, 0);
-        }
-    }
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     glBindVertexArray(0);
     glUseProgram(0);
 }
