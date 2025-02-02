@@ -134,7 +134,7 @@ static struct {
 } __sc_renderer = {0};
 
 SA_API void sc_Renderer_Init(void) {
-    {
+    { // Shader init
         sa_shaderId v_shader = sc_Shader_Compile_Shader_Vert(vert_shader);
         sa_shaderId f_shader = sc_Shader_Compile_Shader_Frag(frag_shader);
         assert(v_shader && f_shader);
@@ -142,7 +142,7 @@ SA_API void sc_Renderer_Init(void) {
         assert(__sc_renderer.shader_program);
     }
 
-    {
+    { // VertexAttrib init
         sc_GL_Create_Vertex_Array(1, &__sc_renderer.vao);
         sc_GL_Bind_Vertex_Array(__sc_renderer.vao);
 

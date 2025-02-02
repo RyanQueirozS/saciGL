@@ -18,13 +18,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Find all source files recursively in the src directory
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.c")
 
-# Find all header files recursively in the include directory (optional)
+# Find all header files recursively in the include directory
 file(GLOB_RECURSE HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/**/*.h")
 
 # --- Find Dependencies ---
 
-# Find GLFW
-find_package(glfw3 REQUIRED)
+# Finding glfw
+set(GLFW_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/lib/GLFW/libglfw.so.3.4")
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
@@ -48,7 +48,7 @@ target_include_directories(saci SYSTEM PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/arena"         # Arena headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/include"  # Glad headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/model-loading" # Model Loaders headers
-    ${GLFW_INCLUDE_DIRS}                             # GLFW headers
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/include" # GLFW headers
 
     PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"            # Root include directory
@@ -62,7 +62,7 @@ set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/src/glad.c" P
 # --- Link Libraries ---
 target_link_libraries(saci PUBLIC
     ${OPENGL_LIBRARIES}  # Link OpenGL
-    glfw                 # Link GLFW
+    ${GLFW_LIBRARY}      # Link GLFW
     m                    # Link math library (libm)
 )
 
