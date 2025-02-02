@@ -1,4 +1,4 @@
-#include "saci-core/sc-gl.h"
+#if 0
 #include "saci-core/sc-event.h"
 #include "saci-core/sc-gl.h"
 #include "saci-utils/su-math.h"
@@ -71,4 +71,8 @@ int main() {
     }
     sc_Renderer_Delete(renderer);
     sc_Window_Terminate();
+}
+#endif
+int main() {
+    return 0;
 }
