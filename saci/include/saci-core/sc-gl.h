@@ -25,10 +25,10 @@
 
 /* === Event === */
 
-#ifndef SACI_EVENT_MOUSE_POS_HANDLER_t
-#  define SACI_EVENT_MOUSE_POS_HANDLER_t
+#ifndef SC_EVENT_MOUSE_POS_HANDLER_t
+#  define SC_EVENT_MOUSE_POS_HANDLER_t
 typedef void (*sc_event_mousePosHandler_t)(sc_window_t* window, double posx, double posy);
-#endif // SACI_EVENT_MOUSE_POS_HANDLER_t
+#endif // SC_EVENT_MOUSE_POS_HANDLER_t
 
 #define sc_KEY_SPACE 32
 #define sc_KEY_APOSTROPHE 39 /* ' */
@@ -161,6 +161,39 @@ SA_API sa_bool_t sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode);
 
 /* === Renderer === */
 
+#ifdef SC_RENDERER_STRUCT_EXPOSE
+#  ifndef SC_RENDERER_STRUCT
+#    define SC_RENDERER_STRUCT
+
+struct sc_Renderer {
+    sa_textureId current_texture_id;
+
+    sa_u32_t* bound_index_array;
+    sa_u32_t bound_index_array_count;
+    sa_u32_t vertices_overlaped;
+
+    sa_shaderId shader_program;
+    sa_bufferId ibo;
+    sa_bufferId vbo;
+    sa_bufferId vao;
+
+    struct __sc_batch {
+        sa_u32_t index_array_count;
+        sa_u32_t vertex_array_count;
+
+        sa_u32_t* index_array;
+        struct __sc_vertex {
+            sa_vec3_t pos;
+            sa_color_t color;
+            sa_uv uv;
+        }* vertex_array;
+    } batch;
+    sa_u32_t batch_count; // NOT CURRENTLY IN USE
+};
+
+#  endif // SC_RENDERER_STRUCT
+#endif   // SC_RENDERER_STRUCT_EXPOSE
+
 SA_API void sc_Renderer_Init(void);
 SA_API void sc_Renderer_Begin(void);
 SA_API void sc_Renderer_Bind_Texture(sa_textureId tex_id);
@@ -170,7 +203,8 @@ SA_API void sc_Renderer_End(void);
 
 /* === OpenGL === */
 
-SA_API sa_u32_t sc_GL_Create_Index_Buffer(sa_u32_t* indices, sa_u64_t indice_amount);
+SA_API sa_u32_t sc_GL_Create_Index_Buffer_Dynamic(sa_u32_t* indices, sa_u64_t indice_amount);
+SA_API sa_u32_t sc_GL_Create_Index_Buffer_Static(sa_u32_t* indices, sa_u64_t indice_amount);
 SA_API sa_u32_t sc_GL_Create_Vertex_Buffer(sa_u64_t size, const void* data, sa_u32_t usage);
 SA_API void sc_GL_Create_Vertex_Array(sa_u64_t size, sa_u32_t* arrays);
 SA_API void sc_GL_Resize_Vertex_Buffer(sa_u32_t vao_id, sa_u32_t vbo_id, sa_u64_t new_size);

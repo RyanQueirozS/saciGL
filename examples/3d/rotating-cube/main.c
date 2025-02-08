@@ -1,9 +1,10 @@
-#include <assert.h>
 #include "saci-core/sc-gl.h"
 #include "saci-utils/su-math.h"
 #include "saci-utils/su-types.h"
-#include <saci-utils/su-general.h>
+#include "saci-utils/su-general.h"
+
 #include <stdio.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <time.h>
 

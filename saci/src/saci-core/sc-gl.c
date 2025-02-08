@@ -1,7 +1,10 @@
 #include <glad/glad.h>
 
 #include "saci-core/sc-gl.h"
+
 #include "saci-utils/su-general.h"
+#include "saci-utils/su-math.h"
+#include "saci-utils/su-types.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,6 +56,19 @@ SA_API sa_bool_t sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 #    define __SC_TEXTURE_ARRAY_SIZE 8
 #  endif // _WIN32
 #endif   // __SC_TEXTURE_ARRAY_SIZE
+
+#ifndef __SC_RENDERER_UNIFORMS
+#  define __SC_RENDERER_UNIFORMS
+
+// These might change and might not be used later...
+#  define __SC_U_MODEL_MATRIX_LOC 0
+#  define __SC_U_VIEW_MATRIX_LOC 1
+#  define __SC_U_PROJECTION_MATRIX_LOC 2
+#  define __SC_U_USE_CAM_LOC 3
+#  define __SC_U_TEXTURE_LOC 4
+#  define __SC_U_USE_TEXTURE_LOC 5
+
+#endif // __SC_RENDERER_UNIFORMS
 
 #ifndef __SC_RENDERER_VERT_SHADER
 #  define __SC_RENDERER_VERT_SHADER
@@ -108,11 +124,15 @@ static const char* frag_shader =
     "}\n\0";
 #endif
 
-static struct {
+#ifndef SC_RENDERER_STRUCT
+#  define SC_RENDERER_STRUCT
+
+struct sc_Renderer {
     sa_textureId current_texture_id;
 
     sa_u32_t* bound_index_array;
     sa_u32_t bound_index_array_count;
+    sa_u32_t vertices_overlaped;
 
     sa_shaderId shader_program;
     sa_bufferId ibo;
@@ -131,7 +151,15 @@ static struct {
         }* vertex_array;
     } batch;
     sa_u32_t batch_count; // NOT CURRENTLY IN USE
-} __sc_renderer = {0};
+};
+
+#endif // SC_RENDERER_STRUCT
+
+#ifdef SC_RENDERER_STRUCT_EXPOSE
+struct sc_Renderer __sc_renderer = {0};
+#else
+static struct sc_Renderer __sc_renderer = {0};
+#endif // SC_RENDERER_STRUCT_EXPOSE
 
 SA_API void sc_Renderer_Init(void) {
     { // Shader init
@@ -141,12 +169,16 @@ SA_API void sc_Renderer_Init(void) {
         __sc_renderer.shader_program = sc_Shader_Create_Shader_Program(v_shader, f_shader);
         assert(__sc_renderer.shader_program);
     }
+    { // VBO and IBO
+        __sc_renderer.vbo = sc_GL_Create_Vertex_Buffer(sizeof(struct __sc_vertex) * 1000, NULL, GL_DYNAMIC_DRAW);
+
+        __sc_renderer.ibo = sc_GL_Create_Index_Buffer_Dynamic(NULL, 1000);
+    }
 
     { // VertexAttrib init
         sc_GL_Create_Vertex_Array(1, &__sc_renderer.vao);
         sc_GL_Bind_Vertex_Array(__sc_renderer.vao);
 
-        __sc_renderer.vbo = sc_GL_Create_Vertex_Buffer(sizeof(struct __sc_vertex), NULL, GL_DYNAMIC_DRAW);
         sc_GL_Bind_Vertex_Buffer(__sc_renderer.vbo);
 
         sc_GL_Set_Vertex_Attrib_Pointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct __sc_vertex),
@@ -186,6 +218,8 @@ SA_API void sc_Renderer_Begin(void) {
     __sc_renderer.batch_count = 0;
 
     __sc_renderer.current_texture_id = 0;
+
+    __sc_renderer.vertices_overlaped = 0;
 }
 
 SA_API void sc_Renderer_Bind_Texture(sa_textureId tex_id) {
@@ -194,12 +228,13 @@ SA_API void sc_Renderer_Bind_Texture(sa_textureId tex_id) {
 
 SA_API void sc_Renderer_Bind_Index_Buffer(sa_u32_t* new_indices, sa_u32_t new_indices_count) {
     // Reset the index buffer
-    free(__sc_renderer.batch.index_array);
-    __sc_renderer.batch.index_array_count = 0;
+    if (__sc_renderer.bound_index_array)
+        free(__sc_renderer.bound_index_array);
+    __sc_renderer.bound_index_array_count = 0;
 
     // Separate to a simpler name
-    sa_u32_t** index_array = &__sc_renderer.batch.index_array;
-    sa_u32_t* index_count = &__sc_renderer.batch.index_array_count;
+    sa_u32_t** index_array = &__sc_renderer.bound_index_array;
+    sa_u32_t* index_count = &__sc_renderer.bound_index_array_count;
 
     sa_u32_t* new_array = (sa_u32_t*)sa_MALLOC(new_indices_count * sizeof(sa_u32_t));
     if (!new_array) {
@@ -239,12 +274,17 @@ SA_API void sc_Renderer_Push_Vertex(sa_vec3_t* pos_array, sa_uv* uv_array, sa_co
 
         // Add the new vertices to the array
         for (sa_u32_t i = 0; i < vertex_amount; ++i) {
+            sa_uv uv = (!uv_array ? (sa_uv){0, 0} : uv_array[i]);
+            sa_color_t color = (!color_array ? (sa_color_t){0, 0, 0, 0} : color_array[i]);
             (*vertex_array_ptr)[(*vertex_array_count) - vertex_amount + i].pos = pos_array[i];
-            (*vertex_array_ptr)[(*vertex_array_count) - vertex_amount + i].uv = uv_array[i];
-            (*vertex_array_ptr)[(*vertex_array_count) - vertex_amount + i].color = color_array[i];
+            (*vertex_array_ptr)[(*vertex_array_count) - vertex_amount + i].uv = uv;
+            (*vertex_array_ptr)[(*vertex_array_count) - vertex_amount + i].color = color;
         }
     }
     { // Index operations
+        if (!__sc_renderer.bound_index_array || !__sc_renderer.bound_index_array_count)
+            return;
+
         sa_u32_t** index_array = &__sc_renderer.batch.index_array;
         sa_u32_t* index_array_count = &__sc_renderer.batch.index_array_count;
 
@@ -267,8 +307,9 @@ SA_API void sc_Renderer_Push_Vertex(sa_vec3_t* pos_array, sa_uv* uv_array, sa_co
         // This is done to fit in the indices with the new model in the vertex
         // buffer. So, for example, the amount + 0 index represent 0 in this new model
         for (sa_u32_t i = prev_index_array_count; i < new_index_count; ++i) {
-            (*index_array)[i] = vertex_amount + (*bound_array)[i - prev_index_array_count];
+            (*index_array)[i] = __sc_renderer.vertices_overlaped + (*bound_array)[i - prev_index_array_count];
         }
+        __sc_renderer.vertices_overlaped += vertex_amount;
     }
 }
 
@@ -276,8 +317,8 @@ SA_API void sc_Renderer_End(void) {
     glUseProgram(__sc_renderer.shader_program);
 
     glBindVertexArray(__sc_renderer.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, __sc_renderer.vbo);
 
+    glBindBuffer(GL_ARRAY_BUFFER, __sc_renderer.vbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0,
                     sa_SCAST_TO_m(long int)(sizeof(struct __sc_vertex) * __sc_renderer.batch.vertex_array_count),
                     __sc_renderer.batch.vertex_array);
@@ -287,8 +328,16 @@ SA_API void sc_Renderer_End(void) {
                     sa_SCAST_TO_m(long int)(sizeof(sa_u32_t) * __sc_renderer.batch.index_array_count),
                     __sc_renderer.batch.index_array);
 
-    // __sc_Renderer_Set_Uniform(renderer, camera, call->m_model_matrix,
-    //                           call->m_texture_id);
+    { // Uniforms
+        glEnable(GL_DEPTH_TEST);
+        sa_mat4_t view = sa_Mat4_Look_At((sa_vec3_t){5.0f, 1.0f, 0.0f}, (sa_vec3_t){0.0f, 0.0f, 0.0f}, (sa_vec3_t){0.0f, 1.0f, 0.0f});
+        sa_mat4_t projection = sa_Mat4_Perspective(90, 9.0 / 16, 1, 100);
+        sa_mat4_t modelMatrix = sa_Mat4_Identity();
+        glUniformMatrix4fv(__SC_U_VIEW_MATRIX_LOC, 1, GL_FALSE, &view.m_data[0][0]);
+        glUniformMatrix4fv(__SC_U_PROJECTION_MATRIX_LOC, 1, GL_FALSE, &projection.m_data[0][0]);
+        glUniformMatrix4fv(__SC_U_MODEL_MATRIX_LOC, 1, GL_FALSE, &modelMatrix.m_data[0][0]);
+        glUniform1i(__SC_U_USE_CAM_LOC, sa_TRUE);
+    }
 
     // if (call->m_texture_id != 0) {
     glActiveTexture(GL_TEXTURE0);
@@ -316,7 +365,18 @@ SA_API void sc_GL_Resize_Vertex_Buffer(sa_u32_t vao_id, sa_u32_t vbo_id, sa_u64_
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-SA_API sa_u32_t sc_GL_Create_Index_Buffer(sa_u32_t* indices, sa_u64_t indice_amount) {
+SA_API sa_u32_t sc_GL_Create_Index_Buffer_Dynamic(sa_u32_t* indices, sa_u64_t indice_amount) {
+    sa_u32_t ibo;
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sa_SCAST_TO_m(sa_s64_t)(indice_amount * sizeof(sa_u32_t)), &indices[0],
+                 GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    assert(ibo);
+    return ibo;
+}
+
+SA_API sa_u32_t sc_GL_Create_Index_Buffer_Static(sa_u32_t* indices, sa_u64_t indice_amount) {
     sa_u32_t ibo;
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
