@@ -1,4 +1,44 @@
 # saciGL Conventions
+
+## tl;dr
+ 
+If you have already read other coding guidelines, and feel like learning saci
+standard guidelines by looking at it's code, just these **10 requirements**
+mentioned below should be enough to make your changes fit in the saci project:
+ 
+1. **Use appropriate prefixes (sc_, sl_, sa_) and case styles**.
+    > Maintaining naming rules makes code more predictable when reading.
+2. **Avoid elses and nesting**.
+    > 3 levels or more of nested statements should probably be better
+    > subdivided into separate functions.
+3. **Log and assert whenever possible (`sa_Log_Print_m`, `sa_Assert_m`)**.
+    > Assertions should be used wisely and only to critical portions of code,
+    > and it's better to log pretty much everything then not loggin usefull
+    > info.
+4. **Use predefined types (sa_s32, sa_u8)**.
+    > Keeps code standardized.
+5. **Prefere pre-allocation over frequent memory allocations**.
+    > Frequent allocations affect memory and can lead to other bigger issues
+    > that can be mostly avoided.
+6. **DO NOT use `goto`, `setjmp` or `longjmp` constructs.**
+    > Code should go have a simple control flow.
+7. **Keep info in the smallest possible level os scope**.
+    > Maintaining the global space clean makes for a good and safe experience
+    > for the developer and the end-user of the library.
+8. **Try not to use `typedef` when not needed**.
+    > Specifying `struct` and `enum` before a data structure is a strong `C`
+    > feature that helps readabilty over the cost of verbosity.
+9. **Ensure that abstractions provide a clear reason to exist and aren't just
+   over-engineering**.
+    > Make sure the saciLib doesn't use any dependencies other than saciCore,
+    > and saciCore should provide a simple abstraction layer over the
+    > dependencies themselves.
+10. **Give users freedom while preventing unintended mistakes. Use
+    preprocessors or functions to manage 'hidden' values and ensure safe
+    interactions**.
+    > The sc_renderer struct is opaque but can be exposed through a
+    > `SC_RENDERER_STRUCT_EXPOSE` define and functions that manage it's
+    > properties.
  
 ## Naming
 
@@ -15,10 +55,24 @@
 
 3. Rules 1 and 2 **do not apply** in **LOCAL** scopes (e.g., inside functions, structs, etc.).
 
-4. Prefixes and suffixes should maintain their defined casing and should not affect overall casing.
+4. Prefixes and suffixes should maintain their defined casing and should not
+   affect overall casing, `sc_` will not be capitalized even if in a
+   `sc_CONST_VALUE`.
  
-5. Names should use keywords that go from most important to least, and separate
-   the **what it is RELATED to (SCOPE)**. Example: 
+5. Prefere `count` or `amount` over `size`, and `array` or `list` over plural.
+   Example:
+    ```c
+    // BAD:
+    key* key_presses;
+    int key_presses_size; // Ambiguous, is it the capacity, the amount of items in apples?
+    // GOOD:
+    key* key_press_array;
+    int key_press_array_count; // depending on context could just be key_press_count.
+    ```
+
+6. Names should use keywords that go from most important to least, and separate
+   **what it is RELATED to (`_Scope_`, `_Event_`, `_Renderer_`)**. Example: 
+
 ```c
 // Bad:
 typedef void (*sc_FunctionPtrToHandleMousePos_t)(sc_Window_t* window, double posx, double posy);
@@ -27,72 +81,67 @@ typedef void (*sc_FunctionPtrToHandleMousePos_t)(sc_Window_t* window, double pos
 
 // Good:
 typedef void (*sc_Event_MousePosHandler_t)(sc_Window_t* window, double posx, double posy);
-// We defined a type for a function ptr, that tells the SCOPE first (separated
-// between underlines), and then we explain what it does in simple terms, it's a
-// `mouse pos handler`.
+// We defined a type for a function ptr, that tells the SCOPE first (_Event_),
+// and then we explain what it does in simple terms, it's a `mouse pos handler`.
 ```
 
 ---
 
 ### Element-Specific Naming Rules
 
-| ELEMENT              | Convention             | GLOBAL HEADER             | GLOBAL SOURCE               | LOCAL                 |
-|----------------------|------------------------|---------------------------|-----------------------------|-----------------------|
-| **Header Guard**     | `__` + ALL_CAPS + `__` | `__MY_COMPLETE_PATH_H__`  | **N/A**                     | **N/A**               |
-| **Defines**          | ALL_CAPS               | `SACI_HEADER_DEFINE`      | `SACI_SOURCE_DEFINE`        | `SACI_LOCAL_DEFINE`   |
-| **Define values**    | ALL_CAPS               | `sa_HEADER_DEFINE_VALUES` | `__sa_SOURCE_DEFINE_VALUES` | `LOCAL_DEFINE_VALUES` |
-| **Macros**           | ALL_CAPS + `_m`        | `sa_HEADER_MACRO_m(x)`    | `__sa_SOURCE_MACRO_m(x)`    | `LOCAL_MACRO_m(x)`    |
-| **Variables**        | lower_case             | `sc_header_var`           | `__sc_source_var`           | `local_var`           |
-| **Constants**        | ALL_CAPS               | `sc_HEADER_CONST`         | `__sc_SOURCE_CONST`         | `LOCAL_CONST`         |
-| **Static**           | lower_case + `_s`      | `sc_static_header_var_s`  | `__sc_static_source_var_s`  | `static_local_var_s`  |
-| **Enum**             | camelCase + `_e`       | `sa_Header_Enum_e`        | `__sa_Source_Enum_e`        | `Local_Enum_e`        |
-| **Enum Members**     | ALL_CAPS               | `sa_HEADER_ENUM_MEMBER`   | `__sa_SOURCE_ENUM_MEMBER`   | `SOURCE_ENUM_MEMBER`  |
-| **Structs**          | camelCase + `_c`       | `sl_Header_Struct_c`      | `__sl_Source_Struct_c`      | `Local_Struct_c`      |
-| **Struct Members**   | `m_` + lower_case      | **N/A**                   | **N/A**                     | `m_struct_member`     |
-| **Functions**        | Pascal_Case            | `sc_Function_Def`         | `__sc_Function_Def`         | **N/A**               |
-| **Functions Params** | lower_case             | **N/A**                   | **N/A**                     | `func_param`          |
-| **Typedefs**         | camelCase + `_t`       | `sc_Header_Type_t`        | `__sc_Source_Type_t`        | `My_Local_Type_t`     |
+| CONVENTION             | ELEMENTS                          |
+|------------------------|-----------------------------------|
+| `__` + ALL_CAPS + `__` | Header Guards                     |
+| ALL_CAPS               | Defines, Consts                   |
+| Pascal_Case_Underlined | Functions, Macros                 |
+| camelCase              | Enum, Structs                     |
+| snake_case             | Variables, params, struct members                                  |
 
 NOTE:
-1. `Defines` and `Define Consts` are different in the sense that a define might
-   not contain a value.
-2. `Header guards` should contain the full path related to `/saci/include/`.
-   Example: `/saci/include/my-dir/my-file.h` will be `__MY_DIR_MY_FILE_H__`
-3. `Static` values should be in **ALL CAPS** if a const and **lower case** if a
-   variable. The suffix `_s` should remain on either.
-4. Struct Members are **Non applicable** in global space, because a member is
-   obviously defined locally inside a struct, obviously. Same thing as function
-   parameters.
-5. Functions are **Non applicable** in local space, because **C** doesn't allow
-   it, there cannot be a function defined/implemented inside another. And even
-   if it could it would be an aberration.
-6. When defining a **STRUCT**, if it is a defined as a **TYPE**, it should be
-   suffixed with a `_t`, and not a `_c`. `Types > Classes` when reading.
-   
-### Naming guidelines
+1. `Header guards` should contain the full path related to `/saci/include/`.
+   Example: `/saci/include/my-dir/my-file.h` will be `__MY_DIR_MY_FILE_H__`;
+2. Even const params should use `snake_case`;
+3. `Static` values should use `_s` suffix independent of being constant or
+   variable;
+4. `Macros` should have a `_m` suffix.
 
-C has many naming conventions with many different reasons to use each one of
-them. Try to keep names the most discriptive as possible without
-overcomplicating. Common names like `tmp`, `pos`, `dest` are acceptable only
-because they are common. Example:
-
+Examples:
 ```c
-int randomNumberGeneratedWithRand = rand(); // Bad
-int a = rand(); // AWFUL
-int random = rand(); // Good
+#ifndef __MY_HEADER_GUARD__
+#define __MY_HEADER_GUARD__
+#endif // __MY_HEADER_GUARD__
 
+const sa_u8 __sc_LINE_COUNT = 10; 
 
-int temporaryValue = 0; // OK
-int temporary = 0; // Good
-int tmp = 0; // GREAT
-int adwadawhdkawj = 0; // AWFUL
+struct __sc_File_Handler {
+    char** member_one;
+    char* member_two;
+}
+
+sa_u8 sc_File_Get_Line_Count(void) {
+    int line_offset = 3;
+    return sa_File_Get_Ratio_m(__sc_LINE_COUNT - line_offset); // Explanation on why offset should be used
+}
+...
 ```
+
+In the above example, just by looking at the code, you can se what everything
+is and where it is located project-wise. 
+- The `__sc` indicates this is a source file of the `saciCore`.
+- The `__sc` also indicates that those pieces of code won't be used elsewhere.
+- The `sc` in the funtion indicates that function is declared in a header and
+  is being implemented in that source file.
+- The `_m` suffix after the `sa_File_Get_Ratio_m` indicates it is a macro, and
+  the `sa` indicates it is not a part of the `core` or `lib`.
+
+
+### Naming guidelines
 
 #### Enum Members
 
 Enum members should always begin with the enum name. Example: 
 ```c
-enum sa_Log_Level_e {
+enum sa_Log_Level {
     SA_LEVEL_INFO // BAD
     SA_LOG_LEVEL_DEBUG // GOOD
 }
@@ -113,81 +162,6 @@ Files should be named:
 - In lower-case with dashes(`-`) separating each word.
 - Be descriptive of what they try to acomplish.
  
-### List of common names
-   
-It's best to keep common terms for each name. Use these terms whenever needed:
-   
-| **Name**       | **Used In**                                      |
-|----------------|--------------------------------------------------|
-| `sys`          | System-level components                          |
-| `os`           | Operating system-level functionality             |
-| `lib`          | Library or reusable module                       |
-| `mod`          | A module within the system                       |
-| `drv`          | Driver-related code                              |
-| `arch`         | Architecture-specific code                       |
-| `net`          | Networking-related functionality                 |
-| `dev`          | Device management or drivers                     |
-| `io`           | Input/Output functionality                       |
-| `mem`          | Memory-related utilities                         |
-| `proc`         | Process management                               |
-| `usr`          | User-space components                            |
-| `cfg`          | Configuration utilities                          |
-| `gfx`          | Graphics-related code                            |
-| `audio`        | Audio handling                                   |
-| `fs`           | Filesystem-related code                          |
-| `db`           | Database utilities                               |
-| `ui`           | User interface components                        |
-| `cli`          | Command-line interface utilities                 |
-| `api`          | API definitions or interactions                  |
-| `vm`           | Virtual memory or virtual machine                |
-| `sync`         | Synchronization primitives (mutexes, semaphores) |
-| `log`          | Logging-related utilities                        |
-| `dbg`          | Debugging utilities                              |
-| `perf`         | Performance monitoring and profiling             |
-| `test`         | Testing utilities or test cases                  |
-| `handler`      | Handles events or requests                       |
-| `manager`      | Manages resources or lifecycle                   |
-| `controller`   | Coordinates multiple components                  |
-| `factory`      | Creates or initializes objects                   |
-| `helper`       | Helper utilities                                 |
-| `parser`       | Parses data or files                             |
-| `reader`       | Reads data                                       |
-| `writer`       | Writes data                                      |
-| `loader`       | Loads modules or data                            |
-| `serializer`   | Converts data to a serial format                 |
-| `deserializer` | Converts serialized data back                    |
-| `cache`        | Caching functionality                            |
-| `queue`        | Queues for managing data flow                    |
-| `pool`         | Object or memory pooling                         |
-| `timer`        | Time-related functionality                       |
-| `info`         | General information structure                    |
-| `data`         | Raw or processed data                            |
-| `state`        | State information                                |
-| `config`       | Configuration options                            |
-| `ctx`          | Context for operations or threads                |
-| `entry`        | A single entry in a table or list                |
-| `list`         | List of items                                    |
-| `node`         | A node in a linked list/tree                     |
-| `map`          | Key-value mapping                                |
-| `table`        | Tabular data or lookup tables                    |
-| `buf`          | Buffers for temporary storage                    |
-| `cmd`          | Command structures                               |
-| `event`        | Event structures                                 |
-| `task`         | Task or job representation                       |
-| `obj`          | General-purpose object                           |
-| `ptr`          | Pointer to a structure or data                   |
-| `lock`         | Locking mechanisms (mutexes, spinlocks)          |
-| `MAX`          | Maximum values (e.g., `MAX_PATH`, `MAX_USERS`)   |
-| `MIN`          | Minimum values (e.g., `MIN_BUFFER`)              |
-| `DEFAULT`      | Default values (e.g., `DEFAULT_TIMEOUT`)         |
-| `ERR`          | Error codes or identifiers (e.g., `ERR_INVALID`) |
-| `FLAG`         | Bit flags (e.g., `FLAG_READONLY`)                |
-| `STATUS`       | Status codes (e.g., `STATUS_OK`, `STATUS_FAIL`)  |
-| `CONFIG`       | Compile-time configuration options               |
-| `OPT`          | Runtime options or flags                         |
-| `DEBUG`        | Debugging-related constants                      |
-
-   
 ## Style
 
 ### Indentation
@@ -203,13 +177,14 @@ accepted.
 
 #### Braces
 
-`if` should contain braces whenthe code in the `if` statement does more than one thing. Example:
+`if` should contain braces when the code in the `if` statement does more than one thing. Example:
 
 ```c
+// BAD: 
 // This ifstatement does more than one thing:
 if (condition) valueTwo = 2, valueThree = 3;
 
-// The correct way:
+// GOOOD: 
 if (condition) {
     valueTwo = 2; // could be a ; or ,
     valueThree = 3; 
@@ -225,7 +200,7 @@ NEEDED**.
 
 #### Nesting
 
-**DO NOT** nest `if`s and `else`s. Simple as that.
+**DO NOT** nest whenever possible. Simple as that.
 
 ### Line limit
 
@@ -238,7 +213,7 @@ it. **DO NOT GO OVER 110** and whenever possible **BREAK AT 80 CHARS**.
 
 #### Empty lines
 
-There should **NOT** be a empty line per function, struct and enum. Example: 
+There should **NOT** be a empty line per function in the header files. Example: 
 ```c
 // Without be:
 void My_Func();
@@ -290,11 +265,13 @@ structs and all of the other things people debate about in regards to braces.
    meaning (returning 0, -1 or NULL for fail);
 3. **RETURN EARLY**;
 4. **CHECK/HANDLE MEMORY ALLOCATION**;
-5. **NO DEPENDENCIES on SACI LIB**. SaciCORE should provide enough abstraction
+5. Prefere **PRE-ALLOCATING MEMORY**;
+6. **NO DEPENDENCIES on SACI LIB**. SaciCORE should provide enough abstraction
    layers;
-6. **LOG ALL POSSIBLE ERRORS**;
-7. **ASSERT ONLY WHEN NEEDED**. Only for critical operations, like
+7. **LOG ALL POSSIBLE ERRORS**;
+8. **ASSERT ONLY WHEN NEEDED**. Only for critical operations, like
    renderer creation/library initialization;
+9. **DO NOT** use **`goto`**, **`setjmp`** or **`longjmp`** constructs.
 
 ### Public vs Non Public
 
@@ -322,17 +299,23 @@ Each code portion should be subdivided. Example:
 When in a HEADER FILE:
 
 ```c
-/* === Renderering === */
+/* === Event === */
+// Event related code
+
+
+/* === Renderering  === */
 // Rendering related code
-
-
-/* === Model loading === */
-// Model loading related code
 ```
+
+### Assertion
+
+Prefer to use the `sa_Assert_m` whenever critical operations need to be
+checked. It is a like the `sa_Log_Print_m` (discused below) but it is specific
+to critical, high priority logging information.
 
 ### Logging
 
-Use `sa_LOG_PRINT_m` for significant actions (e.g., creation,
+Use `sa_Log_Print_m` for significant actions (e.g., creation,
 deletion, configuration changes) and appropriate log levels (INFO, WARN,
 ERROR). 
 - **EVERY error should be logged.** 
@@ -343,34 +326,22 @@ ERROR).
 
 Logging **Type**:
 
-| Type           | Use                                                                                                           |
-|----------------|---------------------------------------------------------------------------------------------------------------|
-| SA_LOG_DEBUG | Information that helps developers understand internal workings or trace execution for debugging purposes.     |
-| SA_LOG_INFO  | Information useful to the end-user regarding application state or normal operations (e.g., resource loading). |
-| SA_LOG_WARN  | What may cause issues, the end user shouldn't need to see this                                                |
-| SA_LOG_ERROR | Failures, errors or unexpected values                                                                         |
+| Type         | Use                                                                                                           |
+|--------------|---------------------------------------------------------------------------------------------------------------|
+| sa_LOG_DEBUG | Information that helps developers understand internal workings or trace execution for debugging purposes.     |
+| sa_LOG_INFO  | Information useful to the end-user regarding application state or normal operations (e.g., resource loading). |
+| sa_LOG_WARN  | What may cause issues, the end user shouldn't need to see this unless they screw up.                          |
+| sa_LOG_ERROR | Failures, errors or unexpected values.                                                                        |
 
 
 Logging **Level**:
 
-| Level                          | Use                                                           |
-|--------------------------------|---------------------------------------------------------------|
-| SA_LOG_SEVERITY_NOTIFICATION | Only informational messages, no action needed.                |
-| SA_LOG_SEVERITY_LOW          | Minor issues, such as deprecation or performance hints.       |
-| SA_LOG_SEVERITY_MEDIUM       | Issues that could cause bugs or notable performance problems. |
-| SA_LOG_SEVERITY_HIGH         | Critical errors that will likely lead to application crashes. |
-
-Logging **context**:
-
-| Contexts                  | Use                                                                     |
-|---------------------------|-------------------------------------------------------------------------|
-| SA_LOG_CONTEXT_OPENGL   | Logs related to OpenGL operations (e.g., shader errors).                |
-| SA_LOG_CONTEXT_RENDERER | Logs from the rendering pipeline (e.g., draw call issues, performance). |
-| SA_LOG_CONTEXT_STBI     | Logs from the STBI library for image loading (e.g., texture issues).    |
-
-New contexts are welcomed!
-
----
+| Level                        | Use                                                             |
+|------------------------------|-----------------------------------------------------------------|
+| sa_LOG_SEVERITY_NOTIFICATION | Only informational messages, no action needed.                  |
+| sa_LOG_SEVERITY_LOW          | Minor issues, such as deprecation or minimal performance hints. |
+| sa_LOG_SEVERITY_MEDIUM       | Issues that could cause bugs or notable performance problems.   |
+| sa_LOG_SEVERITY_HIGH         | Critical errors. **WILL CRASH THE APP**                         |
 
 ### Abstraction
 
@@ -395,9 +366,8 @@ still providing a clean, maintainable interface.
 
 ### Macros and Defines
 
-Do not recreate macros, and use them when possible. Prefere `SA_SCAST_TO`
-than the default casting, prefere `SA_ARRLEN` than `sizeof(array) /
-sizeof(array[0])`.
+Do not recreate macros. Prefere `sa_Scast_To` than the default casting, prefere
+`sa_Arrlen` than `sizeof(array) / sizeof(array[0])`.
 
 Use `#define` only when needed.
 
@@ -428,7 +398,7 @@ typedef sa_s32 sa_TextureID // GOOD; adds context.
 typedef struct {
     float value1, value2;
     const char* STRING;
-} sc_My_Internal_Struct_t // BAD. Will rarelly be used by the user.
+} sc_My_Internal_Struct; // BAD. Will rarelly be used by the user.
 ```
 
 Imagine reading the following:
@@ -460,64 +430,22 @@ Only use enums when:
 
 **Always**:
 - Use `const` to parameters that won't be modified.
+- Prefere functions up to 60 lines of code.
 - Understand if this function really does what it entails.
     - A function that creates, modifies, initializes and does a lot of
       different things will be hard to refactor.
     - Focus on modularity, keep functions - not small - but decent in scope
-    - `FunctionThatDoesFoo()` might do `foo` and validate it, but not resize,
+    - `Function_That_Does_Foo()` might do `foo` and validate it, but not resize,
       modify already existing `foos`, etc.
 
-About modularity:
+### Endifs
+
+Endifs should containt the condition they are ending in a comment. Example::
 
 ```c
-// See the BAD following function. It does multiple things, and doesn't
-// subdivide it. There is a clear reason to do multiple things (creation,
-// assertion, memory initialization, opengl initialization), so the best be is
-// to refactor the huge code.
-sc_Renderer* sc_Renderer_CreateDefault() {
-    sc_Renderer* renderer = (sc_Renderer*)malloc(sizeof(sc_Renderer));
-    if (!renderer) {
-        SA_LOG_PRINT(SA_LOG_LEVEL_ERROR, SA_LOG_CONTEXT_RENDERER,
-                       "Renderer could not be initialized");
-        return NULL;
-    }
-    {
-        renderer->renderBatch.renderCalls = NULL;
-        renderer->renderBatch.renderCallCount = 0;
-        renderer->renderBatch.capacity = 0;
-        renderer->vao = 0;
-        renderer->vbo = 0;
-    }
-    ArenaInit(&renderer->memoryContext, size);
-    sc_RenderBatch* renderBatch = &renderer->renderBatch;
-    if (newSize <= 0 || newSize <= renderBatch->renderCallCount) {
-        SA_LOG_PRINT(SA_LOG_LEVEL_ERROR, SA_LOG_CONTEXT_RENDERER,
-                       "RenderBatch new size is not valid");
-        return;
-    }
-    ...
-    // There is a LOT more, but you get the idea.
-}
-
-// How it gets improved
-sc_Renderer* sc_Renderer_CreateDefault() {
-    sc_Renderer* renderer = sc_Renderer_CreateEmpty(); // Creation gets divided.
-    // Garbage numbers are inside of Creation function.
-    if (!renderer) {
-        SA_LOG_PRINT(SA_LOG_LEVEL_ERROR, SA_LOG_CONTEXT_RENDERER,
-                       "Renderer could not be initialized");
-        return NULL;
-    }
-    sc_Renderer_InitMemoryContext(renderer, SA_RENDER_BATCH_DEFAULT_CAPACITY);
-    // Set a propper name for what the arena init function does to the renderer.
-
-    __sc_Renderer_InitAll(renderer);
-    // initializes all of the OpenGL context.
-    SA_LOG_PRINT(SA_LOG_LEVEL_INFO, SA_LOG_CONTEXT_RENDERER,
-                   "Renderer created successfully");
-    return renderer;
-}
-
+#ifndef __MY_HEADER_GUARD__
+#define __MY_HEADER_GUARD__
+#endif // __MY_HEADER_GUARD__
 ```
 
 ## Code Structure
@@ -540,11 +468,6 @@ sc_Renderer* sc_Renderer_CreateDefault() {
         └── **[ALL OF SACI UTILITY SOURCE FILES]**  
 ```
 
-In saci-core:
-- `sc-rendering` uses (includes) all of the other files in `saci-core`
-- All files in `saci-core` use (include) only the `saci-utils` files, and never
-  any other `saci-core` file
-
 ### Header Files
 
 Must:
@@ -563,7 +486,7 @@ Must:
 
 Must:
 - Be placed in `examples/`.
-- Contain a CMakeLists.txt to build it.
+- Be a `main.c`
 
 If a example is 2D and defines how the coordinate system works, it should be
 placed in: `examples/2d/coodinate-system/`
@@ -575,6 +498,7 @@ placed in: `examples/2d/coodinate-system/`
 Documentation blocks should be simple and discriptive, try to fit a one-line
 that explains each function in their header declaration. Example:
 
+TODO OLD:
 ```c
 sc_Renderer_t* sc_Renderer_Create_Empty(void); // Creates a renderer without setting up it's fields'.
 
