@@ -18,19 +18,10 @@ static double __sa_default_tan(double x) { // wrapps math.h tan func
 static struct {
     double (*sqrt_function)(double);
     double (*tan_function)(double);
-} __sa_math_preferences;
-
-//------------------------------------------------------------------------------
-// Init
-//------------------------------------------------------------------------------
-
-void sa_Math_Init(void) {
-    __sa_math_preferences.sqrt_function = __sa_default_sqrt; // defaults the sqrt
-                                                             // operation to C's math.h
-                                                             // sqrt function'
-
-    __sa_math_preferences.tan_function = __sa_default_tan;
-}
+} __sa_math_preferences = {
+    .sqrt_function = __sa_default_sqrt,
+    .tan_function = __sa_default_tan,
+};
 
 //------------------------------------------------------------------------------
 // Vec3

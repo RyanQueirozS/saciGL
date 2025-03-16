@@ -51,7 +51,6 @@ sa_u32_t cubeIndices[] = {
 sc_renderer* rendr;
 
 void init_saci() {
-    sa_Math_Init();
     assert(sc_GLFW_Init());
     window = sc_Window_Create(1600, 900, "SACI ROTATING-CUBE 3D", NULL, NULL);
     assert(window);
