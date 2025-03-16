@@ -198,9 +198,10 @@ struct sc_Renderer {
 
 SA_API sc_renderer* sc_Renderer_New_Default(void);
 SA_API void sc_Renderer_Begin(sc_renderer* rendr);
-SA_API void sc_Renderer_Bind_Texture(sc_renderer* rendr, sa_textureId tex_id);
-SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, sa_u32_t* new_indices, sa_u32_t new_indices_count);
-SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, sa_vec3_t* pos_array, sa_uv* uv_array, sa_color_t* color_array, sa_u32_t amount); // TODO every value could be sent as null, but pos should cause a warning
+SA_API void sc_Renderer_Bind_Texture(sc_renderer* rendr, const sa_textureId tex_id);
+SA_API void sc_Renderer_Bind_Mat(const char* mat_name, const sa_mat4_t mat);
+SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, const sa_u32_t* new_indices, const sa_u32_t new_indices_count);
+SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_array, const sa_uv* uv_array, const sa_color_t* color_array, const sa_u32_t amount);
 SA_API void sc_Renderer_End(sc_renderer* rendr);
 SA_API void sc_Renderer_Free(sc_renderer* rendr);
 

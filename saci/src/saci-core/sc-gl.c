@@ -6,6 +6,7 @@
 #include "saci-utils/su-math.h"
 #include "saci-utils/su-types.h"
 
+#include <saci-utils/su-debug.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -223,7 +224,7 @@ SA_API void sc_Renderer_Bind_Texture(sc_renderer* rendr, sa_textureId tex_id) {
     rendr->current_texture_id = tex_id;
 }
 
-SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, sa_u32_t* new_indices, sa_u32_t new_indices_count) {
+SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, const sa_u32_t* new_indices, const sa_u32_t new_indices_count) {
     // Reset the index buffer
     if (rendr->bound_index_array)
         free(rendr->bound_index_array);
@@ -251,7 +252,7 @@ SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, sa_u32_t* new_indi
     *index_count = new_indices_count;
 }
 
-SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, sa_vec3_t* pos_array, sa_uv* uv_array, sa_color_t* color_array, sa_u32_t vertex_amount) {
+SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_array, const sa_uv* uv_array, const sa_color_t* color_array, const sa_u32_t vertex_amount) {
     { // Vertex operations
         struct __sc_vertex** vertex_array_ptr = &rendr->batch.vertex_array;
         sa_u32_t* vertex_array_count = &rendr->batch.vertex_array_count;
@@ -268,6 +269,21 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, sa_vec3_t* pos_array, sa
         // Update the renderer's batch vertex array and vertex count
         *vertex_array_ptr = new_vertex_array;
         *vertex_array_count = new_vertex_count;
+
+        if (!pos_array) {
+            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL,
+                                 "Invalid position array passed in sc_Renderer_Push_Vertex");
+        }
+
+        if (!uv_array) {
+            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+                                 "Null uv array passed in sc_Renderer_Push_Vertex");
+        }
+
+        if (!color_array) {
+            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+                                 "Null color array passed in sc_Renderer_Push_Vertex");
+        }
 
         // Add the new vertices to the array
         for (sa_u32_t i = 0; i < vertex_amount; ++i) {
