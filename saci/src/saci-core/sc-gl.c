@@ -136,9 +136,7 @@ struct sc_renderer {
     sa_u32_t vertices_overlaped;
 
     sa_shaderId shader_program;
-    sa_bufferId ibo;
-    sa_bufferId vbo;
-    sa_bufferId vao;
+    sa_bufferId ibo, vbo, vao;
 
     struct __sc_batch {
         sa_u32_t index_array_count;
@@ -151,7 +149,6 @@ struct sc_renderer {
             sa_uv uv;
         }* vertex_array;
     } batch;
-    sa_u32_t batch_count; // NOT CURRENTLY IN USE
 };
 
 #endif // SC_RENDERER_STRUCT
@@ -166,14 +163,13 @@ SA_API sc_renderer* sc_Renderer_New_Default(void) {
         rendr->shader_program = sc_Shader_Create_Shader_Program(v_shader, f_shader);
         assert(rendr->shader_program);
     }
-    { // VBO and IBO
+    { // Opengl buffers
         rendr->vbo = sc_GL_Create_Vertex_Buffer(sizeof(struct __sc_vertex) * 1000, NULL, GL_DYNAMIC_DRAW);
-
         rendr->ibo = sc_GL_Create_Index_Buffer_Dynamic(NULL, 1000);
+        sc_GL_Create_Vertex_Array(1, &rendr->vao);
     }
 
     { // VertexAttrib init
-        sc_GL_Create_Vertex_Array(1, &rendr->vao);
         sc_GL_Bind_Vertex_Array(rendr->vao);
 
         sc_GL_Bind_Vertex_Buffer(rendr->vbo);
@@ -187,6 +183,17 @@ SA_API sc_renderer* sc_Renderer_New_Default(void) {
         sc_GL_Set_Vertex_Attrib_Pointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(struct __sc_vertex),
                                         sa_SCAST_TO_m(void*) offsetof(struct __sc_vertex, uv));
         sc_GL_Enable_Vertex_Attrib_Array(2);
+    }
+    { // Batching
+        rendr->current_texture_id = 0;
+        rendr->bound_index_array = 0;
+        rendr->bound_index_array_count = 0;
+        rendr->vertices_overlaped = 0;
+        rendr->batch = (struct __sc_batch){0};
+        rendr->batch.index_array_count = 0;
+        rendr->batch.vertex_array_count = 0;
+        rendr->batch.index_array = 0;
+        rendr->batch.vertex_array = 0;
     }
     return rendr;
 }
@@ -212,8 +219,6 @@ SA_API void sc_Renderer_Begin(sc_renderer* rendr) {
         rendr->batch.vertex_array = NULL;
     }
     rendr->batch.vertex_array_count = 0;
-
-    rendr->batch_count = 0;
 
     rendr->current_texture_id = 0;
 

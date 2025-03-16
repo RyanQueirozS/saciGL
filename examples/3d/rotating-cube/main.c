@@ -74,7 +74,6 @@ int main() {
         sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
     while (!sc_Window_Should_Close(window)) {
         sc_Window_Clear_Color(bgColor);
-
         sc_Renderer_Begin(rendr);
         sc_Window_Clear_Color(bgColor);
         sc_Renderer_Bind_Index_Buffer(rendr, cubeIndices, indiceAmount);

@@ -167,7 +167,7 @@ typedef struct sc_renderer sc_renderer;
 #  ifndef SC_RENDERER_STRUCT
 #    define SC_RENDERER_STRUCT
 
-struct sc_Renderer {
+struct sc_renderer {
     sa_textureId current_texture_id;
 
     sa_u32_t* bound_index_array;
@@ -175,9 +175,7 @@ struct sc_Renderer {
     sa_u32_t vertices_overlaped;
 
     sa_shaderId shader_program;
-    sa_bufferId ibo;
-    sa_bufferId vbo;
-    sa_bufferId vao;
+    sa_bufferId ibo, vbo, vao, ubo;
 
     struct __sc_batch {
         sa_u32_t index_array_count;
@@ -190,7 +188,6 @@ struct sc_Renderer {
             sa_uv uv;
         }* vertex_array;
     } batch;
-    sa_u32_t batch_count; // NOT CURRENTLY IN USE
 };
 
 #  endif // SC_RENDERER_STRUCT

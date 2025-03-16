@@ -1,6 +1,6 @@
 # Compiler and Flags
 CC = gcc
-CFLAGS = -Wall -Wextra -O2 -I../saci/include -I../saci/deps/glad/include -I../saci/deps/glfw/include -I../saci/deps/stb -I../saci/deps/model-loading
+CFLAGS = -Wall -Wextra -O0 -I../saci/include -I../saci/deps/glad/include -I../saci/deps/glfw/include -I../saci/deps/stb -I../saci/deps/model-loading
 
 # Source files from saci-core and saci-utils
 SACI_SRC = \
