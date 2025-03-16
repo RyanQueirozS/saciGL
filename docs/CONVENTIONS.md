@@ -64,7 +64,7 @@ mentioned below should be enough to make your changes fit in the saci project:
     ```c
     // BAD:
     key* key_presses;
-    int key_presses_size; // Ambiguous, is it the capacity, the amount of items in apples?
+    int key_presses_size; // Ambiguous, is it the capacity or the amount of items in key_presses?
     // GOOD:
     key* key_press_array;
     int key_press_array_count; // depending on context could just be key_press_count.

@@ -48,6 +48,8 @@ sa_u32_t cubeIndices[] = {
     1, 2, 6, 1, 6, 5  // Right face
 };
 
+sc_renderer* rendr;
+
 void init_saci() {
     sa_Math_Init();
     assert(sc_GLFW_Init());
@@ -56,7 +58,7 @@ void init_saci() {
     sc_Window_Make_Context(window);
     assert(sc_GLAD_Init());
 
-    sc_Renderer_Init();
+    rendr = sc_Renderer_New_Default();
 
     // sc_Renderer_Enable_Z_Buffer();
     // sc_Renderer_Set_Projection_Mode(sa_RENDERER_PROJECTION_MODE_PERSPECTIVE);
@@ -74,11 +76,11 @@ int main() {
     while (!sc_Window_Should_Close(window)) {
         sc_Window_Clear_Color(bgColor);
 
-        sc_Renderer_Begin();
+        sc_Renderer_Begin(rendr);
         sc_Window_Clear_Color(bgColor);
-        sc_Renderer_Bind_Index_Buffer(cubeIndices, indiceAmount);
-        sc_Renderer_Push_Vertex(verticesPos, verticesUV, colors, verticeAmount);
-        sc_Renderer_End();
+        sc_Renderer_Bind_Index_Buffer(rendr, cubeIndices, indiceAmount);
+        sc_Renderer_Push_Vertex(rendr, verticesPos, verticesUV, colors, verticeAmount);
+        sc_Renderer_End(rendr);
         sc_Window_Swap_Buffer(window);
 
         sc_Event_Poll();

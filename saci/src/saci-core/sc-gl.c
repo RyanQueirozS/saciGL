@@ -127,7 +127,7 @@ static const char* frag_shader =
 #ifndef SC_RENDERER_STRUCT
 #  define SC_RENDERER_STRUCT
 
-struct sc_Renderer {
+struct sc_renderer {
     sa_textureId current_texture_id;
 
     sa_u32_t* bound_index_array;
@@ -155,31 +155,27 @@ struct sc_Renderer {
 
 #endif // SC_RENDERER_STRUCT
 
-#ifdef SC_RENDERER_STRUCT_EXPOSE
-struct sc_Renderer __sc_renderer = {0};
-#else
-static struct sc_Renderer __sc_renderer = {0};
-#endif // SC_RENDERER_STRUCT_EXPOSE
-
-SA_API void sc_Renderer_Init(void) {
+SA_API sc_renderer* sc_Renderer_New_Default(void) {
+    sc_renderer* rendr = malloc(sizeof(sc_renderer));
+    assert(rendr);
     { // Shader init
         sa_shaderId v_shader = sc_Shader_Compile_Shader_Vert(vert_shader);
         sa_shaderId f_shader = sc_Shader_Compile_Shader_Frag(frag_shader);
         assert(v_shader && f_shader);
-        __sc_renderer.shader_program = sc_Shader_Create_Shader_Program(v_shader, f_shader);
-        assert(__sc_renderer.shader_program);
+        rendr->shader_program = sc_Shader_Create_Shader_Program(v_shader, f_shader);
+        assert(rendr->shader_program);
     }
     { // VBO and IBO
-        __sc_renderer.vbo = sc_GL_Create_Vertex_Buffer(sizeof(struct __sc_vertex) * 1000, NULL, GL_DYNAMIC_DRAW);
+        rendr->vbo = sc_GL_Create_Vertex_Buffer(sizeof(struct __sc_vertex) * 1000, NULL, GL_DYNAMIC_DRAW);
 
-        __sc_renderer.ibo = sc_GL_Create_Index_Buffer_Dynamic(NULL, 1000);
+        rendr->ibo = sc_GL_Create_Index_Buffer_Dynamic(NULL, 1000);
     }
 
     { // VertexAttrib init
-        sc_GL_Create_Vertex_Array(1, &__sc_renderer.vao);
-        sc_GL_Bind_Vertex_Array(__sc_renderer.vao);
+        sc_GL_Create_Vertex_Array(1, &rendr->vao);
+        sc_GL_Bind_Vertex_Array(rendr->vao);
 
-        sc_GL_Bind_Vertex_Buffer(__sc_renderer.vbo);
+        sc_GL_Bind_Vertex_Buffer(rendr->vbo);
 
         sc_GL_Set_Vertex_Attrib_Pointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct __sc_vertex),
                                         sa_SCAST_TO_m(void*) offsetof(struct __sc_vertex, pos));
@@ -191,50 +187,51 @@ SA_API void sc_Renderer_Init(void) {
                                         sa_SCAST_TO_m(void*) offsetof(struct __sc_vertex, uv));
         sc_GL_Enable_Vertex_Attrib_Array(2);
     }
+    return rendr;
 }
 
-SA_API void sc_Renderer_Begin(void) {
+SA_API void sc_Renderer_Begin(sc_renderer* rendr) {
     // Free boud index array
-    if (__sc_renderer.bound_index_array) {
-        free(__sc_renderer.bound_index_array);
-        __sc_renderer.bound_index_array = NULL;
+    if (rendr->bound_index_array) {
+        free(rendr->bound_index_array);
+        rendr->bound_index_array = NULL;
     }
-    __sc_renderer.bound_index_array_count = 0;
+    rendr->bound_index_array_count = 0;
 
     // Free batch index array
-    if (__sc_renderer.batch.index_array) {
-        free(__sc_renderer.batch.index_array);
-        __sc_renderer.batch.index_array = NULL;
+    if (rendr->batch.index_array) {
+        free(rendr->batch.index_array);
+        rendr->batch.index_array = NULL;
     }
-    __sc_renderer.batch.index_array_count = 0;
+    rendr->batch.index_array_count = 0;
 
     // Free batch vertex array
-    if (__sc_renderer.batch.vertex_array) {
-        free(__sc_renderer.batch.vertex_array);
-        __sc_renderer.batch.vertex_array = NULL;
+    if (rendr->batch.vertex_array) {
+        free(rendr->batch.vertex_array);
+        rendr->batch.vertex_array = NULL;
     }
-    __sc_renderer.batch.vertex_array_count = 0;
+    rendr->batch.vertex_array_count = 0;
 
-    __sc_renderer.batch_count = 0;
+    rendr->batch_count = 0;
 
-    __sc_renderer.current_texture_id = 0;
+    rendr->current_texture_id = 0;
 
-    __sc_renderer.vertices_overlaped = 0;
+    rendr->vertices_overlaped = 0;
 }
 
-SA_API void sc_Renderer_Bind_Texture(sa_textureId tex_id) {
-    __sc_renderer.current_texture_id = tex_id;
+SA_API void sc_Renderer_Bind_Texture(sc_renderer* rendr, sa_textureId tex_id) {
+    rendr->current_texture_id = tex_id;
 }
 
-SA_API void sc_Renderer_Bind_Index_Buffer(sa_u32_t* new_indices, sa_u32_t new_indices_count) {
+SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, sa_u32_t* new_indices, sa_u32_t new_indices_count) {
     // Reset the index buffer
-    if (__sc_renderer.bound_index_array)
-        free(__sc_renderer.bound_index_array);
-    __sc_renderer.bound_index_array_count = 0;
+    if (rendr->bound_index_array)
+        free(rendr->bound_index_array);
+    rendr->bound_index_array_count = 0;
 
     // Separate to a simpler name
-    sa_u32_t** index_array = &__sc_renderer.bound_index_array;
-    sa_u32_t* index_count = &__sc_renderer.bound_index_array_count;
+    sa_u32_t** index_array = &rendr->bound_index_array;
+    sa_u32_t* index_count = &rendr->bound_index_array_count;
 
     sa_u32_t* new_array = (sa_u32_t*)sa_MALLOC(new_indices_count * sizeof(sa_u32_t));
     if (!new_array) {
@@ -254,10 +251,10 @@ SA_API void sc_Renderer_Bind_Index_Buffer(sa_u32_t* new_indices, sa_u32_t new_in
     *index_count = new_indices_count;
 }
 
-SA_API void sc_Renderer_Push_Vertex(sa_vec3_t* pos_array, sa_uv* uv_array, sa_color_t* color_array, sa_u32_t vertex_amount) {
+SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, sa_vec3_t* pos_array, sa_uv* uv_array, sa_color_t* color_array, sa_u32_t vertex_amount) {
     { // Vertex operations
-        struct __sc_vertex** vertex_array_ptr = &__sc_renderer.batch.vertex_array;
-        sa_u32_t* vertex_array_count = &__sc_renderer.batch.vertex_array_count;
+        struct __sc_vertex** vertex_array_ptr = &rendr->batch.vertex_array;
+        sa_u32_t* vertex_array_count = &rendr->batch.vertex_array_count;
 
         sa_u32_t new_vertex_count = (*vertex_array_count) + vertex_amount;
 
@@ -282,14 +279,14 @@ SA_API void sc_Renderer_Push_Vertex(sa_vec3_t* pos_array, sa_uv* uv_array, sa_co
         }
     }
     { // Index operations
-        if (!__sc_renderer.bound_index_array || !__sc_renderer.bound_index_array_count)
+        if (!rendr->bound_index_array || !rendr->bound_index_array_count)
             return;
 
-        sa_u32_t** index_array = &__sc_renderer.batch.index_array;
-        sa_u32_t* index_array_count = &__sc_renderer.batch.index_array_count;
+        sa_u32_t** index_array = &rendr->batch.index_array;
+        sa_u32_t* index_array_count = &rendr->batch.index_array_count;
 
-        sa_u32_t** bound_array = &__sc_renderer.bound_index_array;
-        sa_u32_t* bound_array_count = &__sc_renderer.bound_index_array_count;
+        sa_u32_t** bound_array = &rendr->bound_index_array;
+        sa_u32_t* bound_array_count = &rendr->bound_index_array_count;
 
         sa_u32_t prev_index_array_count = *index_array_count;
         sa_u32_t new_index_count = prev_index_array_count + (*bound_array_count);
@@ -307,26 +304,26 @@ SA_API void sc_Renderer_Push_Vertex(sa_vec3_t* pos_array, sa_uv* uv_array, sa_co
         // This is done to fit in the indices with the new model in the vertex
         // buffer. So, for example, the amount + 0 index represent 0 in this new model
         for (sa_u32_t i = prev_index_array_count; i < new_index_count; ++i) {
-            (*index_array)[i] = __sc_renderer.vertices_overlaped + (*bound_array)[i - prev_index_array_count];
+            (*index_array)[i] = rendr->vertices_overlaped + (*bound_array)[i - prev_index_array_count];
         }
-        __sc_renderer.vertices_overlaped += vertex_amount;
+        rendr->vertices_overlaped += vertex_amount;
     }
 }
 
-SA_API void sc_Renderer_End(void) {
-    glUseProgram(__sc_renderer.shader_program);
+SA_API void sc_Renderer_End(sc_renderer* rendr) {
+    glUseProgram(rendr->shader_program);
 
-    glBindVertexArray(__sc_renderer.vao);
+    glBindVertexArray(rendr->vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, __sc_renderer.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, rendr->vbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0,
-                    sa_SCAST_TO_m(long int)(sizeof(struct __sc_vertex) * __sc_renderer.batch.vertex_array_count),
-                    __sc_renderer.batch.vertex_array);
+                    sa_SCAST_TO_m(long int)(sizeof(struct __sc_vertex) * rendr->batch.vertex_array_count),
+                    rendr->batch.vertex_array);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, __sc_renderer.ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendr->ibo);
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
-                    sa_SCAST_TO_m(long int)(sizeof(sa_u32_t) * __sc_renderer.batch.index_array_count),
-                    __sc_renderer.batch.index_array);
+                    sa_SCAST_TO_m(long int)(sizeof(sa_u32_t) * rendr->batch.index_array_count),
+                    rendr->batch.index_array);
 
     { // Uniforms
         glEnable(GL_DEPTH_TEST);
@@ -344,13 +341,18 @@ SA_API void sc_Renderer_End(void) {
     glBindTexture(GL_TEXTURE_2D, 0);
     // }
 
-    glDrawElements(GL_TRIANGLES, sa_SCAST_TO_m(int)(__sc_renderer.batch.index_array_count), GL_UNSIGNED_INT,
+    glDrawElements(GL_TRIANGLES, sa_SCAST_TO_m(int)(rendr->batch.index_array_count), GL_UNSIGNED_INT,
                    0);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+SA_API void sc_Renderer_Free(sc_renderer* rendr) {
+    sc_Renderer_Begin(rendr);
+    free(rendr);
 }
 
 /* === OpenGL === */

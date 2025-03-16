@@ -161,6 +161,8 @@ SA_API sa_bool_t sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode);
 
 /* === Renderer === */
 
+typedef struct sc_renderer sc_renderer;
+
 #ifdef SC_RENDERER_STRUCT_EXPOSE
 #  ifndef SC_RENDERER_STRUCT
 #    define SC_RENDERER_STRUCT
@@ -194,12 +196,13 @@ struct sc_Renderer {
 #  endif // SC_RENDERER_STRUCT
 #endif   // SC_RENDERER_STRUCT_EXPOSE
 
-SA_API void sc_Renderer_Init(void);
-SA_API void sc_Renderer_Begin(void);
-SA_API void sc_Renderer_Bind_Texture(sa_textureId tex_id);
-SA_API void sc_Renderer_Bind_Index_Buffer(sa_u32_t* new_indices, sa_u32_t new_indices_count);
-SA_API void sc_Renderer_Push_Vertex(sa_vec3_t* pos_array, sa_uv* uv_array, sa_color_t* color_array, sa_u32_t amount); // TODO every value could be sent as null, but pos should cause a warning
-SA_API void sc_Renderer_End(void);
+SA_API sc_renderer* sc_Renderer_New_Default(void);
+SA_API void sc_Renderer_Begin(sc_renderer* rendr);
+SA_API void sc_Renderer_Bind_Texture(sc_renderer* rendr, sa_textureId tex_id);
+SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, sa_u32_t* new_indices, sa_u32_t new_indices_count);
+SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, sa_vec3_t* pos_array, sa_uv* uv_array, sa_color_t* color_array, sa_u32_t amount); // TODO every value could be sent as null, but pos should cause a warning
+SA_API void sc_Renderer_End(sc_renderer* rendr);
+SA_API void sc_Renderer_Free(sc_renderer* rendr);
 
 /* === OpenGL === */
 
