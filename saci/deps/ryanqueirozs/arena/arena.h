@@ -30,27 +30,28 @@ extern "C" {
 #endif // __cplusplus
 
 #ifndef ARENA_ASSERT
-#include <assert.h>
-#define ARENA_ASSERT assert
+#  include <assert.h>
+#  define ARENA_ASSERT assert
 #endif // ARENA_ASSERT
 
 #ifndef ARENA_MALLOC
-#include <stdlib.h>
-#define ARENA_MALLOC malloc
+#  include <stdlib.h>
+#  define ARENA_MALLOC malloc
 #endif // ARENA_MALLOC
 
 #ifndef ARENA_FREE
-#include <stdlib.h>
-#define ARENA_FREE free
+#  include <stdlib.h>
+#  define ARENA_FREE free
 #endif
 
 typedef struct Arena Arena;
 
-void  ArenaInit(Arena* arena, size_t capacity);
+void ArenaInit(Arena* arena, size_t capacity);
+void ArenaInitCtx(Arena* arena, void* ctx, size_t capacity);
 void* ArenaAlloc(Arena* arena, size_t size);
 void* ArenaAllocAligned(Arena* arena, size_t size, size_t alignment);
-void  ArenaReset(Arena* arena);
-void  ArenaDelete(Arena* arena);
+void ArenaReset(Arena* arena);
+void ArenaDelete(Arena* arena);
 
 #ifdef ARENA_DEBUG
 size_t ArenaRemaining(Arena* arena);
@@ -61,17 +62,24 @@ size_t ArenaUsed(Arena* arena);
 
 #ifdef ARENA_ALLOCATOR_IMPL
 
-typedef struct Arena {
-    size_t   capacity;
-    size_t   offset;
+struct Arena {
+    size_t capacity;
+    size_t offset;
     uint8_t* data;
-} Arena;
+};
 
 void ArenaInit(Arena* arena, size_t capacity) {
     arena->data = ARENA_MALLOC(capacity);
     ARENA_ASSERT(arena->data);
     arena->capacity = capacity;
-    arena->offset   = 0;
+    arena->offset = 0;
+}
+
+void ArenaInitCtx(Arena* arena, void* ctx, size_t capacity) {
+    arena->data = ctx;
+    ARENA_ASSERT(arena->data);
+    arena->capacity = capacity;
+    arena->offset = 0;
 }
 
 void* ArenaAlloc(Arena* arena, size_t size) {
@@ -82,8 +90,8 @@ void* ArenaAlloc(Arena* arena, size_t size) {
 }
 
 void* ArenaAllocAligned(Arena* arena, size_t size, size_t alignment) {
-    size_t current   = (size_t)arena->data + arena->offset;
-    size_t aligned   = (current + alignment - 1) & ~(alignment - 1);
+    size_t current = (size_t)arena->data + arena->offset;
+    size_t aligned = (current + alignment - 1) & ~(alignment - 1);
     size_t newOffset = aligned + size - (size_t)arena->data;
 
     ARENA_ASSERT(newOffset <= arena->capacity);
@@ -98,12 +106,12 @@ void ArenaReset(Arena* arena) {
 
 void ArenaDelete(Arena* arena) {
     ARENA_FREE(arena->data);
-    arena->data     = NULL;
+    arena->data = NULL;
     arena->capacity = 0;
-    arena->offset   = 0;
+    arena->offset = 0;
 }
 
-#ifdef ARENA_DEBUG
+#  ifdef ARENA_DEBUG
 size_t ArenaRemaining(Arena* arena) {
     return (arena->capacity - arena->offset);
 }
@@ -111,12 +119,11 @@ size_t ArenaRemaining(Arena* arena) {
 size_t ArenaUsed(Arena* arena) {
     return arena->offset;
 }
-#endif // ARENA_DEBUG
 
+#  endif // __ARENA_ALLOCATOR_H__
+
+#endif // ARENA_DEBUG
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus
-
 #endif // ARENA_ALLOCATOR
-
-#endif // __ARENA_ALLOCATOR_H__

@@ -94,7 +94,7 @@ void sc_Window_Swap_Buffer(sc_window_t* window) {
 void __sc_OpenGL_InitializeDebugger(void) {
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(sa_OpenGL_Debug_Message_Callback, NULL);
+    glDebugMessageCallback(sa_Log_OpenGL_Debug_Message_Callback, NULL);
 #ifdef SACI_DEBUG_MODE
     sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_OPENGL, "Loaded OpenGL debugger");
 #endif

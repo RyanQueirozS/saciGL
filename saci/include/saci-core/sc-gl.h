@@ -188,12 +188,14 @@ struct sc_renderer {
             sa_uv uv;
         }* vertex_array;
     } batch;
+    Arena arena;
 };
 
 #  endif // SC_RENDERER_STRUCT
 #endif   // SC_RENDERER_STRUCT_EXPOSE
 
 SA_API sc_renderer* sc_Renderer_New_Default(void);
+SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* batch_mem_ctx, sa_u64_t batch_capacity, void* bound_mem_ctx, sa_u64_t bound_capacity);
 SA_API void sc_Renderer_Begin(sc_renderer* rendr);
 SA_API void sc_Renderer_Bind_Texture(sc_renderer* rendr, const sa_textureId tex_id);
 SA_API void sc_Renderer_Bind_Mat(const char* mat_name, const sa_mat4_t mat);

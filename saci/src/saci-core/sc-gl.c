@@ -6,6 +6,9 @@
 #include "saci-utils/su-math.h"
 #include "saci-utils/su-types.h"
 
+#define ARENA_ALLOCATOR_IMPL
+#include "arena/arena.h"
+
 #include <saci-utils/su-debug.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +42,7 @@ SA_API sa_bool_t sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 
 /* === Renderer === */
 
+// TODO to be used
 #ifndef __SC_TEXTURE_ARRAY_SIZE
 #  ifdef _WIN32
 // Windows
@@ -131,12 +135,14 @@ static const char* frag_shader =
 struct sc_renderer {
     sa_textureId current_texture_id;
 
-    sa_u32_t* bound_index_array;
-    sa_u32_t bound_index_array_count;
     sa_u32_t vertices_overlaped;
 
     sa_shaderId shader_program;
     sa_bufferId ibo, vbo, vao;
+
+    sa_u32_t bound_index_array_count;
+    sa_u32_t bound_index_array_capacity;
+    sa_u32_t* bound_index_array_buffer;
 
     struct __sc_batch {
         sa_u32_t index_array_count;
@@ -149,13 +155,37 @@ struct sc_renderer {
             sa_uv uv;
         }* vertex_array;
     } batch;
+    Arena batch_ctx;
 };
 
 #endif // SC_RENDERER_STRUCT
 
-SA_API sc_renderer* sc_Renderer_New_Default(void) {
-    sc_renderer* rendr = malloc(sizeof(sc_renderer));
-    assert(rendr);
+/* --- Renderer Helper --- */
+
+// Prefere to use this instead of directly changing the vertices to 0.
+#ifndef __sc_Renderer_Reset_Vertices_Overlaped_m
+#  if defined(SACI_DEBUG_MODE) | defined(SACI_RENDERER_DEBUG)
+#    define __sc_Renderer_Reset_Vertices_Overlaped_m(rendr) \
+        rendr->vertices_overlaped = 0;                      \
+        sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_RENDERER, "Reset vertices overlaped");
+#  else
+#    define __sc_Renderer_Reset_Vertices_Overlaped_m(rendr) \
+        rendr->vertices_overlaped = 0;
+#  endif
+#endif
+
+static void __sc_Renderer_Reset_Bound(sc_renderer* rendr) {
+    rendr->current_texture_id = 0;
+    __sc_Renderer_Reset_Vertices_Overlaped_m(rendr);
+}
+
+static void __sc_Renderer_Free_Batch(sc_renderer* rendr) {
+    ArenaReset(&rendr->batch_ctx);
+    rendr->batch.index_array_count = 0;
+    rendr->batch.vertex_array_count = 0;
+}
+
+static void __sc_Renderer_Init(sc_renderer* rendr) {
     { // Shader init
         sa_shaderId v_shader = sc_Shader_Compile_Shader_Vert(vert_shader);
         sa_shaderId f_shader = sc_Shader_Compile_Shader_Frag(frag_shader);
@@ -168,7 +198,6 @@ SA_API sc_renderer* sc_Renderer_New_Default(void) {
         rendr->ibo = sc_GL_Create_Index_Buffer_Dynamic(NULL, 1000);
         sc_GL_Create_Vertex_Array(1, &rendr->vao);
     }
-
     { // VertexAttrib init
         sc_GL_Bind_Vertex_Array(rendr->vao);
 
@@ -186,7 +215,7 @@ SA_API sc_renderer* sc_Renderer_New_Default(void) {
     }
     { // Batching
         rendr->current_texture_id = 0;
-        rendr->bound_index_array = 0;
+        rendr->bound_index_array_buffer = NULL;
         rendr->bound_index_array_count = 0;
         rendr->vertices_overlaped = 0;
         rendr->batch = (struct __sc_batch){0};
@@ -195,34 +224,43 @@ SA_API sc_renderer* sc_Renderer_New_Default(void) {
         rendr->batch.index_array = 0;
         rendr->batch.vertex_array = 0;
     }
+}
+
+/* --- Renderer Header Impl --- */
+
+SA_API sc_renderer* sc_Renderer_New_Default(void) {
+    sc_renderer* rendr = sa_MALLOC(sizeof(sc_renderer));
+    assert(rendr);
+    __sc_Renderer_Init(rendr);
+
+    sa_u64_t batch_capacity = (sizeof(struct __sc_batch) * 5) * (sizeof(struct __sc_vertex) * 10000); // 5 batches with 10000 vertices each
+    ArenaInit(&rendr->batch_ctx, batch_capacity);
+    rendr->bound_index_array_capacity = 10000;
+    rendr->bound_index_array_buffer = sa_MALLOC(sizeof(sa_u32_t) * rendr->bound_index_array_capacity); // 10k vertices
+
+    return rendr;
+}
+
+SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* batch_mem_ctx, sa_u64_t batch_capacity, void* bound_mem_ctx, sa_u64_t bound_capacity) {
+    if (!batch_mem_ctx) {
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
+                             "Invalid memory context in sc_Renderer_New_Default_Ctx");
+        return NULL; // Should crash, but if LOG_ERROR_PRINT_m is rewriten, returns NULL
+    }
+    sc_renderer* rendr = sa_MALLOC(sizeof(sc_renderer));
+    assert(rendr);
+    __sc_Renderer_Init(rendr);
+
+    ArenaInitCtx(&rendr->batch_ctx, batch_mem_ctx, batch_capacity);
+    rendr->bound_index_array_buffer = bound_mem_ctx;
+    rendr->bound_index_array_capacity = sa_SCAST_TO_m(sa_u32_t)(bound_capacity);
+
     return rendr;
 }
 
 SA_API void sc_Renderer_Begin(sc_renderer* rendr) {
-    // Free boud index array
-    if (rendr->bound_index_array) {
-        free(rendr->bound_index_array);
-        rendr->bound_index_array = NULL;
-    }
-    rendr->bound_index_array_count = 0;
-
-    // Free batch index array
-    if (rendr->batch.index_array) {
-        free(rendr->batch.index_array);
-        rendr->batch.index_array = NULL;
-    }
-    rendr->batch.index_array_count = 0;
-
-    // Free batch vertex array
-    if (rendr->batch.vertex_array) {
-        free(rendr->batch.vertex_array);
-        rendr->batch.vertex_array = NULL;
-    }
-    rendr->batch.vertex_array_count = 0;
-
-    rendr->current_texture_id = 0;
-
-    rendr->vertices_overlaped = 0;
+    __sc_Renderer_Reset_Bound(rendr);
+    __sc_Renderer_Free_Batch(rendr);
 }
 
 SA_API void sc_Renderer_Bind_Texture(sc_renderer* rendr, sa_textureId tex_id) {
@@ -231,30 +269,18 @@ SA_API void sc_Renderer_Bind_Texture(sc_renderer* rendr, sa_textureId tex_id) {
 
 SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, const sa_u32_t* new_indices, const sa_u32_t new_indices_count) {
     // Reset the index buffer
-    if (rendr->bound_index_array)
-        free(rendr->bound_index_array);
-    rendr->bound_index_array_count = 0;
-
-    // Separate to a simpler name
-    sa_u32_t** index_array = &rendr->bound_index_array;
-    sa_u32_t* index_count = &rendr->bound_index_array_count;
-
-    sa_u32_t* new_array = (sa_u32_t*)sa_MALLOC(new_indices_count * sizeof(sa_u32_t));
-    if (!new_array) {
-        printf("Alloc error bind index\n");
+    if (new_indices_count > rendr->bound_index_array_capacity) {
+        printf("Invalid size\n");
         return;
     }
 
-    // Copy the existing indices to the new array if it exists.
-    if (*index_array) {
-        memcpy(new_array, *index_array, (*index_count) * sizeof(sa_u32_t));
-        free(*index_array);
+    __sc_Renderer_Reset_Vertices_Overlaped_m(rendr);
+
+    // Separate to a simpler name
+    for (sa_u32_t i = 0; i < new_indices_count; ++i) {
+        rendr->bound_index_array_buffer[i] = new_indices[i];
     }
-
-    memcpy(new_array + (*index_count), new_indices, new_indices_count * sizeof(sa_u32_t));
-
-    *index_array = new_array;
-    *index_count = new_indices_count;
+    rendr->bound_index_array_count = new_indices_count;
 }
 
 SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_array, const sa_uv* uv_array, const sa_color_t* color_array, const sa_u32_t vertex_amount) {
@@ -300,13 +326,13 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
         }
     }
     { // Index operations
-        if (!rendr->bound_index_array || !rendr->bound_index_array_count)
+        if (!rendr->bound_index_array_buffer || !rendr->bound_index_array_count)
             return;
 
         sa_u32_t** index_array = &rendr->batch.index_array;
         sa_u32_t* index_array_count = &rendr->batch.index_array_count;
 
-        sa_u32_t** bound_array = &rendr->bound_index_array;
+        sa_u32_t** bound_array = &rendr->bound_index_array_buffer;
         sa_u32_t* bound_array_count = &rendr->bound_index_array_count;
 
         sa_u32_t prev_index_array_count = *index_array_count;
@@ -348,8 +374,8 @@ SA_API void sc_Renderer_End(sc_renderer* rendr) {
 
     { // Uniforms
         glEnable(GL_DEPTH_TEST);
-        sa_mat4_t view = sa_Mat4_Look_At((sa_vec3_t){5.0f, 1.0f, 0.0f}, (sa_vec3_t){0.0f, 0.0f, 0.0f}, (sa_vec3_t){0.0f, 1.0f, 0.0f});
-        sa_mat4_t projection = sa_Mat4_Perspective(90, 9.0 / 16, 1, 100);
+        sa_mat4_t view = sa_Mat4_Look_At((sa_vec3_t){0.0f, 2.0f, -5.0f}, (sa_vec3_t){0.0f, 0.0f, 0.0f}, (sa_vec3_t){0.0f, 1.0f, 0.0f});
+        sa_mat4_t projection = sa_Mat4_Perspective(90, 16.0f / 9.0f, 1, 100);
         sa_mat4_t modelMatrix = sa_Mat4_Identity();
         glUniformMatrix4fv(__SC_U_VIEW_MATRIX_LOC, 1, GL_FALSE, &view.m_data[0][0]);
         glUniformMatrix4fv(__SC_U_PROJECTION_MATRIX_LOC, 1, GL_FALSE, &projection.m_data[0][0]);

@@ -100,8 +100,8 @@ void sa_Log_Error(enum sa_Log_Type_e type,
            message);
 }
 
-void sa_OpenGL_Debug_Message_Callback(sa_u32_t source, sa_u32_t type, sa_u32_t id, sa_u32_t severity,
-                                      int length, const char* msg, const void* data) {
+void sa_Log_OpenGL_Debug_Message_Callback(sa_u32_t source, sa_u32_t type, sa_u32_t id, sa_u32_t severity,
+                                          int length, const char* msg, const void* data) {
     (void)length, (void)data;
     char* _source;
     char* _type;

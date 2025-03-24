@@ -53,7 +53,7 @@ void sa_Log_Info(enum sa_Log_Type_e type, enum sa_Log_Context_e context,
         sa_Log_Error(type, severity, context, message, __FILE__, __LINE__); \
     } while (0)
 
-void sa_OpenGL_Debug_Message_Callback(sa_u32_t source, sa_u32_t type, sa_u32_t id, sa_u32_t severity,
-                                      int length, const char* msg, const void* data);
+void sa_Log_OpenGL_Debug_Message_Callback(sa_u32_t source, sa_u32_t type, sa_u32_t id, sa_u32_t severity,
+                                          int length, const char* msg, const void* data);
 
 #endif
