@@ -45,10 +45,9 @@ set_property(TARGET saci PROPERTY C_STANDARD 99)
 # Include directories
 target_include_directories(saci SYSTEM PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/stb"           # STB image headers
-    "${CMAKE_CURRENT_SOURCE_DIR}/deps/ryanqueirozs"         # Arena headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/include"  # Glad headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/model-loading" # Model Loaders headers
-    "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/include" # GLFW headers
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/include"  # GLFW headers
 
     PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"            # Root include directory
