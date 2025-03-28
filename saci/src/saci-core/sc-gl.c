@@ -181,16 +181,38 @@ struct sc_renderer {
 
 #endif
 
+#define __sc_Renderer_Free_Memory_m(rendr)              \
+    do {                                                \
+        if ((rendr)->bound_index_array_buffer) {        \
+            sa_FREE((rendr)->bound_index_array_buffer); \
+            (rendr)->bound_index_array_buffer = NULL;   \
+        }                                               \
+        if ((rendr)->batch.index_array) {               \
+            sa_FREE((rendr)->batch.index_array);        \
+            (rendr)->batch.index_array = NULL;          \
+        }                                               \
+        if ((rendr)->batch.vertex_array) {              \
+            sa_FREE((rendr)->batch.vertex_array);       \
+            (rendr)->batch.vertex_array = NULL;         \
+        }                                               \
+    } while (0)
+
+#define __sc_Renderer_Free_OpenGL_m(rendr)        \
+    do {                                          \
+        glDeleteBuffers(1, &(rendr)->ibo);        \
+        glDeleteBuffers(1, &(rendr)->vbo);        \
+        glDeleteVertexArrays(1, &(rendr)->vao);   \
+        glDeleteProgram((rendr)->shader_program); \
+    } while (0)
+
 static void __sc_Renderer_Reset_Bound(sc_renderer* rendr) {
-    rendr->current_texture_id = 0;
+    rendr->current_texture_id = 0; // TODO change to macro
     __sc_Renderer_Reset_Vertices_Overlaped_m(rendr);
 }
 
-static void __sc_Renderer_Free_Batch(sc_renderer* rendr) {
-    // TODO
-    // ArenaReset(&rendr->batch_ctx);
-    rendr->batch.index_array_count = 0;
-    rendr->batch.vertex_array_count = 0;
+static void __sc_Renderer_Reset_Batch(sc_renderer* rendr) {
+    rendr->batch.index_array_count = 0;  // TODO change to macro
+    rendr->batch.vertex_array_count = 0; // TODO change to macro
 }
 
 static void __sc_Renderer_Init(sc_renderer* rendr) {
@@ -271,7 +293,7 @@ SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx, sa_u64_t batch_in
 
 SA_API void sc_Renderer_Begin(sc_renderer* rendr) {
     __sc_Renderer_Reset_Bound(rendr);
-    __sc_Renderer_Free_Batch(rendr);
+    __sc_Renderer_Reset_Batch(rendr);
 }
 
 SA_API void sc_Renderer_Bind_Texture(sc_renderer* rendr, sa_textureId tex_id) {
@@ -402,6 +424,19 @@ SA_API void sc_Renderer_End(sc_renderer* rendr) {
 
 SA_API void sc_Renderer_Free(sc_renderer* rendr) {
     sc_Renderer_Begin(rendr);
+    __sc_Renderer_Free_Memory_m(rendr);
+    __sc_Renderer_Free_OpenGL_m(rendr);
+    free(rendr);
+}
+
+SA_API void sc_Renderer_Free_Opts(sc_renderer* rendr, int free_opts) {
+    sc_Renderer_Begin(rendr);
+    if (free_opts & sc_RENDERER_FREE_OPT_MEMORY) {
+        __sc_Renderer_Free_Memory_m(rendr);
+    }
+    if (free_opts & sc_RENDERER_FREE_OPT_OPENGL) {
+        __sc_Renderer_Free_OpenGL_m(rendr);
+    }
     free(rendr);
 }
 
@@ -468,7 +503,7 @@ void sc_GL_Enable_Vertex_Attrib_Array(sa_u32_t id) {
     glEnableVertexAttribArray(id);
 }
 
-/* === Shader Implementation === */
+/* === GL Implementation === */
 
 static sa_u32_t __sc_shader_compile(const char* shaderSource, sa_u32_t shaderType);
 
@@ -543,7 +578,8 @@ sa_u32_t sc_Shader_Create_Shader_Program_Geom(sa_u32_t vshader, sa_u32_t fshader
     return programID;
 }
 
-// helper
+/* === GL Helper ===  */
+
 static sa_u32_t __sc_shader_compile(const char* shaderSource, sa_u32_t shaderType) {
     sa_u32_t shaderID = glCreateShader(shaderType);
 

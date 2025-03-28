@@ -194,6 +194,9 @@ struct sc_renderer {
 #  endif // SC_RENDERER_STRUCT
 #endif   // SC_RENDERER_STRUCT_EXPOSE
 
+#define sc_RENDERER_FREE_OPT_MEMORY 0b01
+#define sc_RENDERER_FREE_OPT_OPENGL 0b10
+
 SA_API sc_renderer* sc_Renderer_New_Default(void);
 SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx, sa_u64_t batch_index_capacity, sa_u64_t batch_vertex_capacity, sa_u64_t bound_capacity);
 SA_API void sc_Renderer_Begin(sc_renderer* rendr);
@@ -203,6 +206,7 @@ SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, const sa_u32_t* ne
 SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_array, const sa_uv* uv_array, const sa_color_t* color_array, const sa_u32_t amount);
 SA_API void sc_Renderer_End(sc_renderer* rendr);
 SA_API void sc_Renderer_Free(sc_renderer* rendr);
+SA_API void sc_Renderer_Free_Opts(sc_renderer* rendr, int free_opts);
 
 /* === OpenGL === */
 
