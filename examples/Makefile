@@ -22,9 +22,16 @@ EXAMPLES = \
 # Targets for all example builds
 TARGETS = $(EXAMPLES:%=build/%/main)
 
+# If a specific target is passed, use it, else default to all
+ifeq ($(TARGET),)
+    TARGETS := $(TARGETS)  # Build all examples
+else
+    TARGETS := build/$(TARGET)/main  # Build only the specified target
+endif
+
 .PHONY: all clean run
 
-# Default target to build all examples
+# Default target to build all examples or the specified one
 all: $(TARGETS)
 
 # Rule to compile each example
@@ -46,4 +53,3 @@ run: all
 clean:
 	rm -rf build
 	@echo "\nCleaned all build files."
-

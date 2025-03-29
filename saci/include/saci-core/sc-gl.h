@@ -197,11 +197,16 @@ struct sc_renderer {
 #define sc_RENDERER_FREE_OPT_MEMORY 0b01
 #define sc_RENDERER_FREE_OPT_OPENGL 0b10
 
+#define sc_RENDERER_UNIFORM_FLAG_IS_2D 0b0
+#define sc_RENDERER_UNIFORM_FLAG_IS_3D 0b1
+
 SA_API sc_renderer* sc_Renderer_New_Default(void);
 SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx, sa_u64_t batch_index_capacity, sa_u64_t batch_vertex_capacity, sa_u64_t bound_capacity);
 SA_API void sc_Renderer_Begin(sc_renderer* rendr);
 SA_API void sc_Renderer_Bind_Texture(sc_renderer* rendr, const sa_textureId tex_id);
-SA_API void sc_Renderer_Bind_Mat(const char* mat_name, const sa_mat4_t mat);
+SA_API void sc_Renderer_Set_Uniform_Struct(sc_renderer* rendr, sa_u64_t size);
+SA_API void sc_Renderer_Bind_Uniform_Struct(sc_renderer* rendr, void* uniform);
+SA_API void sc_Renderer_Bind_Uniform_Value(sc_renderer* rendr, void* value, sa_u64_t start_offset, sa_u64_t size);
 SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, const sa_u32_t* new_indices, const sa_u32_t new_indices_count);
 SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_array, const sa_uv* uv_array, const sa_color_t* color_array, const sa_u32_t amount);
 SA_API void sc_Renderer_End(sc_renderer* rendr);

@@ -68,7 +68,7 @@ SA_API sa_bool_t sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 #  define __SC_U_MODEL_MATRIX_LOC 0
 #  define __SC_U_VIEW_MATRIX_LOC 1
 #  define __SC_U_PROJECTION_MATRIX_LOC 2
-#  define __SC_U_USE_CAM_LOC 3
+#  define __SC_U_IS_3D_LOC 3
 #  define __SC_U_TEXTURE_LOC 4
 #  define __SC_U_USE_TEXTURE_LOC 5
 
@@ -86,7 +86,7 @@ static const char* vert_shader =
     "uniform mat4 u_model_matrix;\n"
     "uniform mat4 u_view_matrix;\n"
     "uniform mat4 u_projection_matrix;\n"
-    "uniform bool u_use_cam;\n"
+    "uniform bool u_is_3d;\n"
 
     "out vec4 v_color;\n"
     "out vec2 v_texcoord;\n"
@@ -94,7 +94,7 @@ static const char* vert_shader =
     "void main()\n"
     "{\n"
     "   vec4 world_position = u_model_matrix * vec4(a_pos, 1.0);\n"
-    "   if (u_use_cam) {\n"
+    "   if (u_is_3d) {\n"
     "       gl_Position = u_projection_matrix * u_view_matrix * world_position;\n"
     "   } else {\n"
     "       gl_Position = world_position;\n"
@@ -144,10 +144,15 @@ struct sc_renderer {
 
     sa_u32_t bound_index_array_count;
     sa_u32_t bound_index_array_capacity;
-    sa_u32_t* bound_index_array_buffer;
 
     sa_u32_t batch_array_amount;
     sa_u32_t batch_in_use; // 0 indexed
+
+    sa_u64_t uniform_struct_size;
+    sa_u8_t* uniform_struct_block;
+
+    sa_u32_t* bound_index_array_buffer;
+
     struct __sc_batch {
         sa_u32_t index_array_count;
         sa_u32_t vertex_array_count;
@@ -318,6 +323,34 @@ SA_API void sc_Renderer_Bind_Texture(sc_renderer* rendr, sa_textureId tex_id) {
     rendr->current_texture_id = tex_id;
 }
 
+SA_API void sc_Renderer_Set_Uniform_Struct(sc_renderer* rendr, sa_u64_t size) {
+    rendr->uniform_struct_size = size;
+    rendr->uniform_struct_block = sa_MALLOC(rendr->uniform_struct_size);
+}
+
+SA_API void sc_Renderer_Bind_Uniform_Struct(sc_renderer* rendr, void* uniform) {
+    if (!rendr->uniform_struct_block) {
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+                             sa_LOG_CONTEXT_RENDERER, "Uniform block not created");
+    }
+    if (!uniform) {
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+                             sa_LOG_CONTEXT_RENDERER, "Invalid uniform structure");
+    }
+    memcpy(rendr->uniform_struct_block, uniform, rendr->uniform_struct_size);
+}
+
+SA_API void sc_Renderer_Bind_Uniform_Value(sc_renderer* rendr, void* value, sa_u64_t start_offset, sa_u64_t size) {
+    if (!rendr->uniform_struct_block) {
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "Uniform block not created");
+    }
+    if (start_offset + size > rendr->uniform_struct_size) {
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "Uniform block overflow");
+        return;
+    }
+    memcpy((sa_u8_t*)rendr->uniform_struct_block + start_offset, value, size);
+}
+
 SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, const sa_u32_t* new_indices, const sa_u32_t new_indices_count) {
     // Reset the index buffer
     if (new_indices_count > rendr->bound_index_array_capacity) {
@@ -416,6 +449,7 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
     }
 }
 
+static sa_vec3_t rot = {0, 0, 0};
 SA_API void sc_Renderer_End(sc_renderer* rendr) {
     for (sa_u32_t i = 0; i < rendr->batch_in_use + 1; ++i) { // +1 because of 0 index
         struct __sc_batch* batch_in_use = &rendr->batch[i];
@@ -438,16 +472,20 @@ SA_API void sc_Renderer_End(sc_renderer* rendr) {
             glEnable(GL_DEPTH_TEST);
             sa_mat4_t view = sa_Mat4_Look_At((sa_vec3_t){0.0f, 2.0f, -5.0f}, (sa_vec3_t){0.0f, 0.0f, 0.0f}, (sa_vec3_t){0.0f, 1.0f, 0.0f});
             sa_mat4_t projection = sa_Mat4_Perspective(90, 16.0f / 9.0f, 1, 100);
-            sa_mat4_t modelMatrix = sa_Mat4_Identity();
+            rot.m_x += 0.01f;
+            rot.m_y += 0.01f;
+            rot.m_z += 0.01f;
+            sa_mat4_t modelMatrix = sa_Mat4_Model_Matrix((sa_vec3_t){0, 0, 0}, rot, (sa_vec3_t){1, 1, 1});
             glUniformMatrix4fv(__SC_U_VIEW_MATRIX_LOC, 1, GL_FALSE, &view.m_data[0][0]);
             glUniformMatrix4fv(__SC_U_PROJECTION_MATRIX_LOC, 1, GL_FALSE, &projection.m_data[0][0]);
             glUniformMatrix4fv(__SC_U_MODEL_MATRIX_LOC, 1, GL_FALSE, &modelMatrix.m_data[0][0]);
-            glUniform1i(__SC_U_USE_CAM_LOC, sa_TRUE);
+            glUniform1i(__SC_U_IS_3D_LOC, sa_TRUE);
         }
 
         if (rendr->current_texture_id != 0) {
+            glUniform1i(__SC_U_USE_TEXTURE_LOC, sa_TRUE);
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, 0);
+            glBindTexture(GL_TEXTURE_2D, rendr->current_texture_id);
         }
 
         glDrawElements(GL_TRIANGLES, sa_SCAST_TO_m(int)(batch_in_use->index_array_count), GL_UNSIGNED_INT, 0);
