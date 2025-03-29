@@ -3,12 +3,14 @@
 #include "glad/glad.h"
 #include "saci-utils/su-types.h"
 
+#include <complex.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 /* === Static vars=== */
 
 static enum sa_Log_Severity_e __sa_logging_severity_s = sa_LOG_SEVERITY_LOW;
-static sa_bool_t __sa_should_log_source_s = sa_FALSE;
+static sa_bool_t __sa_should_log_source_s = sa_FALSE; // DEBUG
 
 /* === Helpers === */
 
@@ -91,6 +93,9 @@ void sa_Log_Error(enum sa_Log_Type_e type,
                __sa_Log_Type_To_String(type),
                __sa_Log_Severity_To_String(severity),
                message, file, line);
+        if (severity >= sa_LOG_SEVERITY_HIGH) {
+            exit(EXIT_FAILURE);
+        }
         return;
     }
     printf("[%s] %s of %s severity: %s\n",
@@ -98,6 +103,9 @@ void sa_Log_Error(enum sa_Log_Type_e type,
            __sa_Log_Type_To_String(type),
            __sa_Log_Severity_To_String(severity),
            message);
+    if (severity >= sa_LOG_SEVERITY_HIGH) {
+        exit(EXIT_FAILURE);
+    }
 }
 
 void sa_Log_OpenGL_Debug_Message_Callback(sa_u32_t source, sa_u32_t type, sa_u32_t id, sa_u32_t severity,

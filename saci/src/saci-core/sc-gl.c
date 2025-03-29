@@ -168,7 +168,7 @@ struct sc_renderer {
 // Prefere to use this instead of directly changing the vertices to 0.
 #ifndef __sc_Renderer_Reset_Vertices_Overlaped_m
 
-#  if defined(SACI_DEBUG_MODE) | defined(SACI_RENDERER_DEBUG)
+#  if defined(SACI_DEBUG_MODE) | defined(SACI_DEBUG_MODE_SCGL)
 
 #    define __sc_Renderer_Reset_Vertices_Overlaped_m(rendr) \
         rendr->vertices_overlaped = 0;                      \
@@ -179,7 +179,7 @@ struct sc_renderer {
 #    define __sc_Renderer_Reset_Vertices_Overlaped_m(rendr) \
         rendr->vertices_overlaped = 0;
 
-#  endif // defined(SACI_DEBUG_MODE) | defined(SACI_RENDERER_DEBUG)
+#  endif // defined(SACI_DEBUG_MODE) | defined(SACI_DEBUG_MODE_SCGL)
 
 #endif
 
@@ -368,17 +368,17 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
         *vertex_array_count = (*vertex_array_count) + vertex_amount;
 
         if (!pos_array) {
-            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL,
+            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL,
                                  "Invalid position array param");
         }
 
         if (!uv_array) {
-            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
                                  "Null uv array param");
         }
 
         if (!color_array) {
-            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
                                  "Null color array param");
         }
 
@@ -393,7 +393,7 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
     }
     { // Index operations
         if (!rendr->bound_index_array_buffer || !rendr->bound_index_array_count) {
-            sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_RENDERER, "NULL index array");
+            sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER, "NULL index array");
             return;
         }
 
