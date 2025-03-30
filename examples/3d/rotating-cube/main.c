@@ -63,8 +63,6 @@ struct uniforms {
     sa_vec4_t lighting;
 } uniforms;
 
-int offset_model, offset_view, offset_projection, offset_flags, offset_lighting;
-
 static sa_vec3_t rotation = {0};
 
 void init_saci() {
@@ -76,14 +74,12 @@ void init_saci() {
 
     rendr = sc_Renderer_New_Default();
 
-    sc_Renderer_Set_Uniform_Struct(rendr, sizeof(struct uniforms));
+    sc_Renderer_Set_Uniform_Struct(rendr, sizeof(uniforms));
     uniforms.model = sa_Mat4_Model_Matrix((sa_vec3_t){0, 0, 0}, rotation, (sa_vec3_t){1, 1, 1});
-    uniforms.view = sa_Mat4_Look_At((sa_vec3_t){0, -5, 0}, (sa_vec3_t){0, 0, 0}, (sa_vec3_t){0, 1, 0});
+    uniforms.view = sa_Mat4_Look_At((sa_vec3_t){0.0f, 2.0f, -5.0f}, (sa_vec3_t){0.0f, 0.0f, 0.0f}, (sa_vec3_t){0.0f, 1.0f, 0.0f});
     uniforms.projection = sa_Mat4_Perspective(90, 16.0f / 9.0f, 1, 100);
     uniforms.flags |= sc_RENDERER_UNIFORM_FLAG_IS_3D;
     uniforms.lighting = (sa_vec4_t){0, 0, 0, 0};
-    // sc_Renderer_Enable_Z_Buffer();
-    // sc_Renderer_Set_Projection_Mode(sa_RENDERER_PROJECTION_MODE_PERSPECTIVE);
 }
 
 int main() {
@@ -104,9 +100,9 @@ int main() {
 
         sc_Event_Poll();
         {
-            rotation.m_x += 0.03;
-            rotation.m_z += 0.03;
-            rotation.m_y += 0.03;
+            rotation.m_x += 0.01;
+            rotation.m_z += 0.01;
+            rotation.m_y += 0.01;
             uniforms.model = sa_Mat4_Model_Matrix((sa_vec3_t){0, 0, 0}, rotation, (sa_vec3_t){1, 1, 1});
         }
     }

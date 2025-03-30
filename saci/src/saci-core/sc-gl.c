@@ -68,11 +68,15 @@ SA_API sa_bool_t sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 #  define __SC_U_MODEL_MATRIX_LOC 0
 #  define __SC_U_VIEW_MATRIX_LOC 1
 #  define __SC_U_PROJECTION_MATRIX_LOC 2
-#  define __SC_U_IS_3D_LOC 3
-#  define __SC_U_TEXTURE_LOC 4
-#  define __SC_U_USE_TEXTURE_LOC 5
+#  define __SC_U_FLAGS 3
+#  define __SC_U_LIGHTING 4
+#  define __SC_U_TEXTURE_LOC 5
+#  define __SC_U_USE_TEXTURE_LOC 6
 
 #endif // __SC_RENDERER_UNIFORMS
+
+#define __SC_RENDERER_UBO_SIZE 212
+#define __SC_RENDERER_UBO_BINDING_POINT 0
 
 #ifndef __SC_RENDERER_VERT_SHADER
 #  define __SC_RENDERER_VERT_SHADER
@@ -83,10 +87,13 @@ static const char* vert_shader =
     "layout (location = 1) in vec4 a_color;\n"
     "layout (location = 2) in vec2 a_texcoord;\n"
 
-    "uniform mat4 u_model_matrix;\n"
-    "uniform mat4 u_view_matrix;\n"
-    "uniform mat4 u_projection_matrix;\n"
-    "uniform bool u_is_3d;\n"
+    "layout(std140) uniform Uniforms {\n"
+    "    mat4 u_model_matrix;\n"
+    "    mat4 u_view_matrix;\n"
+    "    mat4 u_projection_matrix;\n"
+    "    int u_flags;\n"
+    "    vec4 u_lighting;\n"
+    "};\n"
 
     "out vec4 v_color;\n"
     "out vec2 v_texcoord;\n"
@@ -94,7 +101,7 @@ static const char* vert_shader =
     "void main()\n"
     "{\n"
     "   vec4 world_position = u_model_matrix * vec4(a_pos, 1.0);\n"
-    "   if (u_is_3d) {\n"
+    "   if (u_flags == 1) {\n"
     "       gl_Position = u_projection_matrix * u_view_matrix * world_position;\n"
     "   } else {\n"
     "       gl_Position = world_position;\n"
@@ -137,7 +144,7 @@ struct sc_renderer {
     sa_u32_t vertices_overlaped;
 
     sa_shaderId shader_program;
-    sa_bufferId ibo, vbo, vao;
+    sa_bufferId ibo, ubo, vbo, vao;
 
     sa_u32_t batch_index_capacity;
     sa_u32_t batch_vertex_capacity;
@@ -146,7 +153,7 @@ struct sc_renderer {
     sa_u32_t bound_index_array_capacity;
 
     sa_u32_t batch_array_amount;
-    sa_u32_t batch_in_use; // 0 indexed
+    sa_u32_t batch_array_in_use; // 0 indexed
 
     sa_u64_t uniform_struct_size;
     sa_u8_t* uniform_struct_block;
@@ -220,9 +227,9 @@ static void __sc_Renderer_Reset_Bound(sc_renderer* rendr) {
 }
 
 static void __sc_Renderer_Reset_Batch(sc_renderer* rendr) {
-    for (sa_u32_t i = 0; i < rendr->batch_in_use + 1; ++i) { // + 1 because of 0 index
-        rendr->batch[i].index_array_count = 0;               // TODO change to macro
-        rendr->batch[i].vertex_array_count = 0;              // TODO change to macro
+    for (sa_u32_t i = 0; i < rendr->batch_array_in_use + 1; ++i) { // + 1 because of 0 index
+        rendr->batch[i].index_array_count = 0;                     // TODO change to macro
+        rendr->batch[i].vertex_array_count = 0;                    // TODO change to macro
     }
 }
 
@@ -237,6 +244,10 @@ static void __sc_Renderer_Init(sc_renderer* rendr) {
     { // Opengl buffers
         rendr->vbo = sc_GL_Create_Vertex_Buffer(sizeof(struct __sc_vertex) * 1000, NULL, GL_DYNAMIC_DRAW);
         rendr->ibo = sc_GL_Create_Index_Buffer_Dynamic(NULL, 1000);
+        glGenBuffers(1, &rendr->ubo);
+        glBindBuffer(GL_UNIFORM_BUFFER, rendr->ubo);
+        glBufferData(GL_UNIFORM_BUFFER, __SC_RENDERER_UBO_SIZE, NULL, GL_DYNAMIC_DRAW);
+        glBindBufferBase(GL_UNIFORM_BUFFER, __SC_RENDERER_UBO_BINDING_POINT, rendr->ubo);
         sc_GL_Create_Vertex_Array(1, &rendr->vao);
     }
     { // VertexAttrib init
@@ -263,7 +274,7 @@ static void __sc_Renderer_Init(sc_renderer* rendr) {
 }
 
 static void __sc_Renderer_Init_Batch(sc_renderer* rendr, sa_u32_t batch_amount) {
-    rendr->batch_in_use = 0;
+    rendr->batch_array_in_use = 0;
     rendr->batch_array_amount = batch_amount;
     rendr->batch = sa_MALLOC(sizeof(struct __sc_batch) * batch_amount);
     for (sa_u32_t i = 0; i < batch_amount; ++i) {
@@ -368,8 +379,8 @@ SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, const sa_u32_t* ne
 }
 
 SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_array, const sa_uv* uv_array, const sa_color_t* color_array, const sa_u32_t vertex_amount) {
-    struct __sc_batch* batch_in_use = &rendr->batch[rendr->batch_in_use];
-    sa_u32_t batch_index = rendr->batch_in_use;
+    struct __sc_batch* batch_in_use = &rendr->batch[rendr->batch_array_in_use];
+    sa_u32_t batch_index = rendr->batch_array_in_use;
 
     { // Validation
         while (batch_index < rendr->batch_array_amount) {
@@ -378,7 +389,7 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
             if (rendr->batch_vertex_capacity >= (batch_in_use->vertex_array_count + vertex_amount) &&
                 rendr->batch_index_capacity >= (batch_in_use->index_array_count + rendr->bound_index_array_count)) {
                 // Found a suitable batch, update rendr->batch_in_use and break
-                rendr->batch_in_use = batch_index;
+                rendr->batch_array_in_use = batch_index;
                 break;
             }
 
@@ -449,9 +460,8 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
     }
 }
 
-static sa_vec3_t rot = {0, 0, 0};
 SA_API void sc_Renderer_End(sc_renderer* rendr) {
-    for (sa_u32_t i = 0; i < rendr->batch_in_use + 1; ++i) { // +1 because of 0 index
+    for (sa_u32_t i = 0; i < rendr->batch_array_in_use + 1; ++i) { // +1 because of 0 index
         struct __sc_batch* batch_in_use = &rendr->batch[i];
 
         glUseProgram(rendr->shader_program);
@@ -469,17 +479,11 @@ SA_API void sc_Renderer_End(sc_renderer* rendr) {
                         batch_in_use->index_array);
 
         { // Uniforms
+            // TODO should be removed
             glEnable(GL_DEPTH_TEST);
-            sa_mat4_t view = sa_Mat4_Look_At((sa_vec3_t){0.0f, 2.0f, -5.0f}, (sa_vec3_t){0.0f, 0.0f, 0.0f}, (sa_vec3_t){0.0f, 1.0f, 0.0f});
-            sa_mat4_t projection = sa_Mat4_Perspective(90, 16.0f / 9.0f, 1, 100);
-            rot.m_x += 0.01f;
-            rot.m_y += 0.01f;
-            rot.m_z += 0.01f;
-            sa_mat4_t modelMatrix = sa_Mat4_Model_Matrix((sa_vec3_t){0, 0, 0}, rot, (sa_vec3_t){1, 1, 1});
-            glUniformMatrix4fv(__SC_U_VIEW_MATRIX_LOC, 1, GL_FALSE, &view.m_data[0][0]);
-            glUniformMatrix4fv(__SC_U_PROJECTION_MATRIX_LOC, 1, GL_FALSE, &projection.m_data[0][0]);
-            glUniformMatrix4fv(__SC_U_MODEL_MATRIX_LOC, 1, GL_FALSE, &modelMatrix.m_data[0][0]);
-            glUniform1i(__SC_U_IS_3D_LOC, sa_TRUE);
+            glBindBuffer(GL_UNIFORM_BUFFER, rendr->ubo);
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, rendr->uniform_struct_size, rendr->uniform_struct_block);
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
         }
 
         if (rendr->current_texture_id != 0) {

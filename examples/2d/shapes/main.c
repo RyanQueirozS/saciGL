@@ -57,7 +57,6 @@ int main() {
     sa_mat4_t modelMatrix = sa_Mat4_Identity(); // Generate a defaulted mat4 as modelMatrix
 
     while (!sc_Window_Should_Close(window)) {
-        printf("OI\n");
         sc_Window_Clear_Color(bgColor);
 
         sc_Renderer_Begin(renderer);
