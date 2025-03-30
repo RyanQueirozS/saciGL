@@ -3,7 +3,6 @@
 #include "saci-core/sc-gl.h"
 
 #include "saci-utils/su-general.h"
-#include "saci-utils/su-math.h"
 #include "saci-utils/su-types.h"
 
 #define ARENA_ALLOCATOR_IMPL
@@ -74,6 +73,24 @@ SA_API sa_bool_t sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 #  define __SC_U_USE_TEXTURE_LOC 6
 
 #endif // __SC_RENDERER_UNIFORMS
+
+#ifndef __SC_RENDERER_BATCH_VERTEX_COUNT
+
+#  define __SC_RENDERER_BATCH_VERTEX_COUNT (3000)
+
+#endif
+
+#ifndef __SC_RENDERER_BATCH_INDEX_COUNT
+
+#  define __SC_RENDERER_BATCH_INDEX_COUNT (__SC_RENDERER_BATCH_VERTEX_COUNT * 6 / 4) // Approximation because of quads
+
+#endif
+
+#ifndef __SC_RENDERER_BATCH_COUNT
+
+#  define __SC_RENDERER_BATCH_COUNT (5)
+
+#endif
 
 #define __SC_RENDERER_UBO_SIZE 212
 #define __SC_RENDERER_UBO_BINDING_POINT 0
@@ -152,7 +169,6 @@ struct sc_renderer {
     sa_u32_t bound_index_array_count;
     sa_u32_t bound_index_array_capacity;
 
-    sa_u32_t batch_array_amount;
     sa_u32_t batch_array_in_use; // 0 indexed
 
     sa_u64_t uniform_struct_size;
@@ -164,13 +180,13 @@ struct sc_renderer {
         sa_u32_t index_array_count;
         sa_u32_t vertex_array_count;
 
-        sa_u32_t* index_array;
+        sa_u32_t index_array[__SC_RENDERER_BATCH_INDEX_COUNT];
         struct __sc_vertex {
             sa_vec3_t pos;
             sa_color_t color;
             sa_uv uv;
-        }* vertex_array;
-    }* batch;
+        } vertex_array[__SC_RENDERER_BATCH_VERTEX_COUNT];
+    } batch[__SC_RENDERER_BATCH_COUNT];
 };
 
 #endif // SC_RENDERER_STRUCT
@@ -195,22 +211,12 @@ struct sc_renderer {
 
 #endif
 
-#define __sc_Renderer_Free_Memory_m(rendr)                         \
-    do {                                                           \
-        if ((rendr)->bound_index_array_buffer) {                   \
-            sa_FREE((rendr)->bound_index_array_buffer);            \
-            (rendr)->bound_index_array_buffer = NULL;              \
-        }                                                          \
-        for (sa_u32_t i = 0; i < rendr->batch_array_amount; ++i) { \
-            if ((rendr)->batch[i].index_array) {                   \
-                sa_FREE((rendr)->batch[i].index_array);            \
-                (rendr)->batch[i].index_array = NULL;              \
-            }                                                      \
-            if ((rendr)->batch[i].vertex_array) {                  \
-                sa_FREE((rendr)->batch[i].vertex_array);           \
-                (rendr)->batch[i].vertex_array = NULL;             \
-            }                                                      \
-        }                                                          \
+#define __sc_Renderer_Free_Memory_m(rendr)              \
+    do {                                                \
+        if ((rendr)->bound_index_array_buffer) {        \
+            sa_FREE((rendr)->bound_index_array_buffer); \
+            (rendr)->bound_index_array_buffer = NULL;   \
+        }                                               \
     } while (0)
 
 #define __sc_Renderer_Free_OpenGL_m(rendr)        \
@@ -275,13 +281,10 @@ static void __sc_Renderer_Init(sc_renderer* rendr) {
 
 static void __sc_Renderer_Init_Batch(sc_renderer* rendr, sa_u32_t batch_amount) {
     rendr->batch_array_in_use = 0;
-    rendr->batch_array_amount = batch_amount;
-    rendr->batch = sa_MALLOC(sizeof(struct __sc_batch) * batch_amount);
+
     for (sa_u32_t i = 0; i < batch_amount; ++i) {
         rendr->batch[i].index_array_count = 0;
         rendr->batch[i].vertex_array_count = 0;
-        rendr->batch[i].index_array = 0;
-        rendr->batch[i].vertex_array = 0;
     }
 }
 
@@ -296,12 +299,6 @@ SA_API sc_renderer* sc_Renderer_New_Default(void) {
     {
         rendr->batch_index_capacity = 10000;
         rendr->batch_vertex_capacity = 1000;
-        for (sa_u32_t i = 0; i < rendr->batch_array_amount; ++i) {
-            rendr->batch[i].index_array = sa_MALLOC(sizeof(sa_u32_t) * rendr->batch_index_capacity);
-            rendr->batch[i].vertex_array =
-                sa_MALLOC(sizeof(struct __sc_vertex) * rendr->batch_vertex_capacity);
-        }
-
         rendr->bound_index_array_capacity = 10000;
         rendr->bound_index_array_buffer =
             sa_MALLOC(sizeof(sa_u32_t) * rendr->bound_index_array_capacity); // 10k vertices
@@ -383,7 +380,7 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
     sa_u32_t batch_index = rendr->batch_array_in_use;
 
     { // Validation
-        while (batch_index < rendr->batch_array_amount) {
+        while (batch_index < __SC_RENDERER_BATCH_COUNT) {
             batch_in_use = &rendr->batch[batch_index];
 
             if (rendr->batch_vertex_capacity >= (batch_in_use->vertex_array_count + vertex_amount) &&
@@ -397,7 +394,7 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
         }
 
         // If no suitable batch was found, log an error
-        if (batch_index == rendr->batch_array_amount) {
+        if (batch_index == __SC_RENDERER_BATCH_COUNT) {
             sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL,
                                  "No available batch with sufficient capacity");
             // Shouldn't need to return unless log macro gets overwriten.
@@ -406,7 +403,7 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
     }
 
     { // Vertex operations
-        struct __sc_vertex** vertex_array_ptr = &(batch_in_use->vertex_array);
+        struct __sc_vertex* vertex_array_ptr = batch_in_use->vertex_array;
         sa_u32_t* vertex_array_count = &(batch_in_use->vertex_array_count);
         sa_u32_t prev_vertex_count = *vertex_array_count;
         *vertex_array_count = (*vertex_array_count) + vertex_amount;
@@ -430,9 +427,9 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
         for (sa_u32_t i = 0; i < vertex_amount; ++i) {
             sa_uv uv = (!uv_array ? (sa_uv){0, 0} : uv_array[i]);
             sa_color_t color = (!color_array ? (sa_color_t){0, 0, 0, 0} : color_array[i]);
-            (*vertex_array_ptr)[prev_vertex_count + i].pos = pos_array[i];
-            (*vertex_array_ptr)[prev_vertex_count + i].uv = uv;
-            (*vertex_array_ptr)[prev_vertex_count + i].color = color;
+            vertex_array_ptr[prev_vertex_count + i].pos = pos_array[i];
+            vertex_array_ptr[prev_vertex_count + i].uv = uv;
+            vertex_array_ptr[prev_vertex_count + i].color = color;
         }
     }
     { // Index operations
@@ -441,7 +438,7 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
             return;
         }
 
-        sa_u32_t** index_array = &(batch_in_use->index_array);
+        sa_u32_t* index_array = batch_in_use->index_array;
         sa_u32_t* index_array_count = &(batch_in_use->index_array_count);
 
         sa_u32_t** bound_array = &rendr->bound_index_array_buffer;
@@ -454,7 +451,7 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
         // This is done to fit in the indices with the new model in the vertex
         // buffer. So, for example, the amount + 0 index represent 0 in this new model
         for (sa_u32_t i = prev_index_array_count; i < (*index_array_count); ++i) {
-            (*index_array)[i] = rendr->vertices_overlaped + (*bound_array)[i - prev_index_array_count];
+            index_array[i] = rendr->vertices_overlaped + (*bound_array)[i - prev_index_array_count];
         }
         rendr->vertices_overlaped += vertex_amount;
     }
