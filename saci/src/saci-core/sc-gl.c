@@ -78,22 +78,27 @@ SA_API sa_bool_t sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 
 #  define __SC_RENDERER_BATCH_VERTEX_COUNT (3000)
 
-#endif
+#endif // __SC_RENDERER_BATCH_VERTEX_COUNT
 
 #ifndef __SC_RENDERER_BATCH_INDEX_COUNT
 
 #  define __SC_RENDERER_BATCH_INDEX_COUNT (__SC_RENDERER_BATCH_VERTEX_COUNT * 6 / 4) // Approximation because of quads
 
-#endif
+#endif // __SC_RENDERER_BATCH_INDEX_COUNT
 
 #ifndef __SC_RENDERER_BATCH_COUNT
 
 #  define __SC_RENDERER_BATCH_COUNT (5)
 
-#endif
+#endif // __SC_RENDERER_BATCH_COUNT
 
-#define __SC_RENDERER_UBO_SIZE 212
-#define __SC_RENDERER_UBO_BINDING_POINT 0
+#ifndef __SC_RENDERER_UBO_SIZE
+#  define __SC_RENDERER_UBO_SIZE (212)
+#endif // __SC_RENDERER_UBO_SIZE
+
+#ifndef __SC_RENDERER_UBO_BINDING_POINT
+#  define __SC_RENDERER_UBO_BINDING_POINT 0
+#endif // __SC_RENDERER_UBO_BINDING_POINT
 
 #ifndef __SC_RENDERER_VERT_SHADER
 #  define __SC_RENDERER_VERT_SHADER
@@ -198,14 +203,18 @@ struct sc_renderer {
 
 #  if defined(SACI_DEBUG_MODE) | defined(SACI_DEBUG_MODE_SCGL)
 
-#    define __sc_Renderer_Reset_Vertices_Overlaped_m(rendr) \
-        rendr->vertices_overlaped = 0;                      \
-        sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_RENDERER, "Reset vertices overlaped");
+#    define __sc_Renderer_Reset_Vertices_Overlaped_m(rendr)                                              \
+        do {                                                                                             \
+            rendr->vertices_overlaped = 0;                                                               \
+            sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_RENDERER, "Reset vertices overlaped"); \
+        } while (0);
 
 #  else
 
 #    define __sc_Renderer_Reset_Vertices_Overlaped_m(rendr) \
-        rendr->vertices_overlaped = 0;
+        do {                                                \
+            rendr->vertices_overlaped = 0;                  \
+        } while (0);
 
 #  endif // defined(SACI_DEBUG_MODE) | defined(SACI_DEBUG_MODE_SCGL)
 
@@ -478,6 +487,7 @@ SA_API void sc_Renderer_End(sc_renderer* rendr) {
         { // Uniforms
             // TODO should be removed
             glEnable(GL_DEPTH_TEST);
+
             glBindBuffer(GL_UNIFORM_BUFFER, rendr->ubo);
             glBufferSubData(GL_UNIFORM_BUFFER, 0, rendr->uniform_struct_size, rendr->uniform_struct_block);
             glBindBuffer(GL_UNIFORM_BUFFER, 0);
