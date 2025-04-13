@@ -179,8 +179,7 @@ struct __sc_vertex {
     sa_uv uv;
 };
 
-// The fields are structured in a way that enforces minimum memory change over
-// time
+// The fields are structured in a way that enforces minimum memory change over time
 struct sc_renderer {
     sa_textureId current_texture_id;
 
@@ -189,16 +188,18 @@ struct sc_renderer {
     sa_shaderId shader_program;
     sa_bufferId ibo, ubo, vbo, vao;
 
-    sa_u32_t batch_index_capacity;
-    sa_u32_t batch_vertex_capacity;
-
     sa_u32_t bound_index_array_length;
     sa_u32_t bound_index_array_capacity;
 
-    sa_u8_t batch_capacity;
-    sa_u8_t batch_array_in_use; // 0 indexed
+    sa_u32_t batch_index_capacity;
+    sa_u32_t batch_vertex_capacity;
+    sa_u8_t batch_array_capacity;
+    sa_u8_t batch_in_use; // 0 indexed
 
-    sa_u32_t call_in_use; // 0 indexed
+    sa_u32_t call_index_capacity;
+    sa_u32_t call_vertex_capacity;
+    sa_u8_t call_array_capacity;
+    sa_u8_t call_in_use; // 0 indexed
 
     sa_u64_t uniform_struct_size;
 
@@ -218,10 +219,10 @@ struct sc_renderer {
         sa_u32_t index_array_length;
         sa_u32_t vertex_array_lenght;
         sa_u8_t uniform_block_size;
-        sa_u32_t index_array[__SC_RENDERER_DEFAULT_CALL_INDEX_CAPACITY];
-        struct __sc_vertex vertex_array[__SC_RENDERER_DEFAULT_CALL_VERTEX_CAPACITY];
+        sa_u32_t* index_array;
+        struct __sc_vertex* vertex_array;
         sa_u8_t* uniform_struct_block;
-    } call_array[__SC_RENDERER_DEFAULT_CALL_CAPACITY];
+    }* call_array;
 
     sa_u32_t* bound_index_array_buffer;
 };
@@ -276,7 +277,7 @@ static void __sc_Renderer_Reset_Bound(sc_renderer* rendr) {
 
 static void __sc_Renderer_Reset_Batch(sc_renderer* rendr) {
     // + 1 because of 0 index
-    for (sa_u32_t i = 0; i < rendr->batch_array_in_use + 1; ++i) {
+    for (sa_u32_t i = 0; i < rendr->batch_in_use + 1; ++i) {
         rendr->batch_array[i].index_array_length = 0;  // TODO change to macro
         rendr->batch_array[i].vertex_array_length = 0; // TODO change to macro
     }
@@ -316,25 +317,38 @@ static void __sc_Renderer_Init(sc_renderer* rendr) {
                                         sa_SCAST_TO_m(void*) offsetof(struct __sc_vertex, uv));
         sc_GL_Enable_Vertex_Attrib_Array(2);
     }
-    { // Bound info
-        rendr->current_texture_id = 0;
-        rendr->bound_index_array_buffer = NULL;
-        rendr->bound_index_array_length = 0;
-        rendr->vertices_overlaped = 0;
-    }
 }
 
-static void __sc_Renderer_Init_Batch(sc_renderer* rendr) {
-    rendr->batch_array_in_use = 0;
-    rendr->batch_array = sa_MALLOC(sizeof(struct __sc_batch) * rendr->batch_capacity);
+static void __sc_Renderer_Init_Batch(struct sc_renderer* rendr) {
+    rendr->batch_in_use = 0;
+    rendr->batch_array = sa_MALLOC(sizeof(struct __sc_batch) * rendr->batch_array_capacity);
 
-    for (sa_u32_t i = 0; i < rendr->batch_capacity; ++i) {
+    for (sa_u32_t i = 0; i < rendr->batch_array_capacity; ++i) {
         rendr->batch_array[i].index_array_length = 0;
         rendr->batch_array[i].vertex_array_length = 0;
         rendr->batch_array[i].vertex_array =
             sa_MALLOC(sizeof(struct __sc_vertex) * rendr->batch_vertex_capacity);
         rendr->batch_array[i].index_array =
             sa_MALLOC(sizeof(sa_u32_t) * rendr->batch_index_capacity);
+    }
+}
+
+static void __sc_Renderer_Init_Call(struct sc_renderer* rendr) {
+    rendr->call_array =
+        sa_MALLOC(sizeof(struct __sc_renderCall) * rendr->call_array_capacity);
+    for (sa_u8_t i = 0; i < rendr->call_array_capacity; ++i) {
+        rendr->call_array[i].index_array =
+            malloc(sizeof(sa_u32_t) * rendr->call_index_capacity);
+        rendr->call_array[i].vertex_array =
+            malloc(sizeof(struct __sc_vertex) * rendr->call_vertex_capacity);
+        rendr->call_array[i].vertex_array_lenght = 0;
+        rendr->call_array[i].index_array_length = 0;
+        rendr->call_array[i].texture = 0;
+        rendr->call_array[i].uniform_block_size = 0;
+        rendr->call_array[i].uniform_struct_block = NULL;
+        // Will be bound by the user and then pushed and dynamically malloced after.
+        // TODO: Evaluate if there is a possibility to allocate a buffer for all
+        // uniform blocks like an arena
     }
 }
 
@@ -346,12 +360,19 @@ SA_API sc_renderer* sc_Renderer_New_Default(void) {
     struct sc_renderer* rendr = sa_MALLOC(sizeof(sc_renderer));
     assert(rendr);
     __sc_Renderer_Init(rendr);
-    rendr->batch_capacity = __SC_RENDERER_DEFAULT_BATCH_CAPACITY;
+    rendr->batch_array_capacity = __SC_RENDERER_DEFAULT_BATCH_CAPACITY;
     rendr->batch_vertex_capacity = __SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY;
     rendr->batch_index_capacity = __SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY;
     __sc_Renderer_Init_Batch(rendr);
+    rendr->call_array_capacity = __SC_RENDERER_DEFAULT_CALL_CAPACITY;
+    rendr->call_index_capacity = __SC_RENDERER_DEFAULT_CALL_INDEX_CAPACITY;
+    rendr->call_vertex_capacity = __SC_RENDERER_DEFAULT_CALL_VERTEX_CAPACITY;
+    __sc_Renderer_Init_Call(rendr);
 
-    {
+    { // Bound info
+        rendr->current_texture_id = 0;
+        rendr->vertices_overlaped = 0;
+        rendr->bound_index_array_length = 0;
         rendr->bound_index_array_capacity = __SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY;
         rendr->bound_index_array_buffer =
             sa_MALLOC(sizeof(sa_u32_t) * rendr->bound_index_array_capacity); // 10k vertices
@@ -564,7 +585,7 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
 }
 
 SA_API void sc_Renderer_End(sc_renderer* rendr) {
-    for (sa_u32_t i = 0; i < rendr->batch_array_in_use + 1; ++i) { // +1 because of 0 index
+    for (sa_u32_t i = 0; i < rendr->batch_in_use + 1; ++i) { // +1 because of 0 index
         struct __sc_batch* batch_in_use = &rendr->batch_array[i];
 
         glUseProgram(rendr->shader_program);
