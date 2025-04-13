@@ -277,7 +277,7 @@ static void __sc_Renderer_Reset_Bound(sc_renderer* rendr) {
 
 static void __sc_Renderer_Reset_Batch(sc_renderer* rendr) {
     // + 1 because of 0 index
-    for (sa_u32_t i = 0; i < rendr->batch_in_use + 1; ++i) {
+    for (sa_u8_t i = 0; i < rendr->batch_in_use + 1; ++i) {
         rendr->batch_array[i].index_array_length = 0;  // TODO change to macro
         rendr->batch_array[i].vertex_array_length = 0; // TODO change to macro
     }
@@ -352,7 +352,10 @@ static void __sc_Renderer_Init_Call(struct sc_renderer* rendr) {
     }
 }
 
+// TODO
+#if 0
 static void __sc_Renderer_Batch_Calls(struct __sc_batch* batch_array, struct __sc_renderCall* call_array, sa_u8_t call_amount, sa_u8_t batch_amount) {}
+#endif
 
 /* --- Renderer Header Impl --- */
 
@@ -381,6 +384,8 @@ SA_API sc_renderer* sc_Renderer_New_Default(void) {
     return rendr;
 }
 
+// TODO
+#if 0
 SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx, sa_u64_t batch_index_capacity, sa_u64_t batch_vertex_capacity, sa_u64_t bound_capacity) {
     if (!mem_ctx) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
@@ -395,6 +400,7 @@ SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx, sa_u64_t batch_in
 
     return rendr;
 }
+#endif
 
 SA_API void sc_Renderer_Begin(sc_renderer* rendr) {
     __sc_Renderer_Reset_Bound(rendr);
@@ -585,7 +591,7 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
 }
 
 SA_API void sc_Renderer_End(sc_renderer* rendr) {
-    for (sa_u32_t i = 0; i < rendr->batch_in_use + 1; ++i) { // +1 because of 0 index
+    for (sa_u8_t i = 0; i < rendr->batch_in_use + 1; ++i) { // +1 because of 0 index
         struct __sc_batch* batch_in_use = &rendr->batch_array[i];
 
         glUseProgram(rendr->shader_program);
