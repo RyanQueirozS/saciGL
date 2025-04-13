@@ -73,56 +73,48 @@ SA_API sa_bool_t sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 
 #endif // __SC_RENDERER_UNIFORMS
 
-#ifndef __SC_RENDERER_BATCH_VERTEX_CAPACITY
+#ifndef __SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY
+#  define __SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY (3000)
+#endif // __SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY
 
-#  define __SC_RENDERER_BATCH_VERTEX_CAPACITY (3000)
+#ifndef __SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY
+#  define __SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY (__SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY * 6 / 4)
+#endif // __SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY
 
-#endif // __SC_RENDERER_BATCH_VERTEX_CAPACITY
+#ifndef __SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY
+#  define __SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY __SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY
+#endif // __SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY
 
-#ifndef __SC_RENDERER_BATCH_INDEX_CAPACITY
+#ifndef __SC_RENDERER_DEFAULT_BATCH_CAPACITY
+#  define __SC_RENDERER_DEFAULT_BATCH_CAPACITY (5)
+#endif // __SC_RENDERER_DEFAULT_BATCH_CAPACITY
 
-#  define __SC_RENDERER_BATCH_INDEX_CAPACITY (__SC_RENDERER_BATCH_VERTEX_CAPACITY * 6 / 4) // Approximation because of quads
+#ifndef __SC_RENDERER_DEFAULT_UBO_SIZE
+#  define __SC_RENDERER_DEFAULT_UBO_SIZE (212)
+#endif // __SC_RENDERER_DEFAULT_UBO_SIZE
 
-#endif // __SC_RENDERER_BATCH_INDEX_CAPACITY
+#ifndef __SC_RENDERER_DEFAULT_UBO_BINDING_POINT
+#  define __SC_RENDERER_DEFAULT_UBO_BINDING_POINT 0
+#endif // __SC_RENDERER_DEFAULT_UBO_BINDING_POINT
 
-#ifndef __SC_RENDERER_BATCH_CAPACITY
+#ifndef __SC_RENDERER_DEFAULT_CALL_RATIO
+#  define __SC_RENDERER_DEFAULT_CALL_RATIO 10
+#endif // __SC_RENDERER_DEFAULT_CALL_RATIO
 
-#  define __SC_RENDERER_BATCH_CAPACITY (5)
+#ifndef __SC_RENDERER_DEFAULT_CALL_INDEX_CAPACITY
+#  define __SC_RENDERER_DEFAULT_CALL_INDEX_CAPACITY (__SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY / __SC_RENDERER_DEFAULT_CALL_RATIO)
+#endif // __SC_RENDERER_DEFAULT_CALL_INDEX_CAPACITY
 
-#endif // __SC_RENDERER_BATCH_CAPACITY
+#ifndef __SC_RENDERER_DEFAULT_CALL_VERTEX_CAPACITY
+#  define __SC_RENDERER_DEFAULT_CALL_VERTEX_CAPACITY (__SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY / __SC_RENDERER_DEFAULT_CALL_RATIO)
+#endif // __SC_RENDERER_DEFAULT_CALL_VERTEX_CAPACITY
 
-#ifndef __SC_RENDERER_UBO_SIZE
-#  define __SC_RENDERER_UBO_SIZE (212)
-#endif // __SC_RENDERER_UBO_SIZE
+#ifndef __SC_RENDERER_DEFAULT_CALL_CAPACITY
+#  define __SC_RENDERER_DEFAULT_CALL_CAPACITY (10)
+#endif // __SC_RENDERER_DEFAULT_CALL_CAPACITY
 
-#ifndef __SC_RENDERER_UBO_BINDING_POINT
-#  define __SC_RENDERER_UBO_BINDING_POINT 0
-#endif // __SC_RENDERER_UBO_BINDING_POINT
-
-#ifndef __SC_RENDERER_CALL_RATIO
-#  define __SC_RENDERER_CALL_RATIO 10
-#endif // __SC_RENDERER_CALL_RATIO
-
-#ifndef __SC_RENDERER_CALL_INDEX_CAPACITY
-
-#  define __SC_RENDERER_CALL_INDEX_CAPACITY (__SC_RENDERER_BATCH_INDEX_CAPACITY / __SC_RENDERER_CALL_RATIO)
-
-#endif // __SC_RENDERER_CALL_INDEx_CAPACITY
-
-#ifndef __SC_RENDERER_CALL_VERTEX_CAPACITY
-
-#  define __SC_RENDERER_CALL_VERTEX_CAPACITY (__SC_RENDERER_BATCH_VERTEX_CAPACITY / __SC_RENDERER_CALL_RATIO)
-
-#endif // __SC_RENDERER_CALL_VERTEX_CAPACITY
-
-#ifndef __SC_RENDERER_CALL_CAPACITY
-
-#  define __SC_RENDERER_CALL_CAPACITY (10)
-
-#endif // __SC_RENDERER_CALL_CAPACITY
-
-#ifndef __SC_RENDERER_VERT_SHADER
-#  define __SC_RENDERER_VERT_SHADER
+#ifndef __SC_RENDERER_DEFAULT_VERT_SHADER
+#  define __SC_RENDERER_DEFAULT_VERT_SHADER
 static const char* vert_shader =
     "#version 330 core\n"
 
@@ -152,10 +144,10 @@ static const char* vert_shader =
     "   v_color = a_color;\n"
     "   v_texcoord = a_texcoord;\n"
     "}\n\0";
-#endif
+#endif // __SC_RENDERER_DEFAULT_VERT_SHADER
 
-#ifndef __SC_RENDERER_FRAG_SHADER
-#  define __SC_RENDERER_FRAG_SHADER
+#ifndef __SC_RENDERER_DEFAULT_FRAG_SHADER
+#  define __SC_RENDERER_DEFAULT_FRAG_SHADER
 static const char* frag_shader =
     "#version 330 core\n"
 
@@ -176,7 +168,7 @@ static const char* frag_shader =
     "       frag_color = v_color;\n"
     "   }\n"
     "}\n\0";
-#endif
+#endif // __SC_RENDERER_DEFAULT_FRAG_SHADER
 
 #ifndef SC_RENDERER_STRUCT
 #  define SC_RENDERER_STRUCT
@@ -197,14 +189,14 @@ struct sc_renderer {
     sa_shaderId shader_program;
     sa_bufferId ibo, ubo, vbo, vao;
 
-    // TODO to be removed
     sa_u32_t batch_index_capacity;
     sa_u32_t batch_vertex_capacity;
 
     sa_u32_t bound_index_array_length;
     sa_u32_t bound_index_array_capacity;
 
-    sa_u32_t batch_array_in_use; // 0 indexed
+    sa_u8_t batch_capacity;
+    sa_u8_t batch_array_in_use; // 0 indexed
 
     sa_u32_t call_in_use; // 0 indexed
 
@@ -215,9 +207,9 @@ struct sc_renderer {
         sa_bufferId ubo;
         sa_u32_t index_array_length;
         sa_u32_t vertex_array_length;
-        sa_u32_t index_array[__SC_RENDERER_BATCH_INDEX_CAPACITY];
-        struct __sc_vertex vertex_array[__SC_RENDERER_BATCH_VERTEX_CAPACITY];
-    } batch_array[__SC_RENDERER_BATCH_CAPACITY];
+        sa_u32_t* index_array;
+        struct __sc_vertex* vertex_array;
+    }* batch_array;
 
     sa_u8_t* uniform_struct_block;
 
@@ -226,10 +218,10 @@ struct sc_renderer {
         sa_u32_t index_array_length;
         sa_u32_t vertex_array_lenght;
         sa_u8_t uniform_block_size;
-        sa_u32_t index_array[__SC_RENDERER_CALL_INDEX_CAPACITY];
-        struct __sc_vertex vertex_array[__SC_RENDERER_CALL_VERTEX_CAPACITY];
+        sa_u32_t index_array[__SC_RENDERER_DEFAULT_CALL_INDEX_CAPACITY];
+        struct __sc_vertex vertex_array[__SC_RENDERER_DEFAULT_CALL_VERTEX_CAPACITY];
         sa_u8_t* uniform_struct_block;
-    } call_array[__SC_RENDERER_CALL_CAPACITY];
+    } call_array[__SC_RENDERER_DEFAULT_CALL_CAPACITY];
 
     sa_u32_t* bound_index_array_buffer;
 };
@@ -299,12 +291,14 @@ static void __sc_Renderer_Init(sc_renderer* rendr) {
         assert(rendr->shader_program);
     }
     { // Opengl buffers
-        rendr->vbo = sc_GL_Create_Vertex_Buffer(sizeof(struct __sc_vertex) * 1000, NULL, GL_DYNAMIC_DRAW);
-        rendr->ibo = sc_GL_Create_Index_Buffer_Dynamic(NULL, 1000);
+        rendr->vbo = sc_GL_Create_Vertex_Buffer(
+            sizeof(struct __sc_vertex) * __SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY,
+            NULL, GL_DYNAMIC_DRAW);
+        rendr->ibo = sc_GL_Create_Index_Buffer_Dynamic(NULL, __SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY);
         glGenBuffers(1, &rendr->ubo);
         glBindBuffer(GL_UNIFORM_BUFFER, rendr->ubo);
-        glBufferData(GL_UNIFORM_BUFFER, __SC_RENDERER_UBO_SIZE, NULL, GL_DYNAMIC_DRAW);
-        glBindBufferBase(GL_UNIFORM_BUFFER, __SC_RENDERER_UBO_BINDING_POINT, rendr->ubo);
+        glBufferData(GL_UNIFORM_BUFFER, __SC_RENDERER_DEFAULT_UBO_SIZE, NULL, GL_DYNAMIC_DRAW);
+        glBindBufferBase(GL_UNIFORM_BUFFER, __SC_RENDERER_DEFAULT_UBO_BINDING_POINT, rendr->ubo);
         sc_GL_Create_Vertex_Array(1, &rendr->vao);
     }
     { // VertexAttrib init
@@ -330,12 +324,17 @@ static void __sc_Renderer_Init(sc_renderer* rendr) {
     }
 }
 
-static void __sc_Renderer_Init_Batch(sc_renderer* rendr, sa_u32_t batch_amount) {
+static void __sc_Renderer_Init_Batch(sc_renderer* rendr) {
     rendr->batch_array_in_use = 0;
+    rendr->batch_array = sa_MALLOC(sizeof(struct __sc_batch) * rendr->batch_capacity);
 
-    for (sa_u32_t i = 0; i < batch_amount; ++i) {
+    for (sa_u32_t i = 0; i < rendr->batch_capacity; ++i) {
         rendr->batch_array[i].index_array_length = 0;
         rendr->batch_array[i].vertex_array_length = 0;
+        rendr->batch_array[i].vertex_array =
+            sa_MALLOC(sizeof(struct __sc_vertex) * rendr->batch_vertex_capacity);
+        rendr->batch_array[i].index_array =
+            sa_MALLOC(sizeof(sa_u32_t) * rendr->batch_index_capacity);
     }
 }
 
@@ -344,15 +343,16 @@ static void __sc_Renderer_Batch_Calls(struct __sc_batch* batch_array, struct __s
 /* --- Renderer Header Impl --- */
 
 SA_API sc_renderer* sc_Renderer_New_Default(void) {
-    sc_renderer* rendr = sa_MALLOC(sizeof(sc_renderer));
+    struct sc_renderer* rendr = sa_MALLOC(sizeof(sc_renderer));
     assert(rendr);
     __sc_Renderer_Init(rendr);
-    __sc_Renderer_Init_Batch(rendr, 10);
+    rendr->batch_capacity = __SC_RENDERER_DEFAULT_BATCH_CAPACITY;
+    rendr->batch_vertex_capacity = __SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY;
+    rendr->batch_index_capacity = __SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY;
+    __sc_Renderer_Init_Batch(rendr);
 
     {
-        rendr->batch_index_capacity = 10000;
-        rendr->batch_vertex_capacity = 1000;
-        rendr->bound_index_array_capacity = 10000;
+        rendr->bound_index_array_capacity = __SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY;
         rendr->bound_index_array_buffer =
             sa_MALLOC(sizeof(sa_u32_t) * rendr->bound_index_array_capacity); // 10k vertices
     }
@@ -429,7 +429,7 @@ SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, const sa_u32_t* ne
 }
 
 SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_array, const sa_uv* uv_array, const sa_color_t* color_array, const sa_u32_t vertex_amount) {
-    if (__SC_RENDERER_CALL_CAPACITY < vertex_amount) {
+    if (__SC_RENDERER_DEFAULT_CALL_CAPACITY < vertex_amount) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
                              sa_LOG_CONTEXT_RENDERER,
                              "Vertex amount overflows draw call");
@@ -485,7 +485,7 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
 
 
     { // Validation
-        while (batch_index < __SC_RENDERER_BATCH_CAPACITY) {
+        while (batch_index < __SC_RENDERER_DEFAULT_BATCH_CAPACITY) {
             batch_in_use = &rendr->batch_array[batch_index];
 
             if (rendr->batch_vertex_capacity >= (batch_in_use->vertex_array_length + vertex_amount) &&
@@ -499,7 +499,7 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
         };
 
         // If no suitable batch was found, log an error
-        if (batch_index == __SC_RENDERER_BATCH_CAPACITY) {
+        if (batch_index == __SC_RENDERER_DEFAULT_BATCH_CAPACITY) {
             sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL,
                                  "No available batch with sufficient capacity");
             // Shouldn't need to return unless log macro gets overwriten.
