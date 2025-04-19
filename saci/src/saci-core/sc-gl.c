@@ -419,7 +419,7 @@ static sa_bool_t __sc_Renderer_Uniform_Is_Equal(sa_u8_t* u1, sa_u8_t* u2, sa_u64
     return memcmp(u1, u2, size) == 0;
 }
 
-SA_API void __sc_Renderer_Batch_Flush(struct __sc_renderer* rendr) {
+static void __sc_Renderer_Batch_Flush(struct __sc_renderer* rendr) {
     for (sa_u8_t i = 0; i < rendr->batch_in_use + 1; ++i) { // +1 because of 0 index
         struct __sc_batch* batch_in_use = &rendr->batch_array[i];
 
@@ -444,7 +444,7 @@ SA_API void __sc_Renderer_Batch_Flush(struct __sc_renderer* rendr) {
             }
 
             glBindBuffer(GL_UNIFORM_BUFFER, rendr->ubo);
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, rendr->uniform_struct_size, rendr->uniform_struct_block);
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sa_SCAST_TO_m(long int)(rendr->uniform_struct_size), rendr->uniform_struct_block);
             glBindBuffer(GL_UNIFORM_BUFFER, 0);
         }
 

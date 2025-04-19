@@ -10,7 +10,11 @@
 /* === Static vars=== */
 
 static enum sa_Log_Severity_e __sa_logging_severity_s = sa_LOG_SEVERITY_LOW;
-static sa_bool_t __sa_should_log_source_s = sa_FALSE; // DEBUG
+#ifdef SACI_DEBUG_MODE
+static sa_bool_t __sa_should_log_source_s = sa_FALSE;
+#else
+static sa_bool_t __sa_should_log_source_s = sa_TRUE;
+#endif // SACI_DEBUG_MODE
 
 /* === Helpers === */
 

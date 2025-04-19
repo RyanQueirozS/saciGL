@@ -18,9 +18,9 @@
 
 #define sa_PI 3.141592653589793f
 #define sa_DEG2RAD_MULT (sa_PI / 180.0f)
-#define sa_DEG2RAD_m(x) ((x) * sa_DEG2RAD_MULT)
+#define sa_Deg_To_Rad_m(x) ((x) * sa_DEG2RAD_MULT)
 #define sa_RAD2DEG_MULT (180.0f / SACI_PI)
-#define sa_RAD2DEG_m(x) ((x) * sa_RAD2DEG_MULT)
+#define sa_Rad_To_Deg_m(x) ((x) * sa_RAD2DEG_MULT)
 
 /* === Vec3 Operations === */
 

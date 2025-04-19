@@ -133,9 +133,10 @@ sa_mat4_t sa_Mat4_Look_At(sa_vec3_t eye, sa_vec3_t center, sa_vec3_t up) {
     return result;
 }
 
+// TODO evaluate if there is a way not to use tan operations
 sa_mat4_t sa_Mat4_Perspective(float fov, float aspect, float near, float far) {
     sa_mat4_t result = {0};
-    float tanHalfFov = sa_SCAST_TO_m(float)(__sa_math_preferences.tan_function(sa_DEG2RAD_m(fov) / 2.0f));
+    float tanHalfFov = sa_SCAST_TO_m(float)(__sa_math_preferences.tan_function(sa_Deg_To_Rad_m(fov) / 2.0f));
 
     result.m_data[0][0] = 1.0f / (aspect * tanHalfFov);
     result.m_data[1][1] = 1.0f / tanHalfFov;
