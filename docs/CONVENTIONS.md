@@ -517,13 +517,41 @@ placed in: `examples/2d/coodinate-system/`
 ### Base Guidelines
 
 Documentation blocks should be simple and discriptive, try to fit a one-line
-that explains each function in their header declaration. Example:
-
-TODO OLD:
+that explains description for each in their header declaration. Use this doxygen
+template:
 
 ```c
-sc_Renderer_t* sc_Renderer_Create_Empty(void); // Creates a renderer without setting up it's fields'.
+/**
+ * @brief <FUNTION-NAME> <DESCRIPTION>
+ *
+ * @param[in/ou/inout] <PARAM-NAME> <DESCRIPTION>
+ * @param[in/ou/inout] ... use as many params as needed
+ *
+ * @return <TYPE> <DESCRIPTION>
+ * @retval <VALUE> <DESCRIPTION>
+ */
+```
 
+Use return when there are multiple to infinite possiblities and retval when
+there are little. Think of it like memcmp where there are only 3 possible
+results (use retval), where as a sqrt function can return almost an infinite set
+of numbers (use return).
+
+Example:
+
+NOTE: OLD CODE:
+
+```c
+// GOOD:
+/**
+ * @brief sc_Renderer_Create_Empty Creates an empty sc_renderer
+ */
+sc_Renderer_t* sc_Renderer_Create_Empty(void);
+
+// Unecessary information
+/**
+ * @brief sc_Renderer_Create_Empty Creates a default sc_renderer. It already comes with a shader program, ibos, ubos...
+ */
 sc_Renderer_t* sc_Renderer_Create_Default(void); // Creates a renderer with setup fields.
 ```
 
@@ -540,9 +568,11 @@ typedef struct sa_vec2 {
 
 Header files must:
 
+- A simple documentation describing what the file acomplishes
 - Every Declaration must contain a simple documentation.
 
 Source files must:
 
-- Document the `global local` code.
+- Document the `global` code, example: static functions, variables, functions
+  etc.
 - Use little documentation overall, naming and context should be enough.
