@@ -336,12 +336,12 @@ configuration changes) and appropriate log levels (INFO, WARN, ERROR).
 
 Logging **Type**:
 
-| Type         | Use                                                                                                           |
-| ------------ | ------------------------------------------------------------------------------------------------------------- |
-| sa_LOG_DEBUG | Information that helps developers understand internal workings or trace execution for debugging purposes.     |
-| sa_LOG_INFO  | Information useful to the end-user regarding application state or normal operations (e.g., resource loading). |
-| sa_LOG_WARN  | What may cause issues, the end user shouldn't need to see this unless they screw up.                          |
-| sa_LOG_ERROR | Failures, errors or unexpected values.                                                                        |
+| Type         | Use                                                                                                          |
+| ------------ | ------------------------------------------------------------------------------------------------------------ |
+| sa_LOG_DEBUG | Information that helps developers understand internal workings or trace execution for debugging purposes.    |
+| sa_LOG_INFO  | Information useful to the end-user regarding application state or normal operations (e.g. resource loading). |
+| sa_LOG_WARN  | What may cause issues, the end user shouldn't need to see this unless they screw up.                         |
+| sa_LOG_ERROR | Failures, errors or unexpected values.                                                                       |
 
 Logging **Level**:
 
@@ -350,7 +350,7 @@ Logging **Level**:
 | sa_LOG_SEVERITY_NOTIFICATION | Only informational messages, no action needed.                  |
 | sa_LOG_SEVERITY_LOW          | Minor issues, such as deprecation or minimal performance hints. |
 | sa_LOG_SEVERITY_MEDIUM       | Issues that could cause bugs or notable performance problems.   |
-| sa_LOG_SEVERITY_HIGH         | Critical errors. **WILL CRASH THE APP**                         |
+| sa_LOG_SEVERITY_HIGH         | Critical errors. **SHOULD CRASH THE APP**                       |
 
 ### Abstraction
 

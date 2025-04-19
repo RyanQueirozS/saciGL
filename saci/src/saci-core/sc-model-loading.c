@@ -37,7 +37,7 @@ sa_bool_t sc_OBJ_Parse(const char* filePath,
     }
     *positions_out = sa_SCAST_TO_m(sa_vec3_t*) sa_MALLOC(sizeof(sa_vec3_t) * (*positions_count_out));
     if (!(*positions_out)) {
-        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM,
+        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM,
                              sa_LOG_CONTEXT_OBJ_LOADING, "Couldn't malloc positions");
         return false;
     }
@@ -77,8 +77,11 @@ sa_bool_t sc_OBJ_Parse(const char* filePath,
 /* === Helper Implementation === */
 
 static void __sc_File_Reader_Function(void* ctx, const char* filename, int isMtl,
-                                      const char* objFilename, char** buf, size_t* len) {
+                                      const char* objFilename2, char** buf, size_t* len) {
     sa_NOT_USED(buf);
+    sa_NOT_USED(ctx);
+    sa_NOT_USED(isMtl);
+    sa_NOT_USED(objFilename2);
     FILE* file = fopen(filename, "rb");
     if (!file) {
         fprintf(stderr, "Error: Unable to open file '%s'\n", filename);

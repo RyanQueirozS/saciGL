@@ -43,17 +43,17 @@ void sa_Log_Error(enum sa_Log_Type_e type, enum sa_Log_Severity_e severity,
 void sa_Log_Info(enum sa_Log_Type_e type, enum sa_Log_Context_e context,
                  const char* message, const char* file, int line);
 
-#define sa_LOG_INFO_PRINT_m(type, context, message)              \
+#define sa_Log_Info_Print_m(type, context, message)              \
     do {                                                         \
         sa_Log_Info(type, context, message, __FILE__, __LINE__); \
     } while (0)
 
-#define sa_LOG_ERROR_PRINT_m(type, severity, context, message)              \
+#define sa_Log_Error_Print_m(type, severity, context, message)              \
     do {                                                                    \
         sa_Log_Error(type, severity, context, message, __FILE__, __LINE__); \
     } while (0)
 
-#define sa_LOG_ASSERT_MESSAGE_m(condition, message)                                                  \
+#define sa_Log_Assert_Message_m(condition, message)                                                  \
     do {                                                                                             \
         if (!(condition)) {                                                                          \
             fprintf(stderr, "Assertion failed at %s:%d\nREASON: %s\n", __func__, __LINE__, message); \

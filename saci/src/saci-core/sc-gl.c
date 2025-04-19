@@ -245,7 +245,7 @@ struct __sc_renderer {
 #    define __sc_Renderer_Reset_Vertices_Overlaped_m(rendr)                 \
         do {                                                                \
             rendr->vertices_overlaped = 0;                                  \
-            sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_RENDERER, \
+            sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_RENDERER, \
                                 "Reset the overlaped vertices");            \
         } while (0);
 
@@ -311,24 +311,24 @@ static void __sc_Renderer_Init(struct __sc_renderer* rendr) {
     { // Shader init
         sa_shaderId v_shader = sc_Shader_Compile_Shader_Vert(vert_shader);
         sa_shaderId f_shader = sc_Shader_Compile_Shader_Frag(frag_shader);
-        sa_LOG_ASSERT_MESSAGE_m(v_shader && f_shader, "Shaders could not be initialized");
+        sa_Log_Assert_Message_m(v_shader && f_shader, "Shaders could not be initialized");
         rendr->shader_program = sc_Shader_Create_Shader_Program(v_shader, f_shader);
-        sa_LOG_ASSERT_MESSAGE_m(rendr->shader_program, "Shader program could not be initialized");
+        sa_Log_Assert_Message_m(rendr->shader_program, "Shader program could not be initialized");
     }
     { // Opengl buffers
         rendr->vbo = sc_GL_Create_Vertex_Buffer(
             sizeof(struct __sc_vertex) * __SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY,
             NULL, GL_DYNAMIC_DRAW);
-        sa_LOG_ASSERT_MESSAGE_m(rendr->vbo, "VBO could not be initialized");
+        sa_Log_Assert_Message_m(rendr->vbo, "VBO could not be initialized");
         rendr->ibo = sc_GL_Create_Index_Buffer_Dynamic(NULL, __SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY);
-        sa_LOG_ASSERT_MESSAGE_m(rendr->ibo, "IBO could not be initialized");
+        sa_Log_Assert_Message_m(rendr->ibo, "IBO could not be initialized");
         glGenBuffers(1, &rendr->ubo);
-        sa_LOG_ASSERT_MESSAGE_m(rendr->ubo, "UBO could not be initialized");
+        sa_Log_Assert_Message_m(rendr->ubo, "UBO could not be initialized");
         glBindBuffer(GL_UNIFORM_BUFFER, rendr->ubo);
         glBufferData(GL_UNIFORM_BUFFER, __SC_RENDERER_DEFAULT_UBO_SIZE, NULL, GL_DYNAMIC_DRAW);
         glBindBufferBase(GL_UNIFORM_BUFFER, __SC_RENDERER_DEFAULT_UBO_BINDING_POINT, rendr->ubo);
         sc_GL_Create_Vertex_Array(1, &rendr->vao);
-        sa_LOG_ASSERT_MESSAGE_m(rendr->vao, "VAO could not be initialized");
+        sa_Log_Assert_Message_m(rendr->vao, "VAO could not be initialized");
     }
     { // VertexAttrib init
         sc_GL_Bind_Vertex_Array(rendr->vao);
@@ -350,18 +350,18 @@ static void __sc_Renderer_Init(struct __sc_renderer* rendr) {
 static void __sc_Renderer_Init_Batch(struct __sc_renderer* rendr) {
     rendr->batch_in_use = 0;
     rendr->batch_array = sa_MALLOC(sizeof(struct __sc_batch) * rendr->batch_array_capacity);
-    sa_LOG_ASSERT_MESSAGE_m(rendr->batch_array, "Batch array could not be initialized");
+    sa_Log_Assert_Message_m(rendr->batch_array, "Batch array could not be initialized");
 
     for (sa_u32_t i = 0; i < rendr->batch_array_capacity; ++i) {
         rendr->batch_array[i].index_array_length = 0;
         rendr->batch_array[i].vertex_array_length = 0;
         rendr->batch_array[i].vertex_array =
             sa_MALLOC(sizeof(struct __sc_vertex) * rendr->batch_vertex_capacity);
-        sa_LOG_ASSERT_MESSAGE_m(rendr->batch_array[i].vertex_array,
+        sa_Log_Assert_Message_m(rendr->batch_array[i].vertex_array,
                                 "Batch vertex array could not be initialized");
         rendr->batch_array[i].index_array =
             sa_MALLOC(sizeof(sa_u32_t) * rendr->batch_index_capacity);
-        sa_LOG_ASSERT_MESSAGE_m(rendr->batch_array[i].index_array,
+        sa_Log_Assert_Message_m(rendr->batch_array[i].index_array,
                                 "Batch index array could not be initialized");
     }
 }
@@ -370,15 +370,15 @@ static void __sc_Renderer_Init_Call(struct __sc_renderer* rendr) {
     rendr->call_in_use = 0;
     rendr->call_array =
         sa_MALLOC(sizeof(struct __sc_renderCall) * rendr->call_array_capacity);
-    sa_LOG_ASSERT_MESSAGE_m(rendr->call_array, "Call array could not be initialized");
+    sa_Log_Assert_Message_m(rendr->call_array, "Call array could not be initialized");
     for (sa_u8_t i = 0; i < rendr->call_array_capacity; ++i) {
         rendr->call_array[i].index_array =
             sa_MALLOC(sizeof(sa_u32_t) * rendr->call_index_capacity);
-        sa_LOG_ASSERT_MESSAGE_m(rendr->call_array[i].index_array,
+        sa_Log_Assert_Message_m(rendr->call_array[i].index_array,
                                 "Call INDEX array could not be initialized");
         rendr->call_array[i].vertex_array =
             sa_MALLOC(sizeof(struct __sc_vertex) * rendr->call_vertex_capacity);
-        sa_LOG_ASSERT_MESSAGE_m(rendr->call_array[i].vertex_array,
+        sa_Log_Assert_Message_m(rendr->call_array[i].vertex_array,
                                 "Call VERTEX array could not be initialized");
         rendr->call_array[i].vertex_array_length = 0;
         rendr->call_array[i].index_array_length = 0;
@@ -465,7 +465,7 @@ SA_API void __sc_Renderer_Batch_Flush(struct __sc_renderer* rendr) {
 static void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
     sa_u64_t batch_capacity = rendr->batch_array_capacity;
     if (batch_capacity < 1) {
-        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
                              sa_LOG_CONTEXT_RENDERER,
                              "Renderer_End called but batch has ZERO capacity");
         return;
@@ -473,7 +473,7 @@ static void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
 
     sa_u64_t call_amount = rendr->call_in_use;
     if (call_amount == 0) {
-        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_WARN, sa_LOG_SEVERITY_LOW,
+        sa_Log_Error_Print_m(sa_LOG_TYPE_WARN, sa_LOG_SEVERITY_LOW,
                              sa_LOG_CONTEXT_RENDERER,
                              "Renderer_End called but renderer has no calls");
         return;
@@ -482,8 +482,8 @@ static void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
     struct __sc_renderCall* call_array = rendr->call_array;
     struct __sc_batch* batch_array = rendr->batch_array;
 
-    sa_LOG_ASSERT_MESSAGE_m(call_array, "Could not point to call array");
-    sa_LOG_ASSERT_MESSAGE_m(batch_array, "Could not point to batch array");
+    sa_Log_Assert_Message_m(call_array, "Could not point to call array");
+    sa_Log_Assert_Message_m(batch_array, "Could not point to batch array");
 
     sa_u8_t max_batch_reached = 0;
     for (sa_u8_t i = 0; i < call_amount; ++i) {
@@ -536,7 +536,7 @@ static void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
 
         if (!batched) {
 #ifdef SACI_DEBUG_MODE
-            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_LOW,
+            sa_Log_Error_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_LOW,
                                  sa_LOG_CONTEXT_RENDERER,
                                  "No suitable batch found. Flushing and retrying.");
 #endif
@@ -551,7 +551,7 @@ static void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
 
 SA_API sc_renderer* sc_Renderer_New_Default(void) {
     struct __sc_renderer* rendr = sa_MALLOC(sizeof(struct __sc_renderer));
-    sa_LOG_ASSERT_MESSAGE_m(rendr, "Renderer could not be created");
+    sa_Log_Assert_Message_m(rendr, "Renderer could not be created");
     __sc_Renderer_Init(rendr);
     rendr->batch_array_capacity = __SC_RENDERER_DEFAULT_BATCH_CAPACITY;
     rendr->batch_vertex_capacity = __SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY;
@@ -578,7 +578,7 @@ SA_API sc_renderer* sc_Renderer_New_Default(void) {
 #if 0
 SA_API struct __sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx, sa_u64_t batch_index_capacity, sa_u64_t batch_vertex_capacity, sa_u64_t bound_capacity) {
     if (!mem_ctx) {
-        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
+        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
                              "Invalid memory context in sc_Renderer_New_Default_Ctx");
         return NULL; // Should crash, but if LOG_ERROR_PRINT_m is rewriten, returns NULL
     }
@@ -609,11 +609,11 @@ SA_API void sc_Renderer_Set_Uniform_Struct(struct __sc_renderer* rendr, sa_u64_t
 
 SA_API void sc_Renderer_Bind_Uniform_Struct(struct __sc_renderer* rendr, void* uniform) {
     if (!rendr->uniform_struct_block) {
-        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
                              sa_LOG_CONTEXT_RENDERER, "Uniform block not created");
     }
     if (!uniform) {
-        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
                              sa_LOG_CONTEXT_RENDERER, "Invalid uniform structure");
     }
     memcpy(rendr->uniform_struct_block, uniform, rendr->uniform_struct_size);
@@ -621,10 +621,10 @@ SA_API void sc_Renderer_Bind_Uniform_Struct(struct __sc_renderer* rendr, void* u
 
 SA_API void sc_Renderer_Bind_Uniform_Value(struct __sc_renderer* rendr, void* value, sa_u64_t start_offset, sa_u64_t size) {
     if (!rendr->uniform_struct_block) {
-        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "Uniform block not created");
+        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "Uniform block not created");
     }
     if (start_offset + size > rendr->uniform_struct_size) {
-        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "Uniform block overflow");
+        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "Uniform block overflow");
         return;
     }
     memcpy((sa_u8_t*)rendr->uniform_struct_block + start_offset, value, size);
@@ -647,43 +647,43 @@ SA_API void sc_Renderer_Bind_Index_Buffer(struct __sc_renderer* rendr, const sa_
 
 SA_API void sc_Renderer_Push_Vertex(struct __sc_renderer* rendr, const sa_vec3_t* pos_array, const sa_uv* uv_array, const sa_color_t* color_array, const sa_u32_t vertex_amount) {
     if (!pos_array || vertex_amount < 1) {
-        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
                              sa_LOG_CONTEXT_RENDERER,
                              "Vertex array being pushed has lenght ZERO or is NULL");
         return;
     }
     if (rendr->call_vertex_capacity < vertex_amount) {
-        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
                              sa_LOG_CONTEXT_RENDERER,
                              "Vertex amount overflows draw call");
         return;
     }
     if (!rendr->bound_index_array_buffer || !rendr->bound_index_array_length) {
-        sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_CONTEXT_RENDERER, "NULL index array bound");
+        sa_Log_Info_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_CONTEXT_RENDERER, "NULL index array bound");
         return;
     }
 
     sa_u32_t call_index = rendr->call_in_use;
     struct __sc_renderCall* call_in_use = &(rendr->call_array[call_index]);
-    sa_LOG_ASSERT_MESSAGE_m(call_in_use, "Could not point to call in use");
+    sa_Log_Assert_Message_m(call_in_use, "Could not point to call in use");
 
     { // Vertex operations
         struct __sc_vertex* vertex_array_ptr = call_in_use->vertex_array;
-        sa_LOG_ASSERT_MESSAGE_m(vertex_array_ptr, "Invalid pointer for vertex array");
+        sa_Log_Assert_Message_m(vertex_array_ptr, "Invalid pointer for vertex array");
         call_in_use->vertex_array_length = vertex_amount;
 #if defined(SACI_DEBUG_MODE)
         if (!pos_array) {
-            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL,
+            sa_Log_Error_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL,
                                  "Invalid position array param");
         }
 
         if (!uv_array) {
-            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+            sa_Log_Error_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
                                  "Null uv array param");
         }
 
         if (!color_array) {
-            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+            sa_Log_Error_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
                                  "Null color array param");
         }
 #endif
@@ -823,7 +823,7 @@ sa_u32_t sc_Shader_Create_Shader_Program(sa_u32_t vshader, sa_u32_t fshader) {
         glGetProgramInfoLog(programID, 2048, &sizeReturned, glErrMessage);
         snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s",
                  glErrMessage);
-        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, errMessage);
+        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, errMessage);
         return 0;
     }
     glDetachShader(programID, vshader);
@@ -831,7 +831,7 @@ sa_u32_t sc_Shader_Create_Shader_Program(sa_u32_t vshader, sa_u32_t fshader) {
     glDeleteShader(vshader);
     glDeleteShader(fshader);
 
-    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL,
+    sa_Log_Info_Print_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL,
                         "Shader program loaded successfully");
     return programID;
 }
@@ -852,7 +852,7 @@ sa_u32_t sc_Shader_Create_Shader_Program_Geom(sa_u32_t vshader, sa_u32_t fshader
         glGetProgramInfoLog(programID, 2048, &sizeReturned, glErrMessage);
         snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s",
                  glErrMessage);
-        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, errMessage);
+        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, errMessage);
         return 0;
     }
     glDetachShader(programID, vshader);
@@ -861,7 +861,7 @@ sa_u32_t sc_Shader_Create_Shader_Program_Geom(sa_u32_t vshader, sa_u32_t fshader
     glDeleteShader(vshader);
     glDeleteShader(fshader);
     glDeleteShader(gshader);
-    sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL,
+    sa_Log_Info_Print_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL,
                         "Shader program be loaded successfully");
 
     return programID;
@@ -894,7 +894,7 @@ static sa_u32_t __sc_shader_compile(const char* shaderSource, sa_u32_t shaderTyp
             if (shaderType == GL_GEOMETRY_SHADER) {
                 logMessage = "Geometry shader couldn't be loaded";
             }
-            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+            sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
                                  sa_LOG_CONTEXT_OPENGL, logMessage);
         }
         return 0;
@@ -910,7 +910,7 @@ static sa_u32_t __sc_shader_compile(const char* shaderSource, sa_u32_t shaderTyp
         if (shaderType == GL_GEOMETRY_SHADER) {
             logMessage = "Geometry shader loaded succesfully";
         }
-        sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO,
+        sa_Log_Info_Print_m(sa_LOG_TYPE_INFO,
                             sa_LOG_CONTEXT_OPENGL, logMessage);
     }
 
