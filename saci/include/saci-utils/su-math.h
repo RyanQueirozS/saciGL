@@ -24,31 +24,31 @@
 
 /* === Vec3 Operations === */
 
-sa_vec3_t sa_Vec3_Subtract(sa_vec3_t a, sa_vec3_t b);
-sa_vec3_t sa_Vec3_Add(sa_vec3_t a, sa_vec3_t b);
-sa_vec3_t sa_Vec3_Scale(sa_vec3_t v, float scalar);
-sa_vec3_t sa_Vec3_Normalize(sa_vec3_t v);
-sa_vec3_t sa_Vec3_Cross(sa_vec3_t a, sa_vec3_t b);
-float sa_Vec3_Dot(sa_vec3_t a, sa_vec3_t b);
+sa_vec3 sa_Vec3_Subtract(sa_vec3 a, sa_vec3 b);
+sa_vec3 sa_Vec3_Add(sa_vec3 a, sa_vec3 b);
+sa_vec3 sa_Vec3_Scale(sa_vec3 v, float scalar);
+sa_vec3 sa_Vec3_Normalize(sa_vec3 v);
+sa_vec3 sa_Vec3_Cross(sa_vec3 a, sa_vec3 b);
+float sa_Vec3_Dot(sa_vec3 a, sa_vec3 b);
 
 /* === Color Operations === */
 
-sa_color_t sa_Color_From_Hex(sa_u32_t hex);
-sa_color_t sa_Color_From_U8(sa_u8_t r, sa_u8_t g, sa_u8_t b, sa_u8_t a);
-sa_u32_t sa_Color_To_Hex(sa_color_t color);
+sa_color sa_Color_From_Hex(sa_u32 hex);
+sa_color sa_Color_From_U8(sa_u8 r, sa_u8 g, sa_u8 b, sa_u8 a);
+sa_u32 sa_Color_To_Hex(sa_color color);
 
 /* === Mat Operations === */
 
-sa_mat4_t sa_Mat4_Multiply(sa_mat4_t a, sa_mat4_t b);
-sa_mat4_t sa_Mat4_Identity(void);
-sa_mat4_t sa_Mat4_Look_At(sa_vec3_t eye, sa_vec3_t center, sa_vec3_t up);
-sa_mat4_t sa_Mat4_Perspective(float fov, float aspect, float near, float far);
-sa_mat4_t sa_Mat4_Ortho(float left, float right, float bottom, float top, float near, float far);
-sa_mat4_t sa_Mat4_Rotate_X(sa_mat4_t mat, float angle);
-sa_mat4_t sa_Mat4_Rotate_Y(sa_mat4_t mat, float angle);
-sa_mat4_t sa_Mat4_Rotate_Z(sa_mat4_t mat, float angle);
-sa_mat4_t sa_Mat4_Scale(float sx, float sy, float sz);
-sa_mat4_t sa_Mat4_Translate(float tx, float ty, float tz);
-sa_mat4_t sa_Mat4_Model_Matrix(sa_vec3_t position, sa_vec3_t rotation, sa_vec3_t scale);
+sa_mat4 sa_Mat4_Multiply(sa_mat4 a, sa_mat4 b);
+sa_mat4 sa_Mat4_Identity(void);
+sa_mat4 sa_Mat4_Look_At(sa_vec3 eye, sa_vec3 center, sa_vec3 up);
+sa_mat4 sa_Mat4_Perspective(float fov, float aspect, float near, float far);
+sa_mat4 sa_Mat4_Ortho(float left, float right, float bottom, float top, float near, float far);
+sa_mat4 sa_Mat4_Rotate_X(sa_mat4 mat, float angle);
+sa_mat4 sa_Mat4_Rotate_Y(sa_mat4 mat, float angle);
+sa_mat4 sa_Mat4_Rotate_Z(sa_mat4 mat, float angle);
+sa_mat4 sa_Mat4_Scale(float sx, float sy, float sz);
+sa_mat4 sa_Mat4_Translate(float tx, float ty, float tz);
+sa_mat4 sa_Mat4_Model_Matrix(sa_vec3 position, sa_vec3 rotation, sa_vec3 scale);
 
 #endif

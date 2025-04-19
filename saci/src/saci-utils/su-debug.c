@@ -11,9 +11,9 @@
 
 static enum sa_Log_Severity_e __sa_logging_severity_s = sa_LOG_SEVERITY_LOW;
 #ifdef SACI_DEBUG_MODE
-static sa_bool_t __sa_should_log_source_s = sa_FALSE;
+static sa_bool __sa_should_log_source_s = sa_FALSE;
 #else
-static sa_bool_t __sa_should_log_source_s = sa_TRUE;
+static sa_bool __sa_should_log_source_s = sa_TRUE;
 #endif // SACI_DEBUG_MODE
 
 /* === Helpers === */
@@ -65,7 +65,7 @@ static const char* __sa_Log_Context_To_String(enum sa_Log_Context_e context) {
 
 /* === Implementations=== */
 
-void sa_Log_Should_Print_Origin(sa_bool_t enable) {
+void sa_Log_Should_Print_Origin(sa_bool enable) {
     __sa_should_log_source_s = enable;
 }
 
@@ -112,7 +112,7 @@ void sa_Log_Error(enum sa_Log_Type_e type,
     }
 }
 
-void sa_Log_OpenGL_Debug_Message_Callback(sa_u32_t source, sa_u32_t type, sa_u32_t id, sa_u32_t severity,
+void sa_Log_OpenGL_Debug_Message_Callback(sa_u32 source, sa_u32 type, sa_u32 id, sa_u32 severity,
                                           int length, const char* msg, const void* data) {
     (void)length, (void)data;
     char* _source;

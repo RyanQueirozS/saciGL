@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "saci-core/sc-gl.h"
+#include "saci-core/sc-windowing.h"
 #include "saci-utils/su-debug.h"
 
 /* === Helper === */
@@ -15,7 +15,7 @@ void __sc_OpenGL_InitializeDebugger(void);
 
 /* === Main declaration=== */
 
-sa_bool_t sc_GLFW_Init(void) {
+sa_bool sc_GLFW_Init(void) {
     int success = glfwInit();
     if (!success) {
         sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, "Couldn't load glfw");
@@ -30,7 +30,7 @@ sa_bool_t sc_GLFW_Init(void) {
     return sa_TRUE;
 }
 
-sa_bool_t sc_GLAD_Init(void) {
+sa_bool sc_GLAD_Init(void) {
     if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != sa_TRUE) {
         sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, "Couldn't Load glad");
         return sa_FALSE;
@@ -39,7 +39,7 @@ sa_bool_t sc_GLAD_Init(void) {
     __sc_OpenGL_InitializeDebugger();
 
 #if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_WINDOWING)
-    const sa_u8_t* version = glGetString(GL_VERSION);
+    const sa_u8* version = glGetString(GL_VERSION);
     char versionStr[256];
     snprintf(versionStr, sizeof(versionStr), "Using OpenGL version: %s", version);
     sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_OPENGL, versionStr);
@@ -61,7 +61,7 @@ void sc_Window_Make_Context(sc_window_t* window) {
     glfwMakeContextCurrent(window);
 }
 
-sa_bool_t sc_Window_Should_Close(sc_window_t* window) {
+sa_bool sc_Window_Should_Close(sc_window_t* window) {
     return glfwWindowShouldClose(window);
 }
 
@@ -80,8 +80,8 @@ void sc_Window_Terminate(void) {
     sa_Log_Info_Print_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL, "Terminated glfw");
 }
 
-void sc_Window_Clear_Color(sa_color_t color) {
-    glClearColor(color.m_r, color.m_g, color.m_b, color.m_a);
+void sc_Window_Clear_Color(sa_color color) {
+    glClearColor(color.r, color.g, color.b, color.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

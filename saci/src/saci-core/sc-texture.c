@@ -10,11 +10,11 @@
 
 /* === Helper Func declarations === */
 
-sa_u32_t __sc_Texture_Determine_Format(int nrChannels);
+sa_u32 __sc_Texture_Determine_Format(int nrChannels);
 
 /* === Header impl === */
 
-void sc_Texture_Load_Data(const char* path, sa_bool_t flipImg, int* width_out, int* height_out, int* nr_channels_out, sa_u8_t** data_out) {
+void sc_Texture_Load_Data(const char* path, sa_bool flipImg, int* width_out, int* height_out, int* nr_channels_out, sa_u8** data_out) {
     // NOTE: flipImg is used with a `!` operator because stbi automatically flips the image
     stbi_set_flip_vertically_on_load(!flipImg);
     *data_out = stbi_load(path, width_out, height_out, nr_channels_out, 0);
@@ -24,11 +24,11 @@ void sc_Texture_Load_Data(const char* path, sa_bool_t flipImg, int* width_out, i
     }
 }
 
-sa_textureId sc_Texture_Load(const char* path, sa_bool_t flipImg) {
+sa_textureId sc_Texture_Load(const char* path, sa_bool flipImg) {
     int width = 0;
     int height = 0;
     int nr_channels = 0;
-    sa_u8_t* data = NULL;
+    sa_u8* data = NULL;
     sc_Texture_Load_Data(path, flipImg, &width, &height, &nr_channels, &data);
 
     if (!data) {
@@ -37,7 +37,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool_t flipImg) {
         return 0;
     }
 
-    sa_u32_t format = __sc_Texture_Determine_Format(nr_channels);
+    sa_u32 format = __sc_Texture_Determine_Format(nr_channels);
     if (format == 0) {
         sa_FREE(data);
         sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
@@ -87,7 +87,7 @@ void sc_Texture_Free(sa_textureId textureID) {
 
 /* === Helper Func impl === */
 
-sa_u32_t __sc_Texture_Determine_Format(int nrChannels) {
+sa_u32 __sc_Texture_Determine_Format(int nrChannels) {
     if (nrChannels == 3)
         return GL_RGB;
     if (nrChannels == 4)

@@ -530,10 +530,10 @@ sc_Renderer_t* sc_Renderer_Create_Default(void); // Creates a renderer with setu
 Each member should be documented as follows:
 
 ```c
-typedef struct sa_Vec2 {
+typedef struct sa_vec2 {
     float x; // X compoonent
     float y; // Y compoonent
-} sa_Vec2;
+} sa_vec2;
 ```
 
 ### Files

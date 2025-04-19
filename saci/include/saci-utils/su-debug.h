@@ -34,7 +34,7 @@ enum sa_Log_Context_e {
     sa_LOG_CONTEXT_MEMORY_ALLOCATION,
 };
 
-void sa_Log_Should_Print_Origin(sa_bool_t enable);
+void sa_Log_Should_Print_Origin(sa_bool enable);
 
 void sa_Log_Error(enum sa_Log_Type_e type, enum sa_Log_Severity_e severity,
                   enum sa_Log_Context_e context,
@@ -61,7 +61,7 @@ void sa_Log_Info(enum sa_Log_Type_e type, enum sa_Log_Context_e context,
         }                                                                                            \
     } while (0)
 
-void sa_Log_OpenGL_Debug_Message_Callback(sa_u32_t source, sa_u32_t type, sa_u32_t id, sa_u32_t severity,
+void sa_Log_OpenGL_Debug_Message_Callback(sa_u32 source, sa_u32 type, sa_u32 id, sa_u32 severity,
                                           int length, const char* msg, const void* data);
 
 #endif
