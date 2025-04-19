@@ -84,7 +84,7 @@ target_compile_options(saci PRIVATE
     -Wshadow                   # Warn when a local variable or function shadows another
     -Wconversion               # Warn about implicit type conversions that may lose data
     -Wunreachable-code         # Warn about code that will never be executed
-    -Wstrict-prototypes        # Warn if a function declaration doesn't include argument types # For some reason doesn't work :p
+    -Wstrict-prototypes        # Warn if a function declaration doesn't include argument types
     -Wmissing-declarations     # Warn when a function is used but not declared
     -Wunused-parameter         # Ignore unused parameter warnings
     -Wvla                      # Warn if variable-length arrays (VLAs) are used (C99 feature)
@@ -95,3 +95,12 @@ target_compile_options(saci PRIVATE
     $<$<CONFIG:DEBUG>:-g>       # Debugging information for debug mode
     $<$<CONFIG:RELEASE>:-O3>    # Higher optimization in release mode
 )
+
+# --- Clang-specific settings ---
+if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    message(STATUS "Clang compiler detected")
+
+    # Add Clang-specific compile options
+    target_compile_options(saci PRIVATE
+    )
+endif()

@@ -161,13 +161,13 @@ SA_API sa_bool_t sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode);
 
 /* === Renderer === */
 
-typedef struct sc_renderer sc_renderer;
+typedef struct __sc_renderer sc_renderer;
 
 #ifdef SC_RENDERER_STRUCT_EXPOSE
 #  ifndef SC_RENDERER_STRUCT
 #    define SC_RENDERER_STRUCT
 
-struct sc_renderer {
+struct __sc_renderer {
     sa_textureId current_texture_id;
 
     sa_u32_t* bound_index_array;
@@ -202,16 +202,16 @@ struct sc_renderer {
 
 SA_API sc_renderer* sc_Renderer_New_Default(void);
 SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx, sa_u64_t batch_index_capacity, sa_u64_t batch_vertex_capacity, sa_u64_t bound_capacity);
-SA_API void sc_Renderer_Begin(sc_renderer* rendr);
-SA_API void sc_Renderer_Bind_Texture(sc_renderer* rendr, const sa_textureId tex_id);
-SA_API void sc_Renderer_Set_Uniform_Struct(sc_renderer* rendr, sa_u64_t size);
-SA_API void sc_Renderer_Bind_Uniform_Struct(sc_renderer* rendr, void* uniform);
-SA_API void sc_Renderer_Bind_Uniform_Value(sc_renderer* rendr, void* value, sa_u64_t start_offset, sa_u64_t size);
-SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, const sa_u32_t* new_indices, const sa_u32_t new_indices_count);
-SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_array, const sa_uv* uv_array, const sa_color_t* color_array, const sa_u32_t amount);
-SA_API void sc_Renderer_End(sc_renderer* rendr);
-SA_API void sc_Renderer_Free(sc_renderer* rendr);
-SA_API void sc_Renderer_Free_Opts(sc_renderer* rendr, int free_opts);
+SA_API void sc_Renderer_Begin(struct __sc_renderer* rendr);
+SA_API void sc_Renderer_Bind_Texture(struct __sc_renderer* rendr, const sa_textureId tex_id);
+SA_API void sc_Renderer_Set_Uniform_Struct(struct __sc_renderer* rendr, sa_u64_t size);
+SA_API void sc_Renderer_Bind_Uniform_Struct(struct __sc_renderer* rendr, void* uniform);
+SA_API void sc_Renderer_Bind_Uniform_Value(struct __sc_renderer* rendr, void* value, sa_u64_t start_offset, sa_u64_t size);
+SA_API void sc_Renderer_Bind_Index_Buffer(struct __sc_renderer* rendr, const sa_u32_t* new_indices, const sa_u32_t new_indices_count);
+SA_API void sc_Renderer_Push_Vertex(struct __sc_renderer* rendr, const sa_vec3_t* pos_array, const sa_uv* uv_array, const sa_color_t* color_array, const sa_u32_t amount);
+SA_API void sc_Renderer_End(struct __sc_renderer* rendr);
+SA_API void sc_Renderer_Free(struct __sc_renderer* rendr);
+SA_API void sc_Renderer_Free_Opts(struct __sc_renderer* rendr, int free_opts);
 
 /* === OpenGL === */
 

@@ -1,3 +1,6 @@
+// TODO uniform_struct_block needs to have an option to be freed, but also need
+// to evaludate if it will free the user's uniform_struct_block. Perhaps a copy
+// would be nice
 #include <glad/glad.h>
 
 #include "saci-core/sc-gl.h"
@@ -110,7 +113,7 @@ SA_API sa_bool_t sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 #endif // __SC_RENDERER_DEFAULT_CALL_VERTEX_CAPACITY
 
 #ifndef __SC_RENDERER_DEFAULT_CALL_CAPACITY
-#  define __SC_RENDERER_DEFAULT_CALL_CAPACITY (10)
+#  define __SC_RENDERER_DEFAULT_CALL_CAPACITY __SC_RENDERER_DEFAULT_CALL_RATIO
 #endif // __SC_RENDERER_DEFAULT_CALL_CAPACITY
 
 #ifndef __SC_RENDERER_DEFAULT_VERT_SHADER
@@ -180,7 +183,7 @@ struct __sc_vertex {
 };
 
 // The fields are structured in a way that enforces minimum memory change over time
-struct sc_renderer {
+struct __sc_renderer {
     sa_textureId current_texture_id;
 
     sa_u32_t vertices_overlaped;
@@ -204,20 +207,23 @@ struct sc_renderer {
     sa_u64_t uniform_struct_size;
 
     struct __sc_batch {
+        sa_u64_t uniform_struct_block_size;
         sa_textureId texture;
-        sa_bufferId ubo;
         sa_u32_t index_array_length;
         sa_u32_t vertex_array_length;
+        sa_u8_t uniform_block_size;
         sa_u32_t* index_array;
         struct __sc_vertex* vertex_array;
+        sa_u8_t* uniform_struct_block;
     }* batch_array;
 
     sa_u8_t* uniform_struct_block;
 
     struct __sc_renderCall {
+        sa_u64_t uniform_struct_block_size;
         sa_textureId texture;
         sa_u32_t index_array_length;
-        sa_u32_t vertex_array_lenght;
+        sa_u32_t vertex_array_length;
         sa_u8_t uniform_block_size;
         sa_u32_t* index_array;
         struct __sc_vertex* vertex_array;
@@ -240,7 +246,7 @@ struct sc_renderer {
         do {                                                                \
             rendr->vertices_overlaped = 0;                                  \
             sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_RENDERER, \
-                                "Reset vertices overlaped");                \
+                                "Reset the overlaped vertices");            \
         } while (0);
 
 #  else
@@ -270,37 +276,59 @@ struct sc_renderer {
         glDeleteProgram((rendr)->shader_program); \
     } while (0)
 
-static void __sc_Renderer_Reset_Bound(sc_renderer* rendr) {
+static void __sc_Renderer_Reset_Bound(struct __sc_renderer* rendr) {
     rendr->current_texture_id = 0; // TODO change to macro
     __sc_Renderer_Reset_Vertices_Overlaped_m(rendr);
 }
 
-static void __sc_Renderer_Reset_Batch(sc_renderer* rendr) {
+static void __sc_Renderer_Reset_Batch(struct __sc_renderer* rendr) {
     // + 1 because of 0 index
     for (sa_u8_t i = 0; i < rendr->batch_in_use + 1; ++i) {
-        rendr->batch_array[i].index_array_length = 0;  // TODO change to macro
-        rendr->batch_array[i].vertex_array_length = 0; // TODO change to macro
+        rendr->batch_array[i].uniform_struct_block_size = 0;
+        rendr->batch_array[i].texture = 0;
+        rendr->batch_array[i].index_array_length = 0;
+        rendr->batch_array[i].vertex_array_length = 0;
+        rendr->batch_array[i].uniform_block_size = 0;
+        rendr->batch_array[i].uniform_struct_block = NULL;
     }
+    rendr->batch_in_use = 0;
 }
 
-static void __sc_Renderer_Init(sc_renderer* rendr) {
+static void __sc_Renderer_Reset_Call(struct __sc_renderer* rendr) {
+    // + 1 because of 0 index
+    for (sa_u8_t i = 0; i < rendr->call_in_use + 1; ++i) {
+        rendr->call_array[i].uniform_struct_block_size = 0;
+        rendr->call_array[i].texture = 0;
+        rendr->call_array[i].index_array_length = 0;
+        rendr->call_array[i].vertex_array_length = 0;
+        rendr->call_array[i].uniform_block_size = 0;
+        rendr->call_array[i].uniform_struct_block = NULL;
+    }
+    rendr->call_in_use = 0;
+}
+
+static void __sc_Renderer_Init(struct __sc_renderer* rendr) {
     { // Shader init
         sa_shaderId v_shader = sc_Shader_Compile_Shader_Vert(vert_shader);
         sa_shaderId f_shader = sc_Shader_Compile_Shader_Frag(frag_shader);
-        assert(v_shader && f_shader);
+        sa_LOG_ASSERT_MESSAGE_m(v_shader && f_shader, "Shaders could not be initialized");
         rendr->shader_program = sc_Shader_Create_Shader_Program(v_shader, f_shader);
-        assert(rendr->shader_program);
+        sa_LOG_ASSERT_MESSAGE_m(rendr->shader_program, "Shader program could not be initialized");
     }
     { // Opengl buffers
         rendr->vbo = sc_GL_Create_Vertex_Buffer(
             sizeof(struct __sc_vertex) * __SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY,
             NULL, GL_DYNAMIC_DRAW);
+        sa_LOG_ASSERT_MESSAGE_m(rendr->vbo, "VBO could not be initialized");
         rendr->ibo = sc_GL_Create_Index_Buffer_Dynamic(NULL, __SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY);
+        sa_LOG_ASSERT_MESSAGE_m(rendr->ibo, "IBO could not be initialized");
         glGenBuffers(1, &rendr->ubo);
+        sa_LOG_ASSERT_MESSAGE_m(rendr->ubo, "UBO could not be initialized");
         glBindBuffer(GL_UNIFORM_BUFFER, rendr->ubo);
         glBufferData(GL_UNIFORM_BUFFER, __SC_RENDERER_DEFAULT_UBO_SIZE, NULL, GL_DYNAMIC_DRAW);
         glBindBufferBase(GL_UNIFORM_BUFFER, __SC_RENDERER_DEFAULT_UBO_BINDING_POINT, rendr->ubo);
         sc_GL_Create_Vertex_Array(1, &rendr->vao);
+        sa_LOG_ASSERT_MESSAGE_m(rendr->vao, "VAO could not be initialized");
     }
     { // VertexAttrib init
         sc_GL_Bind_Vertex_Array(rendr->vao);
@@ -319,49 +347,211 @@ static void __sc_Renderer_Init(sc_renderer* rendr) {
     }
 }
 
-static void __sc_Renderer_Init_Batch(struct sc_renderer* rendr) {
+static void __sc_Renderer_Init_Batch(struct __sc_renderer* rendr) {
     rendr->batch_in_use = 0;
     rendr->batch_array = sa_MALLOC(sizeof(struct __sc_batch) * rendr->batch_array_capacity);
+    sa_LOG_ASSERT_MESSAGE_m(rendr->batch_array, "Batch array could not be initialized");
 
     for (sa_u32_t i = 0; i < rendr->batch_array_capacity; ++i) {
         rendr->batch_array[i].index_array_length = 0;
         rendr->batch_array[i].vertex_array_length = 0;
         rendr->batch_array[i].vertex_array =
             sa_MALLOC(sizeof(struct __sc_vertex) * rendr->batch_vertex_capacity);
+        sa_LOG_ASSERT_MESSAGE_m(rendr->batch_array[i].vertex_array,
+                                "Batch vertex array could not be initialized");
         rendr->batch_array[i].index_array =
             sa_MALLOC(sizeof(sa_u32_t) * rendr->batch_index_capacity);
+        sa_LOG_ASSERT_MESSAGE_m(rendr->batch_array[i].index_array,
+                                "Batch index array could not be initialized");
     }
 }
 
-static void __sc_Renderer_Init_Call(struct sc_renderer* rendr) {
+static void __sc_Renderer_Init_Call(struct __sc_renderer* rendr) {
+    rendr->call_in_use = 0;
     rendr->call_array =
         sa_MALLOC(sizeof(struct __sc_renderCall) * rendr->call_array_capacity);
+    sa_LOG_ASSERT_MESSAGE_m(rendr->call_array, "Call array could not be initialized");
     for (sa_u8_t i = 0; i < rendr->call_array_capacity; ++i) {
         rendr->call_array[i].index_array =
-            malloc(sizeof(sa_u32_t) * rendr->call_index_capacity);
+            sa_MALLOC(sizeof(sa_u32_t) * rendr->call_index_capacity);
+        sa_LOG_ASSERT_MESSAGE_m(rendr->call_array[i].index_array,
+                                "Call INDEX array could not be initialized");
         rendr->call_array[i].vertex_array =
-            malloc(sizeof(struct __sc_vertex) * rendr->call_vertex_capacity);
-        rendr->call_array[i].vertex_array_lenght = 0;
+            sa_MALLOC(sizeof(struct __sc_vertex) * rendr->call_vertex_capacity);
+        sa_LOG_ASSERT_MESSAGE_m(rendr->call_array[i].vertex_array,
+                                "Call VERTEX array could not be initialized");
+        rendr->call_array[i].vertex_array_length = 0;
         rendr->call_array[i].index_array_length = 0;
         rendr->call_array[i].texture = 0;
         rendr->call_array[i].uniform_block_size = 0;
+        // UNIFORM Will be bound by the user and then pushed and dynamically
+        // malloced after. TODO: Evaluate if there is a possibility to allocate
+        // a buffer for all uniform blocks like an arena
         rendr->call_array[i].uniform_struct_block = NULL;
-        // Will be bound by the user and then pushed and dynamically malloced after.
-        // TODO: Evaluate if there is a possibility to allocate a buffer for all
-        // uniform blocks like an arena
     }
 }
 
-// TODO
-#if 0
-static void __sc_Renderer_Batch_Calls(struct __sc_batch* batch_array, struct __sc_renderCall* call_array, sa_u8_t call_amount, sa_u8_t batch_amount) {}
+// TODO evaluate if sorting is indeed needed
+// Only pass the call_amount that has been changed
+static void __sc_Renderer_Call_Array_Sort(struct __sc_renderCall* call_array, sa_u8_t call_amount) {
+    if (call_amount < 3) { // 0, 1 shouldn't be sorted and 2 won't matter
+        return;
+    }
+    for (sa_u8_t i = 0; i < call_amount - 1; ++i) {
+        for (sa_u8_t j = 0; j < call_amount - i - 1; ++j) {
+            struct __sc_renderCall* a = &call_array[j];
+            struct __sc_renderCall* b = &call_array[j + 1];
+
+            // First compare by texture
+            if (a->texture > b->texture ||
+                (a->texture == b->texture && a->uniform_struct_block_size > b->uniform_struct_block_size)) {
+
+                // Swap the two calls
+                struct __sc_renderCall temp = call_array[j];
+                call_array[j] = call_array[j + 1];
+                call_array[j + 1] = temp;
+            }
+        }
+    }
+}
+
+static sa_bool_t __sc_Renderer_Uniform_Is_Equal(sa_u8_t* u1, sa_u8_t* u2, sa_u64_t size) {
+    return memcmp(u1, u2, size) == 0;
+}
+
+SA_API void __sc_Renderer_Batch_Flush(struct __sc_renderer* rendr) {
+    for (sa_u8_t i = 0; i < rendr->batch_in_use + 1; ++i) { // +1 because of 0 index
+        struct __sc_batch* batch_in_use = &rendr->batch_array[i];
+
+        glUseProgram(rendr->shader_program);
+
+        glBindVertexArray(rendr->vao);
+
+        glBindBuffer(GL_ARRAY_BUFFER, rendr->vbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0,
+                        sa_SCAST_TO_m(long int)(sizeof(struct __sc_vertex) * batch_in_use->vertex_array_length),
+                        batch_in_use->vertex_array);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendr->ibo);
+        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
+                        sa_SCAST_TO_m(long int)(sizeof(sa_u32_t) * batch_in_use->index_array_length),
+                        batch_in_use->index_array);
+
+        { // Uniforms
+            {
+                // TODO should be removed
+                glEnable(GL_DEPTH_TEST);
+            }
+
+            glBindBuffer(GL_UNIFORM_BUFFER, rendr->ubo);
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, rendr->uniform_struct_size, rendr->uniform_struct_block);
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        }
+
+        if (rendr->current_texture_id != 0) {
+            glUniform1i(__SC_U_USE_TEXTURE_LOC, sa_TRUE);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, rendr->current_texture_id);
+        }
+
+        glDrawElements(GL_TRIANGLES, sa_SCAST_TO_m(int)(batch_in_use->index_array_length), GL_UNSIGNED_INT, 0);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindVertexArray(0);
+        glUseProgram(0);
+    }
+}
+
+static void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
+    sa_u64_t batch_capacity = rendr->batch_array_capacity;
+    if (batch_capacity < 1) {
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+                             sa_LOG_CONTEXT_RENDERER,
+                             "Renderer_End called but batch has ZERO capacity");
+        return;
+    }
+
+    sa_u64_t call_amount = rendr->call_in_use;
+    if (call_amount == 0) {
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_WARN, sa_LOG_SEVERITY_LOW,
+                             sa_LOG_CONTEXT_RENDERER,
+                             "Renderer_End called but renderer has no calls");
+        return;
+    }
+
+    struct __sc_renderCall* call_array = rendr->call_array;
+    struct __sc_batch* batch_array = rendr->batch_array;
+
+    sa_LOG_ASSERT_MESSAGE_m(call_array, "Could not point to call array");
+    sa_LOG_ASSERT_MESSAGE_m(batch_array, "Could not point to batch array");
+
+    sa_u8_t max_batch_reached = 0;
+    for (sa_u8_t i = 0; i < call_amount; ++i) {
+        struct __sc_renderCall* call_now = &call_array[i];
+        sa_bool_t batched = sa_FALSE;
+
+        for (sa_u8_t b = 0; b < batch_capacity; ++b) {
+            struct __sc_batch* batch_now = &batch_array[b];
+
+            // Compare compatibility
+            if (batch_now->texture != call_now->texture)
+                continue;
+            if (batch_now->uniform_block_size != call_now->uniform_block_size)
+                continue;
+            if (batch_now->uniform_struct_block_size != call_now->uniform_struct_block_size)
+                continue;
+
+            if (!__sc_Renderer_Uniform_Is_Equal(
+                    batch_now->uniform_struct_block,
+                    call_now->uniform_struct_block,
+                    sa_MIN(call_now->uniform_struct_block_size, batch_now->uniform_struct_block_size))) {
+
+                continue;
+            }
+
+            // Check capacity before inserting
+            if ((batch_now->vertex_array_length + call_now->vertex_array_length) > rendr->batch_vertex_capacity ||
+                (batch_now->index_array_length + call_now->index_array_length) > rendr->batch_index_capacity) {
+                continue; // Try next batch
+            }
+
+            // Insert indices
+            sa_u32_t index_offset = batch_now->index_array_length;
+            sa_u32_t index_copy_size = call_now->index_array_length * sizeof(sa_u32_t);
+            memcpy(&batch_now->index_array[index_offset], call_now->index_array, index_copy_size);
+            batch_now->index_array_length += call_now->index_array_length;
+
+            // Insert vertices
+            sa_u32_t vertex_offset = batch_now->vertex_array_length;
+            sa_u32_t vertex_copy_size = call_now->vertex_array_length * sizeof(struct __sc_vertex);
+            memcpy(&batch_now->vertex_array[vertex_offset], call_now->vertex_array, vertex_copy_size);
+            batch_now->vertex_array_length += call_now->vertex_array_length;
+
+            batched = sa_TRUE;
+            if (max_batch_reached < b) {
+                max_batch_reached = b;
+            }
+            break; // Call successfully batched
+        }
+
+        if (!batched) {
+#ifdef SACI_DEBUG_MODE
+            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_LOW,
+                                 sa_LOG_CONTEXT_RENDERER,
+                                 "No suitable batch found. Flushing and retrying.");
 #endif
+            __sc_Renderer_Batch_Flush(rendr);
+            i--; // Retry same call after flush
+        }
+        rendr->batch_in_use = max_batch_reached;
+    }
+}
 
 /* --- Renderer Header Impl --- */
 
 SA_API sc_renderer* sc_Renderer_New_Default(void) {
-    struct sc_renderer* rendr = sa_MALLOC(sizeof(sc_renderer));
-    assert(rendr);
+    struct __sc_renderer* rendr = sa_MALLOC(sizeof(struct __sc_renderer));
+    sa_LOG_ASSERT_MESSAGE_m(rendr, "Renderer could not be created");
     __sc_Renderer_Init(rendr);
     rendr->batch_array_capacity = __SC_RENDERER_DEFAULT_BATCH_CAPACITY;
     rendr->batch_vertex_capacity = __SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY;
@@ -386,7 +576,7 @@ SA_API sc_renderer* sc_Renderer_New_Default(void) {
 
 // TODO
 #if 0
-SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx, sa_u64_t batch_index_capacity, sa_u64_t batch_vertex_capacity, sa_u64_t bound_capacity) {
+SA_API struct __sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx, sa_u64_t batch_index_capacity, sa_u64_t batch_vertex_capacity, sa_u64_t bound_capacity) {
     if (!mem_ctx) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
                              "Invalid memory context in sc_Renderer_New_Default_Ctx");
@@ -394,7 +584,7 @@ SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx, sa_u64_t batch_in
     }
 
     // TODO
-    sc_renderer* rendr = sa_MALLOC(sizeof(sc_renderer));
+    struct __sc_renderer* rendr = sa_MALLOC(sizeof(struct __sc_renderer));
     assert(rendr);
     __sc_Renderer_Init(rendr);
 
@@ -402,21 +592,22 @@ SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx, sa_u64_t batch_in
 }
 #endif
 
-SA_API void sc_Renderer_Begin(sc_renderer* rendr) {
+SA_API void sc_Renderer_Begin(struct __sc_renderer* rendr) {
     __sc_Renderer_Reset_Bound(rendr);
     __sc_Renderer_Reset_Batch(rendr);
+    __sc_Renderer_Reset_Call(rendr);
 }
 
-SA_API void sc_Renderer_Bind_Texture(sc_renderer* rendr, sa_textureId tex_id) {
+SA_API void sc_Renderer_Bind_Texture(struct __sc_renderer* rendr, sa_textureId tex_id) {
     rendr->current_texture_id = tex_id;
 }
 
-SA_API void sc_Renderer_Set_Uniform_Struct(sc_renderer* rendr, sa_u64_t size) {
+SA_API void sc_Renderer_Set_Uniform_Struct(struct __sc_renderer* rendr, sa_u64_t size) {
     rendr->uniform_struct_size = size;
     rendr->uniform_struct_block = sa_MALLOC(rendr->uniform_struct_size);
 }
 
-SA_API void sc_Renderer_Bind_Uniform_Struct(sc_renderer* rendr, void* uniform) {
+SA_API void sc_Renderer_Bind_Uniform_Struct(struct __sc_renderer* rendr, void* uniform) {
     if (!rendr->uniform_struct_block) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
                              sa_LOG_CONTEXT_RENDERER, "Uniform block not created");
@@ -428,7 +619,7 @@ SA_API void sc_Renderer_Bind_Uniform_Struct(sc_renderer* rendr, void* uniform) {
     memcpy(rendr->uniform_struct_block, uniform, rendr->uniform_struct_size);
 }
 
-SA_API void sc_Renderer_Bind_Uniform_Value(sc_renderer* rendr, void* value, sa_u64_t start_offset, sa_u64_t size) {
+SA_API void sc_Renderer_Bind_Uniform_Value(struct __sc_renderer* rendr, void* value, sa_u64_t start_offset, sa_u64_t size) {
     if (!rendr->uniform_struct_block) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "Uniform block not created");
     }
@@ -439,10 +630,9 @@ SA_API void sc_Renderer_Bind_Uniform_Value(sc_renderer* rendr, void* value, sa_u
     memcpy((sa_u8_t*)rendr->uniform_struct_block + start_offset, value, size);
 }
 
-SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, const sa_u32_t* new_indices, const sa_u32_t new_indices_count) {
+SA_API void sc_Renderer_Bind_Index_Buffer(struct __sc_renderer* rendr, const sa_u32_t* new_indices, const sa_u32_t new_indices_count) {
     // Reset the index buffer
     if (new_indices_count > rendr->bound_index_array_capacity) {
-        printf("Invalid size\n");
         return;
     }
 
@@ -455,8 +645,14 @@ SA_API void sc_Renderer_Bind_Index_Buffer(sc_renderer* rendr, const sa_u32_t* ne
     rendr->bound_index_array_length = new_indices_count;
 }
 
-SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_array, const sa_uv* uv_array, const sa_color_t* color_array, const sa_u32_t vertex_amount) {
-    if (__SC_RENDERER_DEFAULT_CALL_CAPACITY < vertex_amount) {
+SA_API void sc_Renderer_Push_Vertex(struct __sc_renderer* rendr, const sa_vec3_t* pos_array, const sa_uv* uv_array, const sa_color_t* color_array, const sa_u32_t vertex_amount) {
+    if (!pos_array || vertex_amount < 1) {
+        sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+                             sa_LOG_CONTEXT_RENDERER,
+                             "Vertex array being pushed has lenght ZERO or is NULL");
+        return;
+    }
+    if (rendr->call_vertex_capacity < vertex_amount) {
         sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
                              sa_LOG_CONTEXT_RENDERER,
                              "Vertex amount overflows draw call");
@@ -468,11 +664,13 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
     }
 
     sa_u32_t call_index = rendr->call_in_use;
-    struct __sc_renderCall* call_in_use = &rendr->call_array[call_index];
+    struct __sc_renderCall* call_in_use = &(rendr->call_array[call_index]);
+    sa_LOG_ASSERT_MESSAGE_m(call_in_use, "Could not point to call in use");
 
     { // Vertex operations
         struct __sc_vertex* vertex_array_ptr = call_in_use->vertex_array;
-        call_in_use->vertex_array_lenght = vertex_amount;
+        sa_LOG_ASSERT_MESSAGE_m(vertex_array_ptr, "Invalid pointer for vertex array");
+        call_in_use->vertex_array_length = vertex_amount;
 #if defined(SACI_DEBUG_MODE)
         if (!pos_array) {
             sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL,
@@ -504,141 +702,25 @@ SA_API void sc_Renderer_Push_Vertex(sc_renderer* rendr, const sa_vec3_t* pos_arr
         sa_u32_t* index_array = call_in_use->index_array;
         call_in_use->index_array_length = bound_array_count;
 
-        memcpy(index_array, bound_array, bound_array_count);
+        memcpy(index_array, bound_array, bound_array_count * sizeof(sa_u32_t));
     }
-#if 0
-    struct __sc_batch* batch_in_use = &rendr->batch_array[rendr->batch_array_in_use];
-    sa_u32_t batch_index = rendr->batch_array_in_use;
-
-
-    { // Validation
-        while (batch_index < __SC_RENDERER_DEFAULT_BATCH_CAPACITY) {
-            batch_in_use = &rendr->batch_array[batch_index];
-
-            if (rendr->batch_vertex_capacity >= (batch_in_use->vertex_array_length + vertex_amount) &&
-                rendr->batch_index_capacity >= (batch_in_use->index_array_length + rendr->bound_index_array_length)) {
-                // Found a suitable batch, update rendr->batch_in_use and break
-                rendr->batch_array_in_use = batch_index;
-                break;
-            }
-
-            batch_index++;
-        };
-
-        // If no suitable batch was found, log an error
-        if (batch_index == __SC_RENDERER_DEFAULT_BATCH_CAPACITY) {
-            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL,
-                                 "No available batch with sufficient capacity");
-            // Shouldn't need to return unless log macro gets overwriten.
-            return;
-        }
-    }
-
-    { // Vertex operations
-        struct __sc_vertex* vertex_array_ptr = batch_in_use->vertex_array;
-        sa_u32_t* vertex_array_count = &(batch_in_use->vertex_array_length);
-        sa_u32_t prev_vertex_count = *vertex_array_count;
-        *vertex_array_count = (*vertex_array_count) + vertex_amount;
-
-        if (!pos_array) {
-            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL,
-                                 "Invalid position array param");
-        }
-
-        if (!uv_array) {
-            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
-                                 "Null uv array param");
-        }
-
-        if (!color_array) {
-            sa_LOG_ERROR_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
-                                 "Null color array param");
-        }
-
-        // Add the new vertices to the array
-        for (sa_u32_t i = 0; i < vertex_amount; ++i) {
-            sa_uv uv = (!uv_array ? (sa_uv){0, 0} : uv_array[i]);
-            sa_color_t color = (!color_array ? (sa_color_t){0, 0, 0, 0} : color_array[i]);
-            vertex_array_ptr[prev_vertex_count + i].pos = pos_array[i];
-            vertex_array_ptr[prev_vertex_count + i].uv = uv;
-            vertex_array_ptr[prev_vertex_count + i].color = color;
-        }
-    }
-    { // Index operations
-        if (!rendr->bound_index_array_buffer || !rendr->bound_index_array_length) {
-            sa_LOG_INFO_PRINT_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_RENDERER, "NULL index array");
-            return;
-        }
-
-        sa_u32_t* index_array = batch_in_use->index_array;
-        sa_u32_t* index_array_count = &(batch_in_use->index_array_length);
-
-        sa_u32_t** bound_array = &rendr->bound_index_array_buffer;
-        sa_u32_t* bound_array_count = &rendr->bound_index_array_length;
-
-        sa_u32_t prev_index_array_count = *index_array_count;
-        *index_array_count = prev_index_array_count + (*bound_array_count);
-
-        // Loops through the newly created index and adds the vertex amount.
-        // This is done to fit in the indices with the new model in the vertex
-        // buffer. So, for example, the amount + 0 index represent 0 in this new model
-        for (sa_u32_t i = prev_index_array_count; i < (*index_array_count); ++i) {
-            index_array[i] = rendr->vertices_overlaped + (*bound_array)[i - prev_index_array_count];
-        }
-        rendr->vertices_overlaped += vertex_amount;
-    }
-#endif
+    ++rendr->call_in_use;
 }
 
-SA_API void sc_Renderer_End(sc_renderer* rendr) {
-    for (sa_u8_t i = 0; i < rendr->batch_in_use + 1; ++i) { // +1 because of 0 index
-        struct __sc_batch* batch_in_use = &rendr->batch_array[i];
-
-        glUseProgram(rendr->shader_program);
-
-        glBindVertexArray(rendr->vao);
-
-        glBindBuffer(GL_ARRAY_BUFFER, rendr->vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0,
-                        sa_SCAST_TO_m(long int)(sizeof(struct __sc_vertex) * batch_in_use->vertex_array_length),
-                        batch_in_use->vertex_array);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendr->ibo);
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
-                        sa_SCAST_TO_m(long int)(sizeof(sa_u32_t) * batch_in_use->index_array_length),
-                        batch_in_use->index_array);
-
-        { // Uniforms
-            // TODO should be removed
-            glEnable(GL_DEPTH_TEST);
-
-            glBindBuffer(GL_UNIFORM_BUFFER, rendr->ubo);
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, rendr->uniform_struct_size, rendr->uniform_struct_block);
-            glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        }
-
-        if (rendr->current_texture_id != 0) {
-            glUniform1i(__SC_U_USE_TEXTURE_LOC, sa_TRUE);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, rendr->current_texture_id);
-        }
-
-        glDrawElements(GL_TRIANGLES, sa_SCAST_TO_m(int)(batch_in_use->index_array_length), GL_UNSIGNED_INT, 0);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glBindVertexArray(0);
-        glUseProgram(0);
-    }
+SA_API void sc_Renderer_End(struct __sc_renderer* rendr) {
+    __sc_Renderer_Call_Array_Sort(rendr->call_array, rendr->call_in_use);
+    __sc_Renderer_Batch_Calls(rendr);
+    __sc_Renderer_Batch_Flush(rendr);
 }
 
-SA_API void sc_Renderer_Free(sc_renderer* rendr) {
+SA_API void sc_Renderer_Free(struct __sc_renderer* rendr) {
     sc_Renderer_Begin(rendr);
     __sc_Renderer_Free_Memory_m(rendr);
     __sc_Renderer_Free_OpenGL_m(rendr);
     free(rendr);
 }
 
-SA_API void sc_Renderer_Free_Opts(sc_renderer* rendr, int free_opts) {
+SA_API void sc_Renderer_Free_Opts(struct __sc_renderer* rendr, int free_opts) {
     sc_Renderer_Begin(rendr);
     if (free_opts & sc_RENDERER_FREE_OPT_MEMORY) {
         __sc_Renderer_Free_Memory_m(rendr);
@@ -668,7 +750,6 @@ SA_API sa_u32_t sc_GL_Create_Index_Buffer_Dynamic(sa_u32_t* indices, sa_u64_t in
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sa_SCAST_TO_m(sa_s64_t)(indice_amount * sizeof(sa_u32_t)), &indices[0],
                  GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    assert(ibo);
     return ibo;
 }
 
@@ -679,7 +760,6 @@ SA_API sa_u32_t sc_GL_Create_Index_Buffer_Static(sa_u32_t* indices, sa_u64_t ind
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sa_SCAST_TO_m(sa_s64_t)(indice_amount * sizeof(sa_u32_t)), &indices[0],
                  GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    assert(ibo);
     return ibo;
 }
 

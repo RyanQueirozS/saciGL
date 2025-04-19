@@ -1,6 +1,24 @@
-# Compiler and Flags
-CC = gcc
-CFLAGS = -Wall -Wextra -O0 -I../saci/include -I../saci/deps/glad/include -I../saci/deps/glfw/include -I../saci/deps/stb -I../saci/deps/model-loading -I../saci/deps/ryanqueirozs
+# Choose compiler (default: gcc)
+COMPILER ?= gcc
+CC = $(COMPILER)
+
+# Compiler Flags
+CFLAGS = -Wall -Wextra -O0 -g \
+	-I../saci/include \
+	-I../saci/deps/glad/include \
+	-I../saci/deps/glfw/include \
+	-I../saci/deps/stb \
+	-I../saci/deps/model-loading \
+	-I../saci/deps/ryanqueirozs
+
+# Clang-specific tweaks (optional)
+ifeq ($(COMPILER),clang)
+endif
+
+# Debug mode flag
+ifeq ($(DEBUG),1)
+    CFLAGS += -DSACI_DEBUG_MODE
+endif
 
 # Source files from saci-core and saci-utils
 SACI_SRC = \
@@ -9,7 +27,8 @@ SACI_SRC = \
 	../saci/deps/glad/src/glad.c
 
 # Linking libraries and flags
-LIBS = -L../saci/deps/glfw/lib/GLFW/ -lglfw -lm -Wl,-rpath,/home/ryan/projects/c/saciGL/saci/deps/glfw/lib/GLFW
+LIBS = -L../saci/deps/glfw/lib/GLFW/ -lglfw -lm \
+	-Wl,-rpath,/home/ryan/projects/c/saciGL/saci/deps/glfw/lib/GLFW
 
 # Example directories
 EXAMPLES = \
@@ -24,9 +43,9 @@ TARGETS = $(EXAMPLES:%=build/%/main)
 
 # If a specific target is passed, use it, else default to all
 ifeq ($(TARGET),)
-    TARGETS := $(TARGETS)  # Build all examples
+    TARGETS := $(TARGETS)
 else
-    TARGETS := build/$(TARGET)/main  # Build only the specified target
+    TARGETS := build/$(TARGET)/main
 endif
 
 .PHONY: all clean run
@@ -36,18 +55,18 @@ all: $(TARGETS)
 
 # Rule to compile each example
 build/%/main: %/main.c $(SACI_SRC)
-	@echo "\nBuilding $<"
-	@mkdir -p $(dir $@)  # Create the build directory if it doesn't exist
-	$(CC) $(CFLAGS) $< $(SACI_SRC) -o $@ $(LIBS)  # Compile and link
+	@echo "\nBuilding $< with $(CC)"
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $< $(SACI_SRC) -o $@ $(LIBS)
 	@echo "Build succeeded for $<\n"
 
 # Run a specific example
 run: all
 	@echo "\nAvailable examples to run:"
-	@$(foreach ex, $(EXAMPLES), echo $(ex);)  # List examples
+	@$(foreach ex, $(EXAMPLES), echo $(ex);)
 	@read -p "Enter example path to run (e.g., 2d/shapes): " ex && \
 		export LD_LIBRARY_PATH=../saci/deps/glfw/lib/GLFW:$$LD_LIBRARY_PATH && \
-		./build/$$ex/main  # Set LD_LIBRARY_PATH and run
+		./build/$$ex/main
 
 # Clean build files
 clean:
