@@ -16,16 +16,41 @@
 
 /* === Constants === */
 
+/**
+ * @define sa_PI
+ * @brief PI declaration up to 14 digits
+ */
 #define sa_PI 3.141592653589793f
+
+/**
+ * @define sa_DEG2RAD_MULT
+ * @brief Multiplication constant value for degree to radian operations
+ */
 #define sa_DEG2RAD_MULT (sa_PI / 180.0f)
+
+/**
+ * @define sa_Deg_To_Rad_m
+ * @brief Macro that returns a degree from a radian
+ */
 #define sa_Deg_To_Rad_m(x) ((x) * sa_DEG2RAD_MULT)
+
+/**
+ * @define sa_RAD2DEG_MULT
+ * @brief Multiplication constant value for radian to degree operations
+ */
 #define sa_RAD2DEG_MULT (180.0f / SACI_PI)
+
+/**
+ * @define sa_Rad_To_Deg_m
+ * @brief Macro that returns a radian from a degree
+ */
 #define sa_Rad_To_Deg_m(x) ((x) * sa_RAD2DEG_MULT)
 
 /* === Vec3 Operations === */
 
 /**
- * @brief sa_Vec3_Subtract Returns a new vector from a vector subtracted from another
+ * @fn sa_Vec3_Subtract
+ * @brief Returns a new vector from a vector subtracted from another
  *
  * @param[in] a The base vector that will be subtracted
  * @param[in] b The vetor that will subtract
@@ -35,7 +60,8 @@
 sa_vec3 sa_Vec3_Subtract(sa_vec3 a, sa_vec3 b);
 
 /**
- * @brief sa_Vec3_Add Returns a new vector from a vector added from another
+ * @fn sa_Vec3_Add
+ * @brief Returns a new vector from a vector added from another
  *
  * @param[in] a The vector that will be added
  * @param[in] b The vetor that will added
@@ -45,7 +71,8 @@ sa_vec3 sa_Vec3_Subtract(sa_vec3 a, sa_vec3 b);
 sa_vec3 sa_Vec3_Add(sa_vec3 a, sa_vec3 b);
 
 /**
- * @brief sa_Vec3_Scale Returns a new scaled vector
+ * @fn sa_Vec3_Scale
+ * @brief Returns a new scaled vector
  *
  * @param[in] a The vector that will be added
  * @param[in] b The vetor that will added
@@ -55,7 +82,8 @@ sa_vec3 sa_Vec3_Add(sa_vec3 a, sa_vec3 b);
 sa_vec3 sa_Vec3_Scale(sa_vec3 v, float scalar);
 
 /**
- * @brief sa_Vec3_Normalize Returns a normalized vector to unit length (1)
+ * @fn sa_Vec3_Normalize
+ * @brief Returns a normalized vector to unit length (1)
  *
  * @param[in] v The vector to normalize
  *
@@ -64,7 +92,8 @@ sa_vec3 sa_Vec3_Scale(sa_vec3 v, float scalar);
 sa_vec3 sa_Vec3_Normalize(sa_vec3 v);
 
 /**
- * @brief sa_Vec3_Cross Returns the computed cross product of two vectors
+ * @fn sa_Vec3_Cross
+ * @brief Returns the computed cross product of two vectors
  *
  * @param[in] a The first vector
  * @param[in] b The second vector
@@ -75,7 +104,8 @@ sa_vec3 sa_Vec3_Normalize(sa_vec3 v);
 sa_vec3 sa_Vec3_Cross(sa_vec3 a, sa_vec3 b);
 
 /**
- * @brief sa_Vec3_Dot Returns the computed dot product of two vectors
+ * @fn sa_Vec3_Dot
+ * @brief Returns the computed dot product of two vectors
  *
  * @param[in] a The first vector
  * @param[in] b The second vector
@@ -87,7 +117,8 @@ float sa_Vec3_Dot(sa_vec3 a, sa_vec3 b);
 /* === Color Operations === */
 
 /**
- * @brief sa_Color_From_Hex Returns a new sa_color from a given hex code
+ * @fn sa_Color_From_Hex
+ * @brief Returns a new sa_color from a given hex code
  *
  * @param[in] hex The hex code 0x12345678
  *
@@ -96,7 +127,8 @@ float sa_Vec3_Dot(sa_vec3 a, sa_vec3 b);
 sa_color sa_Color_From_Hex(sa_u32 hex);
 
 /**
- * @brief sa_Color_From_U8 Returns a new color from given rgba values
+ * @fn sa_Color_From_U8
+ * @brief Returns a new color from given rgba values
  *
  * @param[in] r The r component of the color
  * @param[in] g The g component of the color
@@ -108,7 +140,8 @@ sa_color sa_Color_From_Hex(sa_u32 hex);
 sa_color sa_Color_From_U8(sa_u8 r, sa_u8 g, sa_u8 b, sa_u8 a);
 
 /**
- * @brief sa_Color_To_Hex Returns a new hex code from a color
+ * @fn sa_Color_To_Hex
+ * @brief Returns a new hex code from a color
  *
  * @param[in] color The color to be evaluated
  *
@@ -119,7 +152,8 @@ sa_u32 sa_Color_To_Hex(sa_color color);
 /* === Mat Operations === */
 
 /**
- * @brief sa_Mat4_Multiply Returns a Multiplied matrix given another
+ * @fn sa_Mat4_Multiply
+ * @brief Returns a Multiplied matrix given another
  *
  * @param[in] a The matrix to be multiplied
  * @param[in] b The matrix to be multiplied
@@ -130,14 +164,16 @@ sa_u32 sa_Color_To_Hex(sa_color color);
 sa_mat4 sa_Mat4_Multiply(sa_mat4 a, sa_mat4 b);
 
 /**
- * @brief sa_Mat4_Identity Returns an identiy matrix
+ * @fn sa_Mat4_Identity
+ * @brief Returns an identiy matrix
  *
  * @return sa_mat4 The identity matrix
  */
 sa_mat4 sa_Mat4_Identity(void);
 
 /**
- * @brief sa_Mat4_Look_At Returns a "view" matrix
+ * @fn sa_Mat4_Look_At
+ * @brief Returns a "view" matrix
  *
  * @param[in] eye The camera's position in world space
  * @param[in] center The target point or the "look-at" point
@@ -148,7 +184,8 @@ sa_mat4 sa_Mat4_Identity(void);
 sa_mat4 sa_Mat4_Look_At(sa_vec3 eye, sa_vec3 center, sa_vec3 up);
 
 /**
- * @brief sa_Mat4_Perspective Returns a perspective "projection" matrix
+ * @fn sa_Mat4_Perspective
+ * @brief Returns a perspective "projection" matrix
  *
  * @param[in] fov The camera's fov
  * @param[in] aspect The camera's aspect ratio
@@ -160,7 +197,8 @@ sa_mat4 sa_Mat4_Look_At(sa_vec3 eye, sa_vec3 center, sa_vec3 up);
 sa_mat4 sa_Mat4_Perspective(float fov, float aspect, float near, float far);
 
 /**
- * @brief sa_Mat4_Ortho Returns an orthogonal "projection" matrix
+ * @fn sa_Mat4_Ortho
+ * @brief Returns an orthogonal "projection" matrix
  *
  * @param[in] left The max coordinate of the left side
  * @param[in] right The max coordinate of the right side
@@ -174,7 +212,8 @@ sa_mat4 sa_Mat4_Perspective(float fov, float aspect, float near, float far);
 sa_mat4 sa_Mat4_Ortho(float left, float right, float bottom, float top, float near, float far);
 
 /**
- * @brief sa_Mat4_Model_Matrix Returns a new model matrix from position, rotation, and scale
+ * @fn sa_Mat4_Model_Matrix
+ * @brief Returns a new model matrix from position, rotation, and scale
  *
  * @param[in] position The position vector (translation)
  * @param[in] rotation The rotation vector (angles in radians for X, Y, Z axes)
@@ -185,7 +224,8 @@ sa_mat4 sa_Mat4_Ortho(float left, float right, float bottom, float top, float ne
 sa_mat4 sa_Mat4_Model_Matrix(sa_vec3 position, sa_vec3 rotation, sa_vec3 scale);
 
 /**
- * @brief sa_Mat4_Rotate_X Returns a matrix rotated around the X-axis
+ * @fn sa_Mat4_Rotate_X
+ * @brief Returns a matrix rotated around the X-axis
  *
  * @param[in] mat The matrix to be rotated
  * @param[in] angle The angle in radians to rotate around the X-axis
@@ -195,7 +235,8 @@ sa_mat4 sa_Mat4_Model_Matrix(sa_vec3 position, sa_vec3 rotation, sa_vec3 scale);
 sa_mat4 sa_Mat4_Rotate_X(sa_mat4 mat, float angle);
 
 /**
- * @brief sa_Mat4_Rotate_Y Returns a matrix rotated around the Y-axis
+ * @fn sa_Mat4_Rotate_Y
+ * @brief Returns a matrix rotated around the Y-axis
  *
  * @param[in] mat The matrix to be rotated
  * @param[in] angle The angle in radians to rotate around the Y-axis
@@ -205,7 +246,8 @@ sa_mat4 sa_Mat4_Rotate_X(sa_mat4 mat, float angle);
 sa_mat4 sa_Mat4_Rotate_Y(sa_mat4 mat, float angle);
 
 /**
- * @brief sa_Mat4_Rotate_Z Returns a matrix rotated around the Z-axis
+ * @fn sa_Mat4_Rotate_Z
+ * @brief Returns a matrix rotated around the Z-axis
  *
  * @param[in] mat The matrix to be rotated
  * @param[in] angle The angle in radians to rotate around the Z-axis
@@ -215,7 +257,8 @@ sa_mat4 sa_Mat4_Rotate_Y(sa_mat4 mat, float angle);
 sa_mat4 sa_Mat4_Rotate_Z(sa_mat4 mat, float angle);
 
 /**
- * @brief sa_Mat4_Scale Returns the new scaled matrix
+ * @fn sa_Mat4_Scale
+ * @brief Returns the new scaled matrix
  *
  * @param[in] sx Scaling factor along the X-axis
  * @param[in] sy Scaling factor along the Y-axis
@@ -226,7 +269,8 @@ sa_mat4 sa_Mat4_Rotate_Z(sa_mat4 mat, float angle);
 sa_mat4 sa_Mat4_Scale(float sx, float sy, float sz);
 
 /**
- * @brief sa_Mat4_Translate Returns the new translation matrix
+ * @fn sa_Mat4_Translate
+ * @brief Returns the new translation matrix
  *
  * @param[in] tx Translation along the X-axis
  * @param[in] ty Translation along the Y-axis

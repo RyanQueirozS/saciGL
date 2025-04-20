@@ -573,6 +573,5 @@ Header files must:
 
 Source files must:
 
-- Document the `global` code, example: static functions, variables, functions
-  etc.
-- Use little documentation overall, naming and context should be enough.
+- Use little documentation overall, naming and context should be enough. But can
+  use a simple `//` documentation block above functions or any other declaration
