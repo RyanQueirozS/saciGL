@@ -43,7 +43,7 @@ sa_vec3 sa_Vec3_Scale(sa_vec3 v, float scalar) {
 }
 
 sa_vec3 sa_Vec3_Normalize(sa_vec3 v) {
-    float mag = sa_SCAST_TO_m(float)(__sa_math_preferences.sqrt_function(v.x * v.x + v.y * v.y + v.z * v.z));
+    float mag = sa_Scast_To_m(float)(__sa_math_preferences.sqrt_function(v.x * v.x + v.y * v.y + v.z * v.z));
     if (mag == 0.0f) {
         return (sa_vec3){0.0f, 0.0f, 0.0f};
     }
@@ -66,10 +66,10 @@ float sa_Vec3_Dot(sa_vec3 a, sa_vec3 b) {
 
 sa_color sa_Color_From_Hex(sa_u32 hex) {
     sa_color color;
-    color.r = ((hex >> 24) & 0xFF) * sa_SCAST_TO_m(sa_u32)(sa_COLOR_8BIT_INVERSE_MAX);
-    color.g = ((hex >> 16) & 0xFF) * sa_SCAST_TO_m(sa_u32)(sa_COLOR_8BIT_INVERSE_MAX);
-    color.b = ((hex >> 8) & 0xFF) * sa_SCAST_TO_m(sa_u32)(sa_COLOR_8BIT_INVERSE_MAX);
-    color.a = (hex & 0xFF) * sa_SCAST_TO_m(sa_u32)(sa_COLOR_8BIT_INVERSE_MAX);
+    color.r = ((hex >> 24) & 0xFF) * sa_Scast_To_m(sa_u32)(sa_COLOR_8BIT_INVERSE_MAX);
+    color.g = ((hex >> 16) & 0xFF) * sa_Scast_To_m(sa_u32)(sa_COLOR_8BIT_INVERSE_MAX);
+    color.b = ((hex >> 8) & 0xFF) * sa_Scast_To_m(sa_u32)(sa_COLOR_8BIT_INVERSE_MAX);
+    color.a = (hex & 0xFF) * sa_Scast_To_m(sa_u32)(sa_COLOR_8BIT_INVERSE_MAX);
     return color;
 }
 
@@ -136,7 +136,7 @@ sa_mat4 sa_Mat4_Look_At(sa_vec3 eye, sa_vec3 center, sa_vec3 up) {
 // TODO evaluate if there is a way not to use tan operations
 sa_mat4 sa_Mat4_Perspective(float fov, float aspect, float near, float far) {
     sa_mat4 result = {0};
-    float tanHalfFov = sa_SCAST_TO_m(float)(__sa_math_preferences.tan_function(sa_Deg_To_Rad_m(fov) / 2.0f));
+    float tanHalfFov = sa_Scast_To_m(float)(__sa_math_preferences.tan_function(sa_Deg_To_Rad_m(fov) / 2.0f));
 
     result.data[0][0] = 1.0f / (aspect * tanHalfFov);
     result.data[1][1] = 1.0f / tanHalfFov;

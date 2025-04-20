@@ -35,7 +35,7 @@ sa_bool sc_OBJ_Parse(const char* filePath,
     if (!(*positions_count_out)) {
         fprintf(stderr, "Malloc Error\n");
     }
-    *positions_out = sa_SCAST_TO_m(sa_vec3*) sa_MALLOC(sizeof(sa_vec3) * (*positions_count_out));
+    *positions_out = sa_Scast_To_m(sa_vec3*) sa_Malloc_m(sizeof(sa_vec3) * (*positions_count_out));
     if (!(*positions_out)) {
         sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM,
                              sa_LOG_CONTEXT_OBJ_LOADING, "Couldn't malloc positions");
@@ -45,11 +45,11 @@ sa_bool sc_OBJ_Parse(const char* filePath,
         float pos_x = attribute.vertices[3 * i + 0];
         float pos_y = attribute.vertices[3 * i + 1];
         float pos_z = attribute.vertices[3 * i + 2];
-        (*positions_out)[i] = sa_SCAST_TO_m(sa_vec3){pos_x, pos_y, pos_z};
+        (*positions_out)[i] = sa_Scast_To_m(sa_vec3){pos_x, pos_y, pos_z};
     }
 
     *texcoord_count_out = attribute.num_texcoords;
-    *texcoords_out = sa_SCAST_TO_m(sa_vec2*) sa_MALLOC(sizeof(sa_vec2) * (*texcoord_count_out));
+    *texcoords_out = sa_Scast_To_m(sa_vec2*) sa_Malloc_m(sizeof(sa_vec2) * (*texcoord_count_out));
     for (sa_u64 i = 0; i < (*texcoord_count_out); ++i) {
         float u = attribute.texcoords[2 * i + 0];
         float v = attribute.texcoords[2 * i + 1];
@@ -57,11 +57,11 @@ sa_bool sc_OBJ_Parse(const char* filePath,
     }
 
     *indices_count_out = attribute.num_faces;
-    *indices_out = sa_SCAST_TO_m(struct sc_vertexIndice_c*) sa_MALLOC(sizeof(struct sc_vertexIndice_c) * (*indices_count_out));
+    *indices_out = sa_Scast_To_m(struct sc_vertexIndice_c*) sa_Malloc_m(sizeof(struct sc_vertexIndice_c) * (*indices_count_out));
     for (sa_u64 i = 0; i < (attribute.num_faces); ++i) {
-        (*indices_out)[i].vertexIndex = sa_SCAST_TO_m(sa_u32)(attribute.faces[i].v_idx);
-        (*indices_out)[i].texCoordIndex = sa_SCAST_TO_m(sa_u32) attribute.faces[i].vt_idx;
-        (*indices_out)[i].normalIndex = sa_SCAST_TO_m(sa_u32) attribute.faces[i].vn_idx;
+        (*indices_out)[i].vertexIndex = sa_Scast_To_m(sa_u32)(attribute.faces[i].v_idx);
+        (*indices_out)[i].texCoordIndex = sa_Scast_To_m(sa_u32) attribute.faces[i].vt_idx;
+        (*indices_out)[i].normalIndex = sa_Scast_To_m(sa_u32) attribute.faces[i].vn_idx;
     }
 
     // These will not be changed to sa_FREE, since they are already changed
@@ -69,7 +69,7 @@ sa_bool sc_OBJ_Parse(const char* filePath,
     tinyobj_attrib_free(&attribute);
     tinyobj_shapes_free(shape_array, shape_array_amount);
     tinyobj_materials_free(material_array, material_array_size);
-    sa_FREE(__sc_buffer);
+    sa_Free_m(__sc_buffer);
 
     return true;
 }
@@ -78,10 +78,10 @@ sa_bool sc_OBJ_Parse(const char* filePath,
 
 static void __sc_File_Reader_Function(void* ctx, const char* filename, int isMtl,
                                       const char* objFilename2, char** buf, size_t* len) {
-    sa_NOT_USED(buf);
-    sa_NOT_USED(ctx);
-    sa_NOT_USED(isMtl);
-    sa_NOT_USED(objFilename2);
+    sa_Not_Used_m(buf);
+    sa_Not_Used_m(ctx);
+    sa_Not_Used_m(isMtl);
+    sa_Not_Used_m(objFilename2);
     FILE* file = fopen(filename, "rb");
     if (!file) {
         fprintf(stderr, "Error: Unable to open file '%s'\n", filename);
@@ -107,7 +107,7 @@ static void __sc_File_Reader_Function(void* ctx, const char* filename, int isMtl
         return;
     }
 
-    *__sc_buffer = (char*)malloc(sa_SCAST_TO_m(sa_u64)(file_size));
+    *__sc_buffer = (char*)sa_Malloc_m(sa_Scast_To_m(sa_u64)(file_size));
     if (!*__sc_buffer) {
         fprintf(stderr, "Error: Memory allocation failed for file '%s'\n", filename);
         fclose(file);
@@ -116,10 +116,10 @@ static void __sc_File_Reader_Function(void* ctx, const char* filename, int isMtl
     }
 
     rewind(file);
-    size_t bytes_read = fread(*__sc_buffer, 1, sa_SCAST_TO_m(sa_u64)(file_size), file);
+    size_t bytes_read = fread(*__sc_buffer, 1, sa_Scast_To_m(sa_u64)(file_size), file);
     if (bytes_read != (size_t)file_size) {
         fprintf(stderr, "Error: File read error for '%s'\n", filename);
-        sa_FREE(*__sc_buffer);
+        sa_Free_m(*__sc_buffer);
         *__sc_buffer = NULL;
         *len = 0;
         fclose(file);

@@ -36,7 +36,7 @@ SA_API void sc_Event_Set_Mouse_Pos_Handler(sc_window_t* window, sc_event_mousePo
 }
 
 SA_API sa_bool sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
-    return glfwGetKey(window, sa_SCAST_TO_m(int)(keycode)) == GLFW_PRESS;
+    return glfwGetKey(window, sa_Scast_To_m(int)(keycode)) == GLFW_PRESS;
 }
 
 /* === Renderer === */
@@ -260,12 +260,12 @@ struct __sc_renderer {
 
 #endif
 
-#define __sc_Renderer_Free_Memory_m(rendr)              \
-    do {                                                \
-        if ((rendr)->bound_index_array_buffer) {        \
-            sa_FREE((rendr)->bound_index_array_buffer); \
-            (rendr)->bound_index_array_buffer = NULL;   \
-        }                                               \
+#define __sc_Renderer_Free_Memory_m(rendr)                \
+    do {                                                  \
+        if ((rendr)->bound_index_array_buffer) {          \
+            sa_Free_m((rendr)->bound_index_array_buffer); \
+            (rendr)->bound_index_array_buffer = NULL;     \
+        }                                                 \
     } while (0)
 
 #define __sc_Renderer_Free_OpenGL_m(rendr)        \
@@ -336,31 +336,31 @@ static void __sc_Renderer_Init(struct __sc_renderer* rendr) {
         sc_GL_Bind_Vertex_Buffer(rendr->vbo);
 
         sc_GL_Set_Vertex_Attrib_Pointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct __sc_vertex),
-                                        sa_SCAST_TO_m(void*) offsetof(struct __sc_vertex, pos));
+                                        sa_Scast_To_m(void*) offsetof(struct __sc_vertex, pos));
         sc_GL_Enable_Vertex_Attrib_Array(0);
         sc_GL_Set_Vertex_Attrib_Pointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(struct __sc_vertex),
-                                        sa_SCAST_TO_m(void*) offsetof(struct __sc_vertex, color));
+                                        sa_Scast_To_m(void*) offsetof(struct __sc_vertex, color));
         sc_GL_Enable_Vertex_Attrib_Array(1);
         sc_GL_Set_Vertex_Attrib_Pointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(struct __sc_vertex),
-                                        sa_SCAST_TO_m(void*) offsetof(struct __sc_vertex, uv));
+                                        sa_Scast_To_m(void*) offsetof(struct __sc_vertex, uv));
         sc_GL_Enable_Vertex_Attrib_Array(2);
     }
 }
 
 static void __sc_Renderer_Init_Batch(struct __sc_renderer* rendr) {
     rendr->batch_in_use = 0;
-    rendr->batch_array = sa_MALLOC(sizeof(struct __sc_batch) * rendr->batch_array_capacity);
+    rendr->batch_array = sa_Malloc_m(sizeof(struct __sc_batch) * rendr->batch_array_capacity);
     sa_Log_Assert_Message_m(rendr->batch_array, "Batch array could not be initialized");
 
     for (sa_u32 i = 0; i < rendr->batch_array_capacity; ++i) {
         rendr->batch_array[i].index_array_length = 0;
         rendr->batch_array[i].vertex_array_length = 0;
         rendr->batch_array[i].vertex_array =
-            sa_MALLOC(sizeof(struct __sc_vertex) * rendr->batch_vertex_capacity);
+            sa_Malloc_m(sizeof(struct __sc_vertex) * rendr->batch_vertex_capacity);
         sa_Log_Assert_Message_m(rendr->batch_array[i].vertex_array,
                                 "Batch vertex array could not be initialized");
         rendr->batch_array[i].index_array =
-            sa_MALLOC(sizeof(sa_u32) * rendr->batch_index_capacity);
+            sa_Malloc_m(sizeof(sa_u32) * rendr->batch_index_capacity);
         sa_Log_Assert_Message_m(rendr->batch_array[i].index_array,
                                 "Batch index array could not be initialized");
     }
@@ -369,15 +369,15 @@ static void __sc_Renderer_Init_Batch(struct __sc_renderer* rendr) {
 static void __sc_Renderer_Init_Call(struct __sc_renderer* rendr) {
     rendr->call_in_use = 0;
     rendr->call_array =
-        sa_MALLOC(sizeof(struct __sc_renderCall) * rendr->call_array_capacity);
+        sa_Malloc_m(sizeof(struct __sc_renderCall) * rendr->call_array_capacity);
     sa_Log_Assert_Message_m(rendr->call_array, "Call array could not be initialized");
     for (sa_u8 i = 0; i < rendr->call_array_capacity; ++i) {
         rendr->call_array[i].index_array =
-            sa_MALLOC(sizeof(sa_u32) * rendr->call_index_capacity);
+            sa_Malloc_m(sizeof(sa_u32) * rendr->call_index_capacity);
         sa_Log_Assert_Message_m(rendr->call_array[i].index_array,
                                 "Call INDEX array could not be initialized");
         rendr->call_array[i].vertex_array =
-            sa_MALLOC(sizeof(struct __sc_vertex) * rendr->call_vertex_capacity);
+            sa_Malloc_m(sizeof(struct __sc_vertex) * rendr->call_vertex_capacity);
         sa_Log_Assert_Message_m(rendr->call_array[i].vertex_array,
                                 "Call VERTEX array could not be initialized");
         rendr->call_array[i].vertex_array_length = 0;
@@ -429,12 +429,12 @@ static void __sc_Renderer_Batch_Flush(struct __sc_renderer* rendr) {
 
         glBindBuffer(GL_ARRAY_BUFFER, rendr->vbo);
         glBufferSubData(GL_ARRAY_BUFFER, 0,
-                        sa_SCAST_TO_m(long int)(sizeof(struct __sc_vertex) * batch_in_use->vertex_array_length),
+                        sa_Scast_To_m(long int)(sizeof(struct __sc_vertex) * batch_in_use->vertex_array_length),
                         batch_in_use->vertex_array);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendr->ibo);
         glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
-                        sa_SCAST_TO_m(long int)(sizeof(sa_u32) * batch_in_use->index_array_length),
+                        sa_Scast_To_m(long int)(sizeof(sa_u32) * batch_in_use->index_array_length),
                         batch_in_use->index_array);
 
         { // Uniforms
@@ -444,7 +444,7 @@ static void __sc_Renderer_Batch_Flush(struct __sc_renderer* rendr) {
             }
 
             glBindBuffer(GL_UNIFORM_BUFFER, rendr->ubo);
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, sa_SCAST_TO_m(long int)(rendr->uniform_struct_size), rendr->uniform_struct_block);
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sa_Scast_To_m(long int)(rendr->uniform_struct_size), rendr->uniform_struct_block);
             glBindBuffer(GL_UNIFORM_BUFFER, 0);
         }
 
@@ -454,7 +454,7 @@ static void __sc_Renderer_Batch_Flush(struct __sc_renderer* rendr) {
             glBindTexture(GL_TEXTURE_2D, rendr->current_texture_id);
         }
 
-        glDrawElements(GL_TRIANGLES, sa_SCAST_TO_m(int)(batch_in_use->index_array_length), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, sa_Scast_To_m(int)(batch_in_use->index_array_length), GL_UNSIGNED_INT, 0);
 
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindVertexArray(0);
@@ -504,7 +504,7 @@ static void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
             if (!__sc_Renderer_Uniform_Is_Equal(
                     batch_now->uniform_struct_block,
                     call_now->uniform_struct_block,
-                    sa_MIN(call_now->uniform_struct_block_size, batch_now->uniform_struct_block_size))) {
+                    sa_Min_m(call_now->uniform_struct_block_size, batch_now->uniform_struct_block_size))) {
 
                 continue;
             }
@@ -550,7 +550,7 @@ static void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
 /* --- Renderer Header Impl --- */
 
 SA_API sc_renderer* sc_Renderer_New_Default(void) {
-    struct __sc_renderer* rendr = sa_MALLOC(sizeof(struct __sc_renderer));
+    struct __sc_renderer* rendr = sa_Malloc_m(sizeof(struct __sc_renderer));
     sa_Log_Assert_Message_m(rendr, "Renderer could not be created");
     __sc_Renderer_Init(rendr);
     rendr->batch_array_capacity = __SC_RENDERER_DEFAULT_BATCH_CAPACITY;
@@ -568,7 +568,7 @@ SA_API sc_renderer* sc_Renderer_New_Default(void) {
         rendr->bound_index_array_length = 0;
         rendr->bound_index_array_capacity = __SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY;
         rendr->bound_index_array_buffer =
-            sa_MALLOC(sizeof(sa_u32) * rendr->bound_index_array_capacity); // 10k vertices
+            sa_Malloc_m(sizeof(sa_u32) * rendr->bound_index_array_capacity); // 10k vertices
     }
 
     return rendr;
@@ -584,7 +584,7 @@ SA_API struct __sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx, sa_u64 b
     }
 
     // TODO
-    struct __sc_renderer* rendr = sa_MALLOC(sizeof(struct __sc_renderer));
+    struct __sc_renderer* rendr = sa_Malloc_m(sizeof(struct __sc_renderer));
     assert(rendr);
     __sc_Renderer_Init(rendr);
 
@@ -604,7 +604,7 @@ SA_API void sc_Renderer_Bind_Texture(struct __sc_renderer* rendr, sa_textureId t
 
 SA_API void sc_Renderer_Set_Uniform_Struct(struct __sc_renderer* rendr, sa_u64 size) {
     rendr->uniform_struct_size = size;
-    rendr->uniform_struct_block = sa_MALLOC(rendr->uniform_struct_size);
+    rendr->uniform_struct_block = sa_Malloc_m(rendr->uniform_struct_size);
 }
 
 SA_API void sc_Renderer_Bind_Uniform_Struct(struct __sc_renderer* rendr, void* uniform) {
@@ -737,7 +737,7 @@ SA_API void sc_GL_Resize_Vertex_Buffer(sa_u32 vao_id, sa_u32 vbo_id, sa_u64 new_
     glBindVertexArray(vao_id);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-    glBufferData(GL_ARRAY_BUFFER, sa_SCAST_TO_m(sa_s64)(new_size), NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sa_Scast_To_m(sa_s64)(new_size), NULL, GL_DYNAMIC_DRAW);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -747,7 +747,7 @@ SA_API sa_u32 sc_GL_Create_Index_Buffer_Dynamic(sa_u32* indices, sa_u64 indice_a
     sa_u32 ibo;
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sa_SCAST_TO_m(sa_s64)(indice_amount * sizeof(sa_u32)), &indices[0],
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sa_Scast_To_m(sa_s64)(indice_amount * sizeof(sa_u32)), &indices[0],
                  GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     return ibo;
@@ -757,14 +757,14 @@ SA_API sa_u32 sc_GL_Create_Index_Buffer_Static(sa_u32* indices, sa_u64 indice_am
     sa_u32 ibo;
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sa_SCAST_TO_m(sa_s64)(indice_amount * sizeof(sa_u32)), &indices[0],
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sa_Scast_To_m(sa_s64)(indice_amount * sizeof(sa_u32)), &indices[0],
                  GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     return ibo;
 }
 
 SA_API void sc_GL_Create_Vertex_Array(sa_u64 size, sa_u32* arrays) {
-    glGenVertexArrays(sa_SCAST_TO_m(int)(size), arrays);
+    glGenVertexArrays(sa_Scast_To_m(int)(size), arrays);
 }
 
 SA_API void sc_GL_Bind_Vertex_Array(sa_u32 array) {
@@ -779,13 +779,13 @@ SA_API sa_u32 sc_GL_Create_Vertex_Buffer(sa_u64 size, const void* data, sa_u32 u
     sa_u32 vbo = 0;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sa_SCAST_TO_m(long int)(size), data, usage);
+    glBufferData(GL_ARRAY_BUFFER, sa_Scast_To_m(long int)(size), data, usage);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     return vbo;
 }
 
 SA_API void sc_GL_Set_Vertex_Attrib_Pointer(sa_u32 index, int size, sa_u32 type, sa_bool normalized, sa_u64 stride, void* ptr) {
-    glVertexAttribPointer(index, size, type, normalized, sa_SCAST_TO_m(int)(stride), ptr);
+    glVertexAttribPointer(index, size, type, normalized, sa_Scast_To_m(int)(stride), ptr);
 }
 
 void sc_GL_Enable_Vertex_Attrib_Array(sa_u32 id) {
