@@ -1,188 +1,366 @@
 # saciGL Conventions
 
-## Style 
-### Indentation
+## tl;dr
 
-Use **4** space indentation, tabs are okay but spaces are easier to jump
-around. Using 2 space indentation makes it hard to differenciate blocks of
-code.
+If you have already read other coding guidelines, and feel like learning saci
+standard guidelines by looking at it's code, just these **10 requirements**
+mentioned below should be enough to make your changes fit in the saci project:
 
-There should be no reason to have over 3 indentation levels in a single piece
-of code, **NO REASON**. That's why 4 space indentation shouldn't be too much on
-the screen.
+1. **Use appropriate prefixes (sc_, sl_, sa_) and case styles**.
+   > Maintaining naming rules makes code more predictable when reading.
+2. **Avoid elses and nesting**.
+   > 3 levels or more of nested statements should probably be better subdivided
+   > into separate functions.
+3. **Log and assert whenever possible (`sa_Log_Print_m`, `sa_Assert_m`)**.
+   > Assertions should be used wisely and only to critical portions of code, and
+   > it's better to log pretty much everything then not loggin usefull info.
+4. **Use predefined types (sa_s32, sa_u8)**.
+   > Keeps code standardized.
+5. **Prefere pre-allocation over frequent memory allocations**.
+   > Frequent allocations affect memory and can lead to other bigger issues that
+   > can be mostly avoided.
+6. **DO NOT use `goto`, `setjmp` or `longjmp` constructs.**
+   > Code should go have a simple control flow.
+7. **Keep info in the smallest possible level os scope**.
+   > Maintaining the global space clean makes for a good and safe experience for
+   > the developer and the end-user of the library.
+8. **Try not to use `typedef` when not needed**.
+   > Specifying `struct` and `enum` before a data structure is a strong `C`
+   > feature that helps readabilty over the cost of verbosity.
+9. **Ensure that abstractions provide a clear reason to exist and aren't just
+   over-engineering**.
+   > Make sure the saciLib doesn't use any dependencies other than saciCore, and
+   > saciCore should provide a simple abstraction layer over the dependencies
+   > themselves.
+10. **Give users freedom while preventing unintended mistakes. Use preprocessors
+    or functions to manage 'hidden' values and ensure safe interactions**.
+    > The sc_renderer struct is opaque but can be exposed through a
+    > `SC_RENDERER_STRUCT_EXPOSE` define and functions that manage it's
+    > properties.
 
-Prefere the use of braces in if statements unless it reduces readability or the
-if statement affect only one line. Example:
+## Naming
+
+### General Naming Rules
+
+1. **GLOBAL HEADER** elements must be prefixed with:
+   - `sc_` if part of saciCore.
+   - `sl_` if part of saciLib.
+   - `sa_` if not one of the above.
+
+2. **GLOBAL SOURCE** elements must be prefixed with:
+   - `__sc_` if part of saciCore.
+   - `__sl_` if part of saciLib.
+   - `__sa_` if not one of the above.
+
+3. Rules 1 and 2 **do not apply** in **LOCAL** scopes (e.g., inside functions,
+   structs, etc.).
+
+4. Prefixes and suffixes should maintain their defined casing and should not
+   affect overall casing, `sc_` will not be capitalized even if in a
+   `sc_CONST_VALUE`.
+
+5. Prefere `count` or `lenght` over `size`, and `array` or `list` over plural.
+   Example:
+   ```c
+   // BAD:
+   key* key_presses;
+   int key_presses_size; // Ambiguous, is it the capacity or the amount of items in key_presses?
+   // GOOD:
+   key* key_press_array;
+   int key_press_array_count; // depending on context could just be key_press_count.
+   ```
+
+6. Names should use keywords that go from most important to least, and separate
+   **what it is RELATED to (`_Scope_`, `_Event_`, `_Renderer_`)**. Example:
 
 ```c
-if (condition) DoSomething();
-// Only one line
+// Bad:
+typedef void (*sc_FunctionPtrToHandleMousePos_t)(sc_Window_t* window, double posx, double posy);
+// We defined a type for a function ptr, that only tells what it is used for in
+// the end `HandleMousePos`
 
-if (otherCondition) {
-    DoThis();
-    AndThat();
+// Good:
+typedef void (*sc_Event_MousePosHandler_t)(sc_Window_t* window, double posx, double posy);
+// We defined a type for a function ptr, that tells the SCOPE first (_Event_),
+// and then we explain what it does in simple terms, it's a `mouse pos handler`.
+```
+
+---
+
+### Element-Specific Naming Rules
+
+| CONVENTION             | ELEMENTS                          |
+| ---------------------- | --------------------------------- |
+| `__` + ALL_CAPS + `__` | Header Guards                     |
+| ALL_CAPS               | Defines, Consts                   |
+| Pascal_Case_Underlined | Functions, Macros                 |
+| camelCase              | Enum, Structs                     |
+| snake_case             | Variables, params, struct members |
+
+NOTE:
+
+1. `Header guards` should contain the full path related to `/saci/include/`.
+   Example: `/saci/include/my-dir/my-file.h` will be `__MY_DIR_MY_FILE_H__`;
+2. Even const params should use `snake_case`;
+3. `Static` values should use `_s` suffix independent of being constant or
+   variable;
+4. `Macros` should have a `_m` suffix.
+
+Examples:
+
+```c
+#ifndef __MY_HEADER_GUARD__
+#define __MY_HEADER_GUARD__
+#endif // __MY_HEADER_GUARD__
+
+const sa_u8 __sc_LINE_COUNT = 10; 
+
+struct __sc_File_Handler {
+    char** member_one;
+    char* member_two;
+}
+
+sa_u8 sc_File_Get_Line_Count(void) {
+    int line_offset = 3;
+    return sa_File_Get_Ratio_m(__sc_LINE_COUNT - line_offset); // Explanation on why offset should be used
+}
+...
+```
+
+In the above example, just by looking at the code, you can se what everything is
+and where it is located project-wise.
+
+- The `__sc` indicates this is a source file of the `saciCore`.
+- The `__sc` also indicates that those pieces of code won't be used elsewhere.
+- The `sc` in the funtion indicates that function is declared in a header and is
+  being implemented in that source file.
+- The `_m` suffix after the `sa_File_Get_Ratio_m` indicates it is a macro, and
+  the `sa` indicates it is not a part of the `core` or `lib`.
+
+### Naming guidelines
+
+#### Enum Members
+
+Enum members should always begin with the enum name. Example:
+
+```c
+enum sa_Log_Level {
+    SA_LEVEL_INFO // BAD
+    SA_LOG_LEVEL_DEBUG // GOOD
 }
 ```
 
-#### Avoid else
+#### Functions
 
-Elses are powerfull and very tempting to use. As said previouslly using over 3
-levels of indentation is a sacrilegious act and `else` helps make that happen.
-If possible, always return early, always separate logic into reusable code.
-Example:
+Should always explain what it does, not to the minimal level, but what it
+accomplishes. `Does_Something`, `Creates_This`, `Does_That`, **SIMPLE**.
+
+#### Function params
+
+If a function param is a output param, use `_out` in the end.
+
+#### Files
+
+Files should be named:
+
+- In lower-case with dashes(`-`) separating each word.
+- Be descriptive of what they try to acomplish.
+
+## Style
+
+### Indentation
+
+Use 4 space indentation. Tabs are bad for navigation, 2 is to little to
+differenciate, 8 is a lot. Simple as that.
+
+There should be **NO REASON** to have over 3 indentation levels. **IF and ONLY
+IF** 4 indentation or more is needed - again, **highly improbable** - it can be
+accepted.
+
+### If and elses
+
+#### Braces
+
+`if` should contain braces when the code in the `if` statement does more than
+one thing. Example:
 
 ```c
-...
-    if(something) {
-        doSomething();
-    } else if (!something && otherThing){
-        if(otherThing == "other thing") { 
-            doOtherthing("other thing");
-        } else {
-            doSomethingDifferent();
-        }
-    } else if (!otherThing) {
-        doRandom();
-    }
-...
+// BAD: 
+// This ifstatement does more than one thing:
+if (condition) valueTwo = 2, valueThree = 3;
 
-// the above code can be refactored to
-
-...
-    if (something) {
-        doSomething();
-        return;
-    }
-
-    if (otherThing) {
-        if (otherThing === "other thing") {
-            doOtherthing("other thing");
-        } else { // We can further remove this else but it might not increase readability
-            doSomethingDifferent();
-        }
-        return;
-    }
-
-    doRandom();
-    
-    // You can perhaps create a otherThing validation function and separate even further.
-...
+// GOOOD: 
+if (condition) {
+    valueTwo = 2; // could be a ; or ,
+    valueThree = 3; 
+}
 ```
 
-**Code readability is a must**
+#### Elses
+
+**AVOID ELSES** whenever possible. Elses are double-eged swords, they can
+drastically improve readability in some cases, and infinitely worsen in some.
+Just in case, **AVOID IT**. Prefere returning early, and **ONLY USING ELSE WHEN
+NEEDED**.
+
+#### Nesting
+
+**DO NOT** nest whenever possible. Simple as that.
 
 ### Line limit
 
-Line limit should be kept at 80, the `.clang-format` file does not break at 80, 
-instead breaking at 100 (limit). If the line gets less readable when broken
-after 80 chars, feel free to leave it to 100, but **NO line should pass 100
-chars**, and **TRY TO KEEP IT AT 80**.
+**Lines should be kept at 80 CHARS** whenever possible. The `.clang-format` file
+does not break lines, because sometimes it forces some ugly indentations.
+Prefere a **READABLE over a 80 CHAR LINE**, if you need to break at 60, 90, or a
+100, do it. **DO NOT GO OVER 110** and whenever possible **BREAK AT 80 CHARS**.
 
-### Braces
+### Whitespace
 
-Braces must be kept after the declaration of whichever statement block (if,
-switch, for, while, do, functions, structs, enums, **ALL of them**). Example:
+#### Empty lines
+
+There should **NOT** be a empty line per function in the header files. Example:
 
 ```c
-if (x) {
-    // code
-}
+// Without be:
+void My_Func();
 
-void function(int x) {
-    // body
-}
+void Another_Func();
 
-typedef enum SomeEnum {
-    // enum values
-}
-
-// You get the idea
+// Should be:
+void My_Func();
+void Another_Func();
 ```
+
+**AVOID CREATING UNECESSARY EMPTY LINES**. Example:
+
+```c
+// One newline per line. BAD:
+void My_Func() {
+    int a = 0;
+    
+    int b = 1;
+    
+    if (condition) {
+        ...
+    }
+}
+
+// CORRECT:
+
+void My_Func() {
+    int a = 0; // could even be a , instead of ;
+    int b = 1;
+    
+    if(condition) { // That whitespace above is acceptable
+        ...
+    }
+}
+```
+
+#### Braces
+
+As seen above. Use braces after functions, ifs, elses, switch and cases, structs
+and all of the other things people debate about in regards to braces.
 
 ## Best Practices
 
-Always use the implemented types, for integers, no `long long`, `short short`,
-use `saci_s8` to `saci_s64` and `saci_u8` to `saci_u64`, that goes for all types.
+1. **USE THE ALREADY IMPLEMENTED TYPES**, for integers, no `long long`,
+   `short short`, use `sa_s8` to `sa_s64` and `sa_u8` to `sa_u64`, that goes for
+   all types;
+2. **AVOID MAGIC VALUES**. Only use them when it has implicit meaning (returning
+   0, -1 or NULL for fail);
+3. **RETURN EARLY**;
+4. **CHECK/HANDLE MEMORY ALLOCATION**;
+5. Prefere **PRE-ALLOCATING MEMORY**;
+6. **NO DEPENDENCIES on SACI LIB**. SaciCORE should provide enough abstraction
+   layers;
+7. **LOG ALL POSSIBLE ERRORS**;
+8. **ASSERT ONLY WHEN NEEDED**. Only for critical operations, like renderer
+   creation/library initialization;
+9. **DO NOT** use **`goto`**, **`setjmp`** or **`longjmp`** constructs.
 
-Avoid the use of **magic values**. Only use them when it has implicit meaning
-(returning 0, -1 or NULL for fail).
+### Public vs Non Public
 
-### Error Handling
+When creating a global element, ask yourself if it really needs to be global.
+The user should not know or see the inner workings of a function or data
+structure, **UNLESS NEEDED**. Freedom of the users is a must but safety is far
+more valuable.
 
-Address all edge cases and errors, especially for memory allocation and
-dependencies. Document any unhandled errors, such as returning `NULL` values.
+A good mindset to have is:
 
-- Return early;
-- Memory allocation should always be checked;
-- Ensure resource management;
-- Do not check the same thing twice as it can lower down performance;
-- OpenGL already logs errors through `glDebugMessageCallback`, adding new error
-  checks can be done but are not adviced;
+> If the user can screw up, they will.
 
-**Important Note on ASSERT**: using `assert` is adviced only in core
-functionalities like creation of a `sc_Renderer` but not on a smaller task like
-texture loading, in general use `SACI_LOG_PRINT` at `SACI_LOG_SEVERITY_HIGH` instead of `assert`.
+**DO NOT LET THE USER SCREW UP**.
 
-### Log
+### Code organization
 
-Use `SACI_LOG_PRINT` for significant actions (e.g., creation,
-deletion, configuration changes) and appropriate log levels (INFO, WARN,
-ERROR). 
-- **EVERY error should be logged.** 
-- Use `#if defined(SACI_DEBUG_MODE)` or `#if
-  defined(SACI_DEBUG_MODE_{FILE_MAIN_NAME})` to enable debug logs if necessary.
+Each code portion should be subdivided. Example:
+
+```c
+/* === Helper === */
+// helper code goes here
+
+
+/* === Implementations === */
+// Implementations should go here
+```
+
+When in a HEADER FILE:
+
+```c
+/* === Event === */
+// Event related code
+
+
+/* === Renderering  === */
+// Rendering related code
+```
+
+### Assertion
+
+Prefer to use the `sa_Assert_m` whenever critical operations need to be checked.
+It is a like the `sa_Log_Print_m` (discused below) but it is specific to
+critical, high priority logging information.
+
+### Logging
+
+Use `sa_Log_Print_m` for significant actions (e.g., creation, deletion,
+configuration changes) and appropriate log levels (INFO, WARN, ERROR).
+
+- **EVERY error should be logged.**
+- Use `#if defined(SA_DEBUG_MODE)` or
+  `#if defined(SA_DEBUG_MODE_{FILE_MAIN_NAME})` to enable debug logs if
+  necessary.
 - **DO NOT log unnecessary information**.
 - Avoid using plain `printf` or print-related functions.
 
 Logging **Type**:
 
-| Type           | Use                                                                                                           |
-|----------------|---------------------------------------------------------------------------------------------------------------|
-| SACI_LOG_DEBUG | Information that helps developers understand internal workings or trace execution for debugging purposes.     |
-| SACI_LOG_INFO  | Information useful to the end-user regarding application state or normal operations (e.g., resource loading). |
-| SACI_LOG_WARN  | What may cause issues, the end user shouldn't need to see this                                                |
-| SACI_LOG_ERROR | Failures, errors or unexpected values                                                                         |
-
+| Type         | Use                                                                                                          |
+| ------------ | ------------------------------------------------------------------------------------------------------------ |
+| sa_LOG_DEBUG | Information that helps developers understand internal workings or trace execution for debugging purposes.    |
+| sa_LOG_INFO  | Information useful to the end-user regarding application state or normal operations (e.g. resource loading). |
+| sa_LOG_WARN  | What may cause issues, the end user shouldn't need to see this unless they screw up.                         |
+| sa_LOG_ERROR | Failures, errors or unexpected values.                                                                       |
 
 Logging **Level**:
 
-| Level                          | Use                                                           |
-|--------------------------------|---------------------------------------------------------------|
-| SACI_LOG_SEVERITY_NOTIFICATION | Only informational messages, no action needed.                |
-| SACI_LOG_SEVERITY_LOW          | Minor issues, such as deprecation or performance hints.       |
-| SACI_LOG_SEVERITY_MEDIUM       | Issues that could cause bugs or notable performance problems. |
-| SACI_LOG_SEVERITY_HIGH         | Critical errors that will likely lead to application crashes. |
+| Level                        | Use                                                             |
+| ---------------------------- | --------------------------------------------------------------- |
+| sa_LOG_SEVERITY_NOTIFICATION | Only informational messages, no action needed.                  |
+| sa_LOG_SEVERITY_LOW          | Minor issues, such as deprecation or minimal performance hints. |
+| sa_LOG_SEVERITY_MEDIUM       | Issues that could cause bugs or notable performance problems.   |
+| sa_LOG_SEVERITY_HIGH         | Critical errors. **SHOULD CRASH THE APP**                       |
 
-Logging **context**:
-
-| Contexts                  | Use                                                                     |
-|---------------------------|-------------------------------------------------------------------------|
-| SACI_LOG_CONTEXT_OPENGL   | Logs related to OpenGL operations (e.g., shader errors).                |
-| SACI_LOG_CONTEXT_RENDERER | Logs from the rendering pipeline (e.g., draw call issues, performance). |
-| SACI_LOG_CONTEXT_STBI     | Logs from the STBI library for image loading (e.g., texture issues).    |
-
-New contexts are welcomed!
-
-Example: 
-```c
-    if (texData->width <= 0 || texData->height <= 0) {
-        SACI_LOG_PRINT(
-            SACI_LOG_TYPE_ERROR, // Type
-            SACI_LOG_LEVEL_MEDIUM, // Level
-            SACI_LOG_CONTEXT_STBI, // Context
-            "Texture coudn't be loaded: Texture Width or Height is equal to 0"); // Message
-    }
-```
-
-#### Abstraction
+### Abstraction
 
 The purpose of `saci-core` is to provide a layer of abstraction over
-dependencies like OpenGL such that `saci-lib` can remain "changeless"
-over time. This abstraction ensures that the underlying functionality can
-evolve without requiring changes to the higher-level code. By isolating the
-details of the dependencies, we ensure that our codebase remains flexible and
-easy to maintain, even if the underlying libraries (e.g., OpenGL) change their
-API or behavior over time.
+dependencies like OpenGL such that `saci-lib` can remain "changeless" over time.
+This abstraction ensures that the underlying functionality can evolve without
+requiring changes to the higher-level code. By isolating the details of the
+dependencies, we ensure that our codebase remains flexible and easy to maintain,
+even if the underlying libraries (e.g., OpenGL) change their API or behavior
+over time.
 
 However, the goal of this library is simplicity, and overcomplicating the
 abstraction would defeat this purpose. Abstractions should be implemented
@@ -195,170 +373,96 @@ still providing a clean, maintainable interface.
   verbosity
 - **DO NOT use dependencies in `saci-lib`.**
 
-
 ### Macros and Defines
 
-Do not recreate macros, and use them when possible. Prefere `SACI_SCAST_TO`
-than the default casting, prefere `SACI_ARRLEN` than `sizeof(array) /
-sizeof(array[0])` 
+Do not recreate macros. Prefere `sa_Scast_To` than the default casting, prefere
+`sa_Arrlen` than `sizeof(array) / sizeof(array[0])`.
 
-Use `#define` only when needed
+Use `#define` only when needed.
 
 ### Variables
 
 - Do not create unused variables.
 - Always initialize variables.
-- Use const whenever possible.
-
-When creating a local variable, ask yourself if they are really need to be
-local, same with global.
+- Use `const` whenever possible.
 
 ### Constants
 
-When creating a local constant, ask yourself if they are really need to be
-local, same with global.
+Same rules as variables.
+
+### Typedefs
+
+Whenever defining a type, prefere the raw `struct` or `enum` form. Only use
+`typedef` when **DEFINING A TYPE THAT WILL BE USED FREQUENTLY** and:
+
+- is a opaque type;
+  \
+  OR
+- is a type that adds context for a given functionality;
+
+Example:
+
+```c
+typedef int32_t sa_s32; // OK; reausable, common, usefull.
+
+typedef sa_s32 sa_TextureID // GOOD; adds context.
+
+typedef struct {
+    float value1, value2;
+    const char* STRING;
+} sc_My_Internal_Struct; // BAD. Will rarelly be used by the user.
+```
+
+Imagine reading the following:
+
+```c
+void sc_My_Func(sc_My_Data data) { // is sc_My_Data a struct, an enum? You cannot tell!
+    ...
+}
+
+void sc_My_Func(struct sc_My_Data data) { // this is more readable, obviously a struct.
+    ...
+}
+```
 
 ### Enum
 
-Only use enums when: 
+Only use enums when:
+
 - `#define` would be anoing (having to `#define` hundreads of constants)
-- "Type clarity" matters (the function recieves MyEnum instead of int)
+- "Type clarity" matters (the function recieves My_Enum instead of int)
 
 ### Functions
 
-Always:
+**Never**:
+
+- Create overly-complicated functions.
+  - Each function should be easy to read and not require a computer science
+    degree to understand.
+- Do multiple things in a single function.
+  - **ONLY WHEN NEEDED** a function can do multiple things, like
+    `sc_Renderer_Create`, check example bellow.
+
+**Always**:
+
 - Use `const` to parameters that won't be modified.
-- Ask yourself if this function needs to be public:
-    - Does the end developer really need this?
-    - Is this safe to be called everywhere?
+- Prefere functions up to 60 lines of code.
 - Understand if this function really does what it entails.
-    - A function that creates, modifies, initializes and does a lot of
-      different things will be hard to refactor.
-    - Focus on modularity, keep functions - not small - but decent in scope
-    - `FunctionThatDoesFoo()` might do `foo` and validate it, but not resize,
-      modify already existing`foos`, etc.
+  - A function that creates, modifies, initializes and does a lot of different
+    things will be hard to refactor.
+  - Focus on modularity, keep functions - not small - but decent in scope
+  - `Function_That_Does_Foo()` might do `foo` and validate it, but not resize,
+    modify already existing `foos`, etc.
 
-About modularity: If, and only IF a function need to do more than one thing,
-separate it into different smaller scopes. Example:
-```c
-sc_Renderer* sc_Renderer_Create(saci_Bool generateDefaults) {
-    sc_Renderer* renderer = (sc_Renderer*)malloc(sizeof(sc_Renderer));
-    if (!renderer) {
-        SACI_LOG_PRINT(SACI_LOG_LEVEL_ERROR, SACI_LOG_CONTEXT_RENDERER,
-                       "Renderer could not be initialized");
-        return NULL;
-    }
-    if (generateDefaults) {
-        __sc_renderer_initAll(renderer);
-    }
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_INFO, SACI_LOG_CONTEXT_RENDERER,
-                   "Renderer created successfully");
-    return renderer;
-}
-```
-and `__sc_renderer_initAll`:
+### Endifs
+
+Endifs should containt the condition they are ending in a comment. Example::
 
 ```c
-void __sc_renderer_initAll(sc_Renderer* renderer) {
-    // Initializes to remove garbage numbers
-    __sc_Renderer_initializeValues(renderer);
-
-    { // Initializes the vertice and texture buffers with default sizes
-        __sc_renderBatch_resize(&renderer->renderBatch,
-                                SACI_RENDER_BATCH_DEFAULT_CAPACITY);
-        assert(renderer->renderBatch.renderCalls);
-    }
-
-    // Initializes OpenGL shaders and objects
-    __sc_renderer_initGLVertexAttribContext(renderer);
-    __sc_renderer_initShaderProgram(renderer);
-#if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_RENDERING)
-    SACI_LOG_PRINT(SACI_LOG_LEVEL_DEBUG, SACI_LOG_CONTEXT_RENDERER,
-                   "Renderer initialized successfully");
-#endif
-}
+#ifndef __MY_HEADER_GUARD__
+#define __MY_HEADER_GUARD__
+#endif // __MY_HEADER_GUARD__
 ```
-
-## Naming
-
-
-| ELEMENT          | Convention | Example                       |
-|------------------|------------|-------------------------------|
-| defines          | ALL_CAPS   | `SACI_8BIT_COLOR_MAX`         |
-| Macros           | ALL_CAPS   | `SACI_ARRLEN(x)`              |
-| Variables        | camelCase  | `int keyState`                |
-| Local variables  | camelCase  | `saci_mathPreferences`        |
-| Global variables | camelCase  | There are no Global Variables |
-| Constants        | camelCase  | `const int screen_width`      |
-| Global Constants | ALL_CAPS   | There are no Global Constants |
-| Enum             | PascalCase | `saci_LogLevel`               |
-| Enum Members     | ALL_CAPS   | `SACI_LOG_LEVEL_DEBUG`        |
-| Structs          | PascalCase | `sc_Camera`                   |
-| Struct Members   | camelCase  | `saci_Vec3 position`          |
-| Functions        | PascalCase | `sc_Renderer_Create`          |
-| Functions Params | camelCase  | `saci_Bool generateDefaults`  |
-
-### General naming:
-
-General naming goes as follows:
-
-Whenever defining **GLOBAL** level code, each element should precede a:
-- `sc_` if part of saciCore.
-- `sl_` if part of saciLib.
-- `saci_` if part of saciUtil.
-
-Whenever defining **LOCAL** level code, each element should precede a:
-- `__sc_` if part of saciCore.
-- `__sl_` if part of saciLib.
-- `__saci_` if part of saciUtil.
-
-**NOTE:** tests do not need these.
-
-### Naming guidelines
-
-C has many naming conventions with many different reasons to use each one of
-them. Try to keep names the most discriptive as possible without
-overcomplicating.  Example:
-
-```c
-int randomNumberGeneratedWithRand = rand(); // Bad
-int a = rand(); // AWFUL
-int random = rand(); // Good
-
-
-int temporaryValue = 0; // Bad
-int tmp = 0; // BAD
-int adwadawhdkawj = 0; // AWFUL
-int temporary = 0; // Good
-```
-
-Hungarian notation can be used, but avoid using it unnecessarily. One example
-is `saci_TextureID` which represents a Signed int32, this is good because it
-will be used in multiple places and will always represent the same thing. As a rule:
-- **DO NOT create types that will be used in few places**.
-- DO NOT overcomplicate the workings of a function
-    - Example: 
-      ```c
-      AppleCount getAppleCount(); // You should just return a integer, it's simpler...
-      ```
-      
-### Enum Members
-
-Enum members should always begin with the enum name. Example: 
-```c
-typedef enum saci_LogLevel {
-    SACI_LOG_LEVEL_DEBUG ...
-    SACI_LOG_LEVEL_...
-    SACI_LOG_LEVEL_...
-    SACI_LOG_LEVEL_...
-}
-```
-
-### Files
-
-Files should be named:
-- In lower-case with dashes(`-`) separating each word.
-- Be descriptive of what they try to acomplish.
 
 ## Code Structure
 
@@ -377,33 +481,33 @@ Files should be named:
     ├── saci-core/  
     │   └── **[ALL OF SACI CORE SOURCE FILES]**    
     └── saci-utils/  
-        └── **[ALL OF SACI UTILITY SOURCE FILES]**  
+        └── **[ALL OF SACI UTILITY SOURCE FILES]**
 ```
-
-In saci-core:
-- `sc-rendering` uses (includes) all of the other files in `saci-core`
-- All files in `saci-core` use (include) only the `saci-utils` files, and never
-  any other `saci-core` file
 
 ### Header Files
 
 Must:
-- Be placed in `saci/include` if a part of the library, or `saci/deps` if a dependency.
+
+- Be placed in `saci/include` if a part of the library, or `saci/deps` if a
+  dependency.
 - Have no function implementation, it should only have declarative code.
 - Provide detailed [documentation](#Documentation).
 
 ### Source Files
 
 Must:
-- Be placed in `saci/src` if a part of the library, or `saci/deps` if a dependency.
+
+- Be placed in `saci/src` if a part of the library, or `saci/deps` if a
+  dependency.
 - Implement the functions in it's corresponding header file.
 - Include minimal and necessary headers.
 
 ### Example files
 
 Must:
+
 - Be placed in `examples/`.
-- Contain a CMakeLists.txt to build it.
+- Be a `main.c`
 
 If a example is 2D and defines how the coordinate system works, it should be
 placed in: `examples/2d/coodinate-system/`
@@ -412,104 +516,62 @@ placed in: `examples/2d/coodinate-system/`
 
 ### Base Guidelines
 
-All documentation blocks should use JavaDOC:
+Documentation blocks should be simple and discriptive, try to fit a one-line
+that explains description for each in their header declaration. Use this doxygen
+template:
 
 ```c
 /**
- * It should begin in this line, not the above, and use double `*`.
+ * @brief <FUNTION-NAME> <DESCRIPTION>
+ *
+ * @param[in/ou/inout] <PARAM-NAME> <DESCRIPTION>
+ * @param[in/ou/inout] ... use as many params as needed
+ *
+ * @return <TYPE> <DESCRIPTION>
+ * @retval <VALUE> <DESCRIPTION>
  */
 ```
 
-tags should begin with `@` :
+Use return when there are multiple to infinite possiblities and retval when
+there are little. Think of it like memcmp where there are only 3 possible
+results (use retval), where as a sqrt function can return almost an infinite set
+of numbers (use return).
+
+Example:
+
+NOTE: OLD CODE:
 
 ```c
+// GOOD:
 /**
- * @brief Begin with @ 
- * \ is bad
- * _ even worse
+ * @brief sc_Renderer_Create_Empty Creates an empty sc_renderer
  */
+sc_Renderer_t* sc_Renderer_Create_Empty(void);
+
+// Unecessary information
+/**
+ * @brief sc_Renderer_Create_Empty Creates a default sc_renderer. It already comes with a shader program, ibos, ubos...
+ */
+sc_Renderer_t* sc_Renderer_Create_Default(void); // Creates a renderer with setup fields.
 ```
 
-Member documentation should be as follows:
-```c
-typedef struct saci_Vec2 {
-    float x; /**< X compoonent */
-    float y; /**< Y compoonent */
-} saci_Vec2;
+Each member should be documented as follows:
 
-// It begins with `/**<` and ends with `*/`
+```c
+typedef struct sa_vec2 {
+    float x; // X compoonent
+    float y; // Y compoonent
+} sa_vec2;
 ```
 
 ### Files
 
 Header files must:
-- Begin with a brief description (`@file` and `@brief` tags) outlining its
-  purpose and acomplishments.
-  - Example: 
-  ```c
-  /**
-   * @file sc-rendering.h
-   * @brief This header defines rendering related functions and structs for saciCORE.
-   */
-  ```
-- Every Definition must contain it's documentation.
+
+- A simple documentation describing what the file acomplishes
+- Every Declaration must contain a simple documentation.
 
 Source files must:
-- Document the helper functions, local variables etc...
-- Use little documentation overall, naming and context should be enough.
 
-### Code elements
-
-#### Defines, Global constants and Global Variables
-
-Should contain a `@def` with it's name, and a `@brief` with the description. Example:
-```c
-/**
- * @def SACI_PI
- * @brief Constant for PI (3.141592653589793).
- */
-#define SACI_PI 3.141592653589793f
-```
-
----
-
-#### Macros and Functions
-
-Should contain a `@brief` with the description. A `@detail` if needed, and all
-of the `@param`s and `@return` if needed. Example:
-
-```c
-/**
- * @brief Creates the sc_Renderer struct
- *
- * @details
- * This functions creates, initializes and sets all of the sc_Renderer related shaders and
- * OpenGL context.
- *
- * @param generateDefaults A boolean to generate defaulted shaders and OpenGL context.
- * @return A new sc_Renderer* either defaulted or not. Can return null
- */
-sc_Renderer* sc_Renderer_Create(saci_Bool generateDefaults);
-```
----
-
-#### Structs and Enums
-
-Should document what it does or is used on and what each member does or is used on:
-
-```c
-/**
- * @struct sc_Camera
- * @brief Represents a 3D camera in the saciCORE.
- */
-typedef struct sc_Camera {
-    saci_Vec3 position; /**< The position of the camera in world space. */
-    saci_Vec3 target;   /**< The point the camera is looking at. */
-    saci_Vec3 up;       /**< The up vector that defines the camera's orientation. */
-
-    float fov;         /**< The field of view angle (in degrees) for the camera. */
-    float aspectRatio; /**< The aspect ratio of the camera (width / height). */
-    float near;        /**< The distance to the near clipping plane. */
-    float far;         /**< The distance to the far clipping plane. */
-} sc_Camera;
-```
+- Use little documentation overall, naming and context should be enough. But can
+  use a simple `//` documentation block above functions or any other declaration

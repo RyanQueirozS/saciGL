@@ -1,20 +1,24 @@
-#include <assert.h>
-#include "saci-test/saci-testing.h"
+#define GLITCH_STD
+#include "glitch/glitc.h"
 
-extern void saci_TestWindowing(void);
-extern void saci_TestModelLoading(void);
-extern void saci_TestRendering(void);
+#define GLITCH_RAND
+#include "glitch/glitc-rand.h"
+
+#define GLITCH_COMPLEX
+#include "glitch/glitc-complex.h"
+
+#define SACI_TEST_BUILD
+
+extern void Test_Rendering(GlitchTester* t);
 
 int main(void) {
-    // saci_Test_PrintPassed(true); // do not toggle this on, unlees you want info about the checks that passed
+    GlitchTester* t = glitch_Tester_New();
 
     {
-        // saci_TestWindowing();
-        // saci_TestModelLoading();
-        saci_TestRendering();
+        Test_Rendering(t);
     }
 
-    saci_Test_End();
+    glitch_End(t);
 
     return 0;
 }

@@ -17,216 +17,267 @@
 /* === Constants === */
 
 /**
- * @def SACI_PI
- * @brief Constant for PI (3.141592653589793).
+ * @define sa_PI
+ * @brief PI declaration up to 14 digits
  */
-#define SACI_PI 3.141592653589793f
+#define sa_PI 3.141592653589793f
 
 /**
- * @def SACI_DEG2RAD_M
- * @brief Constant for converting degrees to radians.
+ * @define sa_DEG2RAD_MULT
+ * @brief Multiplication constant value for degree to radian operations
  */
-#define SACI_DEG2RAD_M (SACI_PI / 180.0f)
+#define sa_DEG2RAD_MULT (sa_PI / 180.0f)
 
 /**
- * @def SACI_DEG2RAD
- * @brief Macro to convert degrees to radians.
- *
- * @param x Angle in degrees.
- * @return The angle in radians
+ * @define sa_Deg_To_Rad_m
+ * @brief Macro that returns a degree from a radian
  */
-#define SACI_DEG2RAD(x) ((x)*SACI_DEG2RAD_M)
+#define sa_Deg_To_Rad_m(x) ((x) * sa_DEG2RAD_MULT)
 
 /**
- * @def SACI_RAD2DEG_M
- * @brief Constant for converting radians to degrees.
+ * @define sa_RAD2DEG_MULT
+ * @brief Multiplication constant value for radian to degree operations
  */
-#define SACI_RAD2DEG_M (180.0f / SACI_PI)
+#define sa_RAD2DEG_MULT (180.0f / SACI_PI)
 
 /**
- * @def SACI_RAD2DEG
- * @brief Macro to convert radians to degrees.
- *
- * @param x Angle in radians.
- * @return The angle in degrees.
+ * @define sa_Rad_To_Deg_m
+ * @brief Macro that returns a radian from a degree
  */
-#define SACI_RAD2DEG(x) ((x)*SACI_RAD2DEG_M)
-
-/* === Initialization === */
-
-/**
- * @brief Initializes the mathematical functions and constants.
- * @note Needed to use all of saciCORE and saciLIB.
- */
-void saci_InitMath();
+#define sa_Rad_To_Deg_m(x) ((x) * sa_RAD2DEG_MULT)
 
 /* === Vec3 Operations === */
 
 /**
- * @brief Subtracts two 3D vectors.
+ * @fn sa_Vec3_Subtract
+ * @brief Returns a new vector from a vector subtracted from another
  *
- * @param a The first vector.
- * @param b The second vector.
- * @return The resulting vector after subtraction (a - b).
+ * @param[in] a The base vector that will be subtracted
+ * @param[in] b The vetor that will subtract
+ *
+ * @return sa_vec3 The result of the subtraction
  */
-saci_Vec3 saci_SubtractVec3(saci_Vec3 a, saci_Vec3 b);
+sa_vec3 sa_Vec3_Subtract(sa_vec3 a, sa_vec3 b);
 
 /**
- * @brief Adds two 3D vectors.
+ * @fn sa_Vec3_Add
+ * @brief Returns a new vector from a vector added from another
  *
- * @param a The first vector.
- * @param b The second vector.
- * @return The resulting vector after addition (a + b).
+ * @param[in] a The vector that will be added
+ * @param[in] b The vetor that will added
+ *
+ * @return sa_vec3 The result of the subtraction
  */
-saci_Vec3 saci_AddVec3(saci_Vec3 a, saci_Vec3 b);
+sa_vec3 sa_Vec3_Add(sa_vec3 a, sa_vec3 b);
 
 /**
- * @brief Multiplies a 3D vector.
+ * @fn sa_Vec3_Scale
+ * @brief Returns a new scaled vector
  *
- * @param v The vector.
- * @param scalar The second vector.
- * @return The resulting vector after multiplication.
+ * @param[in] a The vector that will be added
+ * @param[in] b The vetor that will added
+ *
+ * @return sa_vec3 The result of the scalation
  */
-saci_Vec3 saci_MultiplyVec3(saci_Vec3 v, float scalar);
+sa_vec3 sa_Vec3_Scale(sa_vec3 v, float scalar);
 
 /**
- * @brief Nomalizes a 3D vector.
+ * @fn sa_Vec3_Normalize
+ * @brief Returns a normalized vector to unit length (1)
  *
- * @param v The vector.
- * @return The normalized vector.
+ * @param[in] v The vector to normalize
+ *
+ * @return sa_vec3 The normalized vector with a length of 1
  */
-saci_Vec3 saci_NormalizeVec3(saci_Vec3 v);
+sa_vec3 sa_Vec3_Normalize(sa_vec3 v);
 
 /**
- * @brief Computes the cross product of two 3D vectors.
+ * @fn sa_Vec3_Cross
+ * @brief Returns the computed cross product of two vectors
  *
- * @param a The vector.
- * @param b The vector.
- * @return The resulting vector that is orthogonal to both a and b.
+ * @param[in] a The first vector
+ * @param[in] b The second vector
+ *
+ * @return sa_vec3 The result of the cross product of vectors a and b
  */
-saci_Vec3 saci_CrossVec3(saci_Vec3 a, saci_Vec3 b);
+
+sa_vec3 sa_Vec3_Cross(sa_vec3 a, sa_vec3 b);
 
 /**
- * @brief Computes the dot product of two 3D vectors.
+ * @fn sa_Vec3_Dot
+ * @brief Returns the computed dot product of two vectors
  *
- * @param a The first vector.
- * @param b The second vector.
- * @return The dot product of a and b.
+ * @param[in] a The first vector
+ * @param[in] b The second vector
+ *
+ * @return float The result of the dot product of vectors a and b
  */
-float saci_DotVec3(saci_Vec3 a, saci_Vec3 b);
+float sa_Vec3_Dot(sa_vec3 a, sa_vec3 b);
 
 /* === Color Operations === */
 
 /**
- * @brief Creates a color from a hexadecimal value.
+ * @fn sa_Color_From_Hex
+ * @brief Returns a new sa_color from a given hex code
  *
- * @param hex The hexadecimal color value.
- * @return The resulting saci_Color.
+ * @param[in] hex The hex code 0x12345678
+ *
+ * @return sa_color The new color based on the hex code
  */
-saci_Color saci_ColorFromHex(saci_u32 hex);
+sa_color sa_Color_From_Hex(sa_u32 hex);
 
 /**
- * @brief Creates a color from RGBA values.
+ * @fn sa_Color_From_U8
+ * @brief Returns a new color from given rgba values
  *
- * @param r The red component (0-255).
- * @param g The green component (0-255).
- * @param b The blue component (0-255).
- * @param a The alpha component (0-255).
- * @return The resulting saci_Color.
+ * @param[in] r The r component of the color
+ * @param[in] g The g component of the color
+ * @param[in] b The b component of the color
+ * @param[in] a The a component of the color
+ *
+ * @return sa_color The new color based on the rgba value
  */
-saci_Color saci_ColorFromU8(saci_u8 r, saci_u8 g, saci_u8 b, saci_u8 a);
+sa_color sa_Color_From_U8(sa_u8 r, sa_u8 g, sa_u8 b, sa_u8 a);
 
 /**
- * @brief Converts a saci_Color to a hexadecimal value.
+ * @fn sa_Color_To_Hex
+ * @brief Returns a new hex code from a color
  *
- * @param color The saci_Color to convert.
- * @return The hexadecimal representation of the color.
+ * @param[in] color The color to be evaluated
+ *
+ * @return sa_u32 The new hex code
  */
-
-saci_u32 saci_HexFromColor(saci_Color color);
+sa_u32 sa_Color_To_Hex(sa_color color);
 
 /* === Mat Operations === */
 
 /**
- * @brief Multiplies two 4x4 matrices.
+ * @fn sa_Mat4_Multiply
+ * @brief Returns a Multiplied matrix given another
  *
- * @param a The first matrix.
- * @param b The second matrix.
- * @return The resulting matrix after multiplication (a * b).
+ * @param[in] a The matrix to be multiplied
+ * @param[in] b The matrix to be multiplied
+ *
+ * @return sa_mat4 The multiplied matrix
  */
-saci_Mat4 saci_MultiplyMat4(saci_Mat4 a, saci_Mat4 b);
+
+sa_mat4 sa_Mat4_Multiply(sa_mat4 a, sa_mat4 b);
 
 /**
- * @brief Creates an identity matrix.
+ * @fn sa_Mat4_Identity
+ * @brief Returns an identiy matrix
  *
- * @return The identity saci_Mat4 matrix.
+ * @return sa_mat4 The identity matrix
  */
-saci_Mat4 saci_IdentityMat4();
+sa_mat4 sa_Mat4_Identity(void);
 
 /**
- * @brief Creates a view matrix for a camera using the LookAt method.
+ * @fn sa_Mat4_Look_At
+ * @brief Returns a "view" matrix
  *
- * @param eye The position of the camera.
- * @param center The point the camera is looking at.
- * @param up The up direction.
- * @return The resulting view matrix.
+ * @param[in] eye The camera's position in world space
+ * @param[in] center The target point or the "look-at" point
+ * @param[in] up The "up" direction for the camera
+ *
+ * @return sa_mat4 The new view matrix
  */
-saci_Mat4 saci_LookAtMat4(saci_Vec3 eye, saci_Vec3 center, saci_Vec3 up);
+sa_mat4 sa_Mat4_Look_At(sa_vec3 eye, sa_vec3 center, sa_vec3 up);
 
 /**
- * @brief Creates a perspective projection matrix.
+ * @fn sa_Mat4_Perspective
+ * @brief Returns a perspective "projection" matrix
  *
- * @param fov The field of view in degrees.
- * @param aspect The aspect ratio.
- * @param near The near clipping plane distance.
- * @param far The far clipping plane distance.
- * @return The resulting perspective matrix.
+ * @param[in] fov The camera's fov
+ * @param[in] aspect The camera's aspect ratio
+ * @param[in] near The camera's nearest renderable object
+ * @param[in] far The camera's furthest renderable object
+ *
+ * @return sa_mat4 The new projection matrix
  */
-saci_Mat4 saci_PerspectiveMat4(float fov, float aspect, float near, float far);
+sa_mat4 sa_Mat4_Perspective(float fov, float aspect, float near, float far);
 
 /**
- * @brief Creates an orthographic projection matrix.
+ * @fn sa_Mat4_Ortho
+ * @brief Returns an orthogonal "projection" matrix
  *
- * @param left The left plane.
- * @param right The right plane.
- * @param bottom The bottom plane.
- * @param top The top plane.
- * @param near The near clipping plane distance.
- * @param far The far clipping plane distance.
- * @return The resulting orthographic matrix.
+ * @param[in] left The max coordinate of the left side
+ * @param[in] right The max coordinate of the right side
+ * @param[in] bottom The max coordinate of the bottom side
+ * @param[in] top The max coordinate of the top side
+ * @param[in] near The camera's nearest renderable object
+ * @param[in] far The camera's furthest renderable object
+ *
+ * @return sa_mat4 The new projection matrix
  */
-saci_Mat4 saci_OrthoMat4(float left, float right, float bottom, float top, float near, float far);
+sa_mat4 sa_Mat4_Ortho(float left, float right, float bottom, float top, float near, float far);
 
 /**
- * @brief Rotates a matrix around the X-axis.
+ * @fn sa_Mat4_Model_Matrix
+ * @brief Returns a new model matrix from position, rotation, and scale
  *
- * @param mat The matrix to rotate.
- * @param angle The angle of rotation in radians.
- * @return The resulting rotated matrix.
+ * @param[in] position The position vector (translation)
+ * @param[in] rotation The rotation vector (angles in radians for X, Y, Z axes)
+ * @param[in] scale The scale vector for X, Y, Z axes
+ *
+ * @return sa_mat4 A combined model matrix applying scale, rotation, and translation
  */
-saci_Mat4 saci_RotateMat4_X(saci_Mat4 mat, float angle);
+sa_mat4 sa_Mat4_Model_Matrix(sa_vec3 position, sa_vec3 rotation, sa_vec3 scale);
 
 /**
- * @brief Rotates a matrix around the Y-axis.
+ * @fn sa_Mat4_Rotate_X
+ * @brief Returns a matrix rotated around the X-axis
  *
- * @param mat The matrix to rotate.
- * @param angle The angle of rotation in radians.
- * @return The resulting rotated matrix.
+ * @param[in] mat The matrix to be rotated
+ * @param[in] angle The angle in radians to rotate around the X-axis
+ *
+ * @return sa_mat4 The resulting rotated matrix
  */
-saci_Mat4 saci_RotateMat4_Y(saci_Mat4 mat, float angle);
-
-saci_Mat4 saci_ScaleMat4(float sx, float sy, float sz);
-
-saci_Mat4 saci_Mat4_Translate(float tx, float ty, float tz);
+sa_mat4 sa_Mat4_Rotate_X(sa_mat4 mat, float angle);
 
 /**
- * @brief Creates a model matrix based on translation, rotation, and scale vectors.
+ * @fn sa_Mat4_Rotate_Y
+ * @brief Returns a matrix rotated around the Y-axis
  *
- * @param position The position vector (translation).
- * @param rotation The rotation vector (in radians, with x, y, z components).
- * @param scale The scale vector.
- * @return The resulting model matrix.
+ * @param[in] mat The matrix to be rotated
+ * @param[in] angle The angle in radians to rotate around the Y-axis
+ *
+ * @return sa_mat4 The resulting rotated matrix
  */
-saci_Mat4 saci_Mat4_ModelMatrix(saci_Vec3 position, saci_Vec3 rotation, saci_Vec3 scale);
+sa_mat4 sa_Mat4_Rotate_Y(sa_mat4 mat, float angle);
+
+/**
+ * @fn sa_Mat4_Rotate_Z
+ * @brief Returns a matrix rotated around the Z-axis
+ *
+ * @param[in] mat The matrix to be rotated
+ * @param[in] angle The angle in radians to rotate around the Z-axis
+ *
+ * @return sa_mat4 The resulting rotated matrix
+ */
+sa_mat4 sa_Mat4_Rotate_Z(sa_mat4 mat, float angle);
+
+/**
+ * @fn sa_Mat4_Scale
+ * @brief Returns the new scaled matrix
+ *
+ * @param[in] sx Scaling factor along the X-axis
+ * @param[in] sy Scaling factor along the Y-axis
+ * @param[in] sz Scaling factor along the Z-axis
+ *
+ * @return sa_mat4 A matrix representing the scale transformation
+ */
+sa_mat4 sa_Mat4_Scale(float sx, float sy, float sz);
+
+/**
+ * @fn sa_Mat4_Translate
+ * @brief Returns the new translation matrix
+ *
+ * @param[in] tx Translation along the X-axis
+ * @param[in] ty Translation along the Y-axis
+ * @param[in] tz Translation along the Z-axis
+ *
+ * @return sa_mat4 A matrix representing the translation transformation
+ */
+sa_mat4 sa_Mat4_Translate(float tx, float ty, float tz);
 
 #endif

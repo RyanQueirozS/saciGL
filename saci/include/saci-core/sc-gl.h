@@ -1,424 +1,279 @@
-/**
- * @file sc-rendering.h
- * @brief This header defines graphical API related functions and structs related to saciCORE
- */
 #ifndef __SACI_CORE_SC_RENDERING_H__
 #define __SACI_CORE_SC_RENDERING_H__
 
-#include "saci-core/sc-camera.h"
-#include "saci-utils/su-types.h"
-
 #include <GLFW/glfw3.h>
 
-/* === Windowing === */
+#include "saci-utils/su-types.h"
+#include "saci-core/sc-windowing.h"
+#include "saci-utils/su-general.h"
 
-/**
- * @typedef sc_Monitor
- * @brief GLFWmonitor wrapper.
- * @note, use this instead of GLFWmonitor, as it may change later.
- */
-typedef GLFWmonitor sc_Monitor;
+/* === Event === */
 
-/**
- * @typedef sc_Window
- * @brief GLFWwindow wrapper.
- * @note, use this instead of GLFWwindow, as it may change later.
- */
-typedef GLFWwindow sc_Window;
+#ifndef SC_EVENT_MOUSE_POS_HANDLER_t
+#  define SC_EVENT_MOUSE_POS_HANDLER_t
+typedef void (*sc_event_mousePosHandler_t)(sc_window_t* window, double posx, double posy);
+#endif // SC_EVENT_MOUSE_POS_HANDLER_t
 
-/**
- * @typedef sc_WindowPosHandler
- * @brief Function pointer type for handling window position changes.
- *
- * @param window The window whose position has changed.
- * @param posx The new X position of the window.
- * @param posy The new Y position of the window.
- */
-typedef void (*sc_Window_PosHandler)(sc_Window* window, int posx, int posy);
+#define sc_KEY_SPACE 32
+#define sc_KEY_APOSTROPHE 39 /* ' */
+#define sc_KEY_COMMA 44      /* , */
+#define sc_KEY_MINUS 45      /* - */
+#define sc_KEY_PERIOD 46     /* . */
+#define sc_KEY_SLASH 47      /* / */
+#define sc_KEY_0 48
+#define sc_KEY_1 49
+#define sc_KEY_2 50
+#define sc_KEY_3 51
+#define sc_KEY_4 52
+#define sc_KEY_5 53
+#define sc_KEY_6 54
+#define sc_KEY_7 55
+#define sc_KEY_8 56
+#define sc_KEY_9 57
+#define sc_KEY_SEMICOLON 59 /* ; */
+#define sc_KEY_EQUAL 61     /* = */
+#define sc_KEY_A 65
+#define sc_KEY_B 66
+#define sc_KEY_C 67
+#define sc_KEY_D 68
+#define sc_KEY_E 69
+#define sc_KEY_F 70
+#define sc_KEY_G 71
+#define sc_KEY_H 72
+#define sc_KEY_I 73
+#define sc_KEY_J 74
+#define sc_KEY_K 75
+#define sc_KEY_L 76
+#define sc_KEY_M 77
+#define sc_KEY_N 78
+#define sc_KEY_O 79
+#define sc_KEY_P 80
+#define sc_KEY_Q 81
+#define sc_KEY_R 82
+#define sc_KEY_S 83
+#define sc_KEY_T 84
+#define sc_KEY_U 85
+#define sc_KEY_V 86
+#define sc_KEY_W 87
+#define sc_KEY_X 88
+#define sc_KEY_Y 89
+#define sc_KEY_Z 90
+#define sc_KEY_LEFT_BRACKET 91  /* [ */
+#define sc_KEY_BACKSLASH 92     /* \ */
+#define sc_KEY_RIGHT_BRACKET 93 /* ] */
+#define sc_KEY_GRAVE_ACCENT 96  /* ` */
+#define sc_KEY_WORLD_1 161      /* non-US #1 */
+#define sc_KEY_WORLD_2 162      /* non-US #2 */
+#define sc_KEY_ESCAPE 256
+#define sc_KEY_ENTER 257
+#define sc_KEY_TAB 258
+#define sc_KEY_BACKSPACE 259
+#define sc_KEY_INSERT 260
+#define sc_KEY_DELETE 261
+#define sc_KEY_RIGHT 262
+#define sc_KEY_LEFT 263
+#define sc_KEY_DOWN 264
+#define sc_KEY_UP 265
+#define sc_KEY_PAGE_UP 266
+#define sc_KEY_PAGE_DOWN 267
+#define sc_KEY_HOME 268
+#define sc_KEY_END 269
+#define sc_KEY_CAPS_LOCK 280
+#define sc_KEY_SCROLL_LOCK 281
+#define sc_KEY_NUM_LOCK 282
+#define sc_KEY_PRINT_SCREEN 283
+#define sc_KEY_PAUSE 284
+#define sc_KEY_F1 290
+#define sc_KEY_F2 291
+#define sc_KEY_F3 292
+#define sc_KEY_F4 293
+#define sc_KEY_F5 294
+#define sc_KEY_F6 295
+#define sc_KEY_F7 296
+#define sc_KEY_F8 297
+#define sc_KEY_F9 298
+#define sc_KEY_F10 299
+#define sc_KEY_F11 300
+#define sc_KEY_F12 301
+#define sc_KEY_F13 302
+#define sc_KEY_F14 303
+#define sc_KEY_F15 304
+#define sc_KEY_F16 305
+#define sc_KEY_F17 306
+#define sc_KEY_F18 307
+#define sc_KEY_F19 308
+#define sc_KEY_F20 309
+#define sc_KEY_F21 310
+#define sc_KEY_F22 311
+#define sc_KEY_F23 312
+#define sc_KEY_F24 313
+#define sc_KEY_F25 314
+#define sc_KEY_KP_0 320
+#define sc_KEY_KP_1 321
+#define sc_KEY_KP_2 322
+#define sc_KEY_KP_3 323
+#define sc_KEY_KP_4 324
+#define sc_KEY_KP_5 325
+#define sc_KEY_KP_6 326
+#define sc_KEY_KP_7 327
+#define sc_KEY_KP_8 328
+#define sc_KEY_KP_9 329
+#define sc_KEY_KP_DECIMAL 330
+#define sc_KEY_KP_DIVIDE 331
+#define sc_KEY_KP_MULTIPLY 332
+#define sc_KEY_KP_SUBTRACT 333
+#define sc_KEY_KP_ADD 334
+#define sc_KEY_KP_ENTER 335
+#define sc_KEY_KP_EQUAL 336
+#define sc_KEY_LEFT_SHIFT 340
+#define sc_KEY_LEFT_CONTROL 341
+#define sc_KEY_LEFT_ALT 342
+#define sc_KEY_LEFT_SUPER 343
+#define sc_KEY_RIGHT_SHIFT 344
+#define sc_KEY_RIGHT_CONTROL 345
+#define sc_KEY_RIGHT_ALT 346
+#define sc_KEY_RIGHT_SUPER 347
+#define sc_KEY_MENU 348
+#define sc_KEY_LAST sc_KEY_MENU
 
-/**
- * @typedef sc_WindowSizeHandler
- * @brief Function pointer type for handling window size changes.
- *
- * @param window The window whose size has changed.
- * @param width The new width of the window.
- * @param height The new height of the window.
- */
-typedef void (*sc_Window_SizeHandler)(sc_Window* window, int width, int height);
-
-/**
- * @brief Initializes the GLFW library for window management.
- *
- * @return SACI_TRUE if initialization was successful, SACI_FALSE otherwise.
- */
-saci_Bool sc_GLFW_Init(void);
-
-/**
- * @brief Initializes the GLAD library for OpenGL function loading.
- *
- * @return SACI_TRUE if initialization was successful, SACI_FALSE otherwise.
- */
-saci_Bool sc_GLAD_Init(void);
-
-/**
- * @brief Creates a new window.
- *
- * @param width The desired width of the window.
- * @param height The desired height of the window.
- * @param title The title of the window.
- * @param monitor The monitor to display the window on (use NULL for the primary monitor).
- * @param share The window to share resources with (use NULL for no sharing).
- * @return A pointer to the created sc_Window. This function does not check if the window
- * is null.
- */
-sc_Window* sc_Window_Create(int width, int height, const char* title, sc_Monitor* monitor,
-                            sc_Window* share);
-
-/**
- * @brief Makes the specified window the current OpenGL context.
- *
- * @param window The window to make the current context.
- * @note Needed to initialize GLAD.
- */
-void sc_Window_MakeContext(sc_Window* window);
-
-/**
- * @brief Checks if the window should close.
- *
- * @param window The window to check.
- * @return SACI_TRUE if the window should close, SACI_FALSE otherwise.
- */
-saci_Bool sc_Window_ShouldClose(sc_Window* window);
-
-/**
- * @brief Sets a callback function for handling window position changes.
- *
- * @param window The window to set the position handler for.
- * @param windowPosHandler The callback function to handle position changes.
- */
-void sc_Window_SetPosHandler(sc_Window* window, sc_Window_PosHandler windowPosHandler);
-
-/**
- * @brief Sets a callback function for handling window size changes.
- *
- * @param window The window to set the size handler for.
- * @param windowSizeHandler The callback function to handle size changes.
- */
-void sc_Window_SetSizeHandler(sc_Window* window, sc_Window_SizeHandler windowSizeHandler);
-
-/**
- * @brief Terminates the windowing system, cleaning up resources.
- */
-void sc_Window_Terminate(void);
-
-/**
- * @brief Clears the window with the specified color.
- *
- * @param color The saci_Color to clear the window with.
- */
-void sc_Window_ClearColor(const saci_Color color);
-
-/**
- * @brief Swaps the window buffer to display rendered content.
- *
- * @param window The window whose buffer will be swapped.
- * @note If not called, nothing will show on screen.
- */
-void sc_Window_SwapBuffer(sc_Window* window);
+SA_API void sc_Event_Poll(void);
+SA_API void sc_Event_Wait(void);
+SA_API void sc_Event_Wait_For_Timeout(double timeout);
+SA_API void sc_Event_Post_Empty(void);
+SA_API void sc_Event_Set_Mouse_Pos_Handler(sc_window_t* window, sc_event_mousePosHandler_t mouse_pos_handler);
+SA_API sa_bool sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode);
 
 /* === Renderer === */
 
-/**
- * @struct sc_Renderer
- * @brief Structure to hold render related information.
- *
- * @details
- * This structure is used to hold vertex information in form of triangles, squares or
- * lines. These shapes are later rendered to the screen.
- */
-typedef struct sc_Renderer sc_Renderer;
+typedef struct __sc_renderer sc_renderer;
 
-/**
- * @struct sc_Renderer
- * @brief Structure to hold vertice related information.
- */
-typedef struct sc_Vertice sc_Vertice;
+#ifdef SC_RENDERER_STRUCT_EXPOSE
+#  ifndef SC_RENDERER_STRUCT
+#    define SC_RENDERER_STRUCT
 
-// TODO doc
-saci_Vec3 sc_Vertice_GetPos(const sc_Vertice* vertice);
-saci_Color sc_Vertice_GetColor(const sc_Vertice* vertice);
-saci_Vec2 sc_Vertice_GetTexcoord(const sc_Vertice* vertice);
-
-// TODO doc
-sc_Vertice* sc_Vertice_CreateVertice(saci_Vec3 position, saci_Color color, saci_Vec2 texcood);
-
-void sc_Vertice_GetArrayInfo(sc_Vertice* vertexArray, saci_u64 vertexArraySize,
-                             saci_Vec3** positions, saci_Color** colors, saci_Vec2** texcoords);
-
-sc_Vertice* sc_Vertice_CreateVerticesArray(saci_Vec3* positions, saci_Color* colors,
-                                           saci_Vec2* texcoords, saci_u64 amount);
-
-/**
- * @struct sc_ModelMesh
- * @brief Structure to hold model related information.
- */
-typedef struct sc_ModelMesh sc_ModelMesh;
-
-// TODO doc
-// TODO create a const alternative
-sc_Vertice* sc_ModelMesh_GetVertices(const sc_ModelMesh* modelMesh);
-
-saci_u64 sc_ModelMesh_GetVerticesAmount(const sc_ModelMesh* modelMesh);
-
-saci_u32* sc_ModelMesh_GetIndices(const sc_ModelMesh* modelMesh);
-
-saci_u64 sc_ModelMesh_GetIndicesAmount(const sc_ModelMesh* modelMesh);
-
-/**
- * @brief Creates the sc_Renderer struct
- *
- * @details
- * This functions creates, initializes and sets all of the sc_Renderer related shaders and
- * OpenGL context.
- *
- * @param generateDefaults A boolean to generate defaulted shaders and OpenGL context.
- * @return A new sc_Renderer* either defaulted or not. Can return null
- */
-sc_Renderer* sc_Renderer_Create(saci_Bool generateDefaults);
-
-/**
- * @brief Deletes the sc_Renderer struct
- *
- * @details
- * This functions deletes a sc_Renderer
- *
- * @param renderer The renderer to be deleted
- */
-void sc_Renderer_Delete(sc_Renderer* renderer);
-
-/**
- * @brief Sets renderer to not fill shapes
- */
-void sc_Renderer_SetNoFillMode(void);
-
-/**
- * @brief Sets renderer to fill shapes
- * @note This is the defaulted option.
- */
-void sc_Renderer_SetFillMode(void);
-
-/**
- * @brief Enables the Z buffer.
- *
- * @details
- * Check OpenGL article: https://learnopengl.com/Advanced-OpenGL/Depth-testing
- */
-void sc_Renderer_EnableZBuffer(void);
-
-/**
- * @enum sc_RenderProjectionType
- * @brief Types of Projection that a sc_Renderer can use.
- */
-typedef enum sc_RenderProjectionMode {
-    SACI_RENDER_ORTHOGRAPHIC_PROJECTION = 0,
-    SACI_RENDER_PERSPECTIVE_PROJECTION = 1,
-    SACI_RENDER_CUSTOM_PROJECTION = 2,
-} sc_RendererProjectionMode;
-
-/**
- * @brief Sets projection mode
- *
- * @param renderProjectionMode The sc_RenderProjectionMode that the sc_Renderer should
- * use.
- */
-void sc_Renderer_SetProjectionMode(sc_RendererProjectionMode renderProjectionMode);
-
-/**
- * @typedef sc_RenderCustomProjectionFunction
- * @brief A function pointer that's used for custom projections
- *
- * @param camera The sc_Camera struct used to setup projection
- * @return A saci_Mat4 with the projection values
- */
-typedef saci_Mat4 (*sc_Renderer_CustomProjectionFunction)(sc_Camera camera);
-
-/**
- * @brief Sets custom projection mode function.
- *
- * @param renderCustomProjectionModeFunction The sc_RenderProjectionMode that the
- * sc_Renderer should use.
- */
-void sc_Renderer_SetCustomProjectionModeFunction(
-    sc_Renderer_CustomProjectionFunction renderCustomProjectionModeFunction);
-
-/**
- * @brief Sets renderer to begins rendering the frame
- *
- * @param renderer The renderer to setup
- */
-void sc_Renderer_Begin(sc_Renderer* renderer);
-
-/**
- * @brief Draws the RenderCalls in the sc_Renderer
- *
- * @param renderer The renderer to setup.
- * @param camera The camera to setup rendering enviroment.
- */
-void sc_Renderer_End(sc_Renderer* renderer, const sc_Camera* camera);
-
-/**
- * @brief Pushes vertices to the @ref sc_Renderer.
- *
- * @param renderer The renderer that will get data pushed.
- * @param vertices The array vertex information.
- * @param verticeAmount The amount of vertices.
- * @param indices The indices of the vertices.
- * @param indiceAmount The amount of indices.
- * @param modelMatrix The model matrix to explain how to draw the model.
- * @param texID The OpenGL index of the texture.
- */
-void sc_Renderer_PushVertices(sc_Renderer* renderer, sc_Vertice* vertices, saci_u64 verticeAmount,
-                              saci_u32* indices, saci_u64 indiceAmount, saci_Mat4 modelMatrix,
-                              saci_TextureID texID);
-
-/**
- * @brief Pushes a model to the @ref sc_Renderer.
- *
- * @param renderer The renderer that will get data pushed.
- * @param mesh The mesh that will get pushed
- * @param modelMatrix The model matrix to explain how to draw the model.
- * @param texID The OpenGL index of the texture.
- */
-void sc_Renderer_PushModelMesh(sc_Renderer* renderer, sc_ModelMesh* mesh, saci_Mat4 modelMatrix,
-                               saci_TextureID texID);
-
-/* === Model Creation === */
-
-// todo doc
-typedef void (*sc_OBJ_ModelFileReadingFunction)(void* ctx, const char* filename, int isMtl,
-                                                const char* objFilename, char** buf, size_t* len);
-
-/**
- * @brief Creates a @ref sc_ModelMesh containing the info in the provided path.
- *
- * @param path The path for the model file.
- * @param fileReader The file reading function to load the model information.
- */
-sc_ModelMesh* sc_ModelMesh_Load(const char* path, sc_OBJ_ModelFileReadingFunction fileReader);
-
-/**
- * @brief Structure to hold Vertex Indice information.
- *
- * @details
- * In general, only use this if you want to load OBJ files manually. NOT RECOMENDED.
- *
- * @internal
- * Do NOT typedef this, see CONVENTIONS.md
- */
-struct sc_VertexIndice {
-    saci_u32 vertexIndex;   /**< Indices of the vertice positions */
-    saci_u32 texCoordIndex; /**< Indices of the texcoord values */
-    saci_u32 normalIndex;   /**< Indices of the normal values */
+struct __sc_vertex {
+    sa_vec3 pos;
+    sa_color color;
+    sa_uv uv;
 };
 
-// todo doc
-saci_Bool sc_OBJ_Parse(const char* filePath, sc_OBJ_ModelFileReadingFunction fileReader,
-                       saci_Vec3** positions, saci_u64* positionsCount, saci_Vec2** texcoords,
-                       saci_u64* texcoordCount, struct sc_VertexIndice** indices,
-                       saci_u64* indicesCount);
+// The fields are structured in a way that enforces minimum memory change over time
+struct __sc_renderer {
+    sa_textureId bound_texture_id;
 
-/**
- * @brief Frees a model mesh from memory.
- *
- * @param modelMesh The model mesh to be freed.
- */
-void sc_ModelMesh_Delete(sc_ModelMesh* modelMesh);
+    sa_shaderId shader_program;
+    sa_bufferId ibo, ubo, vbo, vao;
 
-/* === OpenGL Helpers === */
+    sa_u32 bound_index_array_length;
+    sa_u32 bound_index_array_capacity;
 
-/**
- * @brief Creates a IBO (Index buffer).
- *
- * @param indices The indices to fill the IBO.
- * @param indiceAmount The amount of indices.
- */
-saci_u32 sc_GL_CreateIndexBuffer(saci_u32* indices, saci_u64 indiceAmount);
+    sa_u32 batch_index_capacity;
+    sa_u32 batch_vertex_capacity;
+    sa_u8 batch_array_capacity;
+    sa_u8 batch_in_use; // 0 indexed
 
-/**
- * @brief resizes the VBO in the renderer to a newCapacity
- *
- * @param vaoID The ID of the vao that will get it's vbo updated
- * @param vboID The ID of the vbo that will get it's size updated
- * @param newCapacity The VBO's new capacity.
- * @param vertexDataStructureSize The size of the base structure that holds the vertex information
- */
-void sc_GL_ResizeVBO(saci_u32 vaoID, saci_u32 vboID, saci_u32 newCapacity,
-                     saci_u64 vertexDataStructureSize);
+    sa_u32 call_index_capacity;
+    sa_u32 call_vertex_capacity;
+    sa_u8 call_array_capacity;
+    sa_u8 call_in_use; // 0 indexed
 
-/* === Shader Functions === */
+    sa_u64 uniform_struct_size;
 
-/**
- * @brief Compiles a vertex shader from source code.
- *
- * @details
- * This function takes the source code for a vertex shader, compiles it, and returns the
- * resulting shader ID.
- *
- * @param source The source code of the vertex shader as a string.
- * @return A saci_ShaderID representing the compiled vertex shader.
- */
-saci_u32 sc_Shader_CompileShaderV(const char* source);
+    struct __sc_batch {
+        sa_u64 uniform_struct_block_size;
+        sa_textureId texture;
+        sa_u32 index_array_length;
+        sa_u32 vertex_array_length;
+        sa_u8 uniform_block_size;
+        sa_u32* index_array;
+        struct __sc_vertex* vertex_array;
+        sa_u8* uniform_struct_block;
+    }* batch_array;
 
-/**
- * @brief Compiles a fragment shader from source code.
- *
- * @details
- * This function takes the source code for a fragment shader, compiles it, and returns the
- * resulting shader ID.
- *
- * @param source The source code of the fragment shader as a string.
- * @return A saci_ShaderID representing the compiled fragment shader.
- */
-saci_u32 sc_Shader_CompileShaderF(const char* source);
+    sa_u8* uniform_struct_block;
 
-/**
- * @brief Compiles a geometry shader from source code.
- *
- * @details
- * This function takes the source code for a geometry shader, compiles it, and returns the
- * resulting shader ID.
- *
- * @param source The source code of the geometry shader as a string.
- * @return A saci_ShaderID representing the compiled geometry shader.
- */
-saci_u32 sc_Shader_CompileShaderG(const char* source);
+    struct __sc_renderCall {
+        sa_u64 uniform_struct_block_size;
+        sa_textureId texture;
+        sa_u32 index_array_length;
+        sa_u32 vertex_array_length;
+        sa_u8 uniform_block_size;
+        sa_u32* index_array;
+        struct __sc_vertex* vertex_array;
+        sa_u8* uniform_struct_block;
+    }* call_array;
 
-/**
- * @brief Links a vertex shader and fragment shader into a shader program.
- *
- * @details
- * This function takes compiled vertex and fragment shaders, links them into a shader
- * program, and returns the program ID.
- *
- * @param vshader The saci_ShaderID of the compiled vertex shader.
- * @param fshader The saci_ShaderID of the compiled fragment shader.
- * @return A saci_u32 representing the shader program ID.
- */
-saci_u32 sc_Shader_GetShaderProgram(saci_ShaderID vshader, saci_ShaderID fshader);
+    sa_u32* bound_index_array_buffer;
+};
 
-/**
- * @brief Links a vertex, fragment, and geometry shader into a shader program.
- *
- * @details
- * This function takes compiled vertex, fragment, and geometry shaders, links them into a
- * shader program, and returns the program ID.
- *
- * @param vshader The saci_ShaderID of the compiled vertex shader.
- * @param fshader The saci_ShaderID of the compiled fragment shader.
- * @param gshader The saci_ShaderID of the compiled geometry shader.
- * @return A saci_u32 representing the shader program ID.
- */
-saci_u32 sc_Shader_GetShaderProgramg(saci_ShaderID vshader, saci_ShaderID fshader,
-                                     saci_ShaderID gshader);
+#  endif // SC_RENDERER_STRUCT
+#endif   // SC_RENDERER_STRUCT_EXPOSE
+
+#define sc_RENDERER_FREE_OPT_MEMORY 0b01
+#define sc_RENDERER_FREE_OPT_OPENGL 0b10
+
+#define sc_RENDERER_UNIFORM_FLAG_IS_2D 0b0
+#define sc_RENDERER_UNIFORM_FLAG_IS_3D 0b1
+
+SA_API sc_renderer* sc_Renderer_New_Default(void);
+
+SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx,
+                                                sa_u64 batch_index_capacity,
+                                                sa_u64 batch_vertex_capacity,
+                                                sa_u64 bound_capacity);
+
+SA_API void sc_Renderer_Begin(struct __sc_renderer* rendr);
+
+SA_API void sc_Renderer_Bind_Texture(struct __sc_renderer* rendr,
+                                     const sa_textureId tex_id);
+
+SA_API void sc_Renderer_Set_Uniform_Struct(struct __sc_renderer* rendr,
+                                           sa_u64 size);
+
+SA_API void sc_Renderer_Bind_Uniform_Struct(struct __sc_renderer* rendr,
+                                            void* uniform);
+
+SA_API void sc_Renderer_Bind_Uniform_Value(struct __sc_renderer* rendr,
+                                           void* value,
+                                           sa_u64 start_offset,
+                                           sa_u64 size);
+
+SA_API void sc_Renderer_Bind_Index_Buffer(struct __sc_renderer* rendr,
+                                          const sa_u32* new_indices,
+                                          const sa_u32 new_indices_count);
+
+SA_API void sc_Renderer_Push_Vertex(struct __sc_renderer* rendr,
+                                    const sa_vec3* pos_array,
+                                    const sa_uv* uv_array,
+                                    const sa_color* color_array,
+                                    const sa_u32 amount);
+
+SA_API void sc_Renderer_End(struct __sc_renderer* rendr);
+
+SA_API void sc_Renderer_Free(struct __sc_renderer* rendr);
+
+SA_API void sc_Renderer_Free_Opts(struct __sc_renderer* rendr, int free_opts);
+
+/* === OpenGL === */
+
+SA_API sa_u32 sc_GL_Create_Index_Buffer_Dynamic(sa_u32* indices, sa_u64 indice_amount);
+SA_API sa_u32 sc_GL_Create_Index_Buffer_Static(sa_u32* indices, sa_u64 indice_amount);
+SA_API sa_u32 sc_GL_Create_Vertex_Buffer(sa_u64 size, const void* data, sa_u32 usage);
+SA_API void sc_GL_Create_Vertex_Array(sa_u64 size, sa_u32* arrays);
+SA_API void sc_GL_Resize_Vertex_Buffer(sa_u32 vao_id, sa_u32 vbo_id, sa_u64 new_size);
+SA_API void sc_GL_Bind_Vertex_Array(sa_u32 array);
+SA_API void sc_GL_Bind_Vertex_Buffer(sa_u32 vbo);
+SA_API void sc_GL_Set_Vertex_Attrib_Pointer(sa_u32 index, int size, sa_u32 type, sa_bool normalized, sa_u64 stride, void* ptr);
+SA_API void sc_GL_Enable_Vertex_Attrib_Array(sa_u32 id);
+// TODO bind program
+
+/* === Shader === */
+
+SA_API sa_u32 sc_Shader_Compile_Shader_Vert(const char* source);
+SA_API sa_u32 sc_Shader_Compile_Shader_Frag(const char* source);
+SA_API sa_u32 sc_Shader_Compile_Shader_Geom(const char* source);
+SA_API sa_u32 sc_Shader_Create_Shader_Program(sa_shaderId vshader, sa_shaderId fshader);
+SA_API sa_u32 sc_Shader_Create_Shader_Program_Geom(sa_shaderId vshader, sa_shaderId fshader,
+                                                   sa_shaderId gshader);
 
 #endif
