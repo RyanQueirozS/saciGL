@@ -6,9 +6,9 @@
 #include "saci-core/sc-gl.h"
 
 #include "saci-utils/su-general.h"
+#include "saci-utils/su-debug.h"
 #include "saci-utils/su-types.h"
 
-#include <saci-utils/su-debug.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -118,7 +118,7 @@ SA_API sa_bool sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 
 #ifndef __SC_RENDERER_DEFAULT_VERT_SHADER
 #  define __SC_RENDERER_DEFAULT_VERT_SHADER
-static const char* vert_shader =
+SA_INTERNAL const char* vert_shader =
     "#version 330 core\n"
 
     "layout (location = 0) in vec3 a_pos;\n"
@@ -151,7 +151,7 @@ static const char* vert_shader =
 
 #ifndef __SC_RENDERER_DEFAULT_FRAG_SHADER
 #  define __SC_RENDERER_DEFAULT_FRAG_SHADER
-static const char* frag_shader =
+SA_INTERNAL const char* frag_shader =
     "#version 330 core\n"
 
     "in vec4 v_color;\n"
@@ -184,9 +184,7 @@ struct __sc_vertex {
 
 // The fields are structured in a way that enforces minimum memory change over time
 struct __sc_renderer {
-    sa_textureId current_texture_id;
-
-    sa_u32 vertices_overlaped;
+    sa_textureId bound_texture_id;
 
     sa_shaderId shader_program;
     sa_bufferId ibo, ubo, vbo, vao;
@@ -238,28 +236,6 @@ struct __sc_renderer {
 /* --- Renderer Helper --- */
 
 // Prefere to use this instead of directly changing the vertices to 0.
-#ifndef __sc_Renderer_Reset_Vertices_Overlaped_m
-
-#  if defined(SACI_DEBUG_MODE) | defined(SACI_DEBUG_MODE_SCGL)
-
-#    define __sc_Renderer_Reset_Vertices_Overlaped_m(rendr)                 \
-        do {                                                                \
-            rendr->vertices_overlaped = 0;                                  \
-            sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_RENDERER, \
-                                "Reset the overlaped vertices");            \
-        } while (0);
-
-#  else
-
-#    define __sc_Renderer_Reset_Vertices_Overlaped_m(rendr) \
-        do {                                                \
-            rendr->vertices_overlaped = 0;                  \
-        } while (0);
-
-#  endif // defined(SACI_DEBUG_MODE) | defined(SACI_DEBUG_MODE_SCGL)
-
-#endif
-
 #define __sc_Renderer_Free_Memory_m(rendr)                \
     do {                                                  \
         if ((rendr)->bound_index_array_buffer) {          \
@@ -276,12 +252,12 @@ struct __sc_renderer {
         glDeleteProgram((rendr)->shader_program); \
     } while (0)
 
-static void __sc_Renderer_Reset_Bound(struct __sc_renderer* rendr) {
-    rendr->current_texture_id = 0; // TODO change to macro
-    __sc_Renderer_Reset_Vertices_Overlaped_m(rendr);
+SA_INTERNAL void __sc_Renderer_Reset_Bound(struct __sc_renderer* rendr) {
+    rendr->bound_texture_id = 0;         // TODO change to macro
+    rendr->bound_index_array_length = 0; // TODO change to a macro
 }
 
-static void __sc_Renderer_Reset_Batch(struct __sc_renderer* rendr) {
+SA_INTERNAL void __sc_Renderer_Reset_Batch(struct __sc_renderer* rendr) {
     // + 1 because of 0 index
     for (sa_u8 i = 0; i < rendr->batch_in_use + 1; ++i) {
         rendr->batch_array[i].uniform_struct_block_size = 0;
@@ -294,7 +270,7 @@ static void __sc_Renderer_Reset_Batch(struct __sc_renderer* rendr) {
     rendr->batch_in_use = 0;
 }
 
-static void __sc_Renderer_Reset_Call(struct __sc_renderer* rendr) {
+SA_INTERNAL void __sc_Renderer_Reset_Call(struct __sc_renderer* rendr) {
     // + 1 because of 0 index
     for (sa_u8 i = 0; i < rendr->call_in_use + 1; ++i) {
         rendr->call_array[i].uniform_struct_block_size = 0;
@@ -307,7 +283,7 @@ static void __sc_Renderer_Reset_Call(struct __sc_renderer* rendr) {
     rendr->call_in_use = 0;
 }
 
-static void __sc_Renderer_Init(struct __sc_renderer* rendr) {
+SA_INTERNAL void __sc_Renderer_Init(struct __sc_renderer* rendr) {
     { // Shader init
         sa_shaderId v_shader = sc_Shader_Compile_Shader_Vert(vert_shader);
         sa_shaderId f_shader = sc_Shader_Compile_Shader_Frag(frag_shader);
@@ -347,7 +323,7 @@ static void __sc_Renderer_Init(struct __sc_renderer* rendr) {
     }
 }
 
-static void __sc_Renderer_Init_Batch(struct __sc_renderer* rendr) {
+SA_INTERNAL void __sc_Renderer_Init_Batch(struct __sc_renderer* rendr) {
     rendr->batch_in_use = 0;
     rendr->batch_array = sa_Malloc_m(sizeof(struct __sc_batch) * rendr->batch_array_capacity);
     sa_Log_Assert_Message_m(rendr->batch_array, "Batch array could not be initialized");
@@ -366,7 +342,7 @@ static void __sc_Renderer_Init_Batch(struct __sc_renderer* rendr) {
     }
 }
 
-static void __sc_Renderer_Init_Call(struct __sc_renderer* rendr) {
+SA_INTERNAL void __sc_Renderer_Init_Call(struct __sc_renderer* rendr) {
     rendr->call_in_use = 0;
     rendr->call_array =
         sa_Malloc_m(sizeof(struct __sc_renderCall) * rendr->call_array_capacity);
@@ -393,7 +369,7 @@ static void __sc_Renderer_Init_Call(struct __sc_renderer* rendr) {
 
 // TODO evaluate if sorting is indeed needed
 // Only pass the call_amount that has been changed
-static void __sc_Renderer_Call_Array_Sort(struct __sc_renderCall* call_array, sa_u8 call_amount) {
+SA_INTERNAL void __sc_Renderer_Call_Array_Sort(struct __sc_renderCall* call_array, sa_u8 call_amount) {
     if (call_amount < 3) { // 0, 1 shouldn't be sorted and 2 won't matter
         return;
     }
@@ -415,11 +391,11 @@ static void __sc_Renderer_Call_Array_Sort(struct __sc_renderCall* call_array, sa
     }
 }
 
-static sa_bool __sc_Renderer_Uniform_Is_Equal(sa_u8* u1, sa_u8* u2, sa_u64 size) {
+SA_INTERNAL sa_bool __sc_Renderer_Uniform_Is_Equal(sa_u8* u1, sa_u8* u2, sa_u64 size) {
     return memcmp(u1, u2, size) == 0;
 }
 
-static void __sc_Renderer_Batch_Flush(struct __sc_renderer* rendr) {
+SA_INTERNAL void __sc_Renderer_Batch_Flush(struct __sc_renderer* rendr) {
     for (sa_u8 i = 0; i < rendr->batch_in_use + 1; ++i) { // +1 because of 0 index
         struct __sc_batch* batch_in_use = &rendr->batch_array[i];
 
@@ -448,10 +424,10 @@ static void __sc_Renderer_Batch_Flush(struct __sc_renderer* rendr) {
             glBindBuffer(GL_UNIFORM_BUFFER, 0);
         }
 
-        if (rendr->current_texture_id != 0) {
+        if (rendr->bound_texture_id != 0) {
             glUniform1i(__SC_U_USE_TEXTURE_LOC, sa_TRUE);
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, rendr->current_texture_id);
+            glBindTexture(GL_TEXTURE_2D, rendr->bound_texture_id);
         }
 
         glDrawElements(GL_TRIANGLES, sa_Scast_To_m(int)(batch_in_use->index_array_length), GL_UNSIGNED_INT, 0);
@@ -462,7 +438,7 @@ static void __sc_Renderer_Batch_Flush(struct __sc_renderer* rendr) {
     }
 }
 
-static void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
+SA_INTERNAL void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
     sa_u64 batch_capacity = rendr->batch_array_capacity;
     if (batch_capacity < 1) {
         sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
@@ -563,8 +539,7 @@ SA_API sc_renderer* sc_Renderer_New_Default(void) {
     __sc_Renderer_Init_Call(rendr);
 
     { // Bound info
-        rendr->current_texture_id = 0;
-        rendr->vertices_overlaped = 0;
+        rendr->bound_texture_id = 0;
         rendr->bound_index_array_length = 0;
         rendr->bound_index_array_capacity = __SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY;
         rendr->bound_index_array_buffer =
@@ -599,7 +574,7 @@ SA_API void sc_Renderer_Begin(struct __sc_renderer* rendr) {
 }
 
 SA_API void sc_Renderer_Bind_Texture(struct __sc_renderer* rendr, sa_textureId tex_id) {
-    rendr->current_texture_id = tex_id;
+    rendr->bound_texture_id = tex_id;
 }
 
 SA_API void sc_Renderer_Set_Uniform_Struct(struct __sc_renderer* rendr, sa_u64 size) {
@@ -635,8 +610,6 @@ SA_API void sc_Renderer_Bind_Index_Buffer(struct __sc_renderer* rendr, const sa_
     if (new_indices_count > rendr->bound_index_array_capacity) {
         return;
     }
-
-    __sc_Renderer_Reset_Vertices_Overlaped_m(rendr);
 
     // Separate to a simpler name
     for (sa_u32 i = 0; i < new_indices_count; ++i) {

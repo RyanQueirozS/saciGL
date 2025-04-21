@@ -7,7 +7,7 @@
 #define GLITCH_COMPLEX
 #include "glitch/glitc-complex.h"
 
-#include <assert.h>
+#define SACI_TEST_BUILD
 
 extern void Test_Rendering(GlitchTester* t);
 

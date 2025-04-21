@@ -12,6 +12,32 @@
 
 #include <saci-utils/su-types.h>
 
+#ifndef SA_API
+
+#  ifdef _WIN32
+
+#    ifdef BUILD_SACI_LIB
+#      define SA_API __declspec(dllexport) // Export symbols when building the library
+#    else
+#      define SA_API __declspec(dllimport) // Import symbols when using the library
+#    endif
+#  else
+#    define SA_API // Non-Windows platforms don't need special decoration
+
+#  endif // _WIN32
+
+#endif // SA_API
+
+#ifndef SA_INTERNAL
+#  ifdef SACI_TEST_BUILD
+
+#    define SA_INTERNAL
+#  else
+#    define SA_INTERNAL static
+
+#  endif // SA_TEST_BUILD
+#endif   // SA_INTERNAL
+
 /**
  * @define sa_Scast_To_m
  * @brief Performs a type-safe cast depending on the language context (C or C++).

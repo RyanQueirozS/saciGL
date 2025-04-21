@@ -2,26 +2,10 @@
 #define __SACI_CORE_SC_RENDERING_H__
 
 #include <GLFW/glfw3.h>
-#include <saci-utils/su-debug.h>
 
 #include "saci-utils/su-types.h"
 #include "saci-core/sc-windowing.h"
-
-#ifndef SA_API
-
-#  ifdef _WIN32
-
-#    ifdef BUILD_SACI_LIB
-#      define SA_API __declspec(dllexport) // Export symbols when building the library
-#    else
-#      define SA_API __declspec(dllimport) // Import symbols when using the library
-#    endif
-#  else
-#    define SA_API // Non-Windows platforms don't need special decoration
-
-#  endif // _WIN32
-
-#endif // SA_API
+#include "saci-utils/su-general.h"
 
 /* === Event === */
 
@@ -167,28 +151,59 @@ typedef struct __sc_renderer sc_renderer;
 #  ifndef SC_RENDERER_STRUCT
 #    define SC_RENDERER_STRUCT
 
-struct __sc_renderer {
-    sa_textureId current_texture_id;
+struct __sc_vertex {
+    sa_vec3 pos;
+    sa_color color;
+    sa_uv uv;
+};
 
-    sa_u32* bound_index_array;
-    sa_u32 bound_index_array_count;
-    sa_u32 vertices_overlaped;
+// The fields are structured in a way that enforces minimum memory change over time
+struct __sc_renderer {
+    sa_textureId bound_texture_id;
 
     sa_shaderId shader_program;
-    sa_bufferId ibo, vbo, vao, ubo;
+    sa_bufferId ibo, ubo, vbo, vao;
+
+    sa_u32 bound_index_array_length;
+    sa_u32 bound_index_array_capacity;
+
+    sa_u32 batch_index_capacity;
+    sa_u32 batch_vertex_capacity;
+    sa_u8 batch_array_capacity;
+    sa_u8 batch_in_use; // 0 indexed
+
+    sa_u32 call_index_capacity;
+    sa_u32 call_vertex_capacity;
+    sa_u8 call_array_capacity;
+    sa_u8 call_in_use; // 0 indexed
+
+    sa_u64 uniform_struct_size;
 
     struct __sc_batch {
-        sa_u32 index_array_count;
-        sa_u32 vertex_array_count;
-
+        sa_u64 uniform_struct_block_size;
+        sa_textureId texture;
+        sa_u32 index_array_length;
+        sa_u32 vertex_array_length;
+        sa_u8 uniform_block_size;
         sa_u32* index_array;
-        struct __sc_vertex {
-            sa_vec3_t pos;
-            sa_color_t color;
-            sa_uv uv;
-        }* vertex_array;
-    } batch;
-    Arena arena;
+        struct __sc_vertex* vertex_array;
+        sa_u8* uniform_struct_block;
+    }* batch_array;
+
+    sa_u8* uniform_struct_block;
+
+    struct __sc_renderCall {
+        sa_u64 uniform_struct_block_size;
+        sa_textureId texture;
+        sa_u32 index_array_length;
+        sa_u32 vertex_array_length;
+        sa_u8 uniform_block_size;
+        sa_u32* index_array;
+        struct __sc_vertex* vertex_array;
+        sa_u8* uniform_struct_block;
+    }* call_array;
+
+    sa_u32* bound_index_array_buffer;
 };
 
 #  endif // SC_RENDERER_STRUCT
@@ -201,16 +216,42 @@ struct __sc_renderer {
 #define sc_RENDERER_UNIFORM_FLAG_IS_3D 0b1
 
 SA_API sc_renderer* sc_Renderer_New_Default(void);
-SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx, sa_u64 batch_index_capacity, sa_u64 batch_vertex_capacity, sa_u64 bound_capacity);
+
+SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx,
+                                                sa_u64 batch_index_capacity,
+                                                sa_u64 batch_vertex_capacity,
+                                                sa_u64 bound_capacity);
+
 SA_API void sc_Renderer_Begin(struct __sc_renderer* rendr);
-SA_API void sc_Renderer_Bind_Texture(struct __sc_renderer* rendr, const sa_textureId tex_id);
-SA_API void sc_Renderer_Set_Uniform_Struct(struct __sc_renderer* rendr, sa_u64 size);
-SA_API void sc_Renderer_Bind_Uniform_Struct(struct __sc_renderer* rendr, void* uniform);
-SA_API void sc_Renderer_Bind_Uniform_Value(struct __sc_renderer* rendr, void* value, sa_u64 start_offset, sa_u64 size);
-SA_API void sc_Renderer_Bind_Index_Buffer(struct __sc_renderer* rendr, const sa_u32* new_indices, const sa_u32 new_indices_count);
-SA_API void sc_Renderer_Push_Vertex(struct __sc_renderer* rendr, const sa_vec3* pos_array, const sa_uv* uv_array, const sa_color* color_array, const sa_u32 amount);
+
+SA_API void sc_Renderer_Bind_Texture(struct __sc_renderer* rendr,
+                                     const sa_textureId tex_id);
+
+SA_API void sc_Renderer_Set_Uniform_Struct(struct __sc_renderer* rendr,
+                                           sa_u64 size);
+
+SA_API void sc_Renderer_Bind_Uniform_Struct(struct __sc_renderer* rendr,
+                                            void* uniform);
+
+SA_API void sc_Renderer_Bind_Uniform_Value(struct __sc_renderer* rendr,
+                                           void* value,
+                                           sa_u64 start_offset,
+                                           sa_u64 size);
+
+SA_API void sc_Renderer_Bind_Index_Buffer(struct __sc_renderer* rendr,
+                                          const sa_u32* new_indices,
+                                          const sa_u32 new_indices_count);
+
+SA_API void sc_Renderer_Push_Vertex(struct __sc_renderer* rendr,
+                                    const sa_vec3* pos_array,
+                                    const sa_uv* uv_array,
+                                    const sa_color* color_array,
+                                    const sa_u32 amount);
+
 SA_API void sc_Renderer_End(struct __sc_renderer* rendr);
+
 SA_API void sc_Renderer_Free(struct __sc_renderer* rendr);
+
 SA_API void sc_Renderer_Free_Opts(struct __sc_renderer* rendr, int free_opts);
 
 /* === OpenGL === */
