@@ -1,0 +1,15 @@
+# General
+SortIncludes: false # Can break stb and opengl
+IndentWidth: 4
+ColumnLimit: 0  # this can creates some really ugly indentation but try to avoid over 80 char per line
+SpacesBeforeTrailingComments: 1
+
+# Indentation width for preprocessor directives
+PPIndentWidth: 2              
+IndentPPDirectives: AfterHash
+
+# Asterisk closest to the type
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+AllowAllParametersOfDeclarationOnNextLine: true  # Allows parameters to go to the next line

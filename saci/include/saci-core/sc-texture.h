@@ -3,14 +3,13 @@
 
 #include "saci-utils/su-types.h"
 
-typedef struct sc_TextureData {
-    int width, height;
-    int nrChannels;
-    uint8_t* data; // TODO not being used
-} sc_TextureData;
+/* === Texture Loading Functions === */
 
-saci_u8* sc_TextureLoadData(const char* path, saci_Bool flipImg, sc_TextureData* texData);
-saci_TextureID sc_TextureLoad(const char* path, saci_Bool flipImg);
-void sc_TextureFree(saci_TextureID textureID);
+sa_textureId sc_Texture_Load(const char* path, sa_bool flipImg);
+
+void sc_Texture_Load_Data(const char* path, sa_bool flipImg, int* width_out, int* height_out,
+                          int* nr_channels_out, sa_u8** data_out);
+
+void sc_Texture_Free(sa_textureId textureID);
 
 #endif
