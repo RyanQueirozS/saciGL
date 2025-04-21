@@ -50,8 +50,8 @@ static const char* __sa_Log_Context_To_String(enum sa_Log_Context_e context) {
     switch (context) {
     case sa_LOG_CONTEXT_OPENGL:
         return "OpenGL";
-    case sa_LOG_CONTEXT_OBJ_LOADING:
-        return "OBJ_LOADING";
+    case sa_LOG_CONTEXT_MODEL_LOADING:
+        return "MODEL_LOADING";
     case sa_LOG_CONTEXT_RENDERER:
         return "Renderer";
     case sa_LOG_CONTEXT_STBI:

@@ -1,24 +1,58 @@
 #ifndef __SACI_CORE_SC_MODEL_H__
 #define __SACI_CORE_SC_MODEL_H__
 
-#include <saci-utils/su-types.h>
+#include "saci-utils/su-types.h"
 
-struct sc_modelMesh_c;
+typedef struct __sc_modelMesh sc_modelMesh;
+typedef struct __sc_vertexIndice sc_vertexIndice;
 
-struct sc_vertexIndice_c {
-    sa_u32 vertexIndex;
-    sa_u32 texCoordIndex;
-    sa_u32 normalIndex;
+#ifdef SC_MODEL_MESH_EXPOSE
+#  ifndef SC_MODEL_MESH_STRUCT
+
+struct __sc_vertexIndice {
+    sa_u32 vertex_index;
+    sa_u32 uv_index;
+    sa_u32 normal_index;
 };
 
-sa_bool sc_Model_Parse(const char* file_path,
-                       sa_vec3** positions_out, sa_u64* positions_count_out,
-                       sa_vec2** texcoords_out, sa_u64* texcoord_count_out,
-                       struct sc_vertexIndice_c** indices_out, sa_u64* indices_count_out);
-struct sc_modelMesh_c* sc_Model_Mesh_Load(const char* path);
-void sc_Model_Mesh_Delete(struct sc_modelMesh_c* model_mesh);
-sa_u64 sc_ModelMesh_Get_Vertices_Amount(const struct sc_modelMesh_c* modelMesh);
-sa_u32* sc_ModelMesh_Get_Indices(const struct sc_modelMesh_c* modelMesh);
-sa_u64 sc_ModelMesh_GetIndicesAmount(const struct sc_modelMesh_c* modelMesh);
+struct __sc_modelMesh {
+    sa_u64 indices_count;
+    sa_u64 uv_count;
+    sa_u64 positions_count;
+    struct __sc_vertexIndice* indice_array;
+    sa_uv* uv_array;
+    sa_vec3* position_array;
+};
+
+#  endif // SC_MODEL_MESH_STRUCT
+#endif   // SC_MODEL_MESH_EXPOSE
+
+struct __sc_modelMesh* sc_Model_Mesh_Load(const char* path);
+
+void sc_Model_Delete(struct __sc_modelMesh* model_mesh);
+
+void sc_Model_Get_Vertex_Indice_Array(const struct __sc_modelMesh* modelMesh,
+                                      struct __sc_vertexIndice** indice_array_out,
+                                      sa_u64* indice_count_out);
+
+void sc_Model_Get_Separated_Indice_Data(const struct __sc_modelMesh* modelMesh,
+                                        sa_u32** vertex_index_array_out,
+                                        sa_u32** uv_index_array_out,
+                                        sa_u32** normal_index_array_out,
+                                        sa_u64* indice_count_out);
+
+void sc_Model_Get_Position_Array(const struct __sc_modelMesh* modelMesh,
+                                 sa_vec3** position_array_out,
+                                 sa_u64* position_count_out);
+
+void sc_Model_Get_Uv_Array(const struct __sc_modelMesh* modelMesh,
+                           sa_uv** uv_array_out,
+                           sa_u64* uv_count_out);
+
+void sc_Model_Vertex_Indice_Get_Data(const struct __sc_vertexIndice* vertex_indice,
+                                     sa_u64 vertex_indice_amount,
+                                     sa_u32** vertex_index_out,
+                                     sa_u32** uv_index_out,
+                                     sa_u32** normal_index_out);
 
 #endif

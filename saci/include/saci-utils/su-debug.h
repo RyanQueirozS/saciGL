@@ -41,7 +41,7 @@ enum sa_Log_Severity_e {
 enum sa_Log_Context_e {
     sa_LOG_CONTEXT_OPENGL = 0,
     sa_LOG_CONTEXT_RENDERER,
-    sa_LOG_CONTEXT_OBJ_LOADING,
+    sa_LOG_CONTEXT_MODEL_LOADING,
     sa_LOG_CONTEXT_STBI,
     sa_LOG_CONTEXT_MEMORY_ALLOCATION,
 };
