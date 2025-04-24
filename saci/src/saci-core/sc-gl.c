@@ -8,6 +8,7 @@
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-debug.h"
 #include "saci-utils/su-types.h"
+#include "saci-core/sc-model.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -77,7 +78,7 @@ SA_API sa_bool sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 #endif // __SC_RENDERER_UNIFORMS
 
 #ifndef __SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY
-#  define __SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY (3000)
+#  define __SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY (16000)
 #endif // __SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY
 
 #ifndef __SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY
@@ -101,7 +102,7 @@ SA_API sa_bool sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 #endif // __SC_RENDERER_DEFAULT_UBO_BINDING_POINT
 
 #ifndef __SC_RENDERER_DEFAULT_CALL_RATIO
-#  define __SC_RENDERER_DEFAULT_CALL_RATIO 10
+#  define __SC_RENDERER_DEFAULT_CALL_RATIO 20
 #endif // __SC_RENDERER_DEFAULT_CALL_RATIO
 
 #ifndef __SC_RENDERER_DEFAULT_CALL_INDEX_CAPACITY
@@ -252,14 +253,8 @@ struct __sc_renderer {
         glDeleteProgram((rendr)->shader_program); \
     } while (0)
 
-SA_INTERNAL void __sc_Renderer_Reset_Bound(struct __sc_renderer* rendr) {
-    rendr->bound_texture_id = 0;         // TODO change to macro
-    rendr->bound_index_array_length = 0; // TODO change to a macro
-}
-
-SA_INTERNAL void __sc_Renderer_Reset_Batch(struct __sc_renderer* rendr) {
-    // + 1 because of 0 index
-    for (sa_u8 i = 0; i < rendr->batch_in_use + 1; ++i) {
+SA_INTERNAL_INLINE void __sc_Renderer_Reset_Batch_Fields(struct __sc_renderer* rendr) {
+    for (sa_u8 i = 0; i < rendr->batch_array_capacity + 1; ++i) {
         rendr->batch_array[i].uniform_struct_block_size = 0;
         rendr->batch_array[i].texture = 0;
         rendr->batch_array[i].index_array_length = 0;
@@ -267,12 +262,27 @@ SA_INTERNAL void __sc_Renderer_Reset_Batch(struct __sc_renderer* rendr) {
         rendr->batch_array[i].uniform_block_size = 0;
         rendr->batch_array[i].uniform_struct_block = NULL;
     }
-    rendr->batch_in_use = 0;
+}
+
+#define __sc_Renderer_Reset_Batch_In_Use_m(rendr) \
+    do {                                          \
+        rendr->batch_in_use = 0;                  \
+    } while (0)
+
+SA_INTERNAL void __sc_Renderer_Reset_Bound(struct __sc_renderer* rendr) {
+    rendr->bound_texture_id = 0;         // TODO change to macro
+    rendr->bound_index_array_length = 0; // TODO change to a macro
+}
+
+SA_INTERNAL void __sc_Renderer_Reset_Batch(struct __sc_renderer* rendr) {
+    // + 1 because of 0 index
+    __sc_Renderer_Reset_Batch_Fields(rendr);
+    __sc_Renderer_Reset_Batch_In_Use_m(rendr);
 }
 
 SA_INTERNAL void __sc_Renderer_Reset_Call(struct __sc_renderer* rendr) {
     // + 1 because of 0 index
-    for (sa_u8 i = 0; i < rendr->call_in_use + 1; ++i) {
+    for (sa_u8 i = 0; i < rendr->call_array_capacity + 1; ++i) {
         rendr->call_array[i].uniform_struct_block_size = 0;
         rendr->call_array[i].texture = 0;
         rendr->call_array[i].index_array_length = 0;
@@ -370,6 +380,11 @@ SA_INTERNAL void __sc_Renderer_Init_Call(struct __sc_renderer* rendr) {
 // TODO evaluate if sorting is indeed needed
 // Only pass the call_amount that has been changed
 SA_INTERNAL void __sc_Renderer_Call_Array_Sort(struct __sc_renderCall* call_array, sa_u8 call_amount) {
+#ifdef SACI_DEBUG_MODE
+    char str[32];
+    sprintf(str, "Sorting %d calls", call_amount);
+    sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_RENDERER, str);
+#endif
     if (call_amount < 3) { // 0, 1 shouldn't be sorted and 2 won't matter
         return;
     }
@@ -470,25 +485,53 @@ SA_INTERNAL void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
             struct __sc_batch* batch_now = &batch_array[b];
 
             // Compare compatibility
-            if (batch_now->texture != call_now->texture)
+            if (batch_now->texture != call_now->texture && batch_now->texture != 0) {
+#ifdef SACI_DEBUG_MODE
+                sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG,
+                                    sa_LOG_CONTEXT_RENDERER,
+                                    "Texture in call didn't match the batch");
+#endif
                 continue;
-            if (batch_now->uniform_block_size != call_now->uniform_block_size)
+            }
+            if (batch_now->uniform_block_size != call_now->uniform_block_size && call_now->uniform_struct_block_size != 0) {
+#ifdef SACI_DEBUG_MODE
+                sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG,
+                                    sa_LOG_CONTEXT_RENDERER,
+                                    "Uniform block size in call didn't match the batch");
+#endif
                 continue;
-            if (batch_now->uniform_struct_block_size != call_now->uniform_struct_block_size)
+            }
+            if (batch_now->uniform_struct_block_size != call_now->uniform_struct_block_size && call_now->uniform_struct_block_size != 0) {
+#ifdef SACI_DEBUG_MODE
+                sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG,
+                                    sa_LOG_CONTEXT_RENDERER,
+                                    "Uniform struct block size  in call didn't match the batch");
+#endif
                 continue;
+            }
 
             if (!__sc_Renderer_Uniform_Is_Equal(
                     batch_now->uniform_struct_block,
                     call_now->uniform_struct_block,
-                    sa_Min_m(call_now->uniform_struct_block_size, batch_now->uniform_struct_block_size))) {
-
+                    sa_Min_m(call_now->uniform_struct_block_size, batch_now->uniform_struct_block_size)) &&
+                !batch_now->uniform_struct_block) {
+#ifdef SACI_DEBUG_MODE
+                sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG,
+                                    sa_LOG_CONTEXT_RENDERER,
+                                    "Uniforms don't match");
+#endif
                 continue;
             }
 
             // Check capacity before inserting
             if ((batch_now->vertex_array_length + call_now->vertex_array_length) > rendr->batch_vertex_capacity ||
                 (batch_now->index_array_length + call_now->index_array_length) > rendr->batch_index_capacity) {
-                continue; // Try next batch
+#ifdef SACI_DEBUG_MODE
+                sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG,
+                                    sa_LOG_CONTEXT_RENDERER,
+                                    "Batch cannot hold vertex or index array lenght");
+#endif
+                continue;
             }
 
             // Insert indices
@@ -517,10 +560,46 @@ SA_INTERNAL void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
                                  "No suitable batch found. Flushing and retrying.");
 #endif
             __sc_Renderer_Batch_Flush(rendr);
+            __sc_Renderer_Reset_Batch_Fields(rendr);
             i--; // Retry same call after flush
         }
         rendr->batch_in_use = max_batch_reached;
     }
+}
+
+SA_INTERNAL void __sc_Renderer_Push_To_Vertex_Buffer(struct __sc_vertex* dest_out,
+                                                     const sa_vec3* src_pos,
+                                                     const sa_uv* src_uv,
+                                                     const sa_color* src_color,
+                                                     sa_u32 dest_vertices_pushed,
+                                                     sa_u32 dest_capacity,
+                                                     sa_u32 src_count,
+                                                     sa_u32* vertices_copied) {
+    sa_Log_Assert_Message_m(dest_out, "Invalid pointer for vertex array");
+    sa_u32 remaining_vertices = src_count - dest_vertices_pushed;
+    sa_u32 vertices_to_copy = sa_Min_m(dest_capacity, remaining_vertices);
+    for (sa_u32 i = 0; i < vertices_to_copy; ++i) {
+        sa_u32 idx = dest_vertices_pushed + i;
+        sa_uv uv = (!src_uv ? (sa_uv){0, 0} : src_uv[idx]);
+        sa_color color = (!src_color ? (sa_color){1, 0.2f, 0.7f, 1} : src_color[idx]);
+        dest_out[i].pos = src_pos[idx];
+        dest_out[i].uv = uv;
+        dest_out[i].color = color;
+    }
+    *vertices_copied = vertices_to_copy;
+}
+
+SA_INTERNAL void __sc_Renderer_Push_To_Index_Buffer(sa_u32* dest_out,
+                                                    sa_u32* src,
+                                                    sa_u32 dest_indices_pushed,
+                                                    sa_u32 dest_capacity,
+                                                    sa_u32 src_count,
+                                                    sa_u32* indices_copied) {
+    sa_Log_Assert_Message_m(dest_out, "Invalid pointer for index array");
+    sa_u32 remaining_indices = src_count - dest_indices_pushed;
+    sa_u32 indices_to_copy = sa_Min_m(dest_capacity, remaining_indices);
+    memcpy(dest_out, &src[dest_indices_pushed], indices_to_copy * sizeof(sa_u32));
+    *indices_copied = indices_to_copy;
 }
 
 /* --- Renderer Header Impl --- */
@@ -582,6 +661,12 @@ SA_API void sc_Renderer_Set_Uniform_Struct(struct __sc_renderer* rendr, sa_u64 s
     rendr->uniform_struct_block = sa_Malloc_m(rendr->uniform_struct_size);
 }
 
+SA_API void sc_Renderer_Set_Bound_Index_Buffer_Capacity(struct __sc_renderer* rendr,
+                                                        sa_u32 new_size) {
+    rendr->bound_index_array_capacity = new_size;
+    rendr->bound_index_array_buffer = realloc(rendr->bound_index_array_buffer, new_size);
+}
+
 SA_API void sc_Renderer_Bind_Uniform_Struct(struct __sc_renderer* rendr, void* uniform) {
     if (!rendr->uniform_struct_block) {
         sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
@@ -607,14 +692,24 @@ SA_API void sc_Renderer_Bind_Uniform_Value(struct __sc_renderer* rendr, void* va
 
 SA_API void sc_Renderer_Bind_Index_Buffer(struct __sc_renderer* rendr, const sa_u32* new_indices, const sa_u32 new_indices_count) {
     // Reset the index buffer
+    if (!new_indices) {
+        sa_Log_Error_Print_m(sa_LOG_TYPE_WARN,
+                             sa_LOG_SEVERITY_LOW,
+                             sa_LOG_CONTEXT_RENDERER,
+                             "Indices are NULL and cannot be bound");
+        return;
+    }
+
     if (new_indices_count > rendr->bound_index_array_capacity) {
+        sa_Log_Error_Print_m(sa_LOG_TYPE_WARN,
+                             sa_LOG_SEVERITY_MEDIUM,
+                             sa_LOG_CONTEXT_RENDERER,
+                             "Indice bound is larger than capacity");
         return;
     }
 
     // Separate to a simpler name
-    for (sa_u32 i = 0; i < new_indices_count; ++i) {
-        rendr->bound_index_array_buffer[i] = new_indices[i];
-    }
+    memcpy(rendr->bound_index_array_buffer, new_indices, new_indices_count * sizeof(sa_u32));
     rendr->bound_index_array_length = new_indices_count;
 }
 
@@ -622,62 +717,69 @@ SA_API void sc_Renderer_Push_Vertex(struct __sc_renderer* rendr, const sa_vec3* 
     if (!pos_array || vertex_amount < 1) {
         sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
                              sa_LOG_CONTEXT_RENDERER,
-                             "Vertex array being pushed has lenght ZERO or is NULL");
-        return;
-    }
-    if (rendr->call_vertex_capacity < vertex_amount) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
-                             sa_LOG_CONTEXT_RENDERER,
-                             "Vertex amount overflows draw call");
+                             "Vertex array being pushed has length ZERO or is NULL");
         return;
     }
     if (!rendr->bound_index_array_buffer || !rendr->bound_index_array_length) {
         sa_Log_Info_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_CONTEXT_RENDERER, "NULL index array bound");
         return;
     }
-
-    sa_u32 call_index = rendr->call_in_use;
-    struct __sc_renderCall* call_in_use = &(rendr->call_array[call_index]);
-    sa_Log_Assert_Message_m(call_in_use, "Could not point to call in use");
-
-    { // Vertex operations
-        struct __sc_vertex* vertex_array_ptr = call_in_use->vertex_array;
-        sa_Log_Assert_Message_m(vertex_array_ptr, "Invalid pointer for vertex array");
-        call_in_use->vertex_array_length = vertex_amount;
 #if defined(SACI_DEBUG_MODE)
-        if (!pos_array) {
-            sa_Log_Error_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL,
-                                 "Invalid position array param");
-        }
+    if (!uv_array) {
+        sa_Log_Error_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+                             "Null uv array param");
+    }
 
-        if (!uv_array) {
-            sa_Log_Error_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
-                                 "Null uv array param");
-        }
-
-        if (!color_array) {
-            sa_Log_Error_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
-                                 "Null color array param");
-        }
+    if (!color_array) {
+        sa_Log_Error_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+                             "Null color array param");
+    }
 #endif
-        for (sa_u32 i = 0; i < vertex_amount; ++i) {
-            sa_uv uv = (!uv_array ? (sa_uv){0, 0} : uv_array[i]);
-            sa_color color = (!color_array ? (sa_color){0, 0, 0, 0} : color_array[i]);
-            vertex_array_ptr[i].pos = pos_array[i];
-            vertex_array_ptr[i].uv = uv;
-            vertex_array_ptr[i].color = color;
+
+    sa_u32 total_vertices_pushed = 0;
+    sa_u32 total_indices_pushed = 0;
+    while (total_vertices_pushed < vertex_amount ||
+           total_indices_pushed < rendr->bound_index_array_length) {
+
+        if (rendr->call_in_use >= rendr->call_array_capacity) {
+            sc_Renderer_End(rendr);
+            __sc_Renderer_Reset_Call(rendr);
         }
-    }
-    { // Index operations
-        sa_u32* bound_array = rendr->bound_index_array_buffer;
-        sa_u32 bound_array_count = rendr->bound_index_array_length;
 
-        sa_u32* index_array = call_in_use->index_array;
-        call_in_use->index_array_length = bound_array_count;
+        sa_u32 call_index = rendr->call_in_use;
+        struct __sc_renderCall* call_in_use = &(rendr->call_array[call_index]);
+        sa_Log_Assert_Message_m(call_in_use, "Could not point to call in use");
 
-        memcpy(index_array, bound_array, bound_array_count * sizeof(sa_u32));
+        { // Vertex
+            sa_u32 vertices_copied;
+            __sc_Renderer_Push_To_Vertex_Buffer(call_in_use->vertex_array,
+                                                pos_array,
+                                                uv_array,
+                                                color_array,
+                                                total_vertices_pushed,
+                                                rendr->call_vertex_capacity,
+                                                vertex_amount,
+                                                &vertices_copied);
+            call_in_use->vertex_array_length += vertices_copied;
+            total_vertices_pushed += vertices_copied;
+        }
+
+        { // Index
+            sa_u32 indices_copied;
+            __sc_Renderer_Push_To_Index_Buffer(call_in_use->index_array,
+                                               rendr->bound_index_array_buffer,
+                                               total_indices_pushed,
+                                               rendr->call_index_capacity,
+                                               rendr->bound_index_array_length,
+                                               &indices_copied);
+            call_in_use->index_array_length = indices_copied;
+            total_indices_pushed += indices_copied;
+        }
+        ++rendr->call_in_use;
     }
-    ++rendr->call_in_use;
+}
+
+SA_API void sc_Renderer_Push_Model(struct __sc_renderer* rendr, const sc_modelMesh* model_mesh) {
 }
 
 SA_API void sc_Renderer_End(struct __sc_renderer* rendr) {

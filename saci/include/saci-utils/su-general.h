@@ -38,6 +38,10 @@
 #  endif // SA_TEST_BUILD
 #endif   // SA_INTERNAL
 
+#ifndef SA_INTERNAL_INLINE
+#  define SA_INTERNAL_INLINE SA_INTERNAL inline
+#endif // SA_INTERNAL_INLINE
+
 /**
  * @define sa_Scast_To_m
  * @brief Performs a type-safe cast depending on the language context (C or C++).

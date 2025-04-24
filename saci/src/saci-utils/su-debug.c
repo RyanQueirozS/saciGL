@@ -11,9 +11,9 @@
 
 static enum sa_Log_Severity_e __sa_logging_severity_s = sa_LOG_SEVERITY_LOW;
 #ifdef SACI_DEBUG_MODE
-static sa_bool __sa_should_log_source_s = sa_FALSE;
-#else
 static sa_bool __sa_should_log_source_s = sa_TRUE;
+#else
+static sa_bool __sa_should_log_source_s = sa_FALSE;
 #endif // SACI_DEBUG_MODE
 
 /* === Helpers === */

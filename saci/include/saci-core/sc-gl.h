@@ -2,6 +2,7 @@
 #define __SACI_CORE_SC_RENDERING_H__
 
 #include <GLFW/glfw3.h>
+#include <saci-core/sc-model.h>
 
 #include "saci-utils/su-types.h"
 #include "saci-core/sc-windowing.h"
@@ -215,6 +216,18 @@ struct __sc_renderer {
 #define sc_RENDERER_UNIFORM_FLAG_IS_2D 0b0
 #define sc_RENDERER_UNIFORM_FLAG_IS_3D 0b1
 
+#if 0
+#  define sc_RENDERER_BATCH_OVERFLOW_ACTION_FLUSH 01
+#  define sc_RENDERER_BATCH_OVERFLOW_ACTION_CRASH 02
+#  define sc_RENDERER_BATCH_OVERFLOW_ACTION_SKIP 03
+#  define sc_RENDERER_BATCH_OVERFLOW_ACTION_RESIZE 04
+
+#  define sc_RENDERER_CALL_OVERFLOW_ACTION_FLUSH 01
+#  define sc_RENDERER_CALL_OVERFLOW_ACTION_CRASH 02
+#  define sc_RENDERER_CALL_OVERFLOW_ACTION_SKIP 03
+#  define sc_RENDERER_CALL_OVERFLOW_ACTION_RESIZE 04
+#endif // TODO to be implemented
+
 SA_API sc_renderer* sc_Renderer_New_Default(void);
 
 SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx,
@@ -229,6 +242,9 @@ SA_API void sc_Renderer_Bind_Texture(struct __sc_renderer* rendr,
 
 SA_API void sc_Renderer_Set_Uniform_Struct(struct __sc_renderer* rendr,
                                            sa_u64 size);
+
+SA_API void sc_Renderer_Set_Bound_Index_Buffer_Capacity(struct __sc_renderer* rendr,
+                                                        sa_u32 new_size);
 
 SA_API void sc_Renderer_Bind_Uniform_Struct(struct __sc_renderer* rendr,
                                             void* uniform);
@@ -247,6 +263,8 @@ SA_API void sc_Renderer_Push_Vertex(struct __sc_renderer* rendr,
                                     const sa_uv* uv_array,
                                     const sa_color* color_array,
                                     const sa_u32 amount);
+
+SA_API void sc_Renderer_Push_Model(struct __sc_renderer* rendr, const sc_modelMesh* model_mesh);
 
 SA_API void sc_Renderer_End(struct __sc_renderer* rendr);
 
