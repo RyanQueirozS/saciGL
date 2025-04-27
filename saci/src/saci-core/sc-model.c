@@ -26,6 +26,8 @@ SA_INTERNAL void __sc_File_Reader_Function(void* ctx, const char* filename, int 
 
 /* === Model Loading Implementation === */
 
+#ifndef SC_MODEL_MESH_STRUCT
+#  define SC_MODEL_MESH_STRUCT
 struct __sc_vertexIndice {
     sa_u32 vertex_index;
     sa_u32 uv_index;
@@ -40,6 +42,7 @@ struct __sc_modelMesh {
     sa_uv* uv_array;
     sa_vec3* position_array;
 };
+#endif
 
 SA_API struct __sc_modelMesh* sc_Model_Mesh_Load(const char* path) {
     struct __sc_modelMesh* mesh = sa_Malloc_m(sizeof(struct __sc_modelMesh));
@@ -52,6 +55,7 @@ SA_API struct __sc_modelMesh* sc_Model_Mesh_Load(const char* path) {
                                        &mesh->indices_count);
     if (!success) {
         sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_MODEL_LOADING, "Couldn't load model");
+        sa_Free_m(mesh);
     }
     return mesh;
 }

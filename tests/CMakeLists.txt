@@ -25,5 +25,6 @@ target_link_libraries(saci_tests PRIVATE saci)
 
 # Specify C standard and enable compiler warnings
 set_property(TARGET saci_tests PROPERTY C_STANDARD 11)
-target_compile_options(saci_tests PRIVATE -Wall -Wextra -pedantic -g)
-target_compile_definitions(saci PRIVATE SC_RENDERER_STRUCT_EXPOSE SACI_TEST_BUILD)
+target_compile_options(saci_tests PRIVATE -Wall -Wextra -pedantic -g -O0)
+target_compile_options(saci PRIVATE -g -O0)
+target_compile_definitions(saci PRIVATE SC_RENDERER_STRUCT_EXPOSE SC_MODEL_MESH_EXPOSE SACI_TEST_BUILD)

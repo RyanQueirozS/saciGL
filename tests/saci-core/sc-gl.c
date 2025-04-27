@@ -10,11 +10,7 @@
 #define SC_RENDERER_STRUCT_EXPOSE
 #include "saci-core/sc-gl.h"
 
-#define VERTICE_AMOUNT 500
-#define OFFSET_AMOUNT 10
-
 // External "sc-gl" funcs
-extern struct __sc_renderer __sc_renderer;
 extern void __sc_Renderer_Reset_Bound(struct __sc_renderer* rendr);
 
 // Helper

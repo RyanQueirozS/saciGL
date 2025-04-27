@@ -161,12 +161,12 @@ struct __sc_vertex {
 // The fields are structured in a way that enforces minimum memory change over time
 struct __sc_renderer {
     sa_textureId bound_texture_id;
+    sa_u32 bound_index_array_length;
+    sa_u32 bound_index_array_capacity;
+    sa_u64 bound_uniform_struct_size;
 
     sa_shaderId shader_program;
     sa_bufferId ibo, ubo, vbo, vao;
-
-    sa_u32 bound_index_array_length;
-    sa_u32 bound_index_array_capacity;
 
     sa_u32 batch_index_capacity;
     sa_u32 batch_vertex_capacity;
@@ -177,8 +177,6 @@ struct __sc_renderer {
     sa_u32 call_vertex_capacity;
     sa_u8 call_array_capacity;
     sa_u8 call_in_use; // 0 indexed
-
-    sa_u64 uniform_struct_size;
 
     struct __sc_batch {
         sa_u64 uniform_struct_block_size;

@@ -36,7 +36,7 @@ void init_saci(void) {
 
     sc_Renderer_Set_Uniform_Struct(renderer, sizeof(uniforms));
     uniforms.model = sa_Mat4_Identity();
-    uniforms.view = sa_Mat4_Look_At((sa_vec3){0.0f, 2.0f, -5.0f}, (sa_vec3){0.0f, 0.0f, 0.0f}, (sa_vec3){0.0f, 1.0f, 0.0f});
+    uniforms.view = sa_Mat4_Look_At((sa_vec3){0.0f, 2.0f, -2.0f}, (sa_vec3){0.0f, 0.0f, 0.0f}, (sa_vec3){0.0f, 1.0f, 0.0f});
     uniforms.projection = sa_Mat4_Perspective(90, 16.0f / 9.0f, 1, 100);
     uniforms.flags |= sc_RENDERER_UNIFORM_FLAG_IS_3D;
     uniforms.lighting = (sa_vec4){0, 0, 0, 0};
@@ -67,6 +67,8 @@ void init_saci(void) {
 //     }
 // }
 
+extern sa_u32 indices_reached;
+
 int main(void) {
     init_saci();
     sa_color bgColor =
@@ -80,12 +82,6 @@ int main(void) {
     }
 
     assert(mesh);
-    sa_mat4 modelMatrix;
-    sa_vec3 modelPos = {0, 0, 0};
-    sa_vec3 modelRot = {0, 0, 0};
-    sa_vec3 modelScale = {1, 1, 1};
-
-    modelMatrix = sa_Mat4_Model_Matrix(modelPos, modelRot, modelScale);
 
     sa_vec3* pos_array;
     sa_uv* uv_array;
@@ -103,11 +99,8 @@ int main(void) {
         sc_Renderer_Begin(renderer);
         sc_Renderer_Bind_Uniform_Struct(renderer, (void*)&uniforms);
         sc_Renderer_Bind_Index_Buffer(renderer, vertex_indice, sa_Scast_To_m(sa_u32)(indice_count));
-        printf("oi\n");
         sc_Renderer_Push_Vertex(renderer, pos_array, uv_array, NULL, sa_Scast_To_m(sa_u32) pos_count);
-        printf("oi2\n");
         sc_Renderer_End(renderer);
-        printf("oi3\n");
         sc_Window_Swap_Buffer(window);
 
         sc_Event_Poll();

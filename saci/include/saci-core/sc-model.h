@@ -8,6 +8,7 @@ typedef struct __sc_vertexIndice sc_vertexIndice;
 
 #ifdef SC_MODEL_MESH_EXPOSE
 #  ifndef SC_MODEL_MESH_STRUCT
+#    define SC_MODEL_MESH_STRUCT
 
 struct __sc_vertexIndice {
     sa_u32 vertex_index;
