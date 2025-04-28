@@ -161,7 +161,7 @@ sa_mat4 sa_Mat4_Ortho(float left, float right, float bottom, float top, float ne
     return result;
 }
 
-sa_mat4 sa_Mat4_Model_Matrix(sa_vec3 position, sa_vec3 rotation, sa_vec3 scale) {
+sa_mat4 sa_Mat4_Model_Matrix_RTS(sa_vec3 position, sa_vec3 rotation, sa_vec3 scale) {
     sa_mat4 scaleMat = sa_Mat4_Scale(scale.x, scale.y, scale.z);
 
     sa_mat4 rotationX =
@@ -175,9 +175,24 @@ sa_mat4 sa_Mat4_Model_Matrix(sa_vec3 position, sa_vec3 rotation, sa_vec3 scale) 
 
     sa_mat4 translationMat = sa_Mat4_Translate(position.x, position.y, position.z);
 
-    sa_mat4 modelMatrix =
-        sa_Mat4_Multiply(translationMat, sa_Mat4_Multiply(rotationMat, scaleMat));
+    sa_mat4 modelMatrix = sa_Mat4_Multiply(translationMat, sa_Mat4_Multiply(rotationMat, scaleMat));
 
+    return modelMatrix;
+}
+
+sa_mat4 sa_Mat4_Model_Matrix_TRS(sa_vec3 position, sa_vec3 rotation, sa_vec3 scale) {
+    sa_mat4 scaleMat = sa_Mat4_Scale(scale.x, scale.y, scale.z);
+
+    sa_mat4 rotationX = sa_Mat4_Rotate_X(sa_Mat4_Identity(), rotation.x);
+    sa_mat4 rotationY = sa_Mat4_Rotate_Y(sa_Mat4_Identity(), rotation.y);
+    sa_mat4 rotationZ = sa_Mat4_Rotate_Z(sa_Mat4_Identity(), rotation.z);
+
+    sa_mat4 rotationMat = sa_Mat4_Multiply(rotationZ, sa_Mat4_Multiply(rotationY, rotationX));
+
+    sa_mat4 translationMat = sa_Mat4_Translate(position.x, position.y, position.z);
+
+    // Rotate first -> scale -> then translate
+    sa_mat4 modelMatrix = sa_Mat4_Multiply(rotationMat, sa_Mat4_Multiply(translationMat, scaleMat));
     return modelMatrix;
 }
 

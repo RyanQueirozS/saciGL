@@ -79,19 +79,50 @@
 #  include <stdio.h>
 
 #  ifdef SACI_DEBUG_MODE
-#    define sa_Malloc_m(x)                           \
-        ({                                           \
-        size_t _size = (x);                          \
-        void* _ptr = malloc(_size);                  \
-        printf("allocating %lu bytes in func: %s\n", \
-               (unsigned long)_size, __func__);      \
-        _ptr;                                        \
+#    define sa_Malloc_m(x)                                       \
+        ({                                                       \
+        size_t _size = (x);                                      \
+        void* _ptr = malloc(_size);                              \
+        printf("allocating %lu bytes in func: %s at line: %d\n", \
+               (unsigned long)_size, __func__, __LINE__);        \
+        _ptr;                                                    \
         })
 #  else
 #    define sa_Malloc_m(x) malloc(x)
 #  endif
 
 #endif // sa_Malloc_m
+
+/**
+ * @define sa_Calloc_m
+ * @brief `calloc` version of saciGL
+ *
+ * Feel free to overwrite it with your own! When in SACI_DEBUG_MODE will print
+ * the origin of the allocated buffer
+ *
+ * @param[in] n The number of elements to be alloced
+ * @param[in] x The size of the elements to be alloced
+ *
+ * @return The allocated buffer
+ */
+#ifndef sa_Calloc_m
+#  include <stdlib.h>
+#  include <stdio.h>
+
+#  ifdef SACI_DEBUG_MODE
+#    define sa_Calloc_m(n, x)                                    \
+        ({                                                       \
+        size_t _size = n * x;                                    \
+        void* _ptr = calloc(n, x);                               \
+        printf("allocating %lu bytes in func: %s at line: %d\n", \
+               (unsigned long)_size, __func__, __LINE__);        \
+        _ptr;                                                    \
+        })
+#  else
+#    define sa_Calloc_m(n, x) calloc(n, x)
+#  endif
+
+#endif // sa_Calloc_m
 
 /**
  * @define sa_Free_m
@@ -104,8 +135,21 @@
  */
 #ifndef sa_Free_m
 #  include <stdlib.h>
-#  define sa_Free_m(x) free(x)
-#endif // sa_Free_m
+#  ifdef SACI_DEBUG_MODE
+#    define sa_Free_m(x)                                                                  \
+        ({                                                                                \
+        if (x) {                                                                          \
+            printf("freeing %p in func: %s at line: %d\n", (void*)x, __func__, __LINE__); \
+            free(x);                                                                      \
+            x = NULL;                                                                     \
+        } else {                                                                          \
+            printf("trying to free invalid pointer at: %s, %d", __func__, __LINE__);      \
+        }                                                                                 \
+        })
+#  else
+#    define sa_Free_m(x) free(x)
+#  endif // SACI_DEBUG_MODE
+#endif   // sa_Free_m
 
 /**
  * @define sa_Not_Used_m

@@ -171,7 +171,7 @@ struct __sc_renderer {
     sa_u32 batch_index_capacity;
     sa_u32 batch_vertex_capacity;
     sa_u8 batch_array_capacity;
-    sa_u8 batch_in_use; // 0 indexed
+    sa_u8 batch_length; // 0 indexed
 
     sa_u32 call_index_capacity;
     sa_u32 call_vertex_capacity;

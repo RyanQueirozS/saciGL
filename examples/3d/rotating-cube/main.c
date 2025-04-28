@@ -63,7 +63,13 @@ struct uniforms {
     sa_vec4 lighting;
 } uniforms;
 
-static sa_vec3 rotation = {0};
+static sa_vec3 pos[3] = {
+    (sa_vec3){0, 0, 0},
+    (sa_vec3){8, 1, 5},
+    (sa_vec3){3, 0, -15},
+};
+
+static sa_vec3 rotation[3] = {};
 
 void init_saci() {
     assert(sc_GLFW_Init());
@@ -74,9 +80,9 @@ void init_saci() {
 
     rendr = sc_Renderer_New_Default();
 
-    sc_Renderer_Set_Uniform_Struct(rendr, sizeof(uniforms));
-    uniforms.model = sa_Mat4_Model_Matrix((sa_vec3){0, 0, 0}, rotation, (sa_vec3){1, 1, 1});
-    uniforms.view = sa_Mat4_Look_At((sa_vec3){0.0f, 2.0f, -5.0f}, (sa_vec3){0.0f, 0.0f, 0.0f}, (sa_vec3){0.0f, 1.0f, 0.0f});
+    sc_Renderer_Set_Uniform_Struct(rendr, sizeof(struct uniforms));
+    uniforms.model = sa_Mat4_Model_Matrix_RTS((sa_vec3){0, 0, 0}, rotation[0], (sa_vec3){1, 1, 1});
+    uniforms.view = sa_Mat4_Look_At((sa_vec3){0.0f, 2.0f, -20.0f}, (sa_vec3){0.0f, 0.0f, 0.0f}, (sa_vec3){0.0f, 1.0f, 0.0f});
     uniforms.projection = sa_Mat4_Perspective(90, 16.0f / 9.0f, 1, 100);
     uniforms.flags |= sc_RENDERER_UNIFORM_FLAG_IS_3D;
     uniforms.lighting = (sa_vec4){0, 0, 0, 0};
@@ -88,21 +94,44 @@ int main() {
     sa_color bgColor =
         sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
 
+    glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_FALSE);
     while (!sc_Window_Should_Close(window)) {
+        sc_Event_Poll();
         sc_Window_Clear_Color(bgColor);
+
+        uniforms.view = sa_Mat4_Look_At((sa_vec3){0.0f, 3.0f, -20.0f}, pos[0], (sa_vec3){0.0f, 1.0f, 0.0f});
+
         sc_Renderer_Begin(rendr);
-        sc_Renderer_Bind_Uniform_Struct(rendr, (void*)&uniforms);
         sc_Renderer_Bind_Index_Buffer(rendr, cubeIndices, indiceAmount);
-        sc_Renderer_Push_Vertex(rendr, verticesPos, verticesUV, colors, verticeAmount);
+        {
+            uniforms.model = sa_Mat4_Model_Matrix_TRS(pos[0], rotation[0], (sa_vec3){1, 1, 1});
+            sc_Renderer_Bind_Uniform_Struct(rendr, (void*)&uniforms);
+            sc_Renderer_Push_Vertex(rendr, verticesPos, verticesUV, colors, verticeAmount);
+        }
+        {
+            uniforms.model = sa_Mat4_Model_Matrix_TRS(pos[1], rotation[1], (sa_vec3){1, 1, 1});
+            sc_Renderer_Bind_Uniform_Struct(rendr, (void*)&uniforms);
+            sc_Renderer_Push_Vertex(rendr, verticesPos, verticesUV, colors, verticeAmount);
+        }
+        {
+            uniforms.model = sa_Mat4_Model_Matrix_TRS(pos[2], rotation[2], (sa_vec3){1, 1, 1});
+            sc_Renderer_Bind_Uniform_Struct(rendr, (void*)&uniforms);
+            sc_Renderer_Push_Vertex(rendr, verticesPos, verticesUV, colors, verticeAmount);
+        }
         sc_Renderer_End(rendr);
         sc_Window_Swap_Buffer(window);
-
-        sc_Event_Poll();
         {
-            rotation.x += 0.01;
-            rotation.z += 0.01;
-            rotation.y += 0.01;
-            uniforms.model = sa_Mat4_Model_Matrix((sa_vec3){0, 0, 0}, rotation, (sa_vec3){1, 1, 1});
+            rotation[0].x += 0.01;
+            rotation[0].z += 0.01;
+            rotation[0].y += 0.01;
+
+            rotation[1].x += 0.02;
+            rotation[1].z += 0.01;
+            rotation[1].y += 0.08;
+
+            rotation[2].x += 0.01;
+            rotation[2].z += 0.02;
+            rotation[2].y += 0.03;
         }
     }
 }

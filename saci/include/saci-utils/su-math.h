@@ -212,8 +212,9 @@ sa_mat4 sa_Mat4_Perspective(float fov, float aspect, float near, float far);
 sa_mat4 sa_Mat4_Ortho(float left, float right, float bottom, float top, float near, float far);
 
 /**
- * @fn sa_Mat4_Model_Matrix
- * @brief Returns a new model matrix from position, rotation, and scale
+ * @fn sa_Mat4_Model_Matrix_TRS
+ * @brief Returns a new model matrix from position, rotation, and scale.
+ * It follows a `rotation * translation * scale` order.
  *
  * @param[in] position The position vector (translation)
  * @param[in] rotation The rotation vector (angles in radians for X, Y, Z axes)
@@ -221,7 +222,20 @@ sa_mat4 sa_Mat4_Ortho(float left, float right, float bottom, float top, float ne
  *
  * @return sa_mat4 A combined model matrix applying scale, rotation, and translation
  */
-sa_mat4 sa_Mat4_Model_Matrix(sa_vec3 position, sa_vec3 rotation, sa_vec3 scale);
+sa_mat4 sa_Mat4_Model_Matrix_RTS(sa_vec3 position, sa_vec3 rotation, sa_vec3 scale);
+
+/**
+ * @fn sa_Mat4_Model_Matrix_TRS
+ * @brief Returns a new model matrix from position, rotation, and scale.
+ * It follows a `translation * rotation * scale` order.
+ *
+ * @param[in] position The position vector (translation)
+ * @param[in] rotation The rotation vector (angles in radians for X, Y, Z axes)
+ * @param[in] scale The scale vector for X, Y, Z axes
+ *
+ * @return sa_mat4 A combined model matrix applying scale, rotation, and translation
+ */
+sa_mat4 sa_Mat4_Model_Matrix_TRS(sa_vec3 position, sa_vec3 rotation, sa_vec3 scale);
 
 /**
  * @fn sa_Mat4_Rotate_X
