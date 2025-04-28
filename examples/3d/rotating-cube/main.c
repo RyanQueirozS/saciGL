@@ -133,5 +133,10 @@ int main() {
             rotation[2].z += 0.02;
             rotation[2].y += 0.03;
         }
+        break;
     }
+    sc_Renderer_Free(rendr);
+    free(rendr);
+    sc_Window_Free(window);
+    sc_Window_Terminate();
 }

@@ -233,17 +233,63 @@ struct __sc_renderer {
 /* --- Renderer Helper --- */
 
 // Prefere to use this instead of directly changing the vertices to 0.
-#define __sc_Renderer_Free_Memory_m(rendr)                \
-    do {                                                  \
-        if ((rendr)->bound_index_array_buffer) {          \
-            sa_Free_m((rendr)->bound_index_array_buffer); \
-            (rendr)->bound_index_array_buffer = NULL;     \
-        }                                                 \
-    } while (0)
+void __sc_Renderer_Free_Memory(struct __sc_renderer* rendr) {
+    if (!rendr)
+        return;
+
+    if (rendr->bound_index_array_buffer) {
+        sa_Free_m(rendr->bound_index_array_buffer);
+        rendr->bound_index_array_buffer = NULL;
+    }
+
+    if (rendr->batch_array) {
+        for (sa_u8 i = 0; i < rendr->batch_array_capacity; ++i) {
+            if (rendr->batch_array[i].index_array) {
+                sa_Free_m(rendr->batch_array[i].index_array);
+                rendr->batch_array[i].index_array = NULL;
+            }
+            if (rendr->batch_array[i].vertex_array) {
+                sa_Free_m(rendr->batch_array[i].vertex_array);
+                rendr->batch_array[i].vertex_array = NULL;
+            }
+            if (rendr->batch_array[i].uniform_struct_block) {
+                sa_Free_m(rendr->batch_array[i].uniform_struct_block);
+                rendr->batch_array[i].uniform_struct_block = NULL;
+            }
+        }
+        sa_Free_m(rendr->batch_array);
+        rendr->batch_array = NULL;
+    }
+
+    if (rendr->uniform_struct_block) {
+        sa_Free_m(rendr->uniform_struct_block);
+        rendr->uniform_struct_block = NULL;
+    }
+
+    if (rendr->call_array) {
+        for (sa_u8 i = 0; i < rendr->call_array_capacity; ++i) {
+            if (rendr->call_array[i].index_array) {
+                sa_Free_m(rendr->call_array[i].index_array);
+                rendr->call_array[i].index_array = NULL;
+            }
+            if (rendr->call_array[i].vertex_array) {
+                sa_Free_m(rendr->call_array[i].vertex_array);
+                rendr->call_array[i].vertex_array = NULL;
+            }
+            if (rendr->call_array[i].uniform_struct_block) {
+                sa_Free_m(rendr->call_array[i].uniform_struct_block);
+                rendr->call_array[i].uniform_struct_block = NULL;
+            }
+        }
+        sa_Free_m(rendr->call_array);
+        rendr->call_array = NULL;
+    }
+}
 
 #define __sc_Renderer_Free_OpenGL_m(rendr)        \
     do {                                          \
         glDeleteBuffers(1, &(rendr)->ibo);        \
+        glDeleteBuffers(1, &(rendr)->vbo);        \
         glDeleteBuffers(1, &(rendr)->vbo);        \
         glDeleteVertexArrays(1, &(rendr)->vao);   \
         glDeleteProgram((rendr)->shader_program); \
@@ -839,7 +885,7 @@ SA_API void sc_Renderer_End(struct __sc_renderer* rendr) {
 
 SA_API void sc_Renderer_Free(struct __sc_renderer* rendr) {
     sc_Renderer_Begin(rendr);
-    __sc_Renderer_Free_Memory_m(rendr);
+    __sc_Renderer_Free_Memory(rendr);
     __sc_Renderer_Free_OpenGL_m(rendr);
     sa_Free_m(rendr);
     rendr = NULL;
@@ -848,7 +894,7 @@ SA_API void sc_Renderer_Free(struct __sc_renderer* rendr) {
 SA_API void sc_Renderer_Free_Opts(struct __sc_renderer* rendr, int free_opts) {
     sc_Renderer_Begin(rendr);
     if (free_opts & sc_RENDERER_FREE_OPT_MEMORY) {
-        __sc_Renderer_Free_Memory_m(rendr);
+        __sc_Renderer_Free_Memory(rendr);
     }
     if (free_opts & sc_RENDERER_FREE_OPT_OPENGL) {
         __sc_Renderer_Free_OpenGL_m(rendr);
