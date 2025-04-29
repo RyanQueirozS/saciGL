@@ -13,3 +13,5 @@ DerivePointerAlignment: false
 PointerAlignment: Left
 
 AllowAllParametersOfDeclarationOnNextLine: true  # Allows parameters to go to the next line
+
+IndentCaseBlocks: true 

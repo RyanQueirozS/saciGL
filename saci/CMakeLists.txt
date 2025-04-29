@@ -70,7 +70,7 @@ target_link_libraries(saci PUBLIC
 # Check if the project is in a Git repository
 if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/../.git")
     message(STATUS "Git repository detected. Enabling SACI_DEBUG_MODE.")
-    target_compile_definitions(saci PRIVATE SACI_DEBUG_MODE)
+    target_compile_definitions(saci PRIVATE SACI_DEBUG_MODE_ALL)
 else()
     message(STATUS "No Git repository detected. SACI_DEBUG_MODE will not be defined.")
 endif()

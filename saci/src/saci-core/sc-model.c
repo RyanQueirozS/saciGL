@@ -54,7 +54,7 @@ SA_API struct __sc_modelMesh* sc_Model_Mesh_Load(const char* path) {
                                        &mesh->indice_array,
                                        &mesh->indices_count);
     if (!success) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_MODEL_LOADING, "Couldn't load model");
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_MODEL_LOADING, "Couldn't load model");
         sa_Free_m(mesh);
     }
     return mesh;
@@ -78,8 +78,7 @@ SA_API void sc_Model_Get_Vertex_Indice_Array(const struct __sc_modelMesh* model_
     *indice_array_out = sa_Malloc_m(sizeof(struct __sc_vertexIndice) *
                                     model_mesh->indices_count);
     if (!*indice_array_out) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR,
-                             sa_LOG_SEVERITY_MEDIUM,
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM,
                              sa_LOG_CONTEXT_MEMORY_ALLOCATION,
                              "Could not allocate memory for indice_array_out");
         return;
@@ -167,7 +166,7 @@ SA_INTERNAL sa_bool __sc_Model_Parse(const char* filePath,
     }
     *position_array_out = sa_Scast_To_m(sa_vec3*) sa_Malloc_m(sizeof(sa_vec3) * (*positions_count_out));
     if (!(*position_array_out)) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM,
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM,
                              sa_LOG_CONTEXT_MODEL_LOADING, "Couldn't malloc positions");
         return false;
     }

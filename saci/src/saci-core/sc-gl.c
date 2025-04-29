@@ -411,11 +411,7 @@ SA_INTERNAL void __sc_Renderer_Init_Call(struct __sc_renderer* rendr) {
 // TODO evaluate if sorting is indeed needed
 // Only pass the call_amount that has been changed
 SA_INTERNAL void __sc_Renderer_Call_Array_Sort(struct __sc_renderCall* call_array_out, sa_u8 call_amount) {
-#ifdef SACI_DEBUG_MODE
-    char str[32];
-    sprintf(str, "Sorting %d calls", call_amount);
-    sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_RENDERER, str);
-#endif
+    sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, sa_LOG_CONTEXT_RENDERER, "Sorting calls");
     if (call_amount < 3) { // 0, 1 shouldn't be sorted and 2 won't matter
         return;
     }
@@ -442,6 +438,7 @@ SA_INTERNAL sa_bool __sc_Renderer_Uniform_Is_Equal(sa_u8* u1, sa_u8* u2, sa_u64 
 }
 
 SA_INTERNAL void __sc_Renderer_Batch_Draw(struct __sc_renderer* rendr) {
+    sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, sa_LOG_CONTEXT_RENDERER, "Flushing batches");
     struct previousBatch { // Will get bigger later
         sa_textureId texture;
     } previous_batch = {0};
@@ -486,9 +483,6 @@ SA_INTERNAL void __sc_Renderer_Batch_Draw(struct __sc_renderer* rendr) {
         glDrawElements(GL_TRIANGLES, sa_Scast_To_m(int)(batch_in_use->index_array_length), GL_UNSIGNED_INT, 0);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
-#ifdef SACI_DEBUG_MODE
-    sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_RENDERER, "Renderer flushed");
-#endif // SACI_DEBUG_MODE
 }
 
 SA_INTERNAL void __sc_Renderer_Vertex_Buffer_Append(struct __sc_vertex* dest_out,
@@ -543,7 +537,7 @@ SA_INTERNAL void __sc_Renderer_Index_Buffer_Append(sa_u32* dest_out,
 SA_INTERNAL void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
     sa_u64 batch_capacity = rendr->batch_array_capacity;
     if (batch_capacity < 1) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH,
                              sa_LOG_CONTEXT_RENDERER,
                              "Renderer_End called but batch has ZERO capacity");
         return;
@@ -551,7 +545,7 @@ SA_INTERNAL void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
 
     sa_u64 call_amount = rendr->call_in_use;
     if (call_amount == 0) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_WARN, sa_LOG_SEVERITY_LOW,
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_LOW,
                              sa_LOG_CONTEXT_RENDERER,
                              "Renderer_End called but renderer has no calls");
         return;
@@ -574,30 +568,21 @@ SA_INTERNAL void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
 
             // Compare compatibility
             if (batch_now->texture != call_now->texture && batch_now->texture != 0) {
-#ifdef SACI_DEBUG_MODE
-                sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG,
-                                    sa_LOG_CONTEXT_RENDERER,
-                                    "Texture in call didn't match the batch");
-#endif
+                sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_BATCH, sa_LOG_CONTEXT_RENDERER,
+                                     "Texture in call didn't match the batch");
                 continue;
             }
             if (batch_now->uniform_struct_block_size != call_now->uniform_struct_block_size && batch_now->uniform_struct_block_size != 0) {
-#ifdef SACI_DEBUG_MODE
-                sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG,
-                                    sa_LOG_CONTEXT_RENDERER,
-                                    "Uniform struct block size  in call didn't match the batch");
-#endif
+                sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_BATCH, sa_LOG_CONTEXT_RENDERER,
+                                     "Uniform struct block size  in call didn't match the batch");
                 continue;
             }
             if (!__sc_Renderer_Uniform_Is_Equal(
                     batch_now->uniform_struct_block,
                     call_now->uniform_struct_block,
                     sa_Min_m(call_now->uniform_struct_block_size, batch_now->uniform_struct_block_size))) {
-#ifdef SACI_DEBUG_MODE
-                sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG,
-                                    sa_LOG_CONTEXT_RENDERER,
-                                    "Uniforms don't match");
-#endif
+                sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_BATCH, sa_LOG_CONTEXT_RENDERER,
+                                     "Uniforms don't match");
                 continue;
             }
 
@@ -644,12 +629,8 @@ SA_INTERNAL void __sc_Renderer_Batch_Calls(struct __sc_renderer* rendr) {
         }
 
         if (!batched) {
-#ifdef SACI_DEBUG_MODE
-            sa_Log_Error_Print_m(sa_LOG_TYPE_DEBUG,
-                                 sa_LOG_SEVERITY_LOW,
-                                 sa_LOG_CONTEXT_RENDERER,
+            sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_BATCH, sa_LOG_CONTEXT_RENDERER,
                                  "No suitable batch found. Flushing and retrying.");
-#endif
             __sc_Renderer_Batch_Draw(rendr);
             __sc_Renderer_Reset_Batch(rendr);
             i--; // Retry same call after flush
@@ -747,12 +728,12 @@ SA_API void sc_Renderer_Set_Bound_Index_Buffer_Capacity(struct __sc_renderer* re
 
 SA_API void sc_Renderer_Bind_Uniform_Struct(struct __sc_renderer* rendr, void* uniform) {
     if (!rendr->uniform_struct_block) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH,
                              sa_LOG_CONTEXT_RENDERER, "Uniform block not created");
         return;
     }
     if (!uniform) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH,
                              sa_LOG_CONTEXT_RENDERER, "Invalid uniform structure");
         return;
     }
@@ -762,11 +743,11 @@ SA_API void sc_Renderer_Bind_Uniform_Struct(struct __sc_renderer* rendr, void* u
 
 SA_API void sc_Renderer_Bind_Uniform_Value(struct __sc_renderer* rendr, void* value, sa_u64 start_offset, sa_u64 size) {
     if (!rendr->uniform_struct_block) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "Uniform block not created");
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "Uniform block not created");
         return;
     }
     if (start_offset + size > rendr->bound_uniform_struct_size) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "Uniform block overflow");
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "Uniform block overflow");
         return;
     }
     memcpy((sa_u8*)rendr->uniform_struct_block + start_offset, value, size);
@@ -775,18 +756,16 @@ SA_API void sc_Renderer_Bind_Uniform_Value(struct __sc_renderer* rendr, void* va
 SA_API void sc_Renderer_Bind_Index_Buffer(struct __sc_renderer* rendr, const sa_u32* new_indices, const sa_u32 new_indices_count) {
     // Reset the index buffer
     if (!new_indices) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_WARN,
-                             sa_LOG_SEVERITY_LOW,
-                             sa_LOG_CONTEXT_RENDERER,
-                             "Indices are NULL and cannot be bound");
+        sa_Log_Warn_Print_m(sa_LOG_SEVERITY_LOW,
+                            sa_LOG_CONTEXT_RENDERER,
+                            "Indices are NULL and cannot be bound");
         return;
     }
 
     if (new_indices_count > rendr->bound_index_array_capacity) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_WARN,
-                             sa_LOG_SEVERITY_MEDIUM,
-                             sa_LOG_CONTEXT_RENDERER,
-                             "Indice bound is larger than capacity");
+        sa_Log_Warn_Print_m(sa_LOG_SEVERITY_MEDIUM,
+                            sa_LOG_CONTEXT_RENDERER,
+                            "Indice bound is larger than capacity");
         return;
     }
 
@@ -796,32 +775,30 @@ SA_API void sc_Renderer_Bind_Index_Buffer(struct __sc_renderer* rendr, const sa_
 }
 
 SA_API void sc_Renderer_Push_Vertex(struct __sc_renderer* rendr, const sa_vec3* pos_array, const sa_uv* uv_array, const sa_color* color_array, const sa_u32 vertex_amount) {
+    sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
+                         sa_LOG_CONTEXT_RENDERER, "Attempting to push vertices");
     if (!pos_array || vertex_amount < 1) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH,
                              sa_LOG_CONTEXT_RENDERER,
                              "Vertex array being pushed has length ZERO or is NULL");
         return;
     }
     if (!rendr->bound_index_array_buffer || !rendr->bound_index_array_length) {
-        sa_Log_Info_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_CONTEXT_RENDERER, "NULL index array bound");
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_RENDERER, "NULL index array bound");
         return;
     }
     if (!rendr->uniform_struct_block || !rendr->bound_uniform_struct_size) {
-        sa_Log_Info_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_CONTEXT_RENDERER, "NULL uniform struct array bound");
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "NULL uniform struct array bound");
         return;
     }
 
-#if defined(SACI_DEBUG_MODE)
     if (!uv_array) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
-                             "Null uv array param");
+        sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER, sa_LOG_CONTEXT_OPENGL, "Null uv array param");
     }
 
     if (!color_array) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
-                             "Null color array param");
+        sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER, sa_LOG_CONTEXT_OPENGL, "Null color array param");
     }
-#endif
 
     sa_u32 total_vertices_pushed = 0;
     sa_u32 total_indices_pushed = 0;
@@ -995,7 +972,7 @@ sa_u32 sc_Shader_Create_Shader_Program(sa_u32 vshader, sa_u32 fshader) {
         glGetProgramInfoLog(programID, 2048, &sizeReturned, glErrMessage);
         snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s",
                  glErrMessage);
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, errMessage);
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, errMessage);
         return 0;
     }
     glDetachShader(programID, vshader);
@@ -1003,8 +980,7 @@ sa_u32 sc_Shader_Create_Shader_Program(sa_u32 vshader, sa_u32 fshader) {
     glDeleteShader(vshader);
     glDeleteShader(fshader);
 
-    sa_Log_Info_Print_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL,
-                        "Shader program loaded successfully");
+    sa_Log_Info_Print_m(sa_LOG_CONTEXT_OPENGL, "Shader program loaded successfully");
     return programID;
 }
 
@@ -1024,7 +1000,7 @@ sa_u32 sc_Shader_Create_Shader_Program_Geom(sa_u32 vshader, sa_u32 fshader, sa_u
         glGetProgramInfoLog(programID, 2048, &sizeReturned, glErrMessage);
         snprintf(errMessage, sizeof(errMessage), "Shader program couldn't be loaded: %s",
                  glErrMessage);
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, errMessage);
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, errMessage);
         return 0;
     }
     glDetachShader(programID, vshader);
@@ -1033,8 +1009,7 @@ sa_u32 sc_Shader_Create_Shader_Program_Geom(sa_u32 vshader, sa_u32 fshader, sa_u
     glDeleteShader(vshader);
     glDeleteShader(fshader);
     glDeleteShader(gshader);
-    sa_Log_Info_Print_m(sa_LOG_TYPE_INFO, sa_LOG_CONTEXT_OPENGL,
-                        "Shader program be loaded successfully");
+    sa_Log_Info_Print_m(sa_LOG_CONTEXT_OPENGL, "Shader program be loaded successfully");
 
     return programID;
 }
@@ -1066,8 +1041,7 @@ static sa_u32 __sc_shader_compile(const char* shaderSource, sa_u32 shaderType) {
             if (shaderType == GL_GEOMETRY_SHADER) {
                 logMessage = "Geometry shader couldn't be loaded";
             }
-            sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_HIGH,
-                                 sa_LOG_CONTEXT_OPENGL, logMessage);
+            sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, logMessage);
         }
         return 0;
     }
@@ -1082,8 +1056,7 @@ static sa_u32 __sc_shader_compile(const char* shaderSource, sa_u32 shaderType) {
         if (shaderType == GL_GEOMETRY_SHADER) {
             logMessage = "Geometry shader loaded succesfully";
         }
-        sa_Log_Info_Print_m(sa_LOG_TYPE_INFO,
-                            sa_LOG_CONTEXT_OPENGL, logMessage);
+        sa_Log_Info_Print_m(sa_LOG_CONTEXT_OPENGL, logMessage);
     }
 
     return shaderID;

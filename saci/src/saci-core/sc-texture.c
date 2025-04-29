@@ -19,7 +19,7 @@ void sc_Texture_Load_Data(const char* path, sa_bool flipImg, int* width_out, int
     stbi_set_flip_vertically_on_load(!flipImg);
     *data_out = stbi_load(path, width_out, height_out, nr_channels_out, 0);
     if ((*width_out) <= 0 || (*height_out) <= 0) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Texture Width or Height is equal to 0");
     }
 }
@@ -32,7 +32,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flipImg) {
     sc_Texture_Load_Data(path, flipImg, &width, &height, &nr_channels, &data);
 
     if (!data) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Image could not be loaded");
         return 0;
     }
@@ -40,7 +40,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flipImg) {
     sa_u32 format = __sc_Texture_Determine_Format(nr_channels);
     if (format == 0) {
         sa_Free_m(data);
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Unsupported number of channels");
         return 0;
     }
@@ -58,7 +58,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flipImg) {
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &glHeight);
 
     if (glWidth <= 0 || glHeight <= 0) {
-        sa_Log_Error_Print_m(sa_LOG_TYPE_ERROR, sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Texture Width or Height is equal to 0");
         sa_Free_m(data);
         return 0;
@@ -67,21 +67,12 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flipImg) {
     glGenerateMipmap(GL_TEXTURE_2D);
 
     sa_Free_m(data);
-#if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_TEXTURE)
-    char debugMsg[256];
-    snprintf(debugMsg, sizeof(debugMsg), "Loaded texture with %d width, %d height from %s",
-             width, height, path);
-    sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_OPENGL, debugMsg);
-#endif
+    sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_TEXTURE, sa_LOG_CONTEXT_OPENGL, "Loaded texture");
     return id;
 }
 
 void sc_Texture_Free(sa_textureId textureID) {
-#if defined(SACI_DEBUG_MODE) || defined(SACI_DEBUG_MODE_TEXTURE)
-    char debugMsg[128];
-    snprintf(debugMsg, sizeof(debugMsg), "Freed texture, id: %d", textureID);
-    sa_Log_Info_Print_m(sa_LOG_TYPE_DEBUG, sa_LOG_CONTEXT_OPENGL, debugMsg);
-#endif
+    sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_TEXTURE, sa_LOG_CONTEXT_OPENGL, "Freed texture");
     glDeleteTextures(1, &textureID);
 }
 

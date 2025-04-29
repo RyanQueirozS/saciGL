@@ -13,11 +13,12 @@ CFLAGS = -Wall -Wextra -O0 -g \
 
 # Clang-specific tweaks (optional)
 ifeq ($(COMPILER),clang)
+	COMPILER = clang	
 endif
 
 # Debug mode flag
 ifeq ($(DEBUG),1)
-    CFLAGS += -DSACI_DEBUG_MODE
+    CFLAGS += -DSACI_DEBUG_MODE_ALL
 endif
 
 # Source files from saci-core and saci-utils
