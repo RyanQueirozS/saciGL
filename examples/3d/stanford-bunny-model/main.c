@@ -105,6 +105,9 @@ int main(void) {
 
         sc_Event_Poll();
     }
+    free(pos_array);
+    free(uv_array);
+    free(vertex_indice);
     sc_Model_Delete(mesh);
     sc_Renderer_Free(renderer);
     sc_Window_Free(window);

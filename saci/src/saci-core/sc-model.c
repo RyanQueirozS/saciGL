@@ -70,6 +70,7 @@ void sc_Model_Delete(struct __sc_modelMesh* model_mesh) {
     model_mesh->uv_array = NULL;
 
     sa_Free_m(model_mesh);
+    model_mesh = NULL;
 }
 
 SA_API void sc_Model_Get_Vertex_Indice_Array(const struct __sc_modelMesh* model_mesh,
