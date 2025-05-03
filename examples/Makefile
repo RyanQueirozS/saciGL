@@ -4,7 +4,7 @@ CC = $(COMPILER)
 
 # Compiler Flags
 CFLAGS = -Wall -Wextra -O0 -g \
-	-I../saci/include \
+	-I../saci/src \
 	-I../saci/deps/glad/include \
 	-I../saci/deps/glfw/include \
 	-I../saci/deps/stb \

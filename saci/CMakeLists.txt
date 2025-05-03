@@ -19,7 +19,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.c")
 
 # Find all header files recursively in the include directory
-file(GLOB_RECURSE HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/**/*.h")
+file(GLOB_RECURSE HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.h")
 
 # --- Find Dependencies ---
 
@@ -50,7 +50,7 @@ target_include_directories(saci SYSTEM PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/include"  # GLFW headers
 
     PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"            # Root include directory
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/"            # Root include directory
 )
 
 # Add Glad source file to the library
