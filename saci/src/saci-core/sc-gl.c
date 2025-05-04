@@ -535,6 +535,7 @@ SA_INTERNAL void sc_Renderer_Vertex_Buffer_Append_s(struct sc_vertex* dest_out,
                                                     sa_u32 src_count,
                                                     sa_u32* vertices_copied_out) {
     sa_Log_Assert_Message_m(dest_out, "Invalid ptr for vertex array");
+    *vertices_copied_out = 0;
 
     if (dest_vertices_pushed >= dest_capacity) {
         sa_Log_Assert_Message_m(dest_out, "Destination buffer overflow");
@@ -558,8 +559,9 @@ SA_INTERNAL void sc_Renderer_Index_Buffer_Append_s(sa_u32* dest_out,
                                                    sa_u32 src_indices_pushed,
                                                    sa_u32 dest_capacity,
                                                    sa_u32 src_count,
-                                                   sa_u32* indices_copied) {
+                                                   sa_u32* indices_copied_out) {
     sa_Log_Assert_Message_m(dest_out, "Invalid pointer for index array");
+    *indices_copied_out = 0;
 
     if (dest_indices_pushed >= dest_capacity) {
         sa_Log_Assert_Message_m(dest_out, "Destination buffer overflow");
@@ -573,7 +575,7 @@ SA_INTERNAL void sc_Renderer_Index_Buffer_Append_s(sa_u32* dest_out,
     sa_u32 remaining_indices = src_count - src_indices_pushed;
     sa_u32 indices_to_copy = sa_Min_m(dest_capacity - dest_indices_pushed, remaining_indices);
     memcpy(&dest_out[dest_indices_pushed], &src[src_indices_pushed], indices_to_copy * sizeof(sa_u32));
-    *indices_copied = indices_to_copy;
+    *indices_copied_out = indices_to_copy;
 }
 
 SA_INTERNAL void sc_Renderer_Batch_Calls_s(struct sc_renderer* rendr) {

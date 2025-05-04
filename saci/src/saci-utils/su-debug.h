@@ -8,8 +8,8 @@
  * This file provides both OpenGL and saciCORE/saciLIB debugging macros and functions
  */
 
-#ifndef __SACI_UTILS_SU_DEBUG_H__
-#define __SACI_UTILS_SU_DEBUG_H__
+#ifndef SACI_UTILS_SU_DEBUG_H
+#define SACI_UTILS_SU_DEBUG_H
 
 #include "saci-utils/su-types.h"
 
@@ -263,4 +263,4 @@ void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
 // TODO doc
 void sa_Log_OpenGL_Debug_Message_Callback(sa_u32 source, sa_u32 type, sa_u32 id, sa_u32 severity, int length, const char* msg, const void* data);
 
-#endif
+#endif // SACI_UTILS_SU_DEBUG_H

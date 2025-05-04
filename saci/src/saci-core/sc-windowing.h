@@ -1,5 +1,5 @@
-#ifndef __SACI_CORE_SC_WINDOWING_H__
-#define __SACI_CORE_SC_WINDOWING_H__
+#ifndef SACI_CORE_SC_WINDOWING_H
+#define SACI_CORE_SC_WINDOWING_H
 
 #include <GLFW/glfw3.h>
 #include <saci-utils/su-types.h>
@@ -43,4 +43,4 @@ void sc_Window_Clear_Color(const sa_color color);
 
 void sc_Window_Swap_Buffer(sc_window_t* window);
 
-#endif // __SACI_CORE_SC_WINDOWING_H__
+#endif // SACI_CORE_SC_WINDOWING_H

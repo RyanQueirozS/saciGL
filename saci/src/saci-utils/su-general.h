@@ -7,8 +7,8 @@
  * lengths
  */
 
-#ifndef __SACI_UTILS_SU_GENERAL_H__
-#define __SACI_UTILS_SU_GENERAL_H__
+#ifndef SACI_UTILS_SU_GENERAL_H
+#define SACI_UTILS_SU_GENERAL_H
 
 #include <saci-utils/su-types.h>
 
@@ -190,4 +190,4 @@
 #  define sa_Max_m(x, y) ((x) > (y) ? (x) : (y))
 #endif // sa_Max_m
 
-#endif
+#endif // SACI_UTILS_SU_GENERAL_H

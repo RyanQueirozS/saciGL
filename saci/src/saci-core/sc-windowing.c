@@ -5,13 +5,14 @@
 
 #include "saci-core/sc-windowing.h"
 #include "saci-utils/su-debug.h"
+#include "saci-utils/su-general.h"
 
 /* === Helper === */
 
 /**
  * @brief Generates the default OpenGL debuger.
  */
-void __sc_OpenGL_InitializeDebugger(void);
+SA_INTERNAL void sc_OpenGL_InitializeDebugger_s(void);
 
 /* === Main declaration=== */
 
@@ -36,7 +37,7 @@ sa_bool sc_GLAD_Init(void) {
         return sa_FALSE;
     }
     sa_Log_Info_Print_m(sa_LOG_CONTEXT_OPENGL, "Loaded glad");
-    __sc_OpenGL_InitializeDebugger();
+    sc_OpenGL_InitializeDebugger_s();
 
 #if 0 // TODO
     const sa_u8* version = glGetString(GL_VERSION);
@@ -91,7 +92,7 @@ void sc_Window_Swap_Buffer(sc_window_t* window) {
 
 /* === Helper === */
 
-void __sc_OpenGL_InitializeDebugger(void) {
+void sc_OpenGL_InitializeDebugger_s(void) {
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(sa_Log_OpenGL_Debug_Message_Callback, NULL);
