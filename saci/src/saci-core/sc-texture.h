@@ -1,5 +1,5 @@
-#ifndef __SACI_CORE_SC_TEXTURE_H__
-#define __SACI_CORE_SC_TEXTURE_H__
+#ifndef SACI_CORE_SC_TEXTURE_H
+#define SACI_CORE_SC_TEXTURE_H
 
 #include "saci-utils/su-types.h"
 
@@ -12,4 +12,4 @@ void sc_Texture_Load_Data(const char* path, sa_bool flipImg, int* width_out, int
 
 void sc_Texture_Free(sa_textureId textureID);
 
-#endif
+#endif // SACI_CORE_SC_TEXTURE_H

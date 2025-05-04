@@ -9,8 +9,8 @@
  * the use of types across the saciCORE and saciLIB and ensure consistency.
  */
 
-#ifndef __SACI_UTILS_SU_TYPES_H__
-#define __SACI_UTILS_SU_TYPES_H__
+#ifndef SACI_UTILS_SU_TYPES_H
+#define SACI_UTILS_SU_TYPES_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -89,4 +89,4 @@ typedef struct {
     float data[4][4]; /**< 4x4 matrix of floats */
 } sa_mat4;
 
-#endif
+#endif // SACI_UTILS_SU_TYPES_H

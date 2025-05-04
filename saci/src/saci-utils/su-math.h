@@ -9,8 +9,8 @@
  * applications
  */
 
-#ifndef __SACI_UTILS_SU_MATH_H__
-#define __SACI_UTILS_SU_MATH_H__
+#ifndef SACI_UTILS_SU_MATH_H
+#define SACI_UTILS_SU_MATH_H
 
 #include "saci-utils/su-types.h"
 
@@ -294,4 +294,4 @@ sa_mat4 sa_Mat4_Scale(float sx, float sy, float sz);
  */
 sa_mat4 sa_Mat4_Translate(float tx, float ty, float tz);
 
-#endif
+#endif // SACI_UTILS_SU_MATH_H

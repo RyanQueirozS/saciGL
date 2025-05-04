@@ -10,7 +10,7 @@
 
 /* === Helper Func declarations === */
 
-sa_u32 __sc_Texture_Determine_Format(int nrChannels);
+SA_INTERNAL sa_u32 sc_Texture_Determine_Format_s(int nrChannels);
 
 /* === Header impl === */
 
@@ -37,7 +37,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flipImg) {
         return 0;
     }
 
-    sa_u32 format = __sc_Texture_Determine_Format(nr_channels);
+    sa_u32 format = sc_Texture_Determine_Format_s(nr_channels);
     if (format == 0) {
         sa_Free_m(data);
         sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
@@ -78,10 +78,12 @@ void sc_Texture_Free(sa_textureId textureID) {
 
 /* === Helper Func impl === */
 
-sa_u32 __sc_Texture_Determine_Format(int nrChannels) {
-    if (nrChannels == 3)
+sa_u32 sc_Texture_Determine_Format_s(int nrChannels) {
+    if (nrChannels == 3) {
         return GL_RGB;
-    if (nrChannels == 4)
+    }
+    if (nrChannels == 4) {
         return GL_RGBA;
+    }
     return 0;
 }

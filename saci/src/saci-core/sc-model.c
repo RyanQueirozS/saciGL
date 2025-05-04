@@ -13,40 +13,40 @@
 
 /* === Helper definitions === */
 
-SA_INTERNAL char* __sc_file_buffer = NULL; // buffer for the file reader function.
-SA_INTERNAL size_t __sc_file_buffer_len = 0;
+SA_INTERNAL char* sc_file_buffer_s = NULL; // buffer for the file reader function.
+SA_INTERNAL size_t sc_file_buffer_len_s = 0;
 
-SA_INTERNAL sa_bool __sc_Model_Parse(const char* file_path,
+SA_INTERNAL sa_bool sc_Model_Parse_s(const char* file_path,
                                      sa_vec3** position_array_out, sa_u64* positions_count_out,
                                      sa_uv** texcoord_array_out, sa_u64* texcoord_count_out,
-                                     struct __sc_vertexIndice** indice_array_out, sa_u64* indices_count_out);
+                                     struct sc_vertexIndice** indice_array_out, sa_u64* indices_count_out);
 
-SA_INTERNAL void __sc_File_Reader_Function(void* ctx, const char* filename, int isMtl,
+SA_INTERNAL void sc_File_Reader_Function_s(void* ctx, const char* filename, int isMtl,
                                            const char* obj_filename, char** buf, size_t* len);
 
 /* === Model Loading Implementation === */
 
 #ifndef SC_MODEL_MESH_STRUCT
 #  define SC_MODEL_MESH_STRUCT
-struct __sc_vertexIndice {
+struct sc_vertexIndice {
     sa_u32 vertex_index;
     sa_u32 uv_index;
     sa_u32 normal_index;
 };
 
-struct __sc_modelMesh {
+struct sc_modelMesh {
     sa_u64 indices_count;
     sa_u64 uv_count;
     sa_u64 positions_count;
-    struct __sc_vertexIndice* indice_array;
+    struct sc_vertexIndice* indice_array;
     sa_uv* uv_array;
     sa_vec3* position_array;
 };
 #endif
 
-SA_API struct __sc_modelMesh* sc_Model_Mesh_Load(const char* path) {
-    struct __sc_modelMesh* mesh = sa_Malloc_m(sizeof(struct __sc_modelMesh));
-    sa_bool success = __sc_Model_Parse(path,
+SA_API struct sc_modelMesh* sc_Model_Mesh_Load(const char* path) {
+    struct sc_modelMesh* mesh = sa_Malloc_m(sizeof(struct sc_modelMesh));
+    sa_bool success = sc_Model_Parse_s(path,
                                        &mesh->position_array,
                                        &mesh->positions_count,
                                        &mesh->uv_array,
@@ -60,7 +60,7 @@ SA_API struct __sc_modelMesh* sc_Model_Mesh_Load(const char* path) {
     return mesh;
 }
 
-void sc_Model_Delete(struct __sc_modelMesh* model_mesh) {
+void sc_Model_Delete(struct sc_modelMesh* model_mesh) {
     sa_Free_m(model_mesh->indice_array);
     sa_Free_m(model_mesh->position_array);
     sa_Free_m(model_mesh->uv_array);
@@ -73,10 +73,10 @@ void sc_Model_Delete(struct __sc_modelMesh* model_mesh) {
     model_mesh = NULL;
 }
 
-SA_API void sc_Model_Get_Vertex_Indice_Array(const struct __sc_modelMesh* model_mesh,
-                                             struct __sc_vertexIndice** indice_array_out,
+SA_API void sc_Model_Get_Vertex_Indice_Array(const struct sc_modelMesh* model_mesh,
+                                             struct sc_vertexIndice** indice_array_out,
                                              sa_u64* indice_count_out) {
-    *indice_array_out = sa_Malloc_m(sizeof(struct __sc_vertexIndice) *
+    *indice_array_out = sa_Malloc_m(sizeof(struct sc_vertexIndice) *
                                     model_mesh->indices_count);
     if (!*indice_array_out) {
         sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM,
@@ -85,35 +85,41 @@ SA_API void sc_Model_Get_Vertex_Indice_Array(const struct __sc_modelMesh* model_
         return;
     }
     memcpy(*indice_array_out, model_mesh->indice_array,
-           (sizeof(struct __sc_vertexIndice) * model_mesh->indices_count));
+           (sizeof(struct sc_vertexIndice) * model_mesh->indices_count));
     *indice_count_out = model_mesh->indices_count;
 }
 
-SA_API void sc_Model_Get_Separated_Indice_Data(const struct __sc_modelMesh* model_mesh,
+SA_API void sc_Model_Get_Separated_Indice_Data(const struct sc_modelMesh* model_mesh,
                                                sa_u32** vertex_index_out,
                                                sa_u32** uv_index_out,
                                                sa_u32** normal_index_out,
                                                sa_u64* indice_array_count_out) {
     *indice_array_count_out = model_mesh->indices_count;
 
-    if (vertex_index_out)
+    if (vertex_index_out) {
         *vertex_index_out = (sa_u32*)sa_Malloc_m(sizeof(sa_u32) * (*indice_array_count_out));
-    if (uv_index_out)
+    }
+    if (uv_index_out) {
         *uv_index_out = (sa_u32*)sa_Malloc_m(sizeof(sa_u32) * (*indice_array_count_out));
-    if (normal_index_out)
+    }
+    if (normal_index_out) {
         *normal_index_out = (sa_u32*)sa_Malloc_m(sizeof(sa_u32) * (*indice_array_count_out));
+    }
 
     for (sa_u64 i = 0; i < *indice_array_count_out; ++i) {
-        if (vertex_index_out)
+        if (vertex_index_out) {
             (*vertex_index_out)[i] = model_mesh->indice_array[i].vertex_index;
-        if (uv_index_out)
+        }
+        if (uv_index_out) {
             (*uv_index_out)[i] = model_mesh->indice_array[i].uv_index;
-        if (normal_index_out)
+        }
+        if (normal_index_out) {
             (*normal_index_out)[i] = model_mesh->indice_array[i].normal_index;
+        }
     }
 }
 
-SA_API void sc_Model_Get_Position_Array(const struct __sc_modelMesh* model_mesh,
+SA_API void sc_Model_Get_Position_Array(const struct sc_modelMesh* model_mesh,
                                         sa_vec3** position_array_out,
                                         sa_u64* position_count_out) {
     *position_array_out = sa_Malloc_m(sizeof(sa_vec3) * model_mesh->positions_count);
@@ -122,7 +128,7 @@ SA_API void sc_Model_Get_Position_Array(const struct __sc_modelMesh* model_mesh,
            (sizeof(sa_vec3) * model_mesh->positions_count));
 }
 
-SA_API void sc_Model_Get_Uv_Array(const struct __sc_modelMesh* model_mesh,
+SA_API void sc_Model_Get_Uv_Array(const struct sc_modelMesh* model_mesh,
                                   sa_uv** uv_array_out,
                                   sa_u64* uv_count_out) {
     *uv_array_out = sa_Malloc_m(sizeof(sa_uv) * model_mesh->uv_count);
@@ -131,7 +137,7 @@ SA_API void sc_Model_Get_Uv_Array(const struct __sc_modelMesh* model_mesh,
            (sizeof(sa_uv) * model_mesh->uv_count));
 }
 
-SA_API void sc_Model_Vertex_Indice_Get_Data(const struct __sc_vertexIndice* vertex_indice,
+SA_API void sc_Model_Vertex_Indice_Get_Data(const struct sc_vertexIndice* vertex_indice,
                                             sa_u64 vertex_indice_amount,
                                             sa_u32** vertex_index_out,
                                             sa_u32** uv_index_out,
@@ -148,10 +154,10 @@ SA_API void sc_Model_Vertex_Indice_Get_Data(const struct __sc_vertexIndice* vert
 
 /* === Helper Implementation === */
 
-SA_INTERNAL sa_bool __sc_Model_Parse(const char* filePath,
+SA_INTERNAL sa_bool sc_Model_Parse_s(const char* filePath,
                                      sa_vec3** position_array_out, sa_u64* positions_count_out,
                                      sa_uv** uv_array_out, sa_u64* uv_count_out,
-                                     struct __sc_vertexIndice** indice_array_out, sa_u64* indices_count_out) {
+                                     struct sc_vertexIndice** indice_array_out, sa_u64* indices_count_out) {
     tinyobj_attrib_t attribute = {0};
     tinyobj_shape_t* shape_array = NULL;
     sa_u64 shape_array_amount = 0;
@@ -159,11 +165,13 @@ SA_INTERNAL sa_bool __sc_Model_Parse(const char* filePath,
     sa_u64 material_array_size = 0;
 
     tinyobj_parse_obj(&attribute, &shape_array, &shape_array_amount, &material_array,
-                      &material_array_size, filePath, __sc_File_Reader_Function, NULL, 0);
+                      &material_array_size, filePath, sc_File_Reader_Function_s, NULL, 0);
 
     *positions_count_out = attribute.num_vertices;
     if (!(*positions_count_out)) {
-        fprintf(stderr, "Malloc Error\n");
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM,
+                             sa_LOG_CONTEXT_MODEL_LOADING,
+                             "Coudn't allocate for positions");
     }
     *position_array_out = sa_Scast_To_m(sa_vec3*) sa_Malloc_m(sizeof(sa_vec3) * (*positions_count_out));
     if (!(*position_array_out)) {
@@ -187,7 +195,7 @@ SA_INTERNAL sa_bool __sc_Model_Parse(const char* filePath,
     }
 
     *indices_count_out = attribute.num_faces;
-    *indice_array_out = sa_Malloc_m(sizeof(struct __sc_vertexIndice) * (*indices_count_out));
+    *indice_array_out = sa_Malloc_m(sizeof(struct sc_vertexIndice) * (*indices_count_out));
     for (sa_u64 i = 0; i < (attribute.num_faces); ++i) {
         (*indice_array_out)[i].vertex_index = sa_Scast_To_m(sa_u32)(attribute.faces[i].v_idx);
         (*indice_array_out)[i].uv_index = sa_Scast_To_m(sa_u32) attribute.faces[i].vt_idx;
@@ -199,7 +207,7 @@ SA_INTERNAL sa_bool __sc_Model_Parse(const char* filePath,
     tinyobj_attrib_free(&attribute);
     tinyobj_shapes_free(shape_array, shape_array_amount);
     tinyobj_materials_free(material_array, material_array_size);
-    sa_Free_m(__sc_file_buffer);
+    sa_Free_m(sc_file_buffer_s);
 
     return true;
 }
@@ -207,7 +215,7 @@ SA_INTERNAL sa_bool __sc_Model_Parse(const char* filePath,
 #include <stdio.h>
 #include <stdlib.h>
 
-SA_INTERNAL void __sc_File_Reader_Function(void* ctx, const char* filename, int isMtl,
+SA_INTERNAL void sc_File_Reader_Function_s(void* ctx, const char* filename, int isMtl,
                                            const char* objFilename2, char** buf, size_t* len) {
     sa_Not_Used_m(ctx); // suppress unused warning
     sa_Not_Used_m(isMtl);
@@ -225,23 +233,23 @@ SA_INTERNAL void __sc_File_Reader_Function(void* ctx, const char* filename, int 
     rewind(file);
 
     // Allocate or reallocate the static buffer if needed
-    if (__sc_file_buffer_len < file_size + 1) {
-        free(__sc_file_buffer); // free old buffer if any
-        __sc_file_buffer = (char*)malloc(file_size + 1);
-        if (!__sc_file_buffer) {
+    if (sc_file_buffer_len_s < file_size + 1) {
+        free(sc_file_buffer_s); // free old buffer if any
+        sc_file_buffer_s = (char*)malloc(file_size + 1);
+        if (!sc_file_buffer_s) {
             fclose(file);
             *buf = NULL;
             *len = 0;
             return;
         }
-        __sc_file_buffer_len = file_size + 1;
+        sc_file_buffer_len_s = file_size + 1;
     }
 
-    fread(__sc_file_buffer, 1, file_size, file);
+    fread(sc_file_buffer_s, 1, file_size, file);
     fclose(file);
 
-    __sc_file_buffer[file_size] = '\0'; // null-terminate just in case
+    sc_file_buffer_s[file_size] = '\0'; // null-terminate just in case
 
-    *buf = __sc_file_buffer;
+    *buf = sc_file_buffer_s;
     *len = file_size;
 }
