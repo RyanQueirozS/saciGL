@@ -12,7 +12,7 @@
 /**
  * @brief Generates the default OpenGL debuger.
  */
-SA_INTERNAL void sc_OpenGL_InitializeDebugger_s(void);
+SA_INTERNAL void s_Opengl_Initialize_Debugger(void);
 
 /* === Main declaration=== */
 
@@ -37,7 +37,7 @@ sa_bool sc_GLAD_Init(void) {
         return sa_FALSE;
     }
     sa_Log_Info_Print_m(sa_LOG_CONTEXT_OPENGL, "Loaded glad");
-    sc_OpenGL_InitializeDebugger_s();
+    s_Opengl_Initialize_Debugger();
 
 #if 0 // TODO
     const sa_u8* version = glGetString(GL_VERSION);
@@ -66,13 +66,13 @@ sa_bool sc_Window_Should_Close(sc_window_t* window) {
     return glfwWindowShouldClose(window);
 }
 
-void sc_Window_Set_Pos_Handler(sc_window_t* window, sc_window_posHandler_t windowPosHandler) {
-    glfwSetWindowPosCallback(window, windowPosHandler);
+void sc_Window_Set_Pos_Handler(sc_window_t* window, sc_window_posHandler_t window_pos_handler) {
+    glfwSetWindowPosCallback(window, window_pos_handler);
     sa_Log_Info_Print_m(sa_LOG_CONTEXT_OPENGL, "Set window pos handler");
 }
 
-void sc_Window_Set_Size_Handler(sc_window_t* window, sc_window_sizeHandler_t windowSizeHandler) {
-    glfwSetWindowSizeCallback(window, windowSizeHandler);
+void sc_Window_Set_Size_Handler(sc_window_t* window, sc_window_sizeHandler_t window_size_handler) {
+    glfwSetWindowSizeCallback(window, window_size_handler);
     sa_Log_Info_Print_m(sa_LOG_CONTEXT_OPENGL, "Set window size callback");
 }
 
@@ -92,7 +92,7 @@ void sc_Window_Swap_Buffer(sc_window_t* window) {
 
 /* === Helper === */
 
-void sc_OpenGL_InitializeDebugger_s(void) {
+void s_Opengl_Initialize_Debugger(void) {
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(sa_Log_OpenGL_Debug_Message_Callback, NULL);

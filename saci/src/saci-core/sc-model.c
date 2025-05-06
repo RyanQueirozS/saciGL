@@ -16,13 +16,13 @@
 SA_INTERNAL char* sc_file_buffer_s = NULL; // buffer for the file reader function.
 SA_INTERNAL size_t sc_file_buffer_len_s = 0;
 
-SA_INTERNAL sa_bool sc_Model_Parse_s(const char* file_path,
-                                     sa_vec3** position_array_out, sa_u64* positions_count_out,
-                                     sa_uv** texcoord_array_out, sa_u64* texcoord_count_out,
-                                     struct sc_vertexIndice** indice_array_out, sa_u64* indices_count_out);
+SA_INTERNAL sa_bool s_Model_Parse(const char* file_path,
+                                  sa_vec3** position_array_out, sa_u64* positions_count_out,
+                                  sa_uv** texcoord_array_out, sa_u64* texcoord_count_out,
+                                  struct sc_vertexIndice** indice_array_out, sa_u64* indices_count_out);
 
-SA_INTERNAL void sc_File_Reader_Function_s(void* ctx, const char* filename, int isMtl,
-                                           const char* obj_filename, char** buf, size_t* len);
+SA_INTERNAL void s_File_Reader_Function(void* ctx, const char* filename, int isMtl,
+                                        const char* obj_filename, char** buf, size_t* len);
 
 /* === Model Loading Implementation === */
 
@@ -46,13 +46,13 @@ struct sc_modelMesh {
 
 SA_API struct sc_modelMesh* sc_Model_Mesh_Load(const char* path) {
     struct sc_modelMesh* mesh = sa_Malloc_m(sizeof(struct sc_modelMesh));
-    sa_bool success = sc_Model_Parse_s(path,
-                                       &mesh->position_array,
-                                       &mesh->positions_count,
-                                       &mesh->uv_array,
-                                       &mesh->uv_count,
-                                       &mesh->indice_array,
-                                       &mesh->indices_count);
+    sa_bool success = s_Model_Parse(path,
+                                    &mesh->position_array,
+                                    &mesh->positions_count,
+                                    &mesh->uv_array,
+                                    &mesh->uv_count,
+                                    &mesh->indice_array,
+                                    &mesh->indices_count);
     if (!success) {
         sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_MODEL_LOADING, "Couldn't load model");
         sa_Free_m(mesh);
@@ -154,10 +154,10 @@ SA_API void sc_Model_Vertex_Indice_Get_Data(const struct sc_vertexIndice* vertex
 
 /* === Helper Implementation === */
 
-SA_INTERNAL sa_bool sc_Model_Parse_s(const char* filePath,
-                                     sa_vec3** position_array_out, sa_u64* positions_count_out,
-                                     sa_uv** uv_array_out, sa_u64* uv_count_out,
-                                     struct sc_vertexIndice** indice_array_out, sa_u64* indices_count_out) {
+SA_INTERNAL sa_bool s_Model_Parse(const char* file_path,
+                                  sa_vec3** position_array_out, sa_u64* positions_count_out,
+                                  sa_uv** uv_array_out, sa_u64* uv_count_out,
+                                  struct sc_vertexIndice** indice_array_out, sa_u64* indices_count_out) {
     tinyobj_attrib_t attribute = {0};
     tinyobj_shape_t* shape_array = NULL;
     sa_u64 shape_array_amount = 0;
@@ -165,7 +165,7 @@ SA_INTERNAL sa_bool sc_Model_Parse_s(const char* filePath,
     sa_u64 material_array_size = 0;
 
     tinyobj_parse_obj(&attribute, &shape_array, &shape_array_amount, &material_array,
-                      &material_array_size, filePath, sc_File_Reader_Function_s, NULL, 0);
+                      &material_array_size, file_path, s_File_Reader_Function, NULL, 0);
 
     *positions_count_out = attribute.num_vertices;
     if (!(*positions_count_out)) {
@@ -215,11 +215,11 @@ SA_INTERNAL sa_bool sc_Model_Parse_s(const char* filePath,
 #include <stdio.h>
 #include <stdlib.h>
 
-SA_INTERNAL void sc_File_Reader_Function_s(void* ctx, const char* filename, int isMtl,
-                                           const char* objFilename2, char** buf, size_t* len) {
+SA_INTERNAL void s_File_Reader_Function(void* ctx, const char* filename, int is_mtl,
+                                        const char* obj_filename2, char** buf, size_t* len) {
     sa_Not_Used_m(ctx); // suppress unused warning
-    sa_Not_Used_m(isMtl);
-    sa_Not_Used_m(objFilename2);
+    sa_Not_Used_m(is_mtl);
+    sa_Not_Used_m(obj_filename2);
 
     FILE* file = fopen(filename, "rb");
     if (!file) {

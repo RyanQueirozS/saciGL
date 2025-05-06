@@ -12,21 +12,20 @@ Checks: >
   readability-misleading-indentation,
   readability-simplify-boolean-expr,
   readability-avoid-magic-numbers,
+  readability-identifier-naming,
   -bugprone-easily-swappable-parameters
 WarningsAsErrors: ''
 HeaderFilterRegex: '.*'
 FormatStyle: file
 CheckOptions:
   
-  # Functions
+  # Functions There needs to be a check for static functions
+  - key: readability-identifier-naming.FunctionPrefix
+    value: "s_"
   - key: readability-identifier-naming.FunctionCase
     value: Camel_Snake_Case
   - key: readability-identifier-naming.GlobalFunctionPrefix
     value: "sc_"
-  - key: readability-identifier-naming.FunctionPrefix
-    value: "sc_"
-  - key: readability-identifier-naming.FunctionSuffix
-    value: "_s"
 
   # Variables
   - key: readability-identifier-naming.GlobalVariableCase
@@ -35,10 +34,10 @@ CheckOptions:
     value: "sc_"
   - key: readability-identifier-naming.StaticVariableCase
     value: lower_case
-  - key: readability-identifier-naming.StaticVariableSuffix
-    value: "_s"
-  - key: readability-identifier-naming.StaticConstantSuffix
-    value: "_s"
+  - key: readability-identifier-naming.StaticVariablePrefix
+    value: "s_"
+  - key: readability-identifier-naming.StaticConstantPrefix
+    value: "s_"
   - key: readability-identifier-naming.ParameterCase
     value: lower_case
   - key: readability-identifier-naming.LocalVariableCase
@@ -57,8 +56,8 @@ CheckOptions:
     value: lower_case
   - key: readability-identifier-naming.ConstantPointerParameterCase
     value: lower_case
-  - key: readability-identifier-naming.StaticConstantSuffix
-    value: "_s"
+  - key: readability-identifier-naming.StaticConstantPrefix
+    value: "s_"
 
   # # Structs Need to separate from local and global declarations
   # - key: readability-identifier-naming.StructCase
@@ -75,6 +74,8 @@ CheckOptions:
     value: "sc_"
   - key: readability-identifier-naming.EnumConstantCase
     value: UPPER_CASE
+  - key: readability-identifier-naming.EnumConstantPrefix
+    value: "sc_"
 
   # Typedefs
   - key: readability-identifier-naming.TypedefCase

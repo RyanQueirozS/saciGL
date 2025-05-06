@@ -92,6 +92,17 @@ int main(void) {
     sc_Model_Get_Position_Array(mesh, &pos_array, &pos_count);
     sc_Model_Get_Uv_Array(mesh, &uv_array, &uv_count);
     sc_Model_Get_Separated_Indice_Data(mesh, &vertex_indice, NULL, NULL, &indice_count);
+    sa_color* color_array = sa_Malloc_m(sizeof(sa_color) * pos_count);
+    for (sa_u64 i = 0; i < pos_count; ++i) {
+        color_array[i] = (sa_color){
+            .r = (float)(rand() % 100) / 100,
+            .g = (float)(rand() % 100) / 100,
+            .b = (float)(rand() % 100) / 100,
+            .a = 1,
+        };
+    }
+
+    sa_vec3 rotation = {0, 0, 0};
     while (!sc_Window_Should_Close(window)) {
         sc_Window_Clear_Color(bgColor);
         // handle_keyboard();
@@ -99,11 +110,15 @@ int main(void) {
         sc_Renderer_Begin(renderer);
         sc_Renderer_Bind_Uniform_Struct(renderer, (void*)&uniforms);
         sc_Renderer_Bind_Index_Buffer(renderer, vertex_indice, sa_Scast_To_m(sa_u32)(indice_count));
-        sc_Renderer_Push_Vertex(renderer, pos_array, uv_array, NULL, sa_Scast_To_m(sa_u32) pos_count);
+        sc_Renderer_Push_Vertex(renderer, pos_array, uv_array, color_array, sa_Scast_To_m(sa_u32) pos_count);
         sc_Renderer_End(renderer);
         sc_Window_Swap_Buffer(window);
 
         sc_Event_Poll();
+        uniforms.model = sa_Mat4_Model_Matrix_RTS((sa_vec3){0, 0, 0}, rotation, (sa_vec3){1, 1, 1});
+        rotation.x += 0.01;
+        rotation.y += 0.01;
+        rotation.z += 0.01;
     }
     free(pos_array);
     free(uv_array);

@@ -32,21 +32,21 @@ struct sc_modelMesh* sc_Model_Mesh_Load(const char* path);
 
 void sc_Model_Delete(struct sc_modelMesh* model_mesh);
 
-void sc_Model_Get_Vertex_Indice_Array(const struct sc_modelMesh* modelMesh,
+void sc_Model_Get_Vertex_Indice_Array(const struct sc_modelMesh* model_mesh,
                                       struct sc_vertexIndice** indice_array_out,
                                       sa_u64* indice_count_out);
 
-void sc_Model_Get_Separated_Indice_Data(const struct sc_modelMesh* modelMesh,
+void sc_Model_Get_Separated_Indice_Data(const struct sc_modelMesh* model_mesh,
                                         sa_u32** vertex_index_array_out,
                                         sa_u32** uv_index_array_out,
                                         sa_u32** normal_index_array_out,
                                         sa_u64* indice_count_out);
 
-void sc_Model_Get_Position_Array(const struct sc_modelMesh* modelMesh,
+void sc_Model_Get_Position_Array(const struct sc_modelMesh* model_mesh,
                                  sa_vec3** position_array_out,
                                  sa_u64* position_count_out);
 
-void sc_Model_Get_Uv_Array(const struct sc_modelMesh* modelMesh,
+void sc_Model_Get_Uv_Array(const struct sc_modelMesh* model_mesh,
                            sa_uv** uv_array_out,
                            sa_u64* uv_count_out);
 
