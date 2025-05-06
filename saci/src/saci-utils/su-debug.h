@@ -179,7 +179,7 @@ void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
           sa_Log_Debug_Print_m(debug_type, context, _sa_log_dbg_buf);             \
       } while (0)
 #else
-#  define sa_Log_DebugF_Print_m(debug_type, context, message)
+#  define sa_Log_DebugF_Print_m(debug_type, context, fmt, ...)
 #endif
 
 /**

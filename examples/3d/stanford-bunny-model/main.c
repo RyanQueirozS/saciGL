@@ -74,7 +74,7 @@ int main(void) {
     sa_color bgColor =
         sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
 
-    struct __sc_modelMesh* mesh;
+    struct sc_modelMesh* mesh;
 
     {
         const char* filePath = "./3d/stanford-bunny-model/bunny.obj";
