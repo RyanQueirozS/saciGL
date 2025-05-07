@@ -59,7 +59,7 @@ SACI_SRC = \
 	../saci/deps/glad/src/glad.c
 
 # Linking libraries and flags
-LIBS = -L../saci/deps/glfw/lib/GLFW/ -lglfw -lm \
+LIBS = -L../saci/deps/glfw/lib/GLFW/ -lglfw -llua5.4 -lm \
 	-Wl,-rpath,/home/ryan/projects/c/saciGL/saci/deps/glfw/lib/GLFW
 
 # Example directories

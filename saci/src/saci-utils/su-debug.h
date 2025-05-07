@@ -33,6 +33,7 @@ enum sa_logContext {
     sa_LOG_CONTEXT_MODEL_LOADING,
     sa_LOG_CONTEXT_STBI,
     sa_LOG_CONTEXT_MEMORY_ALLOCATION,
+    sa_LOG_CONTEXT_CONFIG,
 };
 
 enum sa_logDebugType {

@@ -9,6 +9,7 @@
 #include "saci-utils/su-debug.h"
 #include "saci-utils/su-types.h"
 #include "saci-core/sc-model.h"
+#include "saci-core/config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -117,6 +118,10 @@ SA_API sa_bool sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 #  define SC_RENDERER_DEFAULT_CALL_CAPACITY SC_RENDERER_DEFAULT_CALL_RATIO
 #endif // SC_RENDERER_DEFAULT_CALL_CAPACITY
 
+#ifndef SC_RENDERER_DEFAULT_RENDERER_CONFIG_PATH
+#  define SC_RENDERER_DEFAULT_RENDERER_CONFIG_PATH "renderer-config.lua"
+#endif // SC_RENDERER_DEFAULT_RENDERER_CONFIG_PATH
+
 #ifndef SC_RENDERER_STRUCT
 #  define SC_RENDERER_STRUCT
 
@@ -203,6 +208,8 @@ SA_INTERNAL sa_bool s_Renderer_Validate_Before_Push(const struct sc_renderer* re
                                                     const sa_color* color_array,
                                                     const sa_u32 vertex_amount);
 
+SA_INTERNAL void s_Renderer_Initialize_Config(struct sc_renderer* rendr);
+
 // Initializes with default opengl data
 SA_INTERNAL void s_Renderer_Init_GL(struct sc_renderer* rendr);
 
@@ -273,19 +280,12 @@ SA_INTERNAL void s_Renderer_Batch_Push_Call(struct sc_renderBatch* batch_array_o
 SA_API sc_renderer* sc_Renderer_New_Default(void) {
     struct sc_renderer* rendr = sa_Calloc_m(1, sizeof(struct sc_renderer));
     sa_Log_Assert_Message_m(rendr, "Renderer could not be created");
+    s_Renderer_Initialize_Config(rendr);
     s_Renderer_Init_GL(rendr);
-    rendr->batch_array_capacity = SC_RENDERER_DEFAULT_BATCH_CAPACITY;
-    rendr->batch_vertex_capacity = SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY;
-    rendr->batch_index_capacity = SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY;
     s_Renderer_Init_Batch(rendr);
-    rendr->call_array_capacity = SC_RENDERER_DEFAULT_CALL_CAPACITY;
-    rendr->call_index_capacity = SC_RENDERER_DEFAULT_CALL_INDEX_CAPACITY;
-    rendr->call_vertex_capacity = SC_RENDERER_DEFAULT_CALL_VERTEX_CAPACITY;
     s_Renderer_Init_Call(rendr);
 
     { // Bound info
-        rendr->bound_texture_id = 0;
-        rendr->bound_index_array_length = 0;
         rendr->bound_index_array_capacity = SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY;
         rendr->bound_index_array_buffer =
             sa_Calloc_m(rendr->bound_index_array_capacity, sizeof(sa_u32));
@@ -619,6 +619,54 @@ SA_INTERNAL sa_bool s_Renderer_Validate_Before_Push(const struct sc_renderer* re
         sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER, sa_LOG_CONTEXT_OPENGL, "Null color array param");
     }
     return sa_TRUE;
+}
+
+SA_INTERNAL void s_Renderer_Initialize_Config(struct sc_renderer* rendr) {
+    sc_configState* cfg_state = sc_Config_Load(
+        SC_RENDERER_DEFAULT_RENDERER_CONFIG_PATH);
+    sc_Config_Load_Table(cfg_state, "core-renderer");
+
+    rendr->bound_index_array_capacity =
+        sc_Config_Get_Int(cfg_state, "bound_index_array_capacity");
+    if (!rendr->bound_index_array_capacity) {
+        rendr->bound_index_array_capacity = SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY;
+    }
+
+    rendr->batch_index_capacity =
+        sc_Config_Get_Int8(cfg_state, "batch_index_capacity");
+    if (!rendr->batch_index_capacity) {
+        rendr->batch_index_capacity = SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY;
+    }
+
+    rendr->batch_array_capacity =
+        sc_Config_Get_Int8(cfg_state, "batch_array_capacity");
+    if (!rendr->batch_array_capacity) {
+        rendr->batch_array_capacity = SC_RENDERER_DEFAULT_BATCH_CAPACITY;
+    }
+
+    rendr->batch_vertex_capacity =
+        sc_Config_Get_Int8(cfg_state, "batch_vertex_capacity");
+    if (!rendr->batch_vertex_capacity) {
+        rendr->batch_vertex_capacity = SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY;
+    }
+
+    rendr->call_index_capacity =
+        sc_Config_Get_Int8(cfg_state, "call_index_capacity");
+    if (!rendr->call_index_capacity) {
+        rendr->call_index_capacity = SC_RENDERER_DEFAULT_CALL_INDEX_CAPACITY;
+    }
+
+    rendr->call_array_capacity =
+        sc_Config_Get_Int8(cfg_state, "call_array_capacity ");
+    if (!rendr->call_array_capacity) {
+        rendr->call_array_capacity = SC_RENDERER_DEFAULT_CALL_CAPACITY;
+    }
+
+    rendr->call_vertex_capacity =
+        sc_Config_Get_Int8(cfg_state, "call_vertex_capacity");
+    if (!rendr->call_vertex_capacity) {
+        rendr->call_vertex_capacity = SC_RENDERER_DEFAULT_CALL_VERTEX_CAPACITY;
+    }
 }
 
 SA_INTERNAL void s_Renderer_Init_GL(struct sc_renderer* rendr) {
