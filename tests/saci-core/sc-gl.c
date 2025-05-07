@@ -11,7 +11,7 @@
 #include "saci-core/sc-gl.h"
 
 // External "sc-gl" funcs
-extern void __sc_Renderer_Reset_Bound(struct __sc_renderer* rendr);
+extern void sc_Renderer_Reset_Bound(struct __sc_renderer* rendr);
 
 // Helper
 void Print_Vec3(sa_vec3 v1);
@@ -66,6 +66,8 @@ void Test_Rendering(GlitchTester* t) {
     sc_Renderer_Free_Test(t);
     sc_Renderer_Free_Opts_Test(t);
 }
+
+int main(void) {}
 
 // Test funcs
 
