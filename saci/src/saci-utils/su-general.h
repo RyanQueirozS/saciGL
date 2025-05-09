@@ -39,7 +39,11 @@
 #endif   // SA_INTERNAL
 
 #ifndef SA_INTERNAL_INLINE
-#  define SA_INTERNAL_INLINE SA_INTERNAL inline
+#  ifndef SA_INTERNAL
+#    define SA_INTERNAL_INLINE SA_INTERNAL inline
+#  else
+#    define SA_INTERNAL_INLINE SA_INTERNAL
+#  endif
 #endif // SA_INTERNAL_INLINE
 
 /**

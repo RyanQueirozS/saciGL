@@ -154,14 +154,14 @@ typedef struct sc_renderer sc_renderer;
 #  ifndef SC_RENDERER_STRUCT
 #    define SC_RENDERER_STRUCT
 
-struct __sc_vertex {
+struct sc_vertex {
     sa_vec3 pos;
     sa_color color;
     sa_uv uv;
 };
 
 // The fields are structured in a way that enforces minimum memory change over time
-struct __sc_renderer {
+struct sc_renderer {
     sa_textureId bound_texture_id;
     sa_u32 bound_index_array_length;
     sa_u32 bound_index_array_capacity;
@@ -173,34 +173,32 @@ struct __sc_renderer {
     sa_u32 batch_index_capacity;
     sa_u32 batch_vertex_capacity;
     sa_u8 batch_array_capacity;
-    sa_u8 batch_length; // 0 indexed
+    sa_u8 batch_length;
 
     sa_u32 call_index_capacity;
     sa_u32 call_vertex_capacity;
     sa_u8 call_array_capacity;
     sa_u8 call_in_use; // 0 indexed
 
-    struct __sc_batch {
+    struct sc_renderBatch {
         sa_u64 uniform_struct_block_size;
         sa_textureId texture;
         sa_u32 index_array_length;
         sa_u32 vertex_array_length;
-        sa_u8 uniform_block_size;
         sa_u32* index_array;
-        struct __sc_vertex* vertex_array;
+        struct sc_vertex* vertex_array;
         sa_u8* uniform_struct_block;
     }* batch_array;
 
     sa_u8* uniform_struct_block;
 
-    struct __sc_renderCall {
+    struct sc_renderCall {
         sa_u64 uniform_struct_block_size;
         sa_textureId texture;
         sa_u32 index_array_length;
         sa_u32 vertex_array_length;
-        sa_u8 uniform_block_size;
         sa_u32* index_array;
-        struct __sc_vertex* vertex_array;
+        struct sc_vertex* vertex_array;
         sa_u8* uniform_struct_block;
     }* call_array;
 

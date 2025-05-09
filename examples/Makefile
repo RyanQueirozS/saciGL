@@ -8,7 +8,8 @@ CFLAGS = -Wall -Wextra -O0 -g \
 	-I../saci/deps/glad/include \
 	-I../saci/deps/glfw/include \
 	-I../saci/deps/stb \
-	-I../saci/deps/model-loading
+	-I../saci/deps/model-loading \
+	-DSACI_TEST_BUILD
 
 # Clang-specific tweaks (optional)
 ifeq ($(COMPILER),clang)
@@ -60,7 +61,7 @@ SACI_SRC = \
 
 # Linking libraries and flags
 LIBS = -L../saci/deps/glfw/lib/GLFW/ -lglfw -llua5.4 -lm \
-	-Wl,-rpath,/home/ryan/projects/c/saciGL/saci/deps/glfw/lib/GLFW
+    -Wl,-rpath,$(PWD)/../saci/deps/glfw/lib/GLFW
 
 # Example directories
 EXAMPLES = \

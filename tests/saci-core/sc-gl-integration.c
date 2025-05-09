@@ -1,9 +1,7 @@
+#define GLITCH_STD
 #include "glitch/glitc-complex.h"
 #include "glitch/glitc-rand.h"
 #include "glitch/glitc.h"
-#include "saci-utils/su-debug.h"
-#include "saci-utils/su-general.h"
-#include "saci-utils/su-types.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -11,45 +9,24 @@
 
 #define SC_MODEL_MESH_EXPOSE
 #include "saci-core/sc-model.h"
+#include "saci-utils/su-debug.h"
+#include "saci-utils/su-general.h"
+#include "saci-utils/su-types.h"
 
 #define SC_RENDERER_STRUCT_EXPOSE
 #include "saci-core/sc-gl.h"
 
-static void Test_Renderer_Batching_Integration(GlitchTester* t);
+void Test_Renderer_Integration(GlitchTester* t);
+
+int main(void) {
+    GlitchTester* t = glitch_Tester_New();
+    Test_Renderer_Integration(t);
+}
 
 void Test_Renderer_Integration(GlitchTester* t) {
-    struct __sc_renderer* rendr = sa_Malloc_m(sizeof(struct __sc_renderer));
-    memset(rendr, 0, sizeof(struct __sc_renderer));
+    struct sc_renderer* rendr = sc_Renderer_New_Default();
 
-    rendr->bound_index_array_capacity = 1600 * 6 / 4;
-    rendr->bound_index_array_buffer = sa_Malloc_m(sizeof(sa_u32) * rendr->bound_index_array_capacity);
-    rendr->batch_index_capacity = 500 * 6 / 4;
-    rendr->batch_vertex_capacity = 500;
-    rendr->batch_array_capacity = 2;
-    rendr->call_index_capacity = 500 * 6 / 4;
-    rendr->call_vertex_capacity = 500;
-    rendr->call_array_capacity = 20;
-
-    rendr->batch_array = sa_Malloc_m(sizeof(struct __sc_batch) * rendr->batch_array_capacity);
-    memset(rendr->batch_array, 0, sizeof(struct __sc_batch) * rendr->batch_array_capacity);
-    for (sa_u8 i = 0; i < rendr->batch_array_capacity; ++i) {
-        rendr->batch_array[i].index_array = sa_Malloc_m(sizeof(sa_u32) * rendr->batch_index_capacity);
-        rendr->batch_array[i].vertex_array = sa_Malloc_m(sizeof(sa_u32) * rendr->batch_vertex_capacity);
-        rendr->batch_array[i].uniform_block_size = 0;
-        rendr->batch_array[i].uniform_struct_block = 0;
-        rendr->batch_array[i].uniform_struct_block = NULL;
-    }
-    rendr->call_array = sa_Malloc_m(sizeof(struct __sc_batch) * rendr->call_array_capacity);
-    memset(rendr->call_array, 0, sizeof(struct __sc_batch) * rendr->call_array_capacity);
-    for (sa_u8 i = 0; i < rendr->call_array_capacity; ++i) {
-        rendr->call_array[i].index_array = sa_Malloc_m(sizeof(sa_u32) * rendr->call_index_capacity);
-        rendr->call_array[i].vertex_array = sa_Malloc_m(sizeof(sa_u32) * rendr->call_vertex_capacity);
-        rendr->call_array[i].uniform_block_size = 0;
-        rendr->call_array[i].uniform_struct_block = 0;
-        rendr->call_array[i].uniform_struct_block = NULL;
-    }
-
-    struct __sc_modelMesh* mesh = sc_Model_Mesh_Load("../assets/suzanne.obj");
+    struct sc_modelMesh* mesh = sc_Model_Mesh_Load("../assets/suzanne.obj");
     sa_Log_Assert_Message_m(mesh, "Mesh not loaded");
 
     sa_vec3* pos_array;

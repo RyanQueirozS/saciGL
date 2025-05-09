@@ -478,11 +478,13 @@ SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts) {
 /* --- Renderer Helper impl --- */
 
 SA_INTERNAL_INLINE void s_Renderer_Free_Opengl(struct sc_renderer* rendr) {
+#ifndef SACI_RENDERING_DISABLED
     glDeleteBuffers(1, &(rendr)->ibo);
     glDeleteBuffers(1, &(rendr)->vbo);
     glDeleteBuffers(1, &(rendr)->vbo);
     glDeleteVertexArrays(1, &(rendr)->vao);
     glDeleteProgram((rendr)->shader_program);
+#endif // SACI_RENDERING_DISABLED
 }
 
 SA_INTERNAL void s_Renderer_Free_Batch_Array(struct sc_renderer* rendr) {
@@ -670,9 +672,10 @@ SA_INTERNAL void s_Renderer_Initialize_Config(struct sc_renderer* rendr) {
 }
 
 SA_INTERNAL void s_Renderer_Init_GL(struct sc_renderer* rendr) {
+#ifndef SACI_RENDERING_DISABLED
     { // Shader init
-#ifndef SC_RENDERER_DEFAULT_VERT_SHADER
-#  define SC_RENDERER_DEFAULT_VERT_SHADER
+#  ifndef SC_RENDERER_DEFAULT_VERT_SHADER
+#    define SC_RENDERER_DEFAULT_VERT_SHADER
         SA_INTERNAL const char* s_vert_shader =
             "#version 330 core\n"
 
@@ -702,10 +705,10 @@ SA_INTERNAL void s_Renderer_Init_GL(struct sc_renderer* rendr) {
             "   v_color = a_color;\n"
             "   v_texcoord = a_texcoord;\n"
             "}\n\0";
-#endif // SC_RENDERER_DEFAULT_VERT_SHADER
+#  endif // SC_RENDERER_DEFAULT_VERT_SHADER
 
-#ifndef SC_RENDERER_DEFAULT_FRAG_SHADER
-#  define SC_RENDERER_DEFAULT_FRAG_SHADER
+#  ifndef SC_RENDERER_DEFAULT_FRAG_SHADER
+#    define SC_RENDERER_DEFAULT_FRAG_SHADER
         SA_INTERNAL const char* s_frag_shader =
             "#version 330 core\n"
 
@@ -726,7 +729,7 @@ SA_INTERNAL void s_Renderer_Init_GL(struct sc_renderer* rendr) {
             "       frag_color = v_color;\n"
             "   }\n"
             "}\n\0";
-#endif // SC_RENDERER_DEFAULT_FRAG_SHADER
+#  endif // SC_RENDERER_DEFAULT_FRAG_SHADER
         sa_shaderId v_shader = sc_Shader_Compile_Shader_Vert(s_vert_shader);
         sa_shaderId f_shader = sc_Shader_Compile_Shader_Frag(s_frag_shader);
         sa_Log_Assert_Message_m(v_shader && f_shader, "Shaders could not be initialized");
@@ -763,6 +766,7 @@ SA_INTERNAL void s_Renderer_Init_GL(struct sc_renderer* rendr) {
                                         sa_Scast_To_m(void*) offsetof(struct sc_vertex, uv));
         sc_GL_Enable_Vertex_Attrib_Array(2);
     }
+#endif // SACI_RENDERING_DISABLED
 }
 
 SA_INTERNAL void s_Renderer_Init_Batch(struct sc_renderer* rendr) {
@@ -836,6 +840,7 @@ SA_INTERNAL void s_Renderer_Batch_Draw(struct sc_renderer* rendr) {
     struct previousBatch { // Will get bigger later
         sa_textureId texture;
     } previous_batch = {0};
+#ifndef SACI_RENDERING_DISABLED
     for (sa_u8 i = 0; i < rendr->batch_length; ++i) {
         struct sc_renderBatch* batch_in_use = &rendr->batch_array[i];
 
@@ -877,6 +882,7 @@ SA_INTERNAL void s_Renderer_Batch_Draw(struct sc_renderer* rendr) {
         glDrawElements(GL_TRIANGLES, sa_Scast_To_m(int)(batch_in_use->index_array_length), GL_UNSIGNED_INT, 0);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
+#endif // SACI_RENDERING_DISABLED
 }
 
 SA_INTERNAL sa_u32 s_Renderer_Vertex_Buffer_Append(struct sc_vertex* dest_out,
@@ -1168,7 +1174,7 @@ void sc_GL_Enable_Vertex_Attrib_Array(sa_u32 id) {
 
 /* === GL Implementation === */
 
-static sa_u32 s_Shader_Compile(const char* shader_source, sa_u32 shader_type);
+sa_u32 s_Shader_Compile(const char* shader_source, sa_u32 shader_type);
 
 sa_u32 sc_Shader_Compile_Shader_Vert(const char* source) {
     return s_Shader_Compile(source, GL_VERTEX_SHADER);
@@ -1237,7 +1243,7 @@ sa_u32 sc_Shader_Create_Shader_Program_Geom(sa_u32 vshader, sa_u32 fshader, sa_u
 
 /* === GL Helper ===  */
 
-static sa_u32 s_Shader_Compile(const char* shader_source, sa_u32 shader_type) {
+sa_u32 s_Shader_Compile(const char* shader_source, sa_u32 shader_type) {
     sa_u32 shader_id = glCreateShader(shader_type);
 
     glShaderSource(shader_id, 1, &shader_source, NULL);

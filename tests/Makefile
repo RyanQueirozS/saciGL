@@ -1,7 +1,4 @@
-# Define directories
-SRC_DIR = saci-core
-OBJ_DIR = build
-
+# Compiler flags
 CFLAGS = -Wall -Wextra -O0 -g \
 	-I../saci/src \
 	-I../saci/deps/glad/include \
@@ -9,7 +6,10 @@ CFLAGS = -Wall -Wextra -O0 -g \
 	-I../saci/deps/stb \
 	-I../saci/deps/model-loading \
 	-I./deps \
-	-DSACI_DEBUG_MODE_ALL
+	-DSACI_DEBUG_MODE_ALL \
+	-DSC_RENDERER_STRUCT_EXPOSE \
+	-DSACI_TEST_BUILD \
+	-DSACI_RENDERING_DISABLED
 
 COMPILER ?= gcc
 CC = $(COMPILER)
@@ -17,42 +17,47 @@ ifeq ($(COMPILER),clang)
 	COMPILER = clang	
 endif
 
-# Additional sources from the saci project (SACI_SRC)
+# Sources for the saci library
 SACI_SRC = \
 	../saci/src/saci-core/**.c \
 	../saci/src/saci-utils/**.c \
 	../saci/deps/glad/src/glad.c
 
-# Libraries to link with
+SRC_DIR = saci-core
+# Sources for the current project
+SOURCES = $(wildcard $(SRC_DIR)/*.c)
+
+TARGETS= $(SOURCES:%=build/%)
+
+.PHONY: all clean run
+
+all: $(TARGETS)
+
+# Libraries to link against
 LIBS = -L../saci/deps/glfw/lib/GLFW/ -lglfw -llua5.4 -lm \
-	-Wl,-rpath,/home/ryan/projects/c/saciGL/saci/deps/glfw/lib/GLFW
+    -Wl,-rpath,$(PWD)/../saci/deps/glfw/lib/GLFW
 
-# List of source files in the saci-core directory + additional sources from SACI_SRC
-SOURCES = $(wildcard $(SRC_DIR)/*.c) $(SACI_SRC)
 
-# Create object files from sources
-OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+# Rule to compile each example
+build/%: % $(SACI_SRC)
+	@echo "\nBuilding $< with $(CC)"
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $< $(SACI_SRC) -o $@ $(LIBS)
+	@echo "Build succeeded for $<\n"
 
-# Create an executable for each source file (without extension)
-EXECUTABLES = $(SOURCES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%)
+# Run a specific example
+run: all
+	@echo "\nAvailable tests to run:"
+	@$(foreach ex, $(EXAMPLES), echo $(ex);)
+	@read -p "Enter test path to run: " ex && \
+		export LD_LIBRARY_PATH=../saci/deps/glfw/lib/GLFW:$$LD_LIBRARY_PATH && \
+		./build/$$ex/main
 
-# Default target
-all: $(EXECUTABLES)
-
-# Rule to compile the .c files into object files
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)   # Create the build directory if it doesn't exist
-	$(CC) $(CFLAGS) -c $< -o $@        # Compile the .c file into an .o object file
-
-# Rule to link the object files into an executable
-$(OBJ_DIR)/%: $(OBJ_DIR)/%.o
-	$(CC) $^ $(LIBS) -o $@   # Link object files and libraries to create the executable
-
-# Clean up the build directory
-clean:
-	rm -rf $(OBJ_DIR)
-
-# Optional: Print the list of all sources and executables
 list:
 	@echo "Sources: $(SOURCES)"
-	@echo "Executables: $(EXECUTABLES)"
+	@echo "Targets: $(TARGET)"
+
+# Clean build files
+clean:
+	rm -rf build
+	@echo "\nCleaned all build files."
