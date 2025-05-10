@@ -233,6 +233,8 @@ SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx,
                                                 sa_u64 batch_vertex_capacity,
                                                 sa_u64 bound_capacity);
 
+SA_API sc_renderer* sc_Renderer_New_From_Config(const char* file_path);
+
 SA_API void sc_Renderer_Begin(struct sc_renderer* rendr);
 
 SA_API void sc_Renderer_Bind_Texture(struct sc_renderer* rendr,

@@ -1,0 +1,11 @@
+local call_vertex_capacity = 510
+local batch_vertex_capacity = 250
+core_renderer = {
+  bound_index_array_capacity = 10000, -- Won't be tested in this one
+  batch_index_capacity = batch_vertex_capacity  * 6 / 4,
+  batch_array_capacity = 10,
+  batch_vertex_capacity = batch_vertex_capacity,
+  call_index_capacity = call_vertex_capacity * 6 / 4,
+  call_array_capacity = 30,
+  call_vertex_capacity = call_vertex_capacity, -- Won't be tested
+}

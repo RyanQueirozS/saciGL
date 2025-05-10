@@ -208,7 +208,7 @@ SA_INTERNAL sa_bool s_Renderer_Validate_Before_Push(const struct sc_renderer* re
                                                     const sa_color* color_array,
                                                     const sa_u32 vertex_amount);
 
-SA_INTERNAL void s_Renderer_Initialize_Config(struct sc_renderer* rendr);
+SA_INTERNAL void s_Renderer_Initialize_Config(struct sc_renderer* rendr, const char* cfg_path);
 
 // Initializes with default opengl data
 SA_INTERNAL void s_Renderer_Init_GL(struct sc_renderer* rendr);
@@ -278,20 +278,7 @@ SA_INTERNAL void s_Renderer_Batch_Push_Call(struct sc_renderBatch* batch_array_o
 /* --- Renderer Header Impl --- */
 
 SA_API sc_renderer* sc_Renderer_New_Default(void) {
-    struct sc_renderer* rendr = sa_Calloc_m(1, sizeof(struct sc_renderer));
-    sa_Log_Assert_Message_m(rendr, "Renderer could not be created");
-    s_Renderer_Initialize_Config(rendr);
-    s_Renderer_Init_GL(rendr);
-    s_Renderer_Init_Batch(rendr);
-    s_Renderer_Init_Call(rendr);
-
-    { // Bound info
-        rendr->bound_index_array_capacity = SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY;
-        rendr->bound_index_array_buffer =
-            sa_Calloc_m(rendr->bound_index_array_capacity, sizeof(sa_u32));
-    }
-
-    return rendr;
+    return sc_Renderer_New_From_Config(SC_RENDERER_DEFAULT_RENDERER_CONFIG_PATH);
 }
 
 // TODO
@@ -311,6 +298,23 @@ SA_API struct sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx, sa_u64 bat
     return rendr;
 }
 #endif
+
+SA_API sc_renderer* sc_Renderer_New_From_Config(const char* file_path) {
+    struct sc_renderer* rendr = sa_Calloc_m(1, sizeof(struct sc_renderer));
+    sa_Log_Assert_Message_m(rendr, "Renderer could not be created");
+    s_Renderer_Initialize_Config(rendr, file_path);
+    s_Renderer_Init_GL(rendr);
+    s_Renderer_Init_Batch(rendr);
+    s_Renderer_Init_Call(rendr);
+
+    { // Bound info
+        rendr->bound_index_array_capacity = SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY;
+        rendr->bound_index_array_buffer =
+            sa_Calloc_m(rendr->bound_index_array_capacity, sizeof(sa_u32));
+    }
+
+    return rendr;
+}
 
 SA_API void sc_Renderer_Begin(struct sc_renderer* rendr) {
     s_Renderer_Reset_Bound(rendr);
@@ -395,17 +399,25 @@ SA_API void sc_Renderer_Push_Vertex(struct sc_renderer* rendr,
                                     vertex_amount);
     sa_u32 total_vertices_pushed = 0;
     sa_u32 total_indices_pushed = 0;
+
+    if (rendr->call_in_use >= rendr->call_array_capacity) {
+        sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_CALL,
+                             sa_LOG_CONTEXT_RENDERER,
+                             "Vertices pushed filled all calls");
+        sc_Renderer_End(rendr);
+        s_Renderer_Reset_Call(rendr);
+        s_Renderer_Reset_Batch(rendr);
+    }
+
+    if (rendr->call_vertex_capacity < vertex_amount) {
+        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
+                              "Call vertex capacity is lower then amount pushed."
+                              " Call:%d, Vertices pushed:%d",
+                              rendr->call_vertex_capacity, vertex_amount);
+    }
+
     while (total_vertices_pushed < vertex_amount ||
            total_indices_pushed < rendr->bound_index_array_length) {
-
-        if (rendr->call_in_use >= rendr->call_array_capacity) {
-            sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_CALL,
-                                 sa_LOG_CONTEXT_RENDERER,
-                                 "Vertices pushed filled all calls");
-            sc_Renderer_End(rendr);
-            s_Renderer_Reset_Call(rendr);
-            s_Renderer_Reset_Batch(rendr);
-        }
 
         sa_u32 call_index = rendr->call_in_use;
         struct sc_renderCall* call_in_use = &(rendr->call_array[call_index]);
@@ -609,65 +621,63 @@ SA_INTERNAL sa_bool s_Renderer_Validate_Before_Push(const struct sc_renderer* re
         return sa_FALSE;
     }
     if (!rendr->uniform_struct_block || !rendr->bound_uniform_struct_size) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "NULL uniform struct array bound");
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_RENDERER, "NULL uniform struct array bound");
         return sa_FALSE;
     }
 
     if (!uv_array) {
-        sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER, sa_LOG_CONTEXT_OPENGL, "Null uv array param");
+        sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER, sa_LOG_CONTEXT_OPENGL, "NULL uv array param");
     }
 
     if (!color_array) {
-        sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER, sa_LOG_CONTEXT_OPENGL, "Null color array param");
+        sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER, sa_LOG_CONTEXT_OPENGL, "NULL color array param");
     }
+
     return sa_TRUE;
 }
 
-SA_INTERNAL void s_Renderer_Initialize_Config(struct sc_renderer* rendr) {
+SA_INTERNAL void s_Renderer_Initialize_Config(struct sc_renderer* rendr, const char* cfg_path) {
     sc_configState* cfg_state = sc_Config_Load(
-        SC_RENDERER_DEFAULT_RENDERER_CONFIG_PATH);
-    sc_Config_Load_Table(cfg_state, "core-renderer");
+        cfg_path);
 
-    rendr->bound_index_array_capacity =
-        sc_Config_Get_Int(cfg_state, "bound_index_array_capacity");
-    if (!rendr->bound_index_array_capacity) {
-        rendr->bound_index_array_capacity = SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY;
+    // Default values
+    rendr->bound_index_array_capacity = SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY;
+    rendr->batch_index_capacity = SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY;
+    rendr->batch_array_capacity = SC_RENDERER_DEFAULT_BATCH_CAPACITY;
+    rendr->batch_vertex_capacity = SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY;
+    rendr->call_index_capacity = SC_RENDERER_DEFAULT_CALL_INDEX_CAPACITY;
+    rendr->call_array_capacity = SC_RENDERER_DEFAULT_CALL_CAPACITY;
+    rendr->call_vertex_capacity = SC_RENDERER_DEFAULT_CALL_VERTEX_CAPACITY;
+
+    if (!sc_Config_Load_Table(cfg_state, "core_renderer")) {
+        return;
     }
+    rendr->bound_index_array_capacity =
+        sc_Config_Get_Int32(cfg_state, "bound_index_array_capacity");
 
     rendr->batch_index_capacity =
-        sc_Config_Get_Int8(cfg_state, "batch_index_capacity");
-    if (!rendr->batch_index_capacity) {
-        rendr->batch_index_capacity = SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY;
-    }
+        sc_Config_Get_Int32(cfg_state, "batch_index_capacity");
 
     rendr->batch_array_capacity =
         sc_Config_Get_Int8(cfg_state, "batch_array_capacity");
-    if (!rendr->batch_array_capacity) {
-        rendr->batch_array_capacity = SC_RENDERER_DEFAULT_BATCH_CAPACITY;
-    }
 
     rendr->batch_vertex_capacity =
-        sc_Config_Get_Int8(cfg_state, "batch_vertex_capacity");
-    if (!rendr->batch_vertex_capacity) {
-        rendr->batch_vertex_capacity = SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY;
-    }
+        sc_Config_Get_Int32(cfg_state, "batch_vertex_capacity");
 
     rendr->call_index_capacity =
-        sc_Config_Get_Int8(cfg_state, "call_index_capacity");
-    if (!rendr->call_index_capacity) {
-        rendr->call_index_capacity = SC_RENDERER_DEFAULT_CALL_INDEX_CAPACITY;
-    }
+        sc_Config_Get_Int32(cfg_state, "call_index_capacity");
 
     rendr->call_array_capacity =
-        sc_Config_Get_Int8(cfg_state, "call_array_capacity ");
-    if (!rendr->call_array_capacity) {
-        rendr->call_array_capacity = SC_RENDERER_DEFAULT_CALL_CAPACITY;
-    }
+        sc_Config_Get_Int8(cfg_state, "call_array_capacity");
 
     rendr->call_vertex_capacity =
-        sc_Config_Get_Int8(cfg_state, "call_vertex_capacity");
-    if (!rendr->call_vertex_capacity) {
-        rendr->call_vertex_capacity = SC_RENDERER_DEFAULT_CALL_VERTEX_CAPACITY;
+        sc_Config_Get_Int32(cfg_state, "call_vertex_capacity");
+
+    if (rendr->call_index_capacity < rendr->bound_index_array_length) {
+        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
+                              "Call index capacity is lower then bound index lenght."
+                              " Call:%d, Bound Index:%d",
+                              rendr->call_index_capacity, rendr->bound_index_array_length);
     }
 }
 

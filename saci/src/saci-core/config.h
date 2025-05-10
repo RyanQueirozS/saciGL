@@ -10,11 +10,11 @@ typedef lua_State sc_configState;
 
 SA_API sc_configState* sc_Config_Load(const char* file_path);
 
-SA_API void sc_Config_Load_Table(sc_configState* state, const char* table_name);
+SA_API sa_bool sc_Config_Load_Table(sc_configState* state, const char* table_name);
 
 SA_API sa_u8 sc_Config_Get_Int8(sc_configState* state, const char* i_name);
 
-SA_API sa_u32 sc_Config_Get_Int(sc_configState* state, const char* i_name);
+SA_API sa_u32 sc_Config_Get_Int32(sc_configState* state, const char* i_name);
 
 SA_API void sc_Config_Close(sc_configState* state);
 

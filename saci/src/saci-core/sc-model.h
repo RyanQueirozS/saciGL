@@ -10,17 +10,17 @@ typedef struct sc_vertexIndice sc_vertexIndice;
 #  ifndef SC_MODEL_MESH_STRUCT
 #    define SC_MODEL_MESH_STRUCT
 
-struct __sc_vertexIndice {
+struct sc_vertexIndice {
     sa_u32 vertex_index;
     sa_u32 uv_index;
     sa_u32 normal_index;
 };
 
-struct __sc_modelMesh {
+struct sc_modelMesh {
     sa_u64 indices_count;
     sa_u64 uv_count;
     sa_u64 positions_count;
-    struct __sc_vertexIndice* indice_array;
+    struct sc_vertexIndice* indice_array;
     sa_uv* uv_array;
     sa_vec3* position_array;
 };

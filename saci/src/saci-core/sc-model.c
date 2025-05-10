@@ -21,7 +21,7 @@ SA_INTERNAL sa_bool s_Model_Parse(const char* file_path,
                                   sa_uv** texcoord_array_out, sa_u64* texcoord_count_out,
                                   struct sc_vertexIndice** indice_array_out, sa_u64* indices_count_out);
 
-SA_INTERNAL void s_File_Reader_Function(void* ctx, const char* filename, int isMtl,
+SA_INTERNAL void s_File_Reader_Function(void* ctx, const char* filename, int is_mtl,
                                         const char* obj_filename, char** buf, size_t* len);
 
 /* === Model Loading Implementation === */
@@ -56,6 +56,7 @@ SA_API struct sc_modelMesh* sc_Model_Mesh_Load(const char* path) {
     if (!success) {
         sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_MODEL_LOADING, "Couldn't load model");
         sa_Free_m(mesh);
+        return NULL;
     }
     return mesh;
 }
@@ -155,23 +156,42 @@ SA_API void sc_Model_Vertex_Indice_Get_Data(const struct sc_vertexIndice* vertex
 /* === Helper Implementation === */
 
 SA_INTERNAL sa_bool s_Model_Parse(const char* file_path,
-                                  sa_vec3** position_array_out, sa_u64* positions_count_out,
-                                  sa_uv** uv_array_out, sa_u64* uv_count_out,
-                                  struct sc_vertexIndice** indice_array_out, sa_u64* indices_count_out) {
+                                  sa_vec3** position_array_out,
+                                  sa_u64* positions_count_out,
+                                  sa_uv** uv_array_out,
+                                  sa_u64* uv_count_out,
+                                  struct sc_vertexIndice** indice_array_out,
+                                  sa_u64* indices_count_out) {
     tinyobj_attrib_t attribute = {0};
     tinyobj_shape_t* shape_array = NULL;
     sa_u64 shape_array_amount = 0;
     tinyobj_material_t* material_array = NULL;
     sa_u64 material_array_size = 0;
 
-    tinyobj_parse_obj(&attribute, &shape_array, &shape_array_amount, &material_array,
-                      &material_array_size, file_path, s_File_Reader_Function, NULL, 0);
+    sa_s32 success = tinyobj_parse_obj(&attribute, &shape_array, &shape_array_amount, &material_array,
+                                       &material_array_size, file_path, s_File_Reader_Function, NULL, TINYOBJ_FLAG_TRIANGULATE);
+    if (success < 0) {
+        char error_reason[255] = "UNKNOWN";
+        switch (success) {
+        case TINYOBJ_ERROR_EMPTY:
+            strncpy(error_reason, "Empty file", 255);
+            break;
+        case TINYOBJ_ERROR_INVALID_PARAMETER:
+            strncpy(error_reason, "Invalid param", 255);
+            break;
+        case TINYOBJ_ERROR_FILE_OPERATION:
+            strncpy(error_reason, "Error reading file", 255);
+            break;
+        }
+        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_MODEL_LOADING, "Could not load model: %s", error_reason);
+    };
 
     *positions_count_out = attribute.num_vertices;
     if (!(*positions_count_out)) {
         sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM,
                              sa_LOG_CONTEXT_MODEL_LOADING,
-                             "Coudn't allocate for positions");
+                             "Could not load position array");
+        return false;
     }
     *position_array_out = sa_Scast_To_m(sa_vec3*) sa_Malloc_m(sizeof(sa_vec3) * (*positions_count_out));
     if (!(*position_array_out)) {
