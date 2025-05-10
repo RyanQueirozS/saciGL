@@ -173,12 +173,7 @@ struct sc_renderer {
     sa_u32 batch_index_capacity;
     sa_u32 batch_vertex_capacity;
     sa_u8 batch_array_capacity;
-    sa_u8 batch_length;
-
-    sa_u32 call_index_capacity;
-    sa_u32 call_vertex_capacity;
-    sa_u8 call_array_capacity;
-    sa_u8 call_in_use; // 0 indexed
+    sa_u8 batch_in_use;
 
     struct sc_renderBatch {
         sa_u64 uniform_struct_block_size;
@@ -191,16 +186,6 @@ struct sc_renderer {
     }* batch_array;
 
     sa_u8* uniform_struct_block;
-
-    struct sc_renderCall {
-        sa_u64 uniform_struct_block_size;
-        sa_textureId texture;
-        sa_u32 index_array_length;
-        sa_u32 vertex_array_length;
-        sa_u32* index_array;
-        struct sc_vertex* vertex_array;
-        sa_u8* uniform_struct_block;
-    }* call_array;
 
     sa_u32* bound_index_array_buffer;
 };
