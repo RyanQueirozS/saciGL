@@ -39,12 +39,8 @@ sa_bool sc_GLAD_Init(void) {
     sa_Log_Info_Print_m(sa_LOG_CONTEXT_OPENGL, "Loaded glad");
     s_Opengl_Initialize_Debugger();
 
-#if 0 // TODO
-    const sa_u8* version = glGetString(GL_VERSION);
-    char versionStr[256];
-    snprintf(versionStr, sizeof(versionStr), "Using OpenGL version: %s", version);
-    sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_WINDOWING,sa_LOG_CONTEXT_OPENGL, versionStr);
-#endif
+    sa_Log_InfoF_Print_m(sa_LOG_CONTEXT_OPENGL,
+                         "Using OpenGL version: %s", glGetString(GL_VERSION));
 
     return sa_TRUE;
 }
