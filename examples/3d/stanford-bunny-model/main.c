@@ -36,7 +36,7 @@ void init_saci(void) {
 
     sc_Renderer_Set_Uniform_Struct(renderer, sizeof(uniforms));
     uniforms.model = sa_Mat4_Identity();
-    uniforms.view = sa_Mat4_Look_At((sa_vec3){0.0f, 2.0f, -2.0f}, (sa_vec3){0.0f, 0.0f, 0.0f}, (sa_vec3){0.0f, 1.0f, 0.0f});
+    uniforms.view = sa_Mat4_Look_At((sa_vec3){0.0f, 0.0f, -3.0f}, (sa_vec3){0.0f, 0.0f, 0.0f}, (sa_vec3){0.0f, 1.0f, 0.0f});
     uniforms.projection = sa_Mat4_Perspective(90, 16.0f / 9.0f, 1, 100);
     uniforms.flags |= sc_RENDERER_UNIFORM_FLAG_IS_3D;
     uniforms.lighting = (sa_vec4){0, 0, 0, 0};
@@ -93,6 +93,7 @@ int main(void) {
     sc_Model_Get_Uv_Array(mesh, &uv_array, &uv_count);
     sc_Model_Get_Separated_Indice_Data(mesh, &vertex_indice, NULL, NULL, &indice_count);
     sa_color* color_array = sa_Malloc_m(sizeof(sa_color) * pos_count);
+    printf("%lu, %lu\n", indice_count, pos_count);
     for (sa_u64 i = 0; i < pos_count; ++i) {
         color_array[i] = (sa_color){
             .r = (float)(rand() % 100) / 100,

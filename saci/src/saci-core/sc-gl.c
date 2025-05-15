@@ -78,14 +78,12 @@ SA_API sa_bool sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 
 #endif // SC_RENDERER_UNIFORMS
 
-#define SC_RENDERER_NO_TEXTURE sa_Scast_To_m(sa_u32)(UINT32_MAX)
-
 #ifndef SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY
 #  define SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY (16000)
 #endif // SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY
 
 #ifndef SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY
-#  define SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY sa_Scast_To_m(sa_u64)(SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY * 3)
+#  define SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY sa_Scast_To_m(sa_u64)(SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY * 6 / 4 *)
 #endif // SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY
 
 #ifndef SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY
@@ -202,7 +200,7 @@ SA_INTERNAL sa_u32 s_Renderer_Vertex_Buffer_Append_Info(struct sc_vertex* dest_o
                                                         sa_u32 dest_capacity,
                                                         sa_u32 src_count);
 
-SA_INTERNAL sa_bool s_Renderer_Batch_Can_Push(sc_renderer* rendr, struct sc_renderBatch* batch);
+SA_INTERNAL sa_bool s_Renderer_Batch_Can_Push(const sc_renderer* rendr, const struct sc_renderBatch* batch);
 
 /* --- Renderer Header Impl --- */
 
@@ -245,8 +243,8 @@ SA_API sc_renderer* sc_Renderer_New_From_Config(const char* file_path) {
 }
 
 SA_API void sc_Renderer_Begin(struct sc_renderer* rendr) {
-    s_Renderer_Reset_Bound(rendr);
     s_Renderer_Reset_Batch(rendr);
+    s_Renderer_Reset_Bound(rendr);
 }
 
 SA_API void sc_Renderer_Bind_Texture(struct sc_renderer* rendr, sa_textureId tex_id) {
@@ -333,10 +331,15 @@ SA_API void sc_Renderer_Push_Vertex(struct sc_renderer* rendr,
     sa_u32 total_indices_pushed = 0;
 
     sa_u8 batch_iter = 0;
-    sa_u8 batches_pushed = 0;
-    while (total_vertices_pushed < vertex_amount &&
-           total_indices_pushed < rendr->bound_index_array_length) {
+    sa_u32 batches_pushed = 0;
+    while (total_vertices_pushed != vertex_amount ||
+           total_indices_pushed != rendr->bound_index_array_length) {
 
+        rendr->batch_array[batch_iter].texture = 0;
+        if (!s_Renderer_Batch_Can_Push(rendr, &rendr->batch_array[batch_iter])) {
+            ++batch_iter;
+            continue;
+        }
         if (rendr->batch_in_use >= rendr->batch_array_capacity) {
             sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_CALL,
                                  sa_LOG_CONTEXT_RENDERER,
@@ -349,24 +352,6 @@ SA_API void sc_Renderer_Push_Vertex(struct sc_renderer* rendr,
         struct sc_renderBatch* batch = &(rendr->batch_array[batch_iter]);
         sa_Log_Assert_Message_m(batch, "Could not point to call in use");
 
-        if (batch->vertex_array_length >= rendr->batch_vertex_capacity) {
-            sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_BATCH, sa_LOG_CONTEXT_RENDERER,
-                                 "Batch has reached it's vertex limit, going to next one");
-            ++batch_iter;
-            continue;
-        }
-        if (batch->index_array_length >= rendr->bound_index_array_capacity) {
-            sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_BATCH, sa_LOG_CONTEXT_RENDERER,
-                                 "Batch has reached it's index limit, going to next one");
-            ++batch_iter;
-            continue;
-        }
-
-        if (!s_Renderer_Batch_Can_Push(rendr, batch)) {
-            ++batch_iter;
-            continue;
-        }
-
         { // Index
             sa_u32 indices_copied =
                 s_Renderer_Index_Buffer_Append_Minus_Offset(batch->index_array,
@@ -375,7 +360,7 @@ SA_API void sc_Renderer_Push_Vertex(struct sc_renderer* rendr,
                                                             total_indices_pushed,
                                                             rendr->batch_index_capacity,
                                                             rendr->bound_index_array_length,
-                                                            batches_pushed * rendr->batch_vertex_capacity);
+                                                            total_vertices_pushed);
             batch->index_array_length = indices_copied;
             total_indices_pushed += indices_copied;
         }
@@ -397,7 +382,7 @@ SA_API void sc_Renderer_Push_Vertex(struct sc_renderer* rendr,
         batch->uniform_struct_block = sa_Malloc_m(rendr->bound_uniform_struct_size);
         memcpy(batch->uniform_struct_block, rendr->uniform_struct_block, rendr->bound_uniform_struct_size);
         batch->uniform_struct_block_size = rendr->bound_uniform_struct_size;
-        ++batches_pushed;
+        batches_pushed++;
     }
     if (rendr->batch_in_use <= batch_iter) {
         rendr->batch_in_use = batch_iter + 1;
@@ -415,7 +400,16 @@ SA_API void sc_Renderer_End(struct sc_renderer* rendr) {
 #ifndef SACI_RENDERING_DISABLED
 
     for (sa_u8 i = 0; i < rendr->batch_in_use; ++i) {
-        struct sc_renderBatch* batch_in_use = &rendr->batch_array[i];
+        struct sc_renderBatch* batch = &rendr->batch_array[i];
+
+#  if 0
+        for (sa_u32 j = 0; j < batch->index_array_length; ++j) {
+            printf("i: %d\n", batch->index_array[j]);
+        }
+        for (sa_u32 j = 0; j < batch->vertex_array_length; ++j) {
+            printf("v: %f\n", batch->vertex_array[j].pos.x);
+        }
+#  endif
 
         glUseProgram(rendr->shader_program);
 
@@ -423,13 +417,13 @@ SA_API void sc_Renderer_End(struct sc_renderer* rendr) {
 
         glBindBuffer(GL_ARRAY_BUFFER, rendr->vbo);
         glBufferSubData(GL_ARRAY_BUFFER, 0,
-                        sa_Scast_To_m(long int)(sizeof(struct sc_vertex) * batch_in_use->vertex_array_length),
-                        batch_in_use->vertex_array);
+                        sa_Scast_To_m(long int)(sizeof(struct sc_vertex) * batch->vertex_array_length),
+                        batch->vertex_array);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendr->ibo);
         glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
-                        sa_Scast_To_m(long int)(sizeof(sa_u32) * batch_in_use->index_array_length),
-                        batch_in_use->index_array);
+                        sa_Scast_To_m(long int)(sizeof(sa_u32) * batch->index_array_length),
+                        batch->index_array);
 
         { // Uniforms
             {
@@ -439,20 +433,20 @@ SA_API void sc_Renderer_End(struct sc_renderer* rendr) {
 
             glBindBuffer(GL_UNIFORM_BUFFER, rendr->ubo);
             glBufferSubData(GL_UNIFORM_BUFFER, 0,
-                            sa_Scast_To_m(long int)(batch_in_use->uniform_struct_block_size),
-                            batch_in_use->uniform_struct_block);
+                            sa_Scast_To_m(long int)(batch->uniform_struct_block_size),
+                            batch->uniform_struct_block);
             glBindBuffer(GL_UNIFORM_BUFFER, 0);
         }
 
-        if (batch_in_use->texture != previous_batch.texture) {
+        if (batch->texture != previous_batch.texture) {
             glUniform1i(SC_U_USE_TEXTURE_LOC, sa_TRUE);
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, batch_in_use->texture);
-            previous_batch.texture = batch_in_use->texture;
+            glBindTexture(GL_TEXTURE_2D, batch->texture);
+            previous_batch.texture = batch->texture;
         }
 
         glBindBufferBase(GL_UNIFORM_BUFFER, 0, rendr->ubo);
-        glDrawElements(GL_TRIANGLES, sa_Scast_To_m(int)(batch_in_use->index_array_length), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, sa_Scast_To_m(int)(batch->index_array_length), GL_UNSIGNED_INT, 0);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 #endif // SACI_RENDERING_DISABLED
@@ -544,7 +538,7 @@ SA_INTERNAL void s_Renderer_Reset_Batch(struct sc_renderer* rendr) {
                          "Reseting batches");
     for (sa_u8 i = 0; i < rendr->batch_array_capacity; ++i) {
         rendr->batch_array[i].uniform_struct_block_size = 0;
-        rendr->batch_array[i].texture = SC_RENDERER_NO_TEXTURE;
+        rendr->batch_array[i].texture = 0;
         rendr->batch_array[i].index_array_length = 0;
         rendr->batch_array[i].vertex_array_length = 0;
         if (rendr->batch_array[i].uniform_struct_block) {
@@ -753,8 +747,8 @@ SA_INTERNAL sa_u32 s_Renderer_Index_Buffer_Append_Minus_Offset(sa_u32* dest_out,
 
     sa_u32 remaining_indices = src_count - src_indices_pushed;
     sa_u32 indices_to_copy = sa_Min_m(dest_capacity - dest_indices_pushed, remaining_indices);
-    for (size_t i = 0; i < indices_to_copy; ++i) {
-        dest_out[dest_indices_pushed + i] = (src[src_indices_pushed + i]) - offset;
+    for (sa_u64 i = 0; i < indices_to_copy; ++i) {
+        dest_out[dest_indices_pushed + i] = (src[src_indices_pushed + i] - offset);
     }
     indices_copied_out = indices_to_copy;
     return indices_copied_out;
@@ -781,10 +775,22 @@ SA_INTERNAL sa_u32 s_Renderer_Vertex_Buffer_Append_Info(struct sc_vertex* dest_o
     return vertices_to_copy;
 }
 
-SA_INTERNAL sa_bool s_Renderer_Batch_Can_Push(sc_renderer* rendr, struct sc_renderBatch* batch) {
-    if (batch->texture != rendr->bound_texture_id && batch->texture != SC_RENDERER_NO_TEXTURE) {
+SA_INTERNAL sa_bool s_Renderer_Batch_Can_Push(const sc_renderer* rendr, const struct sc_renderBatch* batch) {
+    if (batch->vertex_array_length >= rendr->batch_vertex_capacity) {
         sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_BATCH, sa_LOG_CONTEXT_RENDERER,
-                             "Batch has different texture than bound, skipping to next batch");
+                             "Batch has reached it's vertex limit, going to next one");
+        return sa_FALSE;
+    }
+    if (batch->index_array_length >= rendr->bound_index_array_capacity) {
+        sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_BATCH, sa_LOG_CONTEXT_RENDERER,
+                             "Batch has reached it's index limit, going to next one");
+        return sa_FALSE;
+    }
+
+    if (batch->texture != rendr->bound_texture_id && batch->texture != 0) {
+        sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_BATCH, sa_LOG_CONTEXT_RENDERER,
+                              "Batch has different texture (%d) than bound (%d), skipping to next batch",
+                              batch->texture, rendr->bound_texture_id);
         return sa_FALSE;
     }
     if (batch->uniform_struct_block_size != rendr->bound_uniform_struct_size &&
