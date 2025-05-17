@@ -113,6 +113,7 @@ struct sc_vertex {
     sa_vec3 pos;
     sa_color color;
     sa_uv uv;
+    sa_mat4 model_mat;
 };
 
 // The fields are structured in a way that enforces minimum memory change over time
@@ -130,6 +131,12 @@ struct sc_renderer {
     sa_u8 batch_array_capacity;
     sa_u8 batch_in_use;
 
+    sa_u32 bound_uniform_data_capacity;
+    struct sc_uniformData {
+        void* value;
+        sa_dataType type;
+    }* bound_uniform_data; // each index represents a location
+
     struct sc_staticBatch {
         sa_u64 uniform_struct_block_size;
         sa_textureId texture;
@@ -137,6 +144,7 @@ struct sc_renderer {
         sa_u32 vertex_array_length;
         sa_u32* index_array;
         struct sc_vertex* vertex_array;
+        struct sc_uniformData* bound_uniform_data;
         sa_u8* uniform_struct_block;
     }* static_batch_array;
 
@@ -251,38 +259,19 @@ SA_API void sc_Renderer_Bind_Texture(struct sc_renderer* rendr, sa_textureId tex
     rendr->bound_texture_id = tex_id;
 }
 
-SA_API void sc_Renderer_Set_Bound_Index_Buffer_Capacity(struct sc_renderer* rendr,
-                                                        sa_u32 new_size) {
-    rendr->bound_index_array_capacity = new_size;
-    sa_Free_m(rendr->bound_index_array_buffer);
-    rendr->bound_index_array_buffer = sa_Calloc_m(new_size, sizeof(sa_u32));
-}
-
-SA_API void sc_Renderer_Bind_Uniform_Struct(struct sc_renderer* rendr, void* uniform) {
-    if (!rendr->uniform_struct_block) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH,
-                             sa_LOG_CONTEXT_RENDERER, "Uniform block not created");
+SA_API void sc_Renderer_Set_Uniform(struct sc_renderer* rendr,
+                                    const sa_u32 uniform_id,
+                                    const void* const value,
+                                    const sa_dataType type,
+                                    const sa_u64 size) {
+    if (uniform_id == 0) {
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_RENDERER,
+                             "Trying to bind uniform with id zero");
         return;
     }
-    if (!uniform) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH,
-                             sa_LOG_CONTEXT_RENDERER, "Invalid uniform structure");
-        return;
-    }
-
-    memcpy(rendr->uniform_struct_block, uniform, rendr->bound_uniform_struct_size);
-}
-
-SA_API void sc_Renderer_Bind_Uniform_Value(struct sc_renderer* rendr, void* value, sa_u64 start_offset, sa_u64 size) {
-    if (!rendr->uniform_struct_block) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "Uniform block not created");
-        return;
-    }
-    if (start_offset + size > rendr->bound_uniform_struct_size) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER, "Uniform block overflow");
-        return;
-    }
-    memcpy((sa_u8*)rendr->uniform_struct_block + start_offset, value, size);
+    rendr->bound_uniform_data[uniform_id - 1].type = type;
+    rendr->bound_uniform_data[uniform_id - 1].value = sa_Malloc_m(size);
+    memcpy(rendr->bound_uniform_data[uniform_id - 1].value, value, size);
 }
 
 SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr, const sa_u32* new_indices, const sa_u32 new_indices_count) {
@@ -372,6 +361,7 @@ SA_API void sc_Renderer_Push_Vertex(struct sc_renderer* rendr,
             total_vertices_pushed += vertices_copied;
         }
 
+        // TODO
         batch->texture = rendr->bound_texture_id;
         batch->uniform_struct_block = sa_Malloc_m(rendr->bound_uniform_struct_size);
         memcpy(batch->uniform_struct_block, rendr->uniform_struct_block, rendr->bound_uniform_struct_size);
@@ -703,6 +693,7 @@ SA_INTERNAL void s_Renderer_Init_Batch(struct sc_renderer* rendr) {
     rendr->batch_in_use = 0;
     rendr->static_batch_array = sa_Calloc_m(rendr->batch_array_capacity, sizeof(struct sc_staticBatch));
     sa_Log_Assert_Message_m(rendr->static_batch_array, "Batch array could not be initialized");
+    rendr->bound_uniform_data = sa_Calloc_m(rendr->bound_uniform_data_capacity, sizeof(struct sc_uniformData));
 
     for (sa_u32 i = 0; i < rendr->batch_array_capacity; ++i) {
         rendr->static_batch_array[i].vertex_array =
@@ -710,6 +701,7 @@ SA_INTERNAL void s_Renderer_Init_Batch(struct sc_renderer* rendr) {
         sa_Log_Assert_Message_m(rendr->static_batch_array[i].vertex_array,
                                 "Batch vertex array could not be initialized");
 
+        rendr->static_batch_array[i].bound_uniform_data = sa_Calloc_m(rendr->bound_uniform_data_capacity, sizeof(struct sc_uniformData));
         rendr->static_batch_array[i].index_array = sa_Calloc_m(rendr->batch_index_capacity,
                                                                sizeof(sa_u32));
         sa_Log_Assert_Message_m(rendr->static_batch_array[i].index_array,
