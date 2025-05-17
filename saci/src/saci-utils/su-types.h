@@ -89,4 +89,41 @@ typedef struct {
     float data[4][4]; /**< 4x4 matrix of floats */
 } sa_mat4;
 
+/* === Types === */
+
+typedef enum {
+    SA_TYPE_U8 = 1,  // unsigned int8
+    SA_TYPE_U16 = 2, // unsigned int16
+    SA_TYPE_U32 = 3, // unsigned int32
+    SA_TYPE_U64 = 4, // unsigned int64
+    SA_TYPE_S8 = 5,  // signed int8
+    SA_TYPE_S16 = 6, // signed int16
+    SA_TYPE_S32 = 7, // signed int32
+    SA_TYPE_S64 = 8, // signed int64
+
+    SA_TYPE_BOOL = 9, // boolean
+
+    SA_TYPE_SHADERID = 10,  // unsgined int32
+    SA_TYPE_TEXTUREID = 11, // unsgined int32
+    SA_TYPE_BUFFERID = 12,  // unsigned int32
+
+    SA_TYPE_UV = 13,   // 2 floats (u, v)
+    SA_TYPE_VEC2 = 14, // 2 floats (x, y)
+    SA_TYPE_VEC3 = 15, // 3 floats (x, y, z)
+    SA_TYPE_VEC4 = 16, // 4 floats (x, y, z, w)
+
+    SA_TYPE_COLOR = 17, // 4 floats (r, g, b, a)
+
+    SA_TYPE_MAT2 = 18, // 2x2 matrix
+    SA_TYPE_MAT3 = 19, // 3x3 matrix
+    SA_TYPE_MAT4 = 20, // 4x4 matrix
+
+    SA_TYPE_MAT2X3 = 21, // 2 columns, 3 rows
+    SA_TYPE_MAT2X4 = 22, // 2 columns, 4 rows
+    SA_TYPE_MAT3X2 = 23, // 3 columns, 2 rows
+    SA_TYPE_MAT3X4 = 24, // 3 columns, 4 rows
+    SA_TYPE_MAT4X2 = 25, // 4 columns, 2 rows
+    SA_TYPE_MAT4X3 = 26, // 4 columns, 3 rows
+} sa_dataType;
+
 #endif // SACI_UTILS_SU_TYPES_H

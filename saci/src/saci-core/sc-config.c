@@ -1,4 +1,4 @@
-#include "config.h"
+#include "saci-core/sc-config.h"
 
 #include <lua5.4/lauxlib.h>
 #include <lua5.4/lualib.h>

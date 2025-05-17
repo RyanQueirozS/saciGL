@@ -228,8 +228,10 @@ SA_API void sc_Renderer_Bind_Texture(struct sc_renderer* rendr,
 SA_API void sc_Renderer_Set_Uniform_Struct(struct sc_renderer* rendr,
                                            sa_u64 size);
 
-SA_API void sc_Renderer_Set_Bound_Index_Buffer_Capacity(struct sc_renderer* rendr,
-                                                        sa_u32 new_size);
+SA_API void sc_Renderer_Set_Uniform(struct sc_renderer* rendr,
+                                    const sa_u32 uniform_id,
+                                    const void* const value,
+                                    const sa_dataType type);
 
 SA_API void sc_Renderer_Bind_Uniform_Struct(struct sc_renderer* rendr,
                                             void* uniform);
@@ -254,6 +256,9 @@ SA_API void sc_Renderer_Push_Model(struct sc_renderer* rendr, const sc_modelMesh
 SA_API void sc_Renderer_End(struct sc_renderer* rendr);
 
 SA_API void sc_Renderer_Free(struct sc_renderer* rendr);
+
+SA_API sa_u32 sc_Renderer_Get_Uniform_Id(struct sc_renderer* rendr,
+                                         const char* const uniform_name);
 
 SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts);
 
