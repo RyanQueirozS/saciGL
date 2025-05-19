@@ -228,20 +228,28 @@ SA_API void sc_Renderer_Bind_Texture(struct sc_renderer* rendr,
 SA_API void sc_Renderer_Set_Uniform(struct sc_renderer* rendr,
                                     const sa_u32 uniform_id,
                                     const void* const value,
-                                    const sa_dataType type,
-                                    const sa_u64 size);
+                                    const sa_dataType type);
 
 SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr,
                                           const sa_u32* new_indices,
                                           const sa_u32 new_indices_count);
 
-SA_API void sc_Renderer_Push_Vertex(struct sc_renderer* rendr,
-                                    const sa_vec3* pos_array,
-                                    const sa_uv* uv_array,
-                                    const sa_color* color_array,
-                                    const sa_u32 amount);
+SA_API void sc_Renderer_Push_Mesh_Dynamic(struct sc_renderer* rendr,
+                                          const sa_vec3* pos_array,
+                                          const sa_uv* uv_array,
+                                          const sa_color* color_array,
+                                          const sa_u32 amount);
 
-SA_API void sc_Renderer_Push_Model(struct sc_renderer* rendr, const sc_modelMesh* model_mesh);
+SA_API void sc_Renderer_Push_Mesh_Instanced(struct sc_renderer* rendr,
+                                            const sa_vec3* pos_array,
+                                            const sa_uv* uv_array,
+                                            const sa_color* color_array,
+                                            const sa_mat4* instance_transform,
+                                            const sa_u32 vertex_count,
+                                            const sa_u32 instance_count);
+
+SA_API void sc_Renderer_Push_Model_Mesh(struct sc_renderer* rendr,
+                                        const sc_modelMesh* model_mesh);
 
 SA_API void sc_Renderer_End(struct sc_renderer* rendr);
 
@@ -254,6 +262,7 @@ SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts);
 
 /* === OpenGL === */
 
+SA_API void sc_GL_Uniform_Set_Value(const sa_u32 location, sa_dataType type, const void* value);
 SA_API sa_u32 sc_GL_Create_Index_Buffer_Dynamic(sa_u32* indices, sa_u64 indice_amount);
 SA_API sa_u32 sc_GL_Create_Index_Buffer_Static(sa_u32* indices, sa_u64 indice_amount);
 SA_API sa_u32 sc_GL_Create_Vertex_Buffer(sa_u64 size, const void* data, sa_u32 usage);

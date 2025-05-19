@@ -194,4 +194,6 @@
 #  define sa_Max_m(x, y) ((x) > (y) ? (x) : (y))
 #endif // sa_Max_m
 
+sa_u64 sa_Size_Of_Type(sa_dataType data_type);
+
 #endif // SACI_UTILS_SU_GENERAL_H

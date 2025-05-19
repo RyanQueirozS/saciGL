@@ -80,8 +80,6 @@ void init_saci() {
 
     rendr = sc_Renderer_New_Default();
 
-    sc_Renderer_Set_Uniform_Struct(rendr, sizeof(struct uniforms));
-    uniforms.model = sa_Mat4_Model_Matrix_RTS((sa_vec3){0, 0, 0}, rotation[0], (sa_vec3){1, 1, 1});
     uniforms.view = sa_Mat4_Look_At((sa_vec3){0.0f, 2.0f, -20.0f}, (sa_vec3){0.0f, 0.0f, 0.0f}, (sa_vec3){0.0f, 1.0f, 0.0f});
     uniforms.projection = sa_Mat4_Perspective(90, 16.0f / 9.0f, 1, 100);
     uniforms.flags |= sc_RENDERER_UNIFORM_FLAG_IS_3D;
@@ -95,29 +93,26 @@ int main() {
         sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_FALSE);
+    sa_u32 proj_loc = sc_Renderer_Get_Uniform_Id(rendr, "u_projection_matrix");
+    sa_u32 view_loc = sc_Renderer_Get_Uniform_Id(rendr, "u_view_matrix");
+    sa_u32 model_loc = sc_Renderer_Get_Uniform_Id(rendr, "u_model_matrix");
+    sa_mat4 translations[3] = {
+        sa_Mat4_Model_Matrix_RTS(pos[0], rotation[0], (sa_vec3){1, 1, 1}),
+        sa_Mat4_Model_Matrix_RTS(pos[1], rotation[1], (sa_vec3){1, 1, 1}),
+        sa_Mat4_Model_Matrix_RTS(pos[2], rotation[2], (sa_vec3){1, 1, 1}),
+    };
     while (!sc_Window_Should_Close(window)) {
         sc_Event_Poll();
         sc_Window_Clear_Color(bgColor);
 
-        uniforms.view = sa_Mat4_Look_At((sa_vec3){0.0f, 3.0f, -20.0f}, pos[0], (sa_vec3){0.0f, 1.0f, 0.0f});
-
         sc_Renderer_Begin(rendr);
+
+        sc_Renderer_Set_Uniform(rendr, proj_loc, &uniforms.projection, SA_TYPE_MAT4);
+        sc_Renderer_Set_Uniform(rendr, view_loc, &uniforms.view, SA_TYPE_MAT4);
+        sc_Renderer_Set_Uniform(rendr, model_loc, &uniforms.model, SA_TYPE_MAT4);
         sc_Renderer_Bind_Index_Buffer(rendr, cubeIndices, indiceAmount);
-        {
-            uniforms.model = sa_Mat4_Model_Matrix_TRS(pos[0], rotation[0], (sa_vec3){1, 1, 1});
-            sc_Renderer_Bind_Uniform_Struct(rendr, (void*)&uniforms);
-            sc_Renderer_Push_Vertex(rendr, verticesPos, verticesUV, colors, verticeAmount);
-        }
-        {
-            uniforms.model = sa_Mat4_Model_Matrix_TRS(pos[1], rotation[1], (sa_vec3){1, 1, 1});
-            sc_Renderer_Bind_Uniform_Struct(rendr, (void*)&uniforms);
-            sc_Renderer_Push_Vertex(rendr, verticesPos, verticesUV, colors, verticeAmount);
-        }
-        {
-            uniforms.model = sa_Mat4_Model_Matrix_TRS(pos[2], rotation[2], (sa_vec3){1, 1, 1});
-            sc_Renderer_Bind_Uniform_Struct(rendr, (void*)&uniforms);
-            sc_Renderer_Push_Vertex(rendr, verticesPos, verticesUV, colors, verticeAmount);
-        }
+        uniforms.model = sa_Mat4_Model_Matrix_TRS(pos[0], rotation[0], (sa_vec3){1, 1, 1});
+        sc_Renderer_Push_Mesh_Instanced(rendr, verticesPos, verticesUV, colors, translations, verticeAmount, 3);
         sc_Renderer_End(rendr);
         sc_Window_Swap_Buffer(window);
         {
