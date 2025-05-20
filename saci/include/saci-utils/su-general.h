@@ -197,7 +197,7 @@
 
 sa_u64 sa_Size_Of_Type(sa_dataType data_type);
 
-#define sa_Create_Darray(name, type)                                                        \
+#define sa_Create_Darray_m(name, type)                                                      \
     typedef struct name {                                                                   \
         type* data;                                                                         \
         sa_u64 length;                                                                      \
@@ -280,17 +280,17 @@ sa_u64 sa_Size_Of_Type(sa_dataType data_type);
     }
 
 // clang-format off
-sa_Create_Darray(sa_u8Array, sa_u8)
-sa_Create_Darray(sa_u16Array, sa_u16)
-sa_Create_Darray(sa_u32Array, sa_u32)
-sa_Create_Darray(sa_u64Array, sa_u64)
-sa_Create_Darray(sa_s8Array, sa_s8)
-sa_Create_Darray(sa_s16Array, sa_s16)
-sa_Create_Darray(sa_s32Array, sa_s32)
-sa_Create_Darray(sa_s64Array, sa_s64)
-sa_Create_Darray(sa_vec2Array, sa_vec2)
-sa_Create_Darray(sa_vec3Array, sa_vec3)
-sa_Create_Darray(sa_vec4Array, sa_vec4)
-sa_Create_Darray(sa_colorArray, sa_color)
+sa_Create_Darray_m(sa_u8Array, sa_u8)
+sa_Create_Darray_m(sa_u16Array, sa_u16)
+sa_Create_Darray_m(sa_u32Array, sa_u32)
+sa_Create_Darray_m(sa_u64Array, sa_u64)
+sa_Create_Darray_m(sa_s8Array, sa_s8)
+sa_Create_Darray_m(sa_s16Array, sa_s16)
+sa_Create_Darray_m(sa_s32Array, sa_s32)
+sa_Create_Darray_m(sa_s64Array, sa_s64)
+sa_Create_Darray_m(sa_vec2Array, sa_vec2)
+sa_Create_Darray_m(sa_vec3Array, sa_vec3)
+sa_Create_Darray_m(sa_vec4Array, sa_vec4)
+sa_Create_Darray_m(sa_colorArray, sa_color)
 
 #endif // SACI_UTILS_SU_GENERAL_H

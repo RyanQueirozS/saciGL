@@ -109,11 +109,13 @@ SA_API sa_bool sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 #ifndef SC_RENDERER_STRUCT
 #  define SC_RENDERER_STRUCT
 
-struct sc_vertex {
+typedef struct sc_vertex {
     sa_vec3 pos;
     sa_color color;
     sa_uv uv;
-};
+} sc_vertex;
+
+sa_Create_Darray_m(sc_Vertex, sc_vertex);
 
 // The fields are structured in a way that enforces minimum memory change over time
 struct sc_renderer {

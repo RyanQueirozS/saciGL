@@ -47,6 +47,8 @@ set_property(TARGET saci PROPERTY C_STANDARD 99)
 include_directories(${LUA_INCLUDE_DIR})
 
 target_include_directories(saci SYSTEM PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"           # Include headers
+
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/stb"           # STB image headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/include"  # Glad headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/model-loading" # Model Loaders headers
