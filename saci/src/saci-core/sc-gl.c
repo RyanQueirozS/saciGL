@@ -8,6 +8,7 @@
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-debug.h"
 #include "saci-utils/su-types.h"
+#include "saci-utils/su-darray-internal.h"
 #include "saci-core/sc-model.h"
 #include "saci-core/sc-config.h"
 
