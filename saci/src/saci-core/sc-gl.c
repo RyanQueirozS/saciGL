@@ -8,39 +8,13 @@
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-debug.h"
 #include "saci-utils/su-types.h"
+#include "saci-utils/su-darray.h"
 #include "saci-utils/su-darray-internal.h"
-#include "saci-core/sc-model.h"
 #include "saci-core/sc-config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-/* === Event === */
-
-SA_API void sc_Event_Poll(void) {
-    glfwPollEvents();
-}
-
-SA_API void sc_Event_Wait(void) {
-    glfwWaitEvents();
-}
-
-SA_API void sc_Event_Wait_For_Timeout(double timeout) {
-    glfwWaitEventsTimeout(timeout);
-}
-
-SA_API void sc_Event_Post_Empty(void) {
-    glfwPostEmptyEvent();
-}
-
-SA_API void sc_Event_Set_Mouse_Pos_Handler(sc_window_t* window, sc_event_mousePosHandler_t mouse_pos_handler) {
-    glfwSetCursorPosCallback(window, mouse_pos_handler);
-}
-
-SA_API sa_bool sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
-    return glfwGetKey(window, sa_Scast_To_m(int)(keycode)) == GLFW_PRESS;
-}
 
 /* === Renderer === */
 
@@ -106,6 +80,10 @@ SA_API sa_bool sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
 #ifndef SC_RENDERER_DEFAULT_RENDERER_CONFIG_PATH
 #  define SC_RENDERER_DEFAULT_RENDERER_CONFIG_PATH "renderer-config.lua"
 #endif // SC_RENDERER_DEFAULT_RENDERER_CONFIG_PATH
+
+#ifndef SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH
+#  define SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH (300)
+#endif // SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH
 
 #ifndef SC_RENDERER_STRUCT
 #  define SC_RENDERER_STRUCT
@@ -183,10 +161,9 @@ SA_INTERNAL void s_Renderer_Reset_Batch(struct sc_renderer* rendr);
 
 // Validates before pushing to call buffer
 SA_INTERNAL sa_bool s_Renderer_Validate_Before_Push(const struct sc_renderer* rendr,
-                                                    const sa_vec3* pos_array,
-                                                    const sa_uv* uv_array,
-                                                    const sa_color* color_array,
-                                                    const sa_u32 vertex_amount);
+                                                    const sa_vec3Array* pos_array,
+                                                    const sa_uvArray* uv_array,
+                                                    const sa_colorArray* color_array);
 
 SA_INTERNAL void s_Renderer_Initialize_Config(struct sc_renderer* rendr, const char* cfg_path);
 
@@ -292,7 +269,8 @@ SA_API void sc_Renderer_Set_Uniform(struct sc_renderer* rendr,
     memcpy(rendr->bound_uniform_data[uniform_id - 1].value, value, size_of_type);
 }
 
-SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr, const sa_u32* new_indices, const sa_u32 new_indices_count) {
+SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr,
+                                          const sa_u32Array* new_indices) {
     // Reset the index buffer
     if (!new_indices) {
         sa_Log_Warn_Print_m(sa_LOG_SEVERITY_LOW,
@@ -301,6 +279,7 @@ SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr, const sa_u3
         return;
     }
 
+    sa_u32 new_indices_count = sa_Scast_To_m(sa_u32)(new_indices->length);
     if (new_indices_count > rendr->bound_index_array_capacity) {
         sa_Log_WarnF_Print_m(sa_LOG_SEVERITY_MEDIUM,
                              sa_LOG_CONTEXT_RENDERER,
@@ -311,33 +290,41 @@ SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr, const sa_u3
 
     sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, sa_LOG_CONTEXT_RENDERER,
                           "Bound %d indices", new_indices_count);
-    memcpy(rendr->bound_index_array_buffer, new_indices, new_indices_count * sizeof(sa_u32));
+    memcpy(rendr->bound_index_array_buffer, new_indices->data, new_indices_count * sizeof(sa_u32));
     rendr->bound_index_array_length = new_indices_count;
 }
 
 SA_API void sc_Renderer_Push_Mesh_Dynamic(struct sc_renderer* rendr,
-                                          const sa_vec3* pos_array,
-                                          const sa_uv* uv_array,
-                                          const sa_color* color_array,
-                                          const sa_u32 vertex_amount) {
+                                          const sa_vec3Array* position_array,
+                                          const sa_uvArray* uv_array,
+                                          const sa_colorArray* color_array) {
+    s_Renderer_Validate_Before_Push(rendr, position_array, uv_array, color_array);
+
+    if (position_array->length > SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH) {
+        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
+                              "Trying to push %lu while max per dynamic batch is %d",
+                              position_array->length,
+                              SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH);
+        return;
+    }
+
     sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
                           sa_LOG_CONTEXT_RENDERER,
-                          "Attempting to push %d vertices to dynamic batch", vertex_amount);
+                          "Attempting to push %lu vertices to dynamic batch",
+                          position_array->length);
     sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
                           sa_LOG_CONTEXT_RENDERER,
                           "Attempting to push %d indices to dynamic batch",
                           rendr->bound_index_array_length);
 
-    s_Renderer_Validate_Before_Push(rendr, pos_array, uv_array, color_array,
-                                    vertex_amount);
     sa_u32 total_vertices_pushed = 0;
     sa_u32 total_indices_pushed = 0;
 
     sa_u8 batch_iter = 0;
-    while (total_vertices_pushed != vertex_amount ||
+    while (total_vertices_pushed != position_array->length ||
            total_indices_pushed != rendr->bound_index_array_length) {
 
-        rendr->dynamic_batch_array[batch_iter].texture = 0;
+        rendr->dynamic_batch_array[batch_iter].texture = 0; // TODO this needs to be removed
         if (!s_Renderer_Batch_Can_Push(rendr, &rendr->dynamic_batch_array[batch_iter])) {
             ++batch_iter;
             continue;
@@ -370,12 +357,12 @@ SA_API void sc_Renderer_Push_Mesh_Dynamic(struct sc_renderer* rendr,
         { // Vertex
             sa_u32 vertices_copied =
                 s_Renderer_Vertex_Buffer_Append_Info(batch->vertex_array,
-                                                     pos_array,
-                                                     uv_array,
-                                                     color_array,
+                                                     position_array->data,
+                                                     uv_array->data,
+                                                     color_array->data,
                                                      total_vertices_pushed,
                                                      rendr->batch_vertex_capacity,
-                                                     vertex_amount);
+                                                     (sa_u32)position_array->length);
             batch->vertex_array_length += vertices_copied;
             total_vertices_pushed += vertices_copied;
         }
@@ -513,14 +500,25 @@ SA_INTERNAL void s_Renderer_Reset_Batch(struct sc_renderer* rendr) {
 }
 
 SA_INTERNAL sa_bool s_Renderer_Validate_Before_Push(const struct sc_renderer* rendr,
-                                                    const sa_vec3* pos_array,
-                                                    const sa_uv* uv_array,
-                                                    const sa_color* color_array,
-                                                    const sa_u32 vertex_amount) {
-    if (!pos_array || vertex_amount < 1) {
+                                                    const sa_vec3Array* pos_array,
+                                                    const sa_uvArray* uv_array,
+                                                    const sa_colorArray* color_array) {
+    if (!pos_array) {
         sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH,
                              sa_LOG_CONTEXT_RENDERER,
                              "Vertex array being pushed has length ZERO or is NULL");
+        return sa_FALSE;
+    }
+    if (!pos_array->data || !pos_array->length) {
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH,
+                             sa_LOG_CONTEXT_RENDERER,
+                             "Vertex array being pushed has length ZERO or is NULL");
+        return sa_FALSE;
+    }
+    if (pos_array->length != uv_array->length || pos_array->length != color_array->length) {
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH,
+                             sa_LOG_CONTEXT_RENDERER,
+                             "Renderer doesn't have a 1-1-1 vertex-uv-color ratio");
         return sa_FALSE;
     }
     if (!rendr->bound_index_array_buffer || !rendr->bound_index_array_length) {

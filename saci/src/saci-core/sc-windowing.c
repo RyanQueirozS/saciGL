@@ -94,3 +94,29 @@ void s_Opengl_Initialize_Debugger(void) {
     glDebugMessageCallback(sa_Log_OpenGL_Debug_Message_Callback, NULL);
     sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_OPENGL, sa_LOG_CONTEXT_OPENGL, "Loaded OpenGL debugger");
 }
+
+/* === Event === */
+
+SA_API void sc_Event_Poll(void) {
+    glfwPollEvents();
+}
+
+SA_API void sc_Event_Wait(void) {
+    glfwWaitEvents();
+}
+
+SA_API void sc_Event_Wait_For_Timeout(double timeout) {
+    glfwWaitEventsTimeout(timeout);
+}
+
+SA_API void sc_Event_Post_Empty(void) {
+    glfwPostEmptyEvent();
+}
+
+SA_API void sc_Event_Set_Mouse_Pos_Handler(sc_window_t* window, sc_event_mousePosHandler_t mouse_pos_handler) {
+    glfwSetCursorPosCallback(window, mouse_pos_handler);
+}
+
+SA_API sa_bool sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
+    return glfwGetKey(window, sa_Scast_To_m(int)(keycode)) == GLFW_PRESS;
+}

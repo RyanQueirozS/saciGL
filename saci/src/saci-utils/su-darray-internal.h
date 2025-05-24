@@ -1,5 +1,5 @@
-#ifndef SACI_UTILS_SU_DARRAY_H
-#define SACI_UTILS_SU_DARRAY_H
+#ifndef SACI_UTILS_SU_DARRAY_INTERNAL_H
+#define SACI_UTILS_SU_DARRAY_INTERNAL_H
 
 #include "saci-utils/su-types.h"
 #include "saci-utils/su-general.h"
@@ -85,20 +85,6 @@
                                  "DArray accessed at %lu while length is %lu",              \
                                  index, array->length);                                     \
         array->data[index] = val;                                                           \
-    }
-
-// clang-format off
-sa_Create_Darray_m(sa_u8Array, sa_u8)
-sa_Create_Darray_m(sa_u16Array, sa_u16)
-sa_Create_Darray_m(sa_u32Array, sa_u32)
-sa_Create_Darray_m(sa_u64Array, sa_u64)
-sa_Create_Darray_m(sa_s8Array, sa_s8)
-sa_Create_Darray_m(sa_s16Array, sa_s16)
-sa_Create_Darray_m(sa_s32Array, sa_s32)
-sa_Create_Darray_m(sa_s64Array, sa_s64)
-sa_Create_Darray_m(sa_vec2Array, sa_vec2)
-sa_Create_Darray_m(sa_vec3Array, sa_vec3)
-sa_Create_Darray_m(sa_vec4Array, sa_vec4)
-sa_Create_Darray_m(sa_colorArray, sa_color)
+    }; // NOLINT
 
 #endif

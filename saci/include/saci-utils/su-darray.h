@@ -682,6 +682,81 @@ static inline void sa_Vec2_Array_Set(sa_vec2Array* array, sa_u64 index, sa_vec2 
     array->data[index] = val;
 }
 
+typedef struct sa_uvArray {
+    sa_uv* data;
+    sa_u64 length;
+    sa_u64 capacity;
+    sa_bool is_fixed_size;
+} sa_uvArray;
+
+static inline void sa_Uv_Array_Init(sa_uvArray* array, sa_u64 capacity, sa_bool fixed_size) {
+    array->length = 0;
+    array->capacity = capacity;
+    array->is_fixed_size = fixed_size;
+    array->data = sa_Calloc_m(capacity, sizeof(sa_uv));
+    if (!array->data) {
+        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
+                              "Could not allocate memory for array sa_Uv_Array");
+    }
+}
+
+static inline void sa_Uv_Array_Free(sa_uvArray* array) {
+    sa_Free_m(array->data);
+    array->data = NULL;
+    array->length = 0;
+    array->capacity = 0;
+}
+
+static inline sa_bool sa_Uv_Array_Resize(sa_uvArray* array, sa_u64 new_cap) {
+    if (array->is_fixed_size) {
+        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
+                              "Cannot resize fixed-size array sa_Uv_Array");
+        return sa_FALSE;
+    }
+    sa_uv* new_data = realloc(array->data, new_cap * sizeof(sa_uv));
+    if (!new_data) {
+        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
+                              "Could not allocate for array sa_Uv_Array, when resizing");
+        return sa_FALSE;
+    }
+    array->data = new_data;
+    array->capacity = new_cap;
+    return sa_TRUE;
+}
+
+static inline sa_bool sa_Uv_Array_Push(sa_uvArray* array, sa_uv value) {
+    if (array->length == array->capacity) {
+        if (array->is_fixed_size) {
+            sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
+                                  "Cannot push to full fixed-size array sa_Uv_Array");
+            return sa_FALSE;
+        }
+        sa_u64 new_cap = array->capacity ? array->capacity * 2 : 4;
+        if (!sa_Uv_Array_Resize(array, new_cap)) {
+            return sa_FALSE;
+        }
+    }
+    array->data[array->length++] = value;
+    return sa_TRUE;
+}
+
+static inline void sa_Uv_Array_Pop(sa_uvArray* array) {
+    sa_Log_Assert_Message_m(array->length > 0, "Length is zero cannot pop array");
+    array->length--;
+}
+
+static inline sa_uv sa_Uv_Array_Get(sa_uvArray* array, sa_u64 index) {
+    sa_Log_AssertF_Message_m(index < array->length,
+                             "DArray accessed at %lu while length is %lu", index, array->length);
+    return array->data[index];
+}
+
+static inline void sa_Uv_Array_Set(sa_uvArray* array, sa_u64 index, sa_uv val) {
+    sa_Log_AssertF_Message_m(index < array->length,
+                             "DArray accessed at %lu while length is %lu", index, array->length);
+    array->data[index] = val;
+}
+
 typedef struct sa_vec3Array {
     sa_vec3* data;
     sa_u64 length;

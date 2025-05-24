@@ -14,6 +14,7 @@ sa_S16_Array   sa_s16
 sa_S32_Array   sa_s32
 sa_S64_Array   sa_s64
 sa_Vec2_Array  sa_vec2
+sa_Uv_Array    sa_uv
 sa_Vec3_Array  sa_vec3
 sa_Vec4_Array  sa_vec4
 sa_Color_Array sa_color
