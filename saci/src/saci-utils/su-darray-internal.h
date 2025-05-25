@@ -11,9 +11,9 @@
         sa_u64 length;                                                                      \
         sa_u64 capacity;                                                                    \
         sa_bool is_fixed_size;                                                              \
-    } name;                                                                                 \
+    } type##Array;                                                                          \
                                                                                             \
-    static inline void name##_Init(name* array, sa_u64 capacity,                            \
+    static inline void name##_Init(type##Array* array, sa_u64 capacity,                     \
                                    sa_bool fixed_size) {                                    \
         array->length = 0;                                                                  \
         array->capacity = capacity;                                                         \
@@ -25,14 +25,14 @@
         }                                                                                   \
     }                                                                                       \
                                                                                             \
-    static inline void name##_Free(name* array) {                                           \
+    static inline void name##_Free(type##Array* array) {                                    \
         sa_Free_m(array->data);                                                             \
         array->data = NULL;                                                                 \
         array->length = 0;                                                                  \
         array->capacity = 0;                                                                \
     }                                                                                       \
                                                                                             \
-    static inline sa_bool name##_Resize(name* array, sa_u64 new_cap) {                      \
+    static inline sa_bool name##_Resize(type##Array* array, sa_u64 new_cap) {               \
         if (array->is_fixed_size) {                                                         \
             sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH,                                     \
                                   sa_LOG_CONTEXT_MEMORY_ALLOCATION,                         \
@@ -51,7 +51,7 @@
         return sa_TRUE;                                                                     \
     }                                                                                       \
                                                                                             \
-    static inline sa_bool name##_Push(name* array, type value) {                            \
+    static inline sa_bool name##_Push(type##Array* array, type value) {                     \
         if (array->length == array->capacity) {                                             \
             if (array->is_fixed_size) {                                                     \
                 sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_MEDIUM,                               \
@@ -68,19 +68,19 @@
         return sa_TRUE;                                                                     \
     }                                                                                       \
                                                                                             \
-    static inline void name##_Pop(name* array) {                                            \
+    static inline void name##_Pop(type##Array* array) {                                     \
         sa_Log_Assert_Message_m(array->length > 0, "Length is zero cannot pop array");      \
         array->length--;                                                                    \
     }                                                                                       \
                                                                                             \
-    static inline type name##_Get(name* array, sa_u64 index) {                              \
+    static inline type name##_Get(const type##Array* array, sa_u64 index) {                 \
         sa_Log_AssertF_Message_m(index < array->length,                                     \
                                  "DArray accessed at %lu while length is %lu",              \
                                  index, array->length);                                     \
         return array->data[index];                                                          \
     }                                                                                       \
                                                                                             \
-    static inline void name##_Set(name* array, sa_u64 index, type val) {                    \
+    static inline void name##_Set(type##Array* array, sa_u64 index, type val) {             \
         sa_Log_AssertF_Message_m(index < array->length,                                     \
                                  "DArray accessed at %lu while length is %lu",              \
                                  index, array->length);                                     \

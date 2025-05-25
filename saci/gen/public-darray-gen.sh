@@ -18,6 +18,7 @@ sa_Uv_Array    sa_uv
 sa_Vec3_Array  sa_vec3
 sa_Vec4_Array  sa_vec4
 sa_Color_Array sa_color
+sa_Mat4_Array  sa_mat4
 '
 
 mkdir -p "$(dirname "$OUTPUT_FILE")"
@@ -105,7 +106,7 @@ static inline void ${function_prefix}_Pop(${struct_name}* array) {
     array->length--;
 }
 
-static inline ${type} ${function_prefix}_Get(${struct_name}* array, sa_u64 index) {
+static inline ${type} ${function_prefix}_Get(const ${struct_name}* array, sa_u64 index) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     return array->data[index];

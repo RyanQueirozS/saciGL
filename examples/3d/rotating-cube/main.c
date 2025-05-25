@@ -1,7 +1,8 @@
 #include "saci-core/sc-gl.h"
+#include "saci-core/sc-windowing.h"
 #include "saci-utils/su-math.h"
 #include "saci-utils/su-types.h"
-#include "saci-utils/su-general.h"
+#include "saci-utils/su-darray.h"
 
 #include <stdio.h>
 #include <stddef.h>
@@ -101,6 +102,11 @@ int main() {
         sa_Mat4_Model_Matrix_RTS(pos[1], rotation[1], (sa_vec3){1, 1, 1}),
         sa_Mat4_Model_Matrix_RTS(pos[2], rotation[2], (sa_vec3){1, 1, 1}),
     };
+    sa_u32Array index_array;
+    sa_U32_Array_Init(&index_array, 36, sa_TRUE);
+    for (sa_u32 i = 0; i < indiceAmount; ++i) {
+        sa_U32_Array_Push(&index_array, cubeIndices[i]);
+    }
     while (!sc_Window_Should_Close(window)) {
         sc_Event_Poll();
         sc_Window_Clear_Color(bgColor);
@@ -110,7 +116,7 @@ int main() {
         sc_Renderer_Set_Uniform(rendr, proj_loc, &uniforms.projection, SA_TYPE_MAT4);
         sc_Renderer_Set_Uniform(rendr, view_loc, &uniforms.view, SA_TYPE_MAT4);
         sc_Renderer_Set_Uniform(rendr, model_loc, &uniforms.model, SA_TYPE_MAT4);
-        sc_Renderer_Bind_Index_Buffer(rendr, cubeIndices, indiceAmount);
+        sc_Renderer_Bind_Index_Buffer(rendr, &index_array);
         uniforms.model = sa_Mat4_Model_Matrix_TRS(pos[0], rotation[0], (sa_vec3){1, 1, 1});
         sc_Renderer_Push_Mesh_Instanced(rendr, verticesPos, verticesUV, colors, translations, verticeAmount, 3);
         sc_Renderer_End(rendr);

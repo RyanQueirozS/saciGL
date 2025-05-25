@@ -94,7 +94,7 @@ typedef struct sc_vertex {
     sa_uv uv;
 } sc_vertex;
 
-sa_Create_Darray_m(sc_Vertex, sc_vertex);
+sa_Create_Darray_m(sc_Vertex_Array, sc_vertex);
 
 // The fields are structured in a way that enforces minimum memory change over time
 struct sc_renderer {
@@ -133,7 +133,7 @@ struct sc_renderer {
         sa_u32 index_array_length;
         sa_u32 vertex_array_length;
         sa_u32* index_array;
-        struct sc_vertex* vertex_array;
+        sc_vertexArray* vertex_array;
         struct sc_uniformData* bound_uniform_data;
     }* dynamic_batch_array;
 
@@ -185,14 +185,11 @@ SA_INTERNAL sa_u32 s_Renderer_Index_Buffer_Append_Minus_Offset(sa_u32* dest_out,
                                                                sa_u32 src_count,
                                                                sa_u32 offset);
 
-// Appends non constructed vertices to a vertex buffer
-SA_INTERNAL sa_u32 s_Renderer_Vertex_Buffer_Append_Info(struct sc_vertex* dest_out,
-                                                        const sa_vec3* src_pos,
-                                                        const sa_uv* src_uv,
-                                                        const sa_color* src_color,
-                                                        sa_u32 dest_vertices_pushed,
-                                                        sa_u32 dest_capacity,
-                                                        sa_u32 src_count);
+SA_INTERNAL sa_u32 s_Renderer_Vertex_Array_Append(sc_vertexArray* dest_out,
+                                                  const sa_vec3Array* src_pos,
+                                                  const sa_uvArray* src_uv,
+                                                  const sa_colorArray* src_color,
+                                                  sa_u32 src_count);
 
 SA_INTERNAL sa_bool s_Renderer_Batch_Can_Push(const sc_renderer* rendr, const struct sc_dynamicBatch* batch);
 
@@ -295,15 +292,15 @@ SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr,
 }
 
 SA_API void sc_Renderer_Push_Mesh_Dynamic(struct sc_renderer* rendr,
-                                          const sa_vec3Array* position_array,
+                                          const sa_vec3Array* pos_array,
                                           const sa_uvArray* uv_array,
                                           const sa_colorArray* color_array) {
-    s_Renderer_Validate_Before_Push(rendr, position_array, uv_array, color_array);
+    s_Renderer_Validate_Before_Push(rendr, pos_array, uv_array, color_array);
 
-    if (position_array->length > SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH) {
+    if (pos_array->length > SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH) {
         sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
                               "Trying to push %lu while max per dynamic batch is %d",
-                              position_array->length,
+                              pos_array->length,
                               SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH);
         return;
     }
@@ -311,7 +308,7 @@ SA_API void sc_Renderer_Push_Mesh_Dynamic(struct sc_renderer* rendr,
     sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
                           sa_LOG_CONTEXT_RENDERER,
                           "Attempting to push %lu vertices to dynamic batch",
-                          position_array->length);
+                          pos_array->length);
     sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
                           sa_LOG_CONTEXT_RENDERER,
                           "Attempting to push %d indices to dynamic batch",
@@ -321,7 +318,7 @@ SA_API void sc_Renderer_Push_Mesh_Dynamic(struct sc_renderer* rendr,
     sa_u32 total_indices_pushed = 0;
 
     sa_u8 batch_iter = 0;
-    while (total_vertices_pushed != position_array->length ||
+    while (total_vertices_pushed != pos_array->length ||
            total_indices_pushed != rendr->bound_index_array_length) {
 
         rendr->dynamic_batch_array[batch_iter].texture = 0; // TODO this needs to be removed
@@ -356,13 +353,8 @@ SA_API void sc_Renderer_Push_Mesh_Dynamic(struct sc_renderer* rendr,
 
         { // Vertex
             sa_u32 vertices_copied =
-                s_Renderer_Vertex_Buffer_Append_Info(batch->vertex_array,
-                                                     position_array->data,
-                                                     uv_array->data,
-                                                     color_array->data,
-                                                     total_vertices_pushed,
-                                                     rendr->batch_vertex_capacity,
-                                                     (sa_u32)position_array->length);
+                s_Renderer_Vertex_Array_Append(batch->vertex_array, pos_array,
+                                               uv_array, color_array, total_vertices_pushed);
             batch->vertex_array_length += vertices_copied;
             total_vertices_pushed += vertices_copied;
         }
@@ -411,6 +403,11 @@ SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts) {
     }
     sa_Free_m(rendr);
     rendr = NULL;
+}
+
+SA_API sa_u32 sc_Renderer_Get_Uniform_Id(struct sc_renderer* rendr,
+                                         const char* const uniform_name) {
+    return sc_GL_Uniform_Location(rendr->shader_program, uniform_name);
 }
 
 /* --- Renderer Helper impl --- */
@@ -526,13 +523,11 @@ SA_INTERNAL sa_bool s_Renderer_Validate_Before_Push(const struct sc_renderer* re
         return sa_FALSE;
     }
 
-    if (!uv_array) {
-        sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER, sa_LOG_CONTEXT_OPENGL, "NULL uv array param");
-    }
+    sa_Log_Debug_Condition_Print_m(uv_array, sa_LOG_DEBUG_TYPE_RENDERER,
+                                   sa_LOG_CONTEXT_OPENGL, "NULL uv array param");
 
-    if (!color_array) {
-        sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER, sa_LOG_CONTEXT_OPENGL, "NULL color array param");
-    }
+    sa_Log_Debug_Condition_Print_m(color_array, sa_LOG_DEBUG_TYPE_RENDERER,
+                                   sa_LOG_CONTEXT_OPENGL, "NULL color array param");
 
     return sa_TRUE;
 }
@@ -717,23 +712,21 @@ SA_INTERNAL sa_u32 s_Renderer_Index_Buffer_Append_Minus_Offset(sa_u32* dest_out,
     return indices_copied_out;
 }
 
-SA_INTERNAL sa_u32 s_Renderer_Vertex_Buffer_Append_Info(struct sc_vertex* dest_out,
-                                                        const sa_vec3* src_pos,
-                                                        const sa_uv* src_uv,
-                                                        const sa_color* src_color,
-                                                        sa_u32 dest_vertices_pushed,
-                                                        sa_u32 dest_capacity,
-                                                        sa_u32 src_count) {
+SA_INTERNAL sa_u32 s_Renderer_Vertex_Array_Append(sc_vertexArray* dest_out,
+                                                  const sa_vec3Array* src_pos,
+                                                  const sa_uvArray* src_uv,
+                                                  const sa_colorArray* src_color,
+                                                  sa_u32 src_count) {
     sa_Log_Assert_Message_m(dest_out, "Invalid pointer for vertex array");
-    sa_u32 remaining_vertices = src_count - dest_vertices_pushed;
-    sa_u32 vertices_to_copy = sa_Min_m(dest_capacity, remaining_vertices);
+    sa_u32 remaining_vertices = sa_Scast_To_m(sa_u32)(src_count - dest_out->length);
+    sa_u32 vertices_to_copy = sa_Min_m(sa_Scast_To_m(sa_u32)(dest_out->capacity),
+                                       remaining_vertices);
     for (sa_u32 i = 0; i < vertices_to_copy; ++i) {
-        sa_u32 idx = dest_vertices_pushed + i;
-        sa_uv uv = (!src_uv ? (sa_uv){0, 0} : src_uv[idx]);
-        sa_color color = (!src_color ? (sa_color){0, 0, 0, 1} : src_color[idx]);
-        dest_out[i].pos = src_pos[idx];
-        dest_out[i].uv = uv;
-        dest_out[i].color = color;
+        sa_u32 idx = sa_Scast_To_m(sa_u32)(dest_out->length + i);
+        sa_vec3 pos = sa_Vec3_Array_Get(src_pos, idx);
+        sa_uv uv = (!src_uv->data ? (sa_uv){0, 0} : sa_Uv_Array_Get(src_uv, idx));
+        sa_color color = (!src_color ? (sa_color){0, 0, 0, 1} : sa_Color_Array_Get(src_color, idx));
+        sc_Vertex_Array_Set(dest_out, i, (sc_vertex){pos, color, uv});
     }
     return vertices_to_copy;
 }
@@ -1031,6 +1024,10 @@ sa_u32 sc_Shader_Create_Shader_Program_Geom(sa_u32 vshader, sa_u32 fshader, sa_u
                          "Shader program %d loaded successfully", program_id);
 
     return program_id;
+}
+
+SA_API sa_u32 sc_GL_Uniform_Location(sa_shaderId program_id, const char* const name) {
+    return glGetUniformLocation(program_id, name);
 }
 
 /* === GL Helper ===  */

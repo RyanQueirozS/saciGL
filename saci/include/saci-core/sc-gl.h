@@ -97,17 +97,15 @@ SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr,
                                           const sa_u32Array* new_indices);
 
 SA_API void sc_Renderer_Push_Mesh_Dynamic(struct sc_renderer* rendr,
-                                          const sa_vec3Array* position_array,
+                                          const sa_vec3Array* pos_array,
                                           const sa_uvArray* uv_array,
                                           const sa_colorArray* color_array);
 
 SA_API void sc_Renderer_Push_Mesh_Instanced(struct sc_renderer* rendr,
-                                            const sa_vec3* pos_array,
-                                            const sa_uv* uv_array,
-                                            const sa_color* color_array,
-                                            const sa_mat4* instance_transform,
-                                            const sa_u32 vertex_count,
-                                            const sa_u32 instance_count);
+                                            const sa_vec3Array* pos_array,
+                                            const sa_uvArray* uv_array,
+                                            const sa_colorArray* color_array,
+                                            const sa_mat4Array* instance_transform);
 
 SA_API void sc_Renderer_Push_Model_Mesh(struct sc_renderer* rendr,
                                         const sc_modelMesh* model_mesh);
@@ -116,10 +114,10 @@ SA_API void sc_Renderer_End(struct sc_renderer* rendr);
 
 SA_API void sc_Renderer_Free(struct sc_renderer* rendr);
 
+SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts);
+
 SA_API sa_u32 sc_Renderer_Get_Uniform_Id(struct sc_renderer* rendr,
                                          const char* const uniform_name);
-
-SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts);
 
 /* === OpenGL === */
 
@@ -133,6 +131,7 @@ SA_API void sc_GL_Bind_Vertex_Array(sa_u32 array);
 SA_API void sc_GL_Bind_Vertex_Buffer(sa_u32 vbo);
 SA_API void sc_GL_Set_Vertex_Attrib_Pointer(sa_u32 index, int size, sa_u32 type, sa_bool normalized, sa_u64 stride, void* ptr);
 SA_API void sc_GL_Enable_Vertex_Attrib_Array(sa_u32 id);
+SA_API sa_u32 sc_GL_Uniform_Location(sa_shaderId program_id, const char* const name);
 // TODO bind program
 
 /* === Shader === */

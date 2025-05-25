@@ -11,6 +11,15 @@
 #ifndef SACI_UTILS_SU_DEBUG_H
 #define SACI_UTILS_SU_DEBUG_H
 
+#if defined(SACI_DEBUG_MODE_ALL) || defined(SACI_DEBUG_MODE_WINDOWING) ||   \
+    defined(SACI_DEBUG_MODE_TEXTURE) || defined(SACI_DEBUG_MODE_MODEL) ||   \
+    defined(SACI_DEBUG_MODE_OPENGL) || defined(SACI_DEBUG_MODE_RENDERER) || \
+    defined(SACI_DEBUG_MODE_RENDERER_FUNCTIONS) ||                          \
+    defined(SACI_DEBUG_MODE_RENDERER_BATCH) ||                              \
+    defined(SACI_DEBUG_MODE_RENDERER_CALL)
+#  define SACI_DEBUG_MODE_ENABLED
+#endif
+
 #include "saci-utils/su-types.h"
 
 /**
@@ -143,16 +152,30 @@ void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
  * @param[in] context The context of the info
  * @param[in] message The message explaining the info
  */
-#if defined(SACI_DEBUG_MODE_ALL) || defined(SACI_DEBUG_MODE_WINDOWING) ||   \
-    defined(SACI_DEBUG_MODE_TEXTURE) || defined(SACI_DEBUG_MODE_MODEL) ||   \
-    defined(SACI_DEBUG_MODE_OPENGL) || defined(SACI_DEBUG_MODE_RENDERER) || \
-    defined(SACI_DEBUG_MODE_RENDERER_FUNCTIONS) ||                          \
-    defined(SACI_DEBUG_MODE_RENDERER_BATCH) ||                              \
-    defined(SACI_DEBUG_MODE_RENDERER_CALL)
-
+#ifdef SACI_DEBUG_MODE_ENABLED
 #  define sa_Log_Debug_Print_m(debug_type, context, message)              \
       do {                                                                \
           sa_Log_Debug(debug_type, context, message, __FILE__, __LINE__); \
+      } while (0)
+
+#else
+#  define sa_Log_Debug_Print_m(debug_type, context, message)
+#endif
+
+/**
+ * @define sa_Log_Debug_Print_m
+ * @brief A macro that prints debug info if a condition is met, using @ref sa_Log_Debug
+ *
+ * @param[in] type The type of the info
+ * @param[in] context The context of the info
+ * @param[in] message The message explaining the info
+ */
+#ifdef SACI_DEBUG_MODE_ENABLED
+#  define sa_Log_Debug_Condition_Print_m(condition, debug_type, context, message) \
+      do {                                                                        \
+          if (condition) {                                                        \
+              sa_Log_Debug(debug_type, context, message, __FILE__, __LINE__);     \
+          }                                                                       \
       } while (0)
 
 #else
@@ -167,12 +190,7 @@ void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
  * @param[in] context The context of the info
  * @param[in] message The message explaining the info
  */
-#if defined(SACI_DEBUG_MODE_ALL) || defined(SACI_DEBUG_MODE_WINDOWING) ||   \
-    defined(SACI_DEBUG_MODE_TEXTURE) || defined(SACI_DEBUG_MODE_MODEL) ||   \
-    defined(SACI_DEBUG_MODE_OPENGL) || defined(SACI_DEBUG_MODE_RENDERER) || \
-    defined(SACI_DEBUG_MODE_RENDERER_FUNCTIONS) ||                          \
-    defined(SACI_DEBUG_MODE_RENDERER_BATCH) ||                              \
-    defined(SACI_DEBUG_MODE_RENDERER_CALL)
+#ifdef SACI_DEBUG_MODE_ENABLED
 #  define sa_Log_DebugF_Print_m(debug_type, context, fmt, ...)                    \
       do {                                                                        \
           char _sa_log_dbg_buf[2048];                                             \

@@ -70,7 +70,7 @@ static inline void sa_U8_Array_Pop(sa_u8Array* array) {
     array->length--;
 }
 
-static inline sa_u8 sa_U8_Array_Get(sa_u8Array* array, sa_u64 index) {
+static inline sa_u8 sa_U8_Array_Get(const sa_u8Array* array, sa_u64 index) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     return array->data[index];
@@ -145,7 +145,7 @@ static inline void sa_U16_Array_Pop(sa_u16Array* array) {
     array->length--;
 }
 
-static inline sa_u16 sa_U16_Array_Get(sa_u16Array* array, sa_u64 index) {
+static inline sa_u16 sa_U16_Array_Get(const sa_u16Array* array, sa_u64 index) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     return array->data[index];
@@ -220,7 +220,7 @@ static inline void sa_U32_Array_Pop(sa_u32Array* array) {
     array->length--;
 }
 
-static inline sa_u32 sa_U32_Array_Get(sa_u32Array* array, sa_u64 index) {
+static inline sa_u32 sa_U32_Array_Get(const sa_u32Array* array, sa_u64 index) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     return array->data[index];
@@ -295,7 +295,7 @@ static inline void sa_U64_Array_Pop(sa_u64Array* array) {
     array->length--;
 }
 
-static inline sa_u64 sa_U64_Array_Get(sa_u64Array* array, sa_u64 index) {
+static inline sa_u64 sa_U64_Array_Get(const sa_u64Array* array, sa_u64 index) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     return array->data[index];
@@ -370,7 +370,7 @@ static inline void sa_S8_Array_Pop(sa_s8Array* array) {
     array->length--;
 }
 
-static inline sa_s8 sa_S8_Array_Get(sa_s8Array* array, sa_u64 index) {
+static inline sa_s8 sa_S8_Array_Get(const sa_s8Array* array, sa_u64 index) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     return array->data[index];
@@ -445,7 +445,7 @@ static inline void sa_S16_Array_Pop(sa_s16Array* array) {
     array->length--;
 }
 
-static inline sa_s16 sa_S16_Array_Get(sa_s16Array* array, sa_u64 index) {
+static inline sa_s16 sa_S16_Array_Get(const sa_s16Array* array, sa_u64 index) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     return array->data[index];
@@ -520,7 +520,7 @@ static inline void sa_S32_Array_Pop(sa_s32Array* array) {
     array->length--;
 }
 
-static inline sa_s32 sa_S32_Array_Get(sa_s32Array* array, sa_u64 index) {
+static inline sa_s32 sa_S32_Array_Get(const sa_s32Array* array, sa_u64 index) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     return array->data[index];
@@ -595,7 +595,7 @@ static inline void sa_S64_Array_Pop(sa_s64Array* array) {
     array->length--;
 }
 
-static inline sa_s64 sa_S64_Array_Get(sa_s64Array* array, sa_u64 index) {
+static inline sa_s64 sa_S64_Array_Get(const sa_s64Array* array, sa_u64 index) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     return array->data[index];
@@ -670,7 +670,7 @@ static inline void sa_Vec2_Array_Pop(sa_vec2Array* array) {
     array->length--;
 }
 
-static inline sa_vec2 sa_Vec2_Array_Get(sa_vec2Array* array, sa_u64 index) {
+static inline sa_vec2 sa_Vec2_Array_Get(const sa_vec2Array* array, sa_u64 index) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     return array->data[index];
@@ -745,7 +745,7 @@ static inline void sa_Uv_Array_Pop(sa_uvArray* array) {
     array->length--;
 }
 
-static inline sa_uv sa_Uv_Array_Get(sa_uvArray* array, sa_u64 index) {
+static inline sa_uv sa_Uv_Array_Get(const sa_uvArray* array, sa_u64 index) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     return array->data[index];
@@ -820,7 +820,7 @@ static inline void sa_Vec3_Array_Pop(sa_vec3Array* array) {
     array->length--;
 }
 
-static inline sa_vec3 sa_Vec3_Array_Get(sa_vec3Array* array, sa_u64 index) {
+static inline sa_vec3 sa_Vec3_Array_Get(const sa_vec3Array* array, sa_u64 index) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     return array->data[index];
@@ -895,7 +895,7 @@ static inline void sa_Vec4_Array_Pop(sa_vec4Array* array) {
     array->length--;
 }
 
-static inline sa_vec4 sa_Vec4_Array_Get(sa_vec4Array* array, sa_u64 index) {
+static inline sa_vec4 sa_Vec4_Array_Get(const sa_vec4Array* array, sa_u64 index) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     return array->data[index];
@@ -970,13 +970,88 @@ static inline void sa_Color_Array_Pop(sa_colorArray* array) {
     array->length--;
 }
 
-static inline sa_color sa_Color_Array_Get(sa_colorArray* array, sa_u64 index) {
+static inline sa_color sa_Color_Array_Get(const sa_colorArray* array, sa_u64 index) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     return array->data[index];
 }
 
 static inline void sa_Color_Array_Set(sa_colorArray* array, sa_u64 index, sa_color val) {
+    sa_Log_AssertF_Message_m(index < array->length,
+                             "DArray accessed at %lu while length is %lu", index, array->length);
+    array->data[index] = val;
+}
+
+typedef struct sa_mat4Array {
+    sa_mat4* data;
+    sa_u64 length;
+    sa_u64 capacity;
+    sa_bool is_fixed_size;
+} sa_mat4Array;
+
+static inline void sa_Mat4_Array_Init(sa_mat4Array* array, sa_u64 capacity, sa_bool fixed_size) {
+    array->length = 0;
+    array->capacity = capacity;
+    array->is_fixed_size = fixed_size;
+    array->data = sa_Calloc_m(capacity, sizeof(sa_mat4));
+    if (!array->data) {
+        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
+                              "Could not allocate memory for array sa_Mat4_Array");
+    }
+}
+
+static inline void sa_Mat4_Array_Free(sa_mat4Array* array) {
+    sa_Free_m(array->data);
+    array->data = NULL;
+    array->length = 0;
+    array->capacity = 0;
+}
+
+static inline sa_bool sa_Mat4_Array_Resize(sa_mat4Array* array, sa_u64 new_cap) {
+    if (array->is_fixed_size) {
+        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
+                              "Cannot resize fixed-size array sa_Mat4_Array");
+        return sa_FALSE;
+    }
+    sa_mat4* new_data = realloc(array->data, new_cap * sizeof(sa_mat4));
+    if (!new_data) {
+        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
+                              "Could not allocate for array sa_Mat4_Array, when resizing");
+        return sa_FALSE;
+    }
+    array->data = new_data;
+    array->capacity = new_cap;
+    return sa_TRUE;
+}
+
+static inline sa_bool sa_Mat4_Array_Push(sa_mat4Array* array, sa_mat4 value) {
+    if (array->length == array->capacity) {
+        if (array->is_fixed_size) {
+            sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_MEMORY_ALLOCATION,
+                                  "Cannot push to full fixed-size array sa_Mat4_Array");
+            return sa_FALSE;
+        }
+        sa_u64 new_cap = array->capacity ? array->capacity * 2 : 4;
+        if (!sa_Mat4_Array_Resize(array, new_cap)) {
+            return sa_FALSE;
+        }
+    }
+    array->data[array->length++] = value;
+    return sa_TRUE;
+}
+
+static inline void sa_Mat4_Array_Pop(sa_mat4Array* array) {
+    sa_Log_Assert_Message_m(array->length > 0, "Length is zero cannot pop array");
+    array->length--;
+}
+
+static inline sa_mat4 sa_Mat4_Array_Get(const sa_mat4Array* array, sa_u64 index) {
+    sa_Log_AssertF_Message_m(index < array->length,
+                             "DArray accessed at %lu while length is %lu", index, array->length);
+    return array->data[index];
+}
+
+static inline void sa_Mat4_Array_Set(sa_mat4Array* array, sa_u64 index, sa_mat4 val) {
     sa_Log_AssertF_Message_m(index < array->length,
                              "DArray accessed at %lu while length is %lu", index, array->length);
     array->data[index] = val;
