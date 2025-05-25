@@ -63,6 +63,22 @@ SA_API sa_u32 sc_Config_Get_Int32(sc_configState* state, const char* i_name) {
     return 0;
 }
 
+SA_API const char* sc_Config_Get_Str(sc_configState* state, const char* s_name) {
+    if (!state) {
+        return NULL;
+    }
+    lua_getfield(state, -1, s_name);
+    if (lua_isstring(state, -1)) {
+        const char* val = (lua_tostring(state, -1));
+        lua_pop(state, 1);
+        return val;
+    }
+    sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_CONFIG,
+                          "Missing or invalid string: %s", s_name);
+    lua_pop(state, 1);
+    return NULL;
+}
+
 SA_API void sc_Config_Close(sc_configState* state) {
     if (!state) {
         return;

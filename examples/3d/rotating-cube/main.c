@@ -25,10 +25,8 @@ sa_vec3 verticesPos[] = {
     {-1.0f, 1.0f, 1.0f}    // v7: Top-left-front
 };
 
-sa_uv verticesUV[8] = {0};
-
 // Define colors for each vertex
-sa_color colors[] = {
+sa_color cubeColors[] = {
     {1.0f, 0.0f, 0.0f, 1.0f}, // color0: Red
     {0.0f, 1.0f, 0.0f, 1.0f}, // color1: Green
     {0.0f, 0.0f, 1.0f, 1.0f}, // color2: Blue
@@ -97,16 +95,27 @@ int main() {
     sa_u32 proj_loc = sc_Renderer_Get_Uniform_Id(rendr, "u_projection_matrix");
     sa_u32 view_loc = sc_Renderer_Get_Uniform_Id(rendr, "u_view_matrix");
     sa_u32 model_loc = sc_Renderer_Get_Uniform_Id(rendr, "u_model_matrix");
-    sa_mat4 translations[3] = {
-        sa_Mat4_Model_Matrix_RTS(pos[0], rotation[0], (sa_vec3){1, 1, 1}),
-        sa_Mat4_Model_Matrix_RTS(pos[1], rotation[1], (sa_vec3){1, 1, 1}),
-        sa_Mat4_Model_Matrix_RTS(pos[2], rotation[2], (sa_vec3){1, 1, 1}),
-    };
-    sa_u32Array index_array;
-    sa_U32_Array_Init(&index_array, 36, sa_TRUE);
+
+    sa_u32Array indices;
+    sa_U32_Array_Init(&indices, 36, sa_TRUE);
     for (sa_u32 i = 0; i < indiceAmount; ++i) {
-        sa_U32_Array_Push(&index_array, cubeIndices[i]);
+        sa_U32_Array_Push(&indices, cubeIndices[i]);
     }
+    sa_vec3Array positions;
+    sa_Vec3_Array_Init(&positions, 8, sa_TRUE);
+
+    sa_colorArray colors;
+    sa_Color_Array_Init(&colors, 36, sa_TRUE);
+    for (sa_u32 i = 0; i < 36; ++i) {
+        sa_Color_Array_Push(&colors, cubeColors[i]);
+    }
+
+    sa_mat4Array translations;
+    sa_Mat4_Array_Init(&translations, 3, sa_TRUE);
+    sa_Mat4_Array_Push(&translations, sa_Mat4_Model_Matrix_RTS(pos[0], rotation[0], (sa_vec3){1, 1, 1}));
+    sa_Mat4_Array_Push(&translations, sa_Mat4_Model_Matrix_RTS(pos[1], rotation[1], (sa_vec3){1, 1, 1}));
+    sa_Mat4_Array_Push(&translations, sa_Mat4_Model_Matrix_RTS(pos[2], rotation[2], (sa_vec3){1, 1, 1}));
+
     while (!sc_Window_Should_Close(window)) {
         sc_Event_Poll();
         sc_Window_Clear_Color(bgColor);
@@ -116,9 +125,9 @@ int main() {
         sc_Renderer_Set_Uniform(rendr, proj_loc, &uniforms.projection, SA_TYPE_MAT4);
         sc_Renderer_Set_Uniform(rendr, view_loc, &uniforms.view, SA_TYPE_MAT4);
         sc_Renderer_Set_Uniform(rendr, model_loc, &uniforms.model, SA_TYPE_MAT4);
-        sc_Renderer_Bind_Index_Buffer(rendr, &index_array);
+        sc_Renderer_Bind_Index_Buffer(rendr, &indices);
         uniforms.model = sa_Mat4_Model_Matrix_TRS(pos[0], rotation[0], (sa_vec3){1, 1, 1});
-        sc_Renderer_Push_Mesh_Instanced(rendr, verticesPos, verticesUV, colors, translations, verticeAmount, 3);
+        sc_Renderer_Push_Mesh_Instanced(rendr, &positions, NULL, &colors, &translations);
         sc_Renderer_End(rendr);
         sc_Window_Swap_Buffer(window);
         {

@@ -85,6 +85,62 @@
 #  define SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH (300)
 #endif // SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH
 
+SA_INTERNAL const char* const sc_VERT_SHADER =
+    // TODO Evaluate if there should be multiple shaders, one for 2d, 3d
+    // instancing, 3d dynamic mesh etc. Saci-Core needs to be
+    // performatic but also "just work", so the user shouldn't need to
+    // change it unless they want that '1%' boost
+    "#version 330 core\n"
+
+    "layout (location = 0) in vec3 a_pos;\n"
+    "layout (location = 1) in vec4 a_color;\n"
+    "layout (location = 2) in vec2 a_texcoord;\n"
+    "layout (location = 3) in mat4 a_model_matrix;\n"
+
+    "layout(std140) uniform Uniforms {\n"
+    "    mat4 u_model_matrix;\n"
+    "    mat4 u_view_matrix;\n"
+    "    mat4 u_projection_matrix;\n"
+    "    int u_flags;\n"
+    "    vec4 u_lighting;\n"
+    "};\n"
+
+    "out vec4 v_color;\n"
+    "out vec2 v_texcoord;\n"
+
+    "void main()\n"
+    "{\n"
+    "   vec4 world_position = u_model_matrix * a_model_matrix * vec4(a_pos, 1.0);\n"
+    "   if ((u_flags & 0b01) != 0){\n"
+    "       gl_Position = u_projection_matrix * u_view_matrix * world_position;\n"
+    "   } else {\n"
+    "       gl_Position = world_position;\n"
+    "   }\n"
+    "   v_color = a_color;\n"
+    "   v_texcoord = a_texcoord;\n"
+    "}\n\0";
+
+SA_INTERNAL const char* const sc_FRAG_SHADER =
+    "#version 330 core\n"
+
+    "in vec4 v_color;\n"
+    "in vec2 v_texcoord;\n"
+
+    "uniform sampler2D u_texture;\n"
+    "uniform bool u_use_texture;\n"
+
+    "out vec4 frag_color;\n"
+
+    "void main()\n"
+    "{\n"
+    "   if (u_use_texture) {\n"
+    "       vec4 texcolor = texture(u_texture, v_texcoord);\n"
+    "       frag_color = texcolor * v_color;\n"
+    "   } else {\n"
+    "       frag_color = v_color;\n"
+    "   }\n"
+    "}\n\0";
+
 #ifndef SC_RENDERER_STRUCT
 #  define SC_RENDERER_STRUCT
 
@@ -124,7 +180,7 @@ struct sc_renderer {
         sa_u32 vertex_array_length;
         sa_mat4* model_matrix_array; // count is instance_count
         sa_u32* index_array;
-        struct sc_vertex* vertex_array;
+        sc_vertexArray vertex_array;
         struct sc_uniformData* bound_uniform_data;
     }* instance_batch;
 
@@ -133,7 +189,7 @@ struct sc_renderer {
         sa_u32 index_array_length;
         sa_u32 vertex_array_length;
         sa_u32* index_array;
-        sc_vertexArray* vertex_array;
+        sc_vertexArray vertex_array;
         struct sc_uniformData* bound_uniform_data;
     }* dynamic_batch_array;
 
@@ -353,8 +409,11 @@ SA_API void sc_Renderer_Push_Mesh_Dynamic(struct sc_renderer* rendr,
 
         { // Vertex
             sa_u32 vertices_copied =
-                s_Renderer_Vertex_Array_Append(batch->vertex_array, pos_array,
-                                               uv_array, color_array, total_vertices_pushed);
+                s_Renderer_Vertex_Array_Append(&batch->vertex_array,
+                                               pos_array,
+                                               uv_array,
+                                               color_array,
+                                               total_vertices_pushed);
             batch->vertex_array_length += vertices_copied;
             total_vertices_pushed += vertices_copied;
         }
@@ -372,6 +431,33 @@ SA_API void sc_Renderer_Push_Mesh_Dynamic(struct sc_renderer* rendr,
     if (rendr->batch_in_use <= batch_iter) {
         rendr->batch_in_use = batch_iter + 1;
     }
+}
+
+SA_API void sc_Renderer_Push_Mesh_Instanced(struct sc_renderer* rendr,
+                                            const sa_vec3Array* pos_array,
+                                            const sa_uvArray* uv_array,
+                                            const sa_colorArray* color_array,
+                                            const sa_mat4Array* instance_transform) {
+
+    s_Renderer_Validate_Before_Push(rendr, pos_array, uv_array, color_array);
+    // TODO validate instance_transform
+
+    if (pos_array->length > SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH) {
+        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
+                              "Trying to push %lu while max per dynamic batch is %d",
+                              pos_array->length,
+                              SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH);
+        return;
+    }
+
+    sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
+                          sa_LOG_CONTEXT_RENDERER,
+                          "Attempting to push %lu vertices to dynamic batch",
+                          pos_array->length);
+    sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
+                          sa_LOG_CONTEXT_RENDERER,
+                          "Attempting to push %d indices to dynamic batch",
+                          rendr->bound_index_array_length);
 }
 
 #if 0
@@ -430,10 +516,7 @@ SA_INTERNAL void s_Renderer_Free_Batch_Array(struct sc_renderer* rendr) {
                 sa_Free_m(rendr->dynamic_batch_array[i].index_array);
                 rendr->dynamic_batch_array[i].index_array = NULL;
             }
-            if (rendr->dynamic_batch_array[i].vertex_array) {
-                sa_Free_m(rendr->dynamic_batch_array[i].vertex_array);
-                rendr->dynamic_batch_array[i].vertex_array = NULL;
-            }
+            sc_Vertex_Array_Free(&rendr->dynamic_batch_array[i].vertex_array);
             if (rendr->dynamic_batch_array[i].bound_uniform_data) {
                 for (sa_u32 j = 0; j < rendr->bound_uniform_data_capacity; ++j) {
                     if (rendr->dynamic_batch_array[i].bound_uniform_data[j].value) {
@@ -555,74 +638,22 @@ SA_INTERNAL void s_Renderer_Initialize_Config(struct sc_renderer* rendr, const c
 
     rendr->batch_vertex_capacity =
         sc_Config_Get_Int32(cfg_state, "batch_vertex_capacity");
+
+    const char* vert_shader = sc_Config_Get_Str(cfg_state, "vert_shader");
+    if (vert_shader) {
+        sc_VERT_SHADER = sa_Scast_To_m(char*)(vert_shader);
+    }
+    const char* frag_shader = sc_Config_Get_Str(cfg_state, "frag_shader");
+    if (frag_shader) {
+        sc_frag_shader = sa_Scast_To_m(char*)(frag_shader);
+    }
 }
 
 SA_INTERNAL void s_Renderer_Init_GL(struct sc_renderer* rendr) {
 #ifndef SACI_RENDERING_DISABLED
     { // Shader init
-        SA_INTERNAL const char* s_vert_shader =
-#  ifndef SC_RENDERER_DEFAULT_VERT_SHADER
-#    define SC_RENDERER_DEFAULT_VERT_SHADER
-            // TODO Evaluate if there should be multiple shaders, one for 2d, 3d
-            // instancing, 3d dynamic mesh etc. Saci-Core needs to be
-            // performatic but also "just work", so the user shouldn't need to
-            // change it unless they want that '1%' boost
-            "#version 330 core\n"
-
-            "layout (location = 0) in vec3 a_pos;\n"
-            "layout (location = 1) in vec4 a_color;\n"
-            "layout (location = 2) in vec2 a_texcoord;\n"
-            "layout (location = 3) in mat4 a_model_matrix;\n"
-
-            "layout(std140) uniform Uniforms {\n"
-            "    mat4 u_model_matrix;\n"
-            "    mat4 u_view_matrix;\n"
-            "    mat4 u_projection_matrix;\n"
-            "    int u_flags;\n"
-            "    vec4 u_lighting;\n"
-            "};\n"
-
-            "out vec4 v_color;\n"
-            "out vec2 v_texcoord;\n"
-
-            "void main()\n"
-            "{\n"
-            "   vec4 world_position = u_model_matrix * a_model_matrix * vec4(a_pos, 1.0);\n"
-            "   if (u_flags & 0b01 == 1) {\n"
-            "       gl_Position = u_projection_matrix * u_view_matrix * world_position;\n"
-            "   } else {\n"
-            "       gl_Position = world_position;\n"
-            "   }\n"
-            "   v_color = a_color;\n"
-            "   v_texcoord = a_texcoord;\n"
-            "}\n\0";
-#  endif // SC_RENDERER_DEFAULT_VERT_SHADER
-
-        SA_INTERNAL const char* s_frag_shader =
-#  ifndef SC_RENDERER_DEFAULT_FRAG_SHADER
-#    define SC_RENDERER_DEFAULT_FRAG_SHADER
-            "#version 330 core\n"
-
-            "in vec4 v_color;\n"
-            "in vec2 v_texcoord;\n"
-
-            "uniform sampler2D u_texture;\n"
-            "uniform bool u_use_texture;\n"
-
-            "out vec4 frag_color;\n"
-
-            "void main()\n"
-            "{\n"
-            "   if (u_use_texture) {\n"
-            "       vec4 texcolor = texture(u_texture, v_texcoord);\n"
-            "       frag_color = texcolor * v_color;\n"
-            "   } else {\n"
-            "       frag_color = v_color;\n"
-            "   }\n"
-            "}\n\0";
-#  endif // SC_RENDERER_DEFAULT_FRAG_SHADER
-        sa_shaderId v_shader = sc_Shader_Compile_Shader_Vert(s_vert_shader);
-        sa_shaderId f_shader = sc_Shader_Compile_Shader_Frag(s_frag_shader);
+        sa_shaderId v_shader = sc_Shader_Compile_Shader_Vert(sc_VERT_SHADER);
+        sa_shaderId f_shader = sc_Shader_Compile_Shader_Frag(sc_FRAG_SHADER);
         sa_Log_Assert_Message_m(v_shader && f_shader, "Shaders could not be initialized");
         rendr->shader_program = sc_Shader_Create_Shader_Program(v_shader, f_shader);
         sa_Log_Assert_Message_m(rendr->shader_program, "Shader program could not be initialized");
@@ -667,19 +698,36 @@ SA_INTERNAL void s_Renderer_Init_GL(struct sc_renderer* rendr) {
 SA_INTERNAL void s_Renderer_Init_Batch(struct sc_renderer* rendr) {
     rendr->batch_in_use = 0;
     rendr->dynamic_batch_array = sa_Calloc_m(rendr->batch_array_capacity, sizeof(struct sc_dynamicBatch));
+    rendr->instance_batch = sa_Calloc_m(rendr->batch_array_capacity, sizeof(struct sc_instanceBatch));
     sa_Log_Assert_Message_m(rendr->dynamic_batch_array, "Batch array could not be initialized");
+    sa_Log_Assert_Message_m(rendr->instance_batch, "Batch array could not be initialized");
     rendr->bound_uniform_data = sa_Calloc_m(rendr->bound_uniform_data_capacity, sizeof(struct sc_uniformData));
 
     for (sa_u32 i = 0; i < rendr->batch_array_capacity; ++i) {
-        rendr->dynamic_batch_array[i].vertex_array =
-            sa_Calloc_m(rendr->batch_vertex_capacity, sizeof(struct sc_vertex));
-        sa_Log_Assert_Message_m(rendr->dynamic_batch_array[i].vertex_array,
-                                "Batch vertex array could not be initialized");
+        sc_Vertex_Array_Init(&rendr->dynamic_batch_array[i].vertex_array,
+                             rendr->batch_vertex_capacity, sa_TRUE);
 
-        rendr->dynamic_batch_array[i].bound_uniform_data = sa_Calloc_m(rendr->bound_uniform_data_capacity, sizeof(struct sc_uniformData));
-        rendr->dynamic_batch_array[i].index_array = sa_Calloc_m(rendr->batch_index_capacity,
-                                                                sizeof(sa_u32));
+        rendr->dynamic_batch_array[i].bound_uniform_data =
+            sa_Calloc_m(rendr->bound_uniform_data_capacity, sizeof(struct sc_uniformData));
+
+        rendr->dynamic_batch_array[i].index_array =
+            sa_Calloc_m(rendr->batch_index_capacity, sizeof(sa_u32));
+
         sa_Log_Assert_Message_m(rendr->dynamic_batch_array[i].index_array,
+                                "Batch index array could not be initialized");
+    }
+
+    for (sa_u32 i = 0; i < rendr->batch_array_capacity; ++i) {
+        sc_Vertex_Array_Init(&rendr->instance_batch[i].vertex_array,
+                             rendr->batch_vertex_capacity, sa_TRUE);
+
+        rendr->instance_batch[i].bound_uniform_data =
+            sa_Calloc_m(rendr->bound_uniform_data_capacity, sizeof(struct sc_uniformData));
+
+        rendr->instance_batch[i].index_array =
+            sa_Calloc_m(rendr->batch_index_capacity, sizeof(sa_u32));
+
+        sa_Log_Assert_Message_m(rendr->instance_batch[i].index_array,
                                 "Batch index array could not be initialized");
     }
 }
@@ -780,7 +828,7 @@ SA_INTERNAL void s_Renderer_Draw_Dynamic_Batch(const sc_renderer* rendr) {
         glBindBuffer(GL_ARRAY_BUFFER, rendr->vbo);
         glBufferSubData(GL_ARRAY_BUFFER, 0,
                         sa_Scast_To_m(long int)(sizeof(struct sc_vertex) * batch->vertex_array_length),
-                        batch->vertex_array);
+                        batch->vertex_array.data);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendr->ibo);
         glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
