@@ -16,6 +16,8 @@ SA_API sa_u8 sc_Config_Get_Int8(sc_configState* state, const char* i_name);
 
 SA_API sa_u32 sc_Config_Get_Int32(sc_configState* state, const char* i_name);
 
+SA_API sa_u64 sc_Config_Get_Int64(sc_configState* state, const char* i_name);
+
 SA_API const char* sc_Config_Get_Str(sc_configState* state, const char* s_name);
 
 SA_API void sc_Config_Close(sc_configState* state);

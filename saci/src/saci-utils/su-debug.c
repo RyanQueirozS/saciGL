@@ -39,11 +39,15 @@ static const char* sa_Log_Context_To_String_s(enum sa_logContext context) {
         return "Renderer";
     case sa_LOG_CONTEXT_STBI:
         return "STBI";
-    case sa_LOG_CONTEXT_MEMORY_ALLOCATION:
+    case sa_LOG_CONTEXT_MEMORY:
         return "MEMORY_ALLOC";
-    default:
-        return "UNKOWN";
+    case sa_LOG_CONTEXT_CONFIG:
+        return "CONFIG";
     }
+    // There isn't a "default" case because clang sees that
+    // and doesn't recomend adding 'new' cases, where as that
+    // should generate a warning
+    return "UNKNOWN";
 }
 
 /* === Implementations=== */

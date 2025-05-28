@@ -81,7 +81,7 @@ SA_API void sc_Model_Get_Vertex_Indice_Array(const struct sc_modelMesh* model_me
                                     model_mesh->indices_count);
     if (!*indice_array_out) {
         sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM,
-                             sa_LOG_CONTEXT_MEMORY_ALLOCATION,
+                             sa_LOG_CONTEXT_MEMORY,
                              "Could not allocate memory for indice_array_out");
         return;
     }

@@ -63,6 +63,21 @@ SA_API sa_u32 sc_Config_Get_Int32(sc_configState* state, const char* i_name) {
     return 0;
 }
 
+SA_API sa_u64 sc_Config_Get_Int64(sc_configState* state, const char* i_name) {
+    if (!state) {
+        return 0;
+    }
+    lua_getfield(state, -1, i_name);
+    if (lua_isnumber(state, -1)) {
+        sa_u32 val = sa_Scast_To_m(sa_u64)(lua_tointeger(state, -1));
+        lua_pop(state, 1);
+        return val;
+    }
+    sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_CONFIG, "Missing or invalid integer: %s", i_name);
+    lua_pop(state, 1);
+    return 0;
+}
+
 SA_API const char* sc_Config_Get_Str(sc_configState* state, const char* s_name) {
     if (!state) {
         return NULL;

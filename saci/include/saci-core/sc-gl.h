@@ -5,8 +5,6 @@
 
 #include "saci-core/sc-model.h"
 #include "saci-utils/su-types.h"
-#include "saci-utils/su-darray-internal.h"
-#include "saci-utils/su-darray.h"
 #include "saci-utils/su-general.h"
 
 /* === Renderer === */
@@ -94,18 +92,18 @@ SA_API void sc_Renderer_Set_Uniform(struct sc_renderer* rendr,
                                     const sa_dataType type);
 
 SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr,
-                                          const sa_u32Array* new_indices);
+                                          const sa_dArray* new_indices);
 
 SA_API void sc_Renderer_Push_Mesh_Dynamic(struct sc_renderer* rendr,
-                                          const sa_vec3Array* pos_array,
-                                          const sa_uvArray* uv_array,
-                                          const sa_colorArray* color_array);
+                                          const sa_dArray* pos_array,
+                                          const sa_dArray* uv_array,
+                                          const sa_dArray* color_array);
 
 SA_API void sc_Renderer_Push_Mesh_Instanced(struct sc_renderer* rendr,
-                                            const sa_vec3Array* pos_array,
-                                            const sa_uvArray* uv_array,
-                                            const sa_colorArray* color_array,
-                                            const sa_mat4Array* instance_transform);
+                                            const sa_dArray* pos_array,
+                                            const sa_dArray* uv_array,
+                                            const sa_dArray* color_array,
+                                            const sa_dArray* instance_transform_array);
 
 SA_API void sc_Renderer_Push_Model_Mesh(struct sc_renderer* rendr,
                                         const sc_modelMesh* model_mesh);

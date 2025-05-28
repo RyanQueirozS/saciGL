@@ -41,7 +41,7 @@ enum sa_logContext {
     sa_LOG_CONTEXT_RENDERER,
     sa_LOG_CONTEXT_MODEL_LOADING,
     sa_LOG_CONTEXT_STBI,
-    sa_LOG_CONTEXT_MEMORY_ALLOCATION,
+    sa_LOG_CONTEXT_MEMORY,
     sa_LOG_CONTEXT_CONFIG,
 };
 
@@ -260,23 +260,24 @@ void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
  * @param[in] condition The condition
  * @param[in] message The message explaining the error
  */
-#define sa_Log_Assert_Message_m(condition, message)                                                  \
-    do {                                                                                             \
-        if (!(condition)) {                                                                          \
-            fprintf(stderr, "Assertion failed at %s:%d\nREASON: %s\n", __func__, __LINE__, message); \
-            exit(EXIT_FAILURE);                                                                      \
-        }                                                                                            \
+#define sa_Log_Assert_Message_m(condition, message)                                          \
+    do {                                                                                     \
+        if (!(condition)) {                                                                  \
+            fprintf(stderr, "Assertion failed at %s:%d: %s\n", __func__, __LINE__, message); \
+            exit(EXIT_FAILURE);                                                              \
+        }                                                                                    \
     } while (0)
 
-#define sa_Log_AssertF_Message_m(condition, fmt, ...)                                     \
-    do {                                                                                  \
-        if (!(condition)) {                                                               \
-            char _sa_log_assert_buf[1024];                                                \
-            snprintf(_sa_log_assert_buf, sizeof(_sa_log_assert_buf), fmt, ##__VA_ARGS__); \
-            fprintf(stderr, "Assertion failed at %s:%d\nREASON: %s\n",                    \
-                    __func__, __LINE__, _sa_log_assert_buf);                              \
-            exit(EXIT_FAILURE);                                                           \
-        }                                                                                 \
+#define sa_Log_AssertF_Message_m(condition, fmt, ...)                                    \
+    do {                                                                                 \
+        if (!(condition)) {                                                              \
+            char log_assert_buf[1024];                                                   \
+            snprintf(log_assert_buf, sizeof(log_assert_buf), fmt, ##__VA_ARGS__);        \
+            fprintf(stderr,                                                              \
+                    "[ASSERTION FAILED]: LOCATION: %s:%d CONDITION: (%s) MESSAGE: %s\n", \
+                    __func__, __LINE__, #condition, log_assert_buf);                     \
+            exit(EXIT_FAILURE);                                                          \
+        }                                                                                \
     } while (0)
 
 // TODO doc

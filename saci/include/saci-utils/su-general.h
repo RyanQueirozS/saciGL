@@ -196,4 +196,28 @@
 
 sa_u64 sa_Size_Of_Type(sa_dataType data_type);
 
+typedef struct sa_dArray sa_dArray;
+
+SA_API sa_dArray* sa_DArray_Create(sa_u64 capacity, sa_u64 elem_size, sa_bool fixed_size);
+
+SA_API void sa_DArray_Free(sa_dArray* array);
+
+SA_API sa_bool sa_DArray_Resize(sa_dArray* array, sa_u64 new_cap);
+
+SA_API sa_bool sa_DArray_Push(sa_dArray* array, const void* value);
+
+SA_API void sa_DArray_Pop(sa_dArray* array);
+
+SA_API void sa_DArray_Get(const sa_dArray* array, sa_u64 index, void* out_value);
+
+SA_API void* sa_DArray_Get_Ptr(const sa_dArray* array, sa_u64 index);
+
+SA_API void sa_DArray_Set(sa_dArray* array, sa_u64 index, const void* value);
+
+SA_API sa_u64 sa_DArray_Length(const sa_dArray* array);
+
+SA_API sa_u64 sa_DArray_Capacity(const sa_dArray* array);
+
+SA_API void sa_DArray_Append(sa_dArray* dest, const sa_dArray* src);
+
 #endif // SACI_UTILS_SU_GENERAL_H
