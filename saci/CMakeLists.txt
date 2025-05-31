@@ -50,6 +50,7 @@ target_include_directories(saci SYSTEM PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"           # Include headers
 
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/stb"           # STB image headers
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/memory"        # Memory headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/include"  # Glad headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/model-loading" # Model Loaders headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/include"  # GLFW headers
@@ -86,6 +87,7 @@ endif()
 target_compile_options(saci PRIVATE
     -Wall                      # Enable all warnings
     -Wextra                    # Enable extra warnings
+    # -Werror                    # Warnings as errors
     -Wpedantic                 # Enable pedantic warnings
     -Wshadow                   # Warn when a local variable or function shadows another
     -Wconversion               # Warn about implicit type conversions that may lose data

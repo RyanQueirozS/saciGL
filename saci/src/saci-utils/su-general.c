@@ -2,6 +2,8 @@
 #include <saci-utils/su-debug.h>
 #include <string.h>
 
+// TODO this function has wrong values and some need to be aligned to std140,
+// perhaps create a new function just for the std140
 sa_u64 sa_Size_Of_Type(sa_dataType data_type) {
     switch (data_type) {
     case SA_TYPE_U8:
@@ -72,6 +74,28 @@ SA_API sa_dArray* sa_DArray_Create(sa_u64 capacity, sa_u64 elem_size, sa_bool fi
     array->is_fixed_size = fixed_size;
     array->data = sa_Calloc_m(capacity, elem_size);
     sa_Log_Assert_Message_m(array->data, "Could not allocate memory for sa_dArray");
+    return array;
+}
+
+SA_API sa_dArray* sa_DArray_Create_Ctx(void* memctx, sa_u64 memctx_size, sa_u64 capacity, sa_u64 elem_size, sa_bool fixed_size) {
+    sa_u64 struct_size = sizeof(sa_dArray);
+    sa_u64 data_size = capacity * elem_size;
+    sa_u64 total_size = struct_size + data_size;
+
+    sa_Log_AssertF_Message_m(memctx && memctx_size >= total_size,
+                             "Memory context is too small for sa_dArray and its "
+                             "data. Passed: (%lu) expected min: (%lu)",
+                             memctx_size, total_size);
+
+    sa_dArray* array = (sa_dArray*)memctx;
+
+    array->length = 0;
+    array->capacity = capacity;
+    array->elem_size = elem_size;
+    array->is_fixed_size = fixed_size;
+
+    array->data = (void*)((char*)memctx + struct_size);
+
     return array;
 }
 

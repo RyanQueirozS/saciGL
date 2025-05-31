@@ -9,6 +9,7 @@ CFLAGS = -Wall -Wextra -O0 -g \
 	-I../saci/deps/glad/include \
 	-I../saci/deps/glfw/include \
 	-I../saci/deps/stb \
+	-I../saci/deps/memory \
 	-I../saci/deps/model-loading \
 	-DSACI_TEST_BUILD
 

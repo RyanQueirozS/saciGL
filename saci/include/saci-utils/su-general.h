@@ -198,7 +198,11 @@ sa_u64 sa_Size_Of_Type(sa_dataType data_type);
 
 typedef struct sa_dArray sa_dArray;
 
+#define SIZE_OF_DARRAY 40
+
 SA_API sa_dArray* sa_DArray_Create(sa_u64 capacity, sa_u64 elem_size, sa_bool fixed_size);
+
+SA_API sa_dArray* sa_DArray_Create_Ctx(void* memctx, sa_u64 memctx_size, sa_u64 capacity, sa_u64 elem_size, sa_bool fixed_size);
 
 SA_API void sa_DArray_Free(sa_dArray* array);
 

@@ -3,6 +3,10 @@
 
 #include "saci-utils/su-types.h"
 
+#include <stdint.h>
+
+#define SC_TEXTURE_INVALID (UINT32_MAX)
+
 /* === Texture Loading Functions === */
 
 sa_textureId sc_Texture_Load(const char* path, sa_bool flip_img);
