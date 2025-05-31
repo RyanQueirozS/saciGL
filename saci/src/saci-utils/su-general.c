@@ -1,5 +1,5 @@
 #include "saci-utils/su-general.h"
-#include <saci-utils/su-debug.h>
+#include "saci-utils/su-debug.h"
 #include <string.h>
 
 // TODO this function has wrong values and some need to be aligned to std140,
@@ -107,6 +107,11 @@ SA_API void sa_DArray_Free(sa_dArray* array) {
     array->elem_size = 0;
 }
 
+SA_API void sa_DArray_Clear(sa_dArray* array) {
+    sa_Log_Assert_Message_m(array, "sa_DArray_Clear: array is NULL");
+    array->length = 0;
+}
+
 SA_API sa_bool sa_DArray_Resize(sa_dArray* array, sa_u64 new_cap) {
     if (array->is_fixed_size) {
         sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY,
@@ -192,20 +197,23 @@ SA_API void sa_DArray_Append(sa_dArray* dest, const sa_dArray* src) {
     dest->length += src->length;
 }
 
+void sa_DArray_Debug_Print(const sa_dArray* arr) {
+    printf("sa_dArray Debug: data=%p, length=%lu, capacity=%lu, elem_size=%lu, fixed=%d\n",
+           arr->data, arr->length, arr->capacity, arr->elem_size, arr->is_fixed_size);
+}
+
 /* === DArray impl === */
 
 SA_INTERNAL sa_bool sa_DArray_Can_Append(const sa_dArray* dest, const sa_dArray* src) {
-    if (!dest || !src) {
-        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY,
-                              "sa_DArray_Append received NULL pointer");
-        return sa_FALSE;
-    }
-
-    if (dest->elem_size != src->elem_size) {
-        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY,
-                              "Element sizes do not match: %lu != %lu",
-                              dest->elem_size, src->elem_size);
-        return sa_FALSE;
+    sa_Log_Assert_Message_m(dest, "dest is NULL");
+    sa_Log_Assert_Message_m(src, "src is NULL");
+    sa_Log_Assert_Message_m(dest->data != NULL, "dest->data is NULL");
+    sa_Log_Assert_Message_m(src->data != NULL, "src->data is NULL");
+    sa_Log_Assert_Message_m(dest->elem_size == src->elem_size, "dest->elem_size is not src->elem_size");
+    sa_Log_Assert_Message_m(dest->elem_size > 0, "dest->elem_size is less than or equal to 0");
+    sa_Log_Assert_Message_m(src->elem_size > 0, "dest->elem_size is less than or equal to 0");
+    if (src->length == 0) {
+        return false;
     }
 
     return sa_TRUE;

@@ -12,7 +12,7 @@
 sc_window_t* window;
 
 // Define the 8 vertices of a cube centered at the origin with side length 2
-sa_u64 verticeAmount = 8;
+sa_u64 verticesAmount = 8;
 sa_vec3 verticesPos[] = {
     {-1.0f, -1.0f, -1.0f}, // v0: Bottom-left-back
     {1.0f, -1.0f, -1.0f},  // v1: Bottom-right-back
@@ -100,6 +100,9 @@ int main() {
         sa_DArray_Push(indices, &cubeIndices[i]);
     }
     sa_dArray* positions = sa_DArray_Create(8, sizeof(sa_vec3), sa_TRUE);
+    for (sa_u32 i = 0; i < sa_DArray_Capacity(positions); ++i) {
+        sa_DArray_Push(positions, &verticesPos[i]);
+    }
 
     sa_dArray* colors = sa_DArray_Create(36, sizeof(sa_color), sa_TRUE);
     for (sa_u32 i = 0; i < 36; ++i) {
@@ -124,7 +127,6 @@ int main() {
         sc_Renderer_Set_Uniform(rendr, view_loc, &uniforms.view, SA_TYPE_MAT4);
         sc_Renderer_Set_Uniform(rendr, model_loc, &uniforms.model, SA_TYPE_MAT4);
         sc_Renderer_Bind_Index_Buffer(rendr, indices);
-        uniforms.model = sa_Mat4_Model_Matrix_TRS(pos[0], rotation[0], (sa_vec3){1, 1, 1});
         sc_Renderer_Push_Mesh_Instanced(rendr, positions, NULL, colors, translations);
         sc_Renderer_End(rendr);
         sc_Window_Swap_Buffer(window);

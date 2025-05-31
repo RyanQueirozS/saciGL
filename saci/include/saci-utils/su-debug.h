@@ -260,12 +260,13 @@ void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
  * @param[in] condition The condition
  * @param[in] message The message explaining the error
  */
-#define sa_Log_Assert_Message_m(condition, message)                                          \
-    do {                                                                                     \
-        if (!(condition)) {                                                                  \
-            fprintf(stderr, "Assertion failed at %s:%d: %s\n", __func__, __LINE__, message); \
-            exit(EXIT_FAILURE);                                                              \
-        }                                                                                    \
+#define sa_Log_Assert_Message_m(condition, message)                                              \
+    do {                                                                                         \
+        if (!(condition)) {                                                                      \
+            fprintf(stderr, "[ASSERTION FAILED]: LOCATION %s:%d: CONDITION: (%s) MESSAGE: %s\n", \
+                    __func__, __LINE__, #condition, message);                                    \
+            exit(EXIT_FAILURE);                                                                  \
+        }                                                                                        \
     } while (0)
 
 #define sa_Log_AssertF_Message_m(condition, fmt, ...)                                    \

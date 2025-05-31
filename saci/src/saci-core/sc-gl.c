@@ -17,6 +17,7 @@
 #define ARENA_FREE(x) sa_Free_m(x)
 #define ARENA_MALLOC(x) sa_Malloc_m(x)
 #define ARENA_ALLOCATOR_IMPL
+#define ARENA_DEBUG
 #include "arena/arena.h"
 
 #include <stdio.h>
@@ -113,13 +114,11 @@ SA_INTERNAL const char* const sc_VERT_SHADER =
     "layout (location = 2) in vec2 a_texcoord;\n"
     "layout (location = 3) in mat4 a_model_matrix;\n"
 
-    "layout(std140) uniform Uniforms {\n"
-    "    mat4 u_model_matrix;\n"
-    "    mat4 u_view_matrix;\n"
-    "    mat4 u_projection_matrix;\n"
-    "    int u_flags;\n"
-    "    vec4 u_lighting;\n"
-    "};\n"
+    "uniform mat4 u_model_matrix;\n"
+    "uniform mat4 u_view_matrix;\n"
+    "uniform mat4 u_projection_matrix;\n"
+    "uniform int u_flags;\n"
+    "uniform vec4 u_lighting;\n"
 
     "out vec4 v_color;\n"
     "out vec2 v_texcoord;\n"
@@ -196,16 +195,16 @@ struct sc_instanceBatchInfo {
     sa_u64 index_array_max;
     sa_u64 vertex_array_max;
     sa_u64 transform_array_max;
-    sa_u64 batch_length_max;
     sa_u64 batch_struct_allocation_size;
+    sa_u8 batch_length_max;
     sa_u8 in_use;
 };
 
 struct sc_dynamicBatchInfo {
     sa_u64 vertex_array_max;
-    sa_u64 batch_length_max;
     sa_u64 batch_struct_allocation_size;
-    sa_u8 index_array_max;
+    sa_u64 index_array_max;
+    sa_u8 batch_length_max;
     sa_u8 in_use;
 };
 
@@ -237,7 +236,7 @@ struct sc_renderer {
     } bound;
 
     Arena instance_batch_arena;
-    sa_dArray* instance_batch_address_array;
+    struct sc_instanceBatch** instance_batch_address_array;
 
     Arena dynamic_batch_arena;
     sa_dArray* dynamic_batch_address_array; // Stores ptrs to where each batch is allocated in the arena, where the idx:N is batch:N
@@ -355,12 +354,12 @@ SA_API void sc_Renderer_Bind_Texture(struct sc_renderer* rendr, sa_textureId tex
 }
 
 SA_API void sc_Renderer_Set_Uniform(struct sc_renderer* rendr,
-                                    const sa_u32 uniform_id,
+                                    const sa_s32 uniform_id,
                                     const void* const value,
                                     const sa_dataType type) {
-    if (uniform_id == 0) {
+    if (uniform_id < 0) {
         sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_RENDERER,
-                             "Trying to bind uniform with id zero");
+                             "Trying to bind uniform with invalid ID");
         return;
     }
     if (sa_Scast_To_m(int)(type) == 0 || sa_Scast_To_m(int)(type) > 26) {
@@ -373,7 +372,7 @@ SA_API void sc_Renderer_Set_Uniform(struct sc_renderer* rendr,
     new_uniform.type = type;
     new_uniform.value = sa_Malloc_m(size_of_type);
     memcpy(new_uniform.value, value, size_of_type);
-    sa_DArray_Set(rendr->bound.uniform_data_array, uniform_id, &new_uniform);
+    // sa_DArray_Set(rendr->bound.uniform_data_array, sa_Scast_To_m(sa_u64)(uniform_id), &new_uniform);
 }
 
 SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr,
@@ -398,11 +397,7 @@ SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr,
 
     sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, sa_LOG_CONTEXT_RENDERER,
                           "Bound %lu indices", new_indices_count);
-    for (sa_u64 i = 0; i < new_indices_count; ++i) {
-        sa_u32 idx = 0;
-        sa_DArray_Get(new_indices, i, &idx);
-        sa_DArray_Push(rendr->bound.index_array, &idx);
-    }
+    sa_DArray_Append(rendr->bound.index_array, new_indices);
 }
 
 SA_API void sc_Renderer_Push_Mesh_Dynamic(struct sc_renderer* rendr,
@@ -509,23 +504,26 @@ SA_API void sc_Renderer_Push_Mesh_Instanced(struct sc_renderer* rendr,
                           sa_LOG_CONTEXT_RENDERER,
                           "Attempting to push %lu indices to dynamic batch",
                           sa_DArray_Length(rendr->bound.index_array));
-    struct sc_instanceBatch batch = {0};
-    sa_DArray_Get(rendr->instance_batch_arena, rendr->instance_batch_info.in_use, &batch);
+    struct sc_instanceBatch* batch = rendr->instance_batch_address_array[rendr->instance_batch_info.in_use];
+    sa_color default_color = {0, 0, 0, 0};
+    sa_uv default_uv = {0, 0};
     for (sa_u64 i = 0; i < sa_DArray_Length(pos_array); ++i) {
         sa_vec3 pos;
-        sa_color color;
-        sa_uv uv;
+        sa_color color = default_color;
+        sa_uv uv = default_uv;
         sa_DArray_Get(pos_array, i, &pos);
-        sa_DArray_Get(uv_array, i, &color);
-        sa_DArray_Get(color_array, i, &uv);
+        if (uv_array) {
+            sa_DArray_Get(uv_array, i, &uv);
+        }
+        if (color_array) {
+            sa_DArray_Get(color_array, i, &color);
+        }
         struct sc_vertex vertex = (struct sc_vertex){pos, color, uv};
-        sa_DArray_Push(batch.vertex_array, &vertex);
+        sa_DArray_Push(batch->vertex_array, &vertex);
     }
-    sa_DArray_Append(batch.model_matrix_array, instance_transform_array);
-    sa_DArray_Append(batch.index_array, rendr->bound.index_array);
-    sa_DArray_Append(batch.uniform_data, rendr->bound.uniform_data_array);
-
-    sa_DArray_Set(rendr->instance_batch_arena, rendr->instance_batch_info.in_use, &batch);
+    sa_DArray_Append(batch->index_array, rendr->bound.index_array);
+    sa_DArray_Append(batch->uniform_data, rendr->bound.uniform_data_array);
+    sa_DArray_Append(batch->model_matrix_array, instance_transform_array);
 }
 
 #if 0
@@ -559,7 +557,7 @@ SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts) {
     rendr = NULL;
 }
 
-SA_API sa_u32 sc_Renderer_Get_Uniform_Id(struct sc_renderer* rendr,
+SA_API sa_s32 sc_Renderer_Get_Uniform_Id(struct sc_renderer* rendr,
                                          const char* const uniform_name) {
     return sc_GL_Uniform_Location(rendr->shader_program, uniform_name);
 }
@@ -636,22 +634,18 @@ SA_INTERNAL void s_Renderer_Reset_Bound(struct sc_renderer* rendr) {
 }
 
 SA_INTERNAL void s_Renderer_Reset_Batch(struct sc_renderer* rendr) {
-#if 0
     sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
                          sa_LOG_CONTEXT_RENDERER,
                          "Reseting batches");
-    for (sa_u8 i = 0; i < rendr->batch_array_capacity; ++i) {
-        rendr->dynamic_batch_array[i].texture = 0;
-        rendr->dynamic_batch_array[i].index_array_length = 0;
-        rendr->dynamic_batch_array[i].vertex_array_length = 0;
-        for (sa_u32 j = 0; j < rendr->bound_uniform_data_capacity; ++j) {
-            sa_Free_m(rendr->dynamic_batch_array[i].bound_uniform_data[j].value);
-            rendr->dynamic_batch_array[i].bound_uniform_data[j].value = NULL;
-            rendr->dynamic_batch_array[i].bound_uniform_data[j].type = 0;
-        }
+    for (sa_u8 i = 0; i < rendr->instance_batch_info.batch_length_max; ++i) {
+        struct sc_instanceBatch* batch = rendr->instance_batch_address_array[i];
+        batch->instance_count = 0;
+        batch->texture = SC_TEXTURE_INVALID;
+        sa_DArray_Clear(batch->index_array);
+        sa_DArray_Clear(batch->model_matrix_array);
+        sa_DArray_Clear(batch->vertex_array);
+        sa_DArray_Clear(batch->uniform_data);
     }
-    rendr->batch_in_use = 0;
-#endif
 }
 
 SA_INTERNAL sa_bool s_Renderer_Validate_Before_Push(const struct sc_renderer* rendr,
@@ -707,6 +701,8 @@ SA_INTERNAL void s_Renderer_Initialize_Config(struct sc_rendererConfig* rendr_cf
 
     rendr_cfg->dynamic_batch_info.batch_length_max = SC_RENDERER_DEFAULT_BATCH_CAPACITY;
     rendr_cfg->instance_batch_info.batch_length_max = SC_RENDERER_DEFAULT_BATCH_CAPACITY;
+    rendr_cfg->bound_info.uniform_array_max_length = 1024;
+    rendr_cfg->instance_batch_info.transform_array_max = 1024; // TODO
 
     if (!sc_Config_Load_Table(cfg_state, "core_renderer")) {
         return;
@@ -756,9 +752,11 @@ SA_INTERNAL void s_Renderer_Init_GL(struct sc_renderer* rendr, const struct sc_r
         sa_Log_Assert_Message_m(rendr->vbo, "VBO could not be initialized");
         rendr->ibo = sc_GL_Create_Index_Buffer_Dynamic(NULL, SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY);
         sa_Log_Assert_Message_m(rendr->ibo, "IBO could not be initialized");
-        glBufferData(GL_UNIFORM_BUFFER, SC_RENDERER_DEFAULT_UBO_SIZE, NULL, GL_DYNAMIC_DRAW);
         sc_GL_Create_Vertex_Array(1, &rendr->vao);
         sa_Log_Assert_Message_m(rendr->vao, "VAO could not be initialized");
+        // TODO
+        rendr->instance_vbo = sc_GL_Create_Vertex_Buffer(
+            sizeof(sa_mat4) * 1024, NULL, GL_DYNAMIC_DRAW);
     }
     { // VertexAttrib init
         sc_GL_Bind_Vertex_Array(rendr->vao);
@@ -803,32 +801,32 @@ SA_INTERNAL void s_Renderer_Init_Dynamic_Batch(struct sc_renderer* rendr) {
 
     ArenaInit(
         &rendr->dynamic_batch_arena,
-        batch_arena_element_size * dyn_info.batch_length_max);
+        batch_arena_element_size * dyn_info.batch_length_max + 1024);
 
     for (sa_u8 i = 0; i < dyn_info.batch_length_max; ++i) {
         void* dyn_batch_mem = ArenaPush(&rendr->dynamic_batch_arena, sizeof(struct sc_dynamicBatch));
-        void* index_mem = ArenaPush(&rendr->dynamic_batch_arena, index_size + SIZE_OF_DARRAY);
-        void* vertex_mem = ArenaPush(&rendr->dynamic_batch_arena, vertex_size + SIZE_OF_DARRAY);
-        void* uniform_mem = ArenaPush(&rendr->dynamic_batch_arena, uniform_size + SIZE_OF_DARRAY);
+        void* index_mem = ArenaPush(&rendr->dynamic_batch_arena, index_size);
+        void* vertex_mem = ArenaPush(&rendr->dynamic_batch_arena, vertex_size);
+        void* uniform_mem = ArenaPush(&rendr->dynamic_batch_arena, uniform_size);
 
         struct sc_dynamicBatch* dyn_batch =
             sa_Scast_To_m(struct sc_dynamicBatch*)(dyn_batch_mem);
         dyn_batch->texture = SC_TEXTURE_INVALID;
         dyn_batch->index_array = sa_DArray_Create_Ctx(
             index_mem,
-            index_size,
+            index_size + SIZE_OF_DARRAY,
             dyn_info.index_array_max,
             sizeof(sa_u32),
             sa_TRUE);
         dyn_batch->vertex_array = sa_DArray_Create_Ctx(
             vertex_mem,
-            vertex_size,
+            vertex_size + SIZE_OF_DARRAY,
             dyn_info.vertex_array_max,
             sizeof(struct sc_vertex),
             sa_TRUE);
         dyn_batch->uniform_data = sa_DArray_Create_Ctx(
             uniform_mem,
-            uniform_size,
+            uniform_size + SIZE_OF_DARRAY,
             bound_info.uniform_array_max_length,
             SC_RENDERER_UNIFORM_DATA_WORST_CASE_SIZE,
             sa_TRUE);
@@ -843,24 +841,20 @@ SA_INTERNAL void s_Renderer_Init_Instance_Batch(struct sc_renderer* rendr) {
     sa_u64 vertex_size = instance_info.vertex_array_max * sizeof(struct sc_vertex);
     sa_u64 transform_size = instance_info.transform_array_max * sizeof(sa_mat4);
     sa_u64 uniform_size = bound_info.uniform_array_max_length * SC_RENDERER_UNIFORM_DATA_WORST_CASE_SIZE;
-    sa_u64 batch_arena_element_size = instance_info.index_array_max * sizeof(struct sc_instanceBatch);
+    sa_u64 batch_arena_element_size = index_size + vertex_size + transform_size + uniform_size + sizeof(struct sc_instanceBatch);
     rendr->instance_batch_info.batch_struct_allocation_size = batch_arena_element_size;
 
-    rendr->instance_batch_address_array = sa_DArray_Create(
-        instance_info.batch_length_max,
-        sizeof(struct sc_instanceBatch*),
-        sa_TRUE);
-
+    rendr->instance_batch_address_array = sa_Calloc_m(instance_info.batch_length_max, sizeof(struct sc_instanceBatch*));
     ArenaInit(
         &rendr->instance_batch_arena,
-        batch_arena_element_size * instance_info.batch_length_max);
+        batch_arena_element_size * instance_info.batch_length_max + 1024);
 
     for (sa_u8 i = 0; i < instance_info.batch_length_max; ++i) {
         void* instance_batch_mem = ArenaPush(&rendr->instance_batch_arena, sizeof(struct sc_instanceBatch));
-        void* index_mem = ArenaPush(&rendr->instance_batch_arena, index_size + SIZE_OF_DARRAY);
-        void* vertex_mem = ArenaPush(&rendr->instance_batch_arena, vertex_size + SIZE_OF_DARRAY);
-        void* transform_mem = ArenaPush(&rendr->instance_batch_arena, transform_size + SIZE_OF_DARRAY);
-        void* uniform_mem = ArenaPush(&rendr->instance_batch_arena, uniform_size + SIZE_OF_DARRAY);
+        void* index_mem = ArenaPush(&rendr->instance_batch_arena, index_size);
+        void* vertex_mem = ArenaPush(&rendr->instance_batch_arena, vertex_size);
+        void* transform_mem = ArenaPush(&rendr->instance_batch_arena, transform_size);
+        void* uniform_mem = ArenaPush(&rendr->instance_batch_arena, uniform_size);
 
         struct sc_instanceBatch* instance_batch =
             sa_Scast_To_m(struct sc_instanceBatch*)(instance_batch_mem);
@@ -868,28 +862,29 @@ SA_INTERNAL void s_Renderer_Init_Instance_Batch(struct sc_renderer* rendr) {
         instance_batch->instance_count = 0;
         instance_batch->index_array = sa_DArray_Create_Ctx(
             index_mem,
-            index_size,
+            index_size + SIZE_OF_DARRAY,
             instance_info.index_array_max,
             sizeof(sa_u32),
             sa_TRUE);
         instance_batch->vertex_array = sa_DArray_Create_Ctx(
             vertex_mem,
-            vertex_size,
+            vertex_size + SIZE_OF_DARRAY,
             instance_info.vertex_array_max,
             sizeof(struct sc_vertex),
             sa_TRUE);
         instance_batch->model_matrix_array = sa_DArray_Create_Ctx(
             transform_mem,
-            transform_size,
+            transform_size + SIZE_OF_DARRAY,
             instance_info.transform_array_max,
             sizeof(sa_mat4),
             sa_TRUE);
         instance_batch->uniform_data = sa_DArray_Create_Ctx(
             uniform_mem,
-            uniform_size,
+            uniform_size + SIZE_OF_DARRAY,
             bound_info.uniform_array_max_length,
             SC_RENDERER_UNIFORM_DATA_WORST_CASE_SIZE,
             sa_TRUE);
+        rendr->instance_batch_address_array[i] = instance_batch;
     }
 }
 
@@ -910,7 +905,7 @@ SA_INTERNAL void s_Renderer_Init_Batch(struct sc_renderer* rendr, const struct s
 
     rendr->bound.uniform_data_array = sa_DArray_Create(
         rendr_cfg.bound_info.uniform_array_max_length,
-        sizeof(struct sc_rendererUniformData),
+        SC_RENDERER_UNIFORM_DATA_WORST_CASE_SIZE,
         sa_FALSE);
 }
 
@@ -1263,7 +1258,7 @@ sa_u32 sc_Shader_Create_Shader_Program_Geom(sa_u32 vshader, sa_u32 fshader, sa_u
     return program_id;
 }
 
-SA_API sa_u32 sc_GL_Uniform_Location(sa_shaderId program_id, const char* const name) {
+SA_API sa_s32 sc_GL_Uniform_Location(sa_shaderId program_id, const char* const name) {
     return glGetUniformLocation(program_id, name);
 }
 

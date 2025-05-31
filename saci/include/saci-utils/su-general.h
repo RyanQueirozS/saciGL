@@ -206,6 +206,8 @@ SA_API sa_dArray* sa_DArray_Create_Ctx(void* memctx, sa_u64 memctx_size, sa_u64 
 
 SA_API void sa_DArray_Free(sa_dArray* array);
 
+SA_API void sa_DArray_Clear(sa_dArray* array);
+
 SA_API sa_bool sa_DArray_Resize(sa_dArray* array, sa_u64 new_cap);
 
 SA_API sa_bool sa_DArray_Push(sa_dArray* array, const void* value);
@@ -223,5 +225,7 @@ SA_API sa_u64 sa_DArray_Length(const sa_dArray* array);
 SA_API sa_u64 sa_DArray_Capacity(const sa_dArray* array);
 
 SA_API void sa_DArray_Append(sa_dArray* dest, const sa_dArray* src);
+
+SA_API void sa_DArray_Debug_Print(const sa_dArray* arr);
 
 #endif // SACI_UTILS_SU_GENERAL_H
