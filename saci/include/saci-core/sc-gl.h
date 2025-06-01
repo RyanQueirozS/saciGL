@@ -119,7 +119,7 @@ SA_API sa_s32 sc_Renderer_Get_Uniform_Id(struct sc_renderer* rendr,
 
 /* === OpenGL === */
 
-SA_API void sc_GL_Uniform_Set_Value(const sa_u32 location, sa_dataType type, const void* value);
+SA_API void sc_GL_Uniform_Set_Value(const sa_s32 location, sa_dataType type, const void* value);
 SA_API sa_u32 sc_GL_Create_Index_Buffer_Dynamic(sa_u32* indices, sa_u64 indice_amount);
 SA_API sa_u32 sc_GL_Create_Index_Buffer_Static(sa_u32* indices, sa_u64 indice_amount);
 SA_API sa_u32 sc_GL_Create_Vertex_Buffer(sa_u64 size, const void* data, sa_u32 usage);

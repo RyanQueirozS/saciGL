@@ -10,8 +10,7 @@
 #include "saci-utils/su-debug.h"
 #include "saci-utils/su-types.h"
 #include "saci-core/sc-config.h"
-
-#include <saci-utils/su-general.h>
+#include "saci-utils/su-general.h"
 
 #define ARENA_ASSERT(x) sa_Log_Assert_Message_m(x, "Error in arena function")
 #define ARENA_FREE(x) sa_Free_m(x)
@@ -93,15 +92,6 @@
 #  define SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH (300)
 #endif // SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH
 
-// Size of uniform data structure in case of the largest possible allocation
-// 64 bytes sa_mat4
-// 8  bytes void*
-// 4  bytes sa_dataType
-// 4  bytes padding
-#ifndef SC_RENDERER_UNIFORM_DATA_WORST_CASE_SIZE
-#  define SC_RENDERER_UNIFORM_DATA_WORST_CASE_SIZE (80)
-#endif // SC_RENDERER_UNIFORM_DATA_WORST_CASE_SIZE
-
 SA_INTERNAL const char* const sc_VERT_SHADER =
     // TODO Evaluate if there should be multiple shaders, one for 2d, 3d
     // instancing, 3d dynamic mesh etc. Saci-Core needs to be
@@ -126,7 +116,7 @@ SA_INTERNAL const char* const sc_VERT_SHADER =
     "void main()\n"
     "{\n"
     "   vec4 world_position = u_model_matrix * a_model_matrix * vec4(a_pos, 1.0);\n"
-    "   if ((u_flags & 0x1) != 0){\n"
+    "   if ((u_flags & 0x1) == 1){\n"
     "       gl_Position = u_projection_matrix * u_view_matrix * world_position;\n"
     "   } else {\n"
     "       gl_Position = world_position;\n"
@@ -165,9 +155,43 @@ struct sc_vertex {
     sa_uv uv;
 };
 
+union sc_uniformValue {
+    // Scalar types
+    sa_u8 u8;
+    sa_u16 u16;
+    sa_u32 u32;
+    sa_u64 u64;
+    sa_s8 s8;
+    sa_s16 s16;
+    sa_s32 s32;
+    sa_s64 s64;
+    sa_bool boolean;
+
+    sa_uv uv;
+    sa_vec2 vec2;
+    sa_vec3 vec3;
+    sa_vec4 vec4;
+
+    // Color
+    sa_color color;
+
+    // TODO NEED TO BE ADDED
+    sa_mat4 mat4;
+
+    // float mat2[2][2];
+    // float mat3[3][3];
+    // float mat2x3[2][3];
+    // float mat2x4[2][4];
+    // float mat3x2[3][2];
+    // float mat3x4[3][4];
+    // float mat4x2[4][2];
+    // float mat4x3[4][3];
+};
+
 struct sc_rendererUniformData {
-    void* value;
     sa_dataType type;
+    sa_s32 location;
+    union sc_uniformValue value;
 };
 
 struct sc_rendererBoundInfo {
@@ -176,7 +200,6 @@ struct sc_rendererBoundInfo {
 };
 
 struct sc_instanceBatch {
-    sa_u32 instance_count;
     sa_textureId texture;
     sa_dArray* model_matrix_array;
     sa_dArray* index_array;
@@ -296,9 +319,13 @@ SA_INTERNAL sa_u32 s_Renderer_Vertex_Array_Append(sa_dArray* dest_out,
 
 SA_INTERNAL sa_bool s_Renderer_Batch_Can_Push(const sc_renderer* rendr, const struct sc_dynamicBatch* batch);
 
-SA_INTERNAL void s_Renderer_Draw_Dynamic_Batch(const sc_renderer* rendr);
+SA_INTERNAL union sc_uniformValue s_Renderer_Uniform_Value_From_Type(sa_dataType type, const void* value);
+
+SA_INTERNAL void s_Renderer_Set_Uniform_From_Uniform_Data(const struct sc_rendererUniformData uniform_data);
 
 SA_INTERNAL void s_Renderer_Draw_Dynamic_Batch(const sc_renderer* rendr);
+
+SA_INTERNAL void s_Renderer_Draw_Instance_Batch(const sc_renderer* rendr);
 
 /* --- Renderer Header Impl --- */
 
@@ -357,7 +384,9 @@ SA_API void sc_Renderer_Set_Uniform(struct sc_renderer* rendr,
                                     const sa_s32 uniform_id,
                                     const void* const value,
                                     const sa_dataType type) {
-    if (uniform_id < 0) {
+    if (uniform_id < 0 || uniform_id >= SA_TYPE_MAX ||
+        uniform_id == SA_TYPE_BUFFERID || uniform_id == SA_TYPE_SHADERID ||
+        uniform_id == SA_TYPE_TEXTUREID) {
         sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_RENDERER,
                              "Trying to bind uniform with invalid ID");
         return;
@@ -367,12 +396,22 @@ SA_API void sc_Renderer_Set_Uniform(struct sc_renderer* rendr,
                              "Trying to bind uniform with invalid type");
         return;
     }
-    sa_u64 size_of_type = sa_Size_Of_Type(type);
-    struct sc_rendererUniformData new_uniform;
+    struct sc_rendererUniformData new_uniform = {0};
     new_uniform.type = type;
-    new_uniform.value = sa_Malloc_m(size_of_type);
-    memcpy(new_uniform.value, value, size_of_type);
-    // sa_DArray_Set(rendr->bound.uniform_data_array, sa_Scast_To_m(sa_u64)(uniform_id), &new_uniform);
+    new_uniform.value = s_Renderer_Uniform_Value_From_Type(type, value);
+    new_uniform.location = uniform_id;
+
+    struct sc_rendererUniformData* uniform_data = sa_Malloc_m(sizeof(struct sc_rendererUniformData));
+    for (sa_u64 i = 0; i < sa_DArray_Length(rendr->bound.uniform_data_array); ++i) {
+        sa_DArray_Get(rendr->bound.uniform_data_array, i, uniform_data);
+        if (uniform_data->location == uniform_id) {
+            sa_Free_m(uniform_data);
+            sa_DArray_Set(rendr->bound.uniform_data_array, i, &new_uniform);
+            return;
+        }
+    }
+    sa_DArray_Push(rendr->bound.uniform_data_array, &new_uniform);
+    sa_Free_m(uniform_data);
 }
 
 SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr,
@@ -498,11 +537,11 @@ SA_API void sc_Renderer_Push_Mesh_Instanced(struct sc_renderer* rendr,
 
     sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
                           sa_LOG_CONTEXT_RENDERER,
-                          "Attempting to push %lu vertices to dynamic batch",
+                          "Attempting to push %lu vertices to instance batch",
                           sa_DArray_Length(pos_array));
     sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
                           sa_LOG_CONTEXT_RENDERER,
-                          "Attempting to push %lu indices to dynamic batch",
+                          "Attempting to push %lu indices to instance batch",
                           sa_DArray_Length(rendr->bound.index_array));
     struct sc_instanceBatch* batch = rendr->instance_batch_address_array[rendr->instance_batch_info.in_use];
     sa_color default_color = {0, 0, 0, 0};
@@ -524,6 +563,7 @@ SA_API void sc_Renderer_Push_Mesh_Instanced(struct sc_renderer* rendr,
     sa_DArray_Append(batch->index_array, rendr->bound.index_array);
     sa_DArray_Append(batch->uniform_data, rendr->bound.uniform_data_array);
     sa_DArray_Append(batch->model_matrix_array, instance_transform_array);
+    rendr->instance_batch_info.in_use++;
 }
 
 #if 0
@@ -533,7 +573,8 @@ SA_API void sc_Renderer_Push_Model_Mesh(struct sc_renderer* rendr, const sc_mode
 
 SA_API void sc_Renderer_End(struct sc_renderer* rendr) {
 #ifndef SACI_RENDERING_DISABLED
-    s_Renderer_Draw_Dynamic_Batch(rendr);
+    // s_Renderer_Draw_Dynamic_Batch(rendr);
+    s_Renderer_Draw_Instance_Batch(rendr);
 #endif // SACI_RENDERING_DISABLED
 }
 
@@ -627,6 +668,9 @@ SA_INTERNAL void s_Renderer_Free_Memory(struct sc_renderer* rendr) {
 }
 
 SA_INTERNAL void s_Renderer_Reset_Bound(struct sc_renderer* rendr) {
+    sa_DArray_Clear(rendr->bound.uniform_data_array);
+    sa_DArray_Clear(rendr->bound.index_array);
+    rendr->bound.texture = SC_TEXTURE_INVALID;
 #if 0
     rendr->bound_texture_id = 0;         // TODO change to macro
     rendr->bound_index_array_length = 0; // TODO change to a macro
@@ -637,9 +681,9 @@ SA_INTERNAL void s_Renderer_Reset_Batch(struct sc_renderer* rendr) {
     sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
                          sa_LOG_CONTEXT_RENDERER,
                          "Reseting batches");
+    rendr->instance_batch_info.in_use = 0;
     for (sa_u8 i = 0; i < rendr->instance_batch_info.batch_length_max; ++i) {
         struct sc_instanceBatch* batch = rendr->instance_batch_address_array[i];
-        batch->instance_count = 0;
         batch->texture = SC_TEXTURE_INVALID;
         sa_DArray_Clear(batch->index_array);
         sa_DArray_Clear(batch->model_matrix_array);
@@ -789,7 +833,7 @@ SA_INTERNAL void s_Renderer_Init_Dynamic_Batch(struct sc_renderer* rendr) {
     struct sc_rendererBoundInfo bound_info = rendr->bound_info;
     sa_u64 index_size = dyn_info.index_array_max * sizeof(sa_u32);
     sa_u64 vertex_size = dyn_info.vertex_array_max * sizeof(struct sc_vertex);
-    sa_u64 uniform_size = bound_info.uniform_array_max_length * SC_RENDERER_UNIFORM_DATA_WORST_CASE_SIZE;
+    sa_u64 uniform_size = bound_info.uniform_array_max_length * sizeof(struct sc_rendererUniformData);
     sa_u64 batch_arena_element_size = index_size + vertex_size + uniform_size + sizeof(struct sc_dynamicBatch);
     rendr->dynamic_batch_info.batch_struct_allocation_size = batch_arena_element_size;
 
@@ -828,7 +872,7 @@ SA_INTERNAL void s_Renderer_Init_Dynamic_Batch(struct sc_renderer* rendr) {
             uniform_mem,
             uniform_size + SIZE_OF_DARRAY,
             bound_info.uniform_array_max_length,
-            SC_RENDERER_UNIFORM_DATA_WORST_CASE_SIZE,
+            sizeof(struct sc_rendererUniformData),
             sa_TRUE);
         sa_DArray_Push(rendr->dynamic_batch_address_array, dyn_batch);
     }
@@ -840,7 +884,7 @@ SA_INTERNAL void s_Renderer_Init_Instance_Batch(struct sc_renderer* rendr) {
     sa_u64 index_size = instance_info.index_array_max * sizeof(sa_u32);
     sa_u64 vertex_size = instance_info.vertex_array_max * sizeof(struct sc_vertex);
     sa_u64 transform_size = instance_info.transform_array_max * sizeof(sa_mat4);
-    sa_u64 uniform_size = bound_info.uniform_array_max_length * SC_RENDERER_UNIFORM_DATA_WORST_CASE_SIZE;
+    sa_u64 uniform_size = bound_info.uniform_array_max_length * sizeof(struct sc_rendererUniformData);
     sa_u64 batch_arena_element_size = index_size + vertex_size + transform_size + uniform_size + sizeof(struct sc_instanceBatch);
     rendr->instance_batch_info.batch_struct_allocation_size = batch_arena_element_size;
 
@@ -859,7 +903,6 @@ SA_INTERNAL void s_Renderer_Init_Instance_Batch(struct sc_renderer* rendr) {
         struct sc_instanceBatch* instance_batch =
             sa_Scast_To_m(struct sc_instanceBatch*)(instance_batch_mem);
         instance_batch->texture = SC_TEXTURE_INVALID;
-        instance_batch->instance_count = 0;
         instance_batch->index_array = sa_DArray_Create_Ctx(
             index_mem,
             index_size + SIZE_OF_DARRAY,
@@ -882,7 +925,7 @@ SA_INTERNAL void s_Renderer_Init_Instance_Batch(struct sc_renderer* rendr) {
             uniform_mem,
             uniform_size + SIZE_OF_DARRAY,
             bound_info.uniform_array_max_length,
-            SC_RENDERER_UNIFORM_DATA_WORST_CASE_SIZE,
+            sizeof(struct sc_rendererUniformData),
             sa_TRUE);
         rendr->instance_batch_address_array[i] = instance_batch;
     }
@@ -905,7 +948,7 @@ SA_INTERNAL void s_Renderer_Init_Batch(struct sc_renderer* rendr, const struct s
 
     rendr->bound.uniform_data_array = sa_DArray_Create(
         rendr_cfg.bound_info.uniform_array_max_length,
-        SC_RENDERER_UNIFORM_DATA_WORST_CASE_SIZE,
+        sizeof(struct sc_rendererUniformData),
         sa_FALSE);
 }
 
@@ -995,6 +1038,159 @@ SA_INTERNAL sa_bool s_Renderer_Batch_Can_Push(const sc_renderer* rendr, const st
     return sa_TRUE;
 }
 
+SA_INTERNAL union sc_uniformValue s_Renderer_Uniform_Value_From_Type(sa_dataType type, const void* value) {
+    union sc_uniformValue result = {0};
+
+    switch (type) {
+    case SA_TYPE_U8:
+        result.u8 = *(const sa_u8*)value;
+        break;
+    case SA_TYPE_U16:
+        result.u16 = *(const sa_u16*)value;
+        break;
+    case SA_TYPE_U32:
+        result.u32 = *(const sa_u32*)value;
+        break;
+    case SA_TYPE_U64:
+        result.u64 = *(const sa_u64*)value;
+        break;
+
+    case SA_TYPE_S8:
+        result.s8 = *(const sa_s8*)value;
+        break;
+    case SA_TYPE_S16:
+        result.s16 = *(const sa_s16*)value;
+        break;
+    case SA_TYPE_S32:
+        result.s32 = *(const sa_s32*)value;
+        break;
+    case SA_TYPE_S64:
+        result.s64 = *(const sa_s64*)value;
+        break;
+
+    case SA_TYPE_BOOL:
+        result.boolean = *(const sa_bool*)value;
+        break;
+
+    case SA_TYPE_UV:
+        result.uv = *(const sa_uv*)value;
+        break;
+    case SA_TYPE_VEC2:
+        result.vec2 = *(const sa_vec2*)value;
+        break;
+    case SA_TYPE_VEC3:
+        result.vec3 = *(const sa_vec3*)value;
+        break;
+    case SA_TYPE_VEC4:
+        result.vec4 = *(const sa_vec4*)value;
+        break;
+
+    case SA_TYPE_COLOR:
+        result.color = *(const sa_color*)value;
+        break;
+
+    case SA_TYPE_MAT2:
+    case SA_TYPE_MAT3:
+        break;
+    case SA_TYPE_MAT4:
+        result.mat4 = *(const sa_mat4*)value;
+        break;
+
+    case SA_TYPE_MAT2X3:
+    case SA_TYPE_MAT2X4:
+    case SA_TYPE_MAT3X2:
+    case SA_TYPE_MAT3X4:
+    case SA_TYPE_MAT4X2:
+    case SA_TYPE_MAT4X3:
+        break;
+
+    default:
+        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+                              "Invalid type %d for uniform", type);
+        break;
+    }
+
+    return result;
+}
+
+SA_INTERNAL void s_Renderer_Set_Uniform_From_Uniform_Data(const struct sc_rendererUniformData uniform_data) {
+    const void* value_ptr = NULL;
+
+    switch (uniform_data.type) {
+    case SA_TYPE_U8:
+        value_ptr = &uniform_data.value.u8;
+        break;
+    case SA_TYPE_U16:
+        value_ptr = &uniform_data.value.u16;
+        break;
+    case SA_TYPE_U32:
+    case SA_TYPE_SHADERID:
+    case SA_TYPE_TEXTUREID:
+    case SA_TYPE_BUFFERID:
+        value_ptr = &uniform_data.value.u32;
+        break;
+    case SA_TYPE_U64:
+        value_ptr = &uniform_data.value.u64;
+        break;
+
+    case SA_TYPE_S8:
+        value_ptr = &uniform_data.value.s8;
+        break;
+    case SA_TYPE_S16:
+        value_ptr = &uniform_data.value.s16;
+        break;
+    case SA_TYPE_S32:
+        value_ptr = &uniform_data.value.s32;
+        break;
+    case SA_TYPE_S64:
+        value_ptr = &uniform_data.value.s64;
+        break;
+
+    case SA_TYPE_BOOL:
+        value_ptr = &uniform_data.value.boolean;
+        break;
+
+    case SA_TYPE_UV:
+        value_ptr = &uniform_data.value.uv;
+        break;
+    case SA_TYPE_VEC2:
+        value_ptr = &uniform_data.value.vec2;
+        break;
+    case SA_TYPE_VEC3:
+        value_ptr = &uniform_data.value.vec3;
+        break;
+    case SA_TYPE_VEC4:
+        value_ptr = &uniform_data.value.vec4;
+        break;
+
+    case SA_TYPE_COLOR:
+        value_ptr = &uniform_data.value.color;
+        break;
+
+    case SA_TYPE_MAT4:
+        value_ptr = &uniform_data.value.mat4;
+        break;
+
+    // TODO NEED TO BE ADDED
+    case SA_TYPE_MAT2:
+    case SA_TYPE_MAT3:
+    case SA_TYPE_MAT2X3:
+    case SA_TYPE_MAT2X4:
+    case SA_TYPE_MAT3X2:
+    case SA_TYPE_MAT3X4:
+    case SA_TYPE_MAT4X2:
+    case SA_TYPE_MAT4X3:
+        break;
+
+    default:
+        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+                              "Invalid type %d for uniform", uniform_data.type);
+        return;
+    }
+
+    sc_GL_Uniform_Set_Value(uniform_data.location, uniform_data.type, value_ptr);
+}
+
 SA_INTERNAL void s_Renderer_Draw_Dynamic_Batch(const sc_renderer* rendr) {
 #if 0
     sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, sa_LOG_CONTEXT_RENDERER, "Flushing %d batches", rendr->batch_in_use);
@@ -1044,9 +1240,70 @@ SA_INTERNAL void s_Renderer_Draw_Dynamic_Batch(const sc_renderer* rendr) {
 #endif
 }
 
+SA_INTERNAL void s_Renderer_Draw_Instance_Batch(const sc_renderer* rendr) {
+    sa_Log_DebugF_Print_m(
+        sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
+        sa_LOG_CONTEXT_RENDERER,
+        "Flushing %d instance batches",
+        rendr->instance_batch_info.in_use);
+
+    struct previousBatch { // Will get bigger later
+        sa_textureId texture;
+    } previous_batch = {0};
+
+    for (sa_u8 i = 0; i < rendr->instance_batch_info.in_use; ++i) {
+        struct sc_instanceBatch* batch = rendr->instance_batch_address_array[i];
+
+        glUseProgram(rendr->shader_program);
+
+        glBindVertexArray(rendr->vao);
+
+        glBindBuffer(GL_ARRAY_BUFFER, rendr->vbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0,
+                        sa_Scast_To_m(long int)(sizeof(struct sc_vertex) * sa_DArray_Length(batch->vertex_array)),
+                        sa_DArray_Get_Ptr(batch->vertex_array, 0));
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendr->ibo);
+        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
+                        sa_Scast_To_m(long int)(sizeof(sa_u32) * sa_DArray_Length(batch->index_array)),
+                        sa_DArray_Get_Ptr(batch->index_array, 0));
+
+        glBindBuffer(GL_ARRAY_BUFFER, rendr->instance_vbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0,
+                        sa_Scast_To_m(long int)(sizeof(sa_mat4) * sa_DArray_Length(batch->model_matrix_array)),
+                        sa_DArray_Get_Ptr(batch->model_matrix_array, 0));
+
+        { // Uniforms
+            {
+                // TODO should be removed
+                glEnable(GL_DEPTH_TEST);
+            }
+            for (sa_u32 j = 0; j < sa_DArray_Length(rendr->bound.uniform_data_array); ++j) {
+                struct sc_rendererUniformData uniform_data = {0};
+                sa_DArray_Get(batch->uniform_data, j, &uniform_data);
+                s_Renderer_Set_Uniform_From_Uniform_Data(uniform_data);
+            }
+        }
+
+        if (batch->texture != previous_batch.texture && batch->texture != SC_TEXTURE_INVALID) {
+            glUniform1i(SC_U_USE_TEXTURE_LOC, sa_TRUE);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, batch->texture);
+            previous_batch.texture = batch->texture;
+        }
+
+        glDrawElementsInstanced(GL_TRIANGLES,
+                                sa_Scast_To_m(int)(sa_DArray_Length(batch->index_array)),
+                                GL_UNSIGNED_INT,
+                                0,
+                                sa_Scast_To_m(int)(sa_DArray_Length(batch->model_matrix_array))); // instance count
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    }
+}
+
 /* === OpenGL === */
 
-SA_API void sc_GL_Uniform_Set_Value(const sa_u32 location, sa_dataType type, const void* value) {
+SA_API void sc_GL_Uniform_Set_Value(const sa_s32 location, sa_dataType type, const void* value) {
     switch (type) {
     case SA_TYPE_U8:
     case SA_TYPE_U16:
@@ -1055,7 +1312,7 @@ SA_API void sc_GL_Uniform_Set_Value(const sa_u32 location, sa_dataType type, con
     case SA_TYPE_SHADERID:
     case SA_TYPE_TEXTUREID:
     case SA_TYPE_BUFFERID:
-        glUniform1ui((GLint)location, *(const GLint*)value);
+        glUniform1ui(location, *(const GLuint*)value);
         break;
 
     case SA_TYPE_BOOL:
@@ -1063,16 +1320,16 @@ SA_API void sc_GL_Uniform_Set_Value(const sa_u32 location, sa_dataType type, con
     case SA_TYPE_S16:
     case SA_TYPE_S32:
     case SA_TYPE_S64:
-        glUniform1i((GLint)location, *(const GLint*)value);
+        glUniform1i(location, *(const GLint*)value);
         break;
 
     case SA_TYPE_UV:
     case SA_TYPE_VEC2:
-        glUniform2f((GLint)location, ((const GLfloat*)value)[0], ((const GLfloat*)value)[1]);
+        glUniform2f(location, ((const GLfloat*)value)[0], ((const GLfloat*)value)[1]);
         break;
 
     case SA_TYPE_VEC3:
-        glUniform3f((GLint)location,
+        glUniform3f(location,
                     ((const float*)value)[0],
                     ((const float*)value)[1],
                     ((const float*)value)[2]);
@@ -1080,7 +1337,7 @@ SA_API void sc_GL_Uniform_Set_Value(const sa_u32 location, sa_dataType type, con
 
     case SA_TYPE_VEC4:
     case SA_TYPE_COLOR:
-        glUniform4f((GLint)location,
+        glUniform4f(location,
                     ((const float*)value)[0],
                     ((const float*)value)[1],
                     ((const float*)value)[2],
@@ -1088,39 +1345,39 @@ SA_API void sc_GL_Uniform_Set_Value(const sa_u32 location, sa_dataType type, con
         break;
 
     case SA_TYPE_MAT2:
-        glUniformMatrix2fv((GLint)location, 1, GL_FALSE, (const GLfloat*)value);
+        glUniformMatrix2fv(location, 1, GL_FALSE, (const GLfloat*)value);
         break;
 
     case SA_TYPE_MAT3:
-        glUniformMatrix3fv((GLint)location, 1, GL_FALSE, (const GLfloat*)value);
+        glUniformMatrix3fv(location, 1, GL_FALSE, (const GLfloat*)value);
         break;
 
     case SA_TYPE_MAT4:
-        glUniformMatrix4fv((GLint)location, 1, GL_FALSE, (const GLfloat*)value);
+        glUniformMatrix4fv(location, 1, GL_FALSE, (const GLfloat*)value);
         break;
 
     case SA_TYPE_MAT2X3:
-        glUniformMatrix2x3fv((GLint)location, 1, GL_FALSE, (const GLfloat*)value);
+        glUniformMatrix2x3fv(location, 1, GL_FALSE, (const GLfloat*)value);
         break;
 
     case SA_TYPE_MAT2X4:
-        glUniformMatrix2x4fv((GLint)location, 1, GL_FALSE, (const GLfloat*)value);
+        glUniformMatrix2x4fv(location, 1, GL_FALSE, (const GLfloat*)value);
         break;
 
     case SA_TYPE_MAT3X2:
-        glUniformMatrix3x2fv((GLint)location, 1, GL_FALSE, (const GLfloat*)value);
+        glUniformMatrix3x2fv(location, 1, GL_FALSE, (const GLfloat*)value);
         break;
 
     case SA_TYPE_MAT3X4:
-        glUniformMatrix3x4fv((GLint)location, 1, GL_FALSE, (const GLfloat*)value);
+        glUniformMatrix3x4fv(location, 1, GL_FALSE, (const GLfloat*)value);
         break;
 
     case SA_TYPE_MAT4X2:
-        glUniformMatrix4x2fv((GLint)location, 1, GL_FALSE, (const GLfloat*)value);
+        glUniformMatrix4x2fv(location, 1, GL_FALSE, (const GLfloat*)value);
         break;
 
     case SA_TYPE_MAT4X3:
-        glUniformMatrix4x3fv((GLint)location, 1, GL_FALSE, (const GLfloat*)value);
+        glUniformMatrix4x3fv(location, 1, GL_FALSE, (const GLfloat*)value);
         break;
 
     default:

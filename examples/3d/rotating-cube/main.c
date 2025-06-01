@@ -78,6 +78,7 @@ void init_saci() {
 
     rendr = sc_Renderer_New_Default();
 
+    uniforms.model = sa_Mat4_Identity();
     uniforms.view = sa_Mat4_Look_At((sa_vec3){0.0f, 2.0f, -20.0f}, (sa_vec3){0.0f, 0.0f, 0.0f}, (sa_vec3){0.0f, 1.0f, 0.0f});
     uniforms.projection = sa_Mat4_Perspective(90, 16.0f / 9.0f, 1, 100);
     uniforms.flags |= sc_RENDERER_UNIFORM_FLAG_IS_3D;
@@ -90,10 +91,10 @@ int main() {
     sa_color bgColor =
         sa_Color_From_U8(25, 70, 125, 255); // Colors are stored as float values from 0 to 1
 
-    glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_FALSE);
     sa_u32 proj_loc = sc_Renderer_Get_Uniform_Id(rendr, "u_projection_matrix");
     sa_u32 view_loc = sc_Renderer_Get_Uniform_Id(rendr, "u_view_matrix");
     sa_u32 model_loc = sc_Renderer_Get_Uniform_Id(rendr, "u_model_matrix");
+    sa_u32 flag_loc = sc_Renderer_Get_Uniform_Id(rendr, "u_flags");
 
     sa_dArray* indices = sa_DArray_Create(36, sizeof(sa_u32), sa_TRUE);
     for (sa_u32 i = 0; i < indiceAmount; ++i) {
@@ -126,6 +127,7 @@ int main() {
         sc_Renderer_Set_Uniform(rendr, proj_loc, &uniforms.projection, SA_TYPE_MAT4);
         sc_Renderer_Set_Uniform(rendr, view_loc, &uniforms.view, SA_TYPE_MAT4);
         sc_Renderer_Set_Uniform(rendr, model_loc, &uniforms.model, SA_TYPE_MAT4);
+        sc_Renderer_Set_Uniform(rendr, flag_loc, &uniforms.flags, SA_TYPE_S32);
         sc_Renderer_Bind_Index_Buffer(rendr, indices);
         sc_Renderer_Push_Mesh_Instanced(rendr, positions, NULL, colors, translations);
         sc_Renderer_End(rendr);
@@ -142,6 +144,13 @@ int main() {
             rotation[2].x += 0.01;
             rotation[2].z += 0.02;
             rotation[2].y += 0.03;
+
+            mat1 = sa_Mat4_Model_Matrix_TRS(pos[0], rotation[0], (sa_vec3){1, 1, 1});
+            mat2 = sa_Mat4_Model_Matrix_TRS(pos[1], rotation[1], (sa_vec3){1, 1, 1});
+            mat3 = sa_Mat4_Model_Matrix_RTS(pos[2], rotation[2], (sa_vec3){1, 1, 1});
+            sa_DArray_Set(translations, 0, &mat1);
+            sa_DArray_Set(translations, 1, &mat2);
+            sa_DArray_Set(translations, 2, &mat3);
         }
     }
     sc_Renderer_Free(rendr);
