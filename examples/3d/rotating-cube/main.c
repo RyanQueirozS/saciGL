@@ -1,8 +1,9 @@
-#include "saci-core/sc-gl.h"
+#include "saci-core/sc-renderer.h"
 #include "saci-core/sc-windowing.h"
 #include "saci-utils/su-math.h"
 #include "saci-utils/su-types.h"
 
+#include <float.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <assert.h>

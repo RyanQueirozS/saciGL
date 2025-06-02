@@ -8,7 +8,6 @@ int main(void) {
     while (!saci_Should_Close()) {
         saci_Begin();
 
-        saci_Enable(SACI_ENABLE_3D);
         saci_Draw_Mode(SACI_DRAW_MODE_INSTANCED);
         saci_Uniform_Translation_Rotate(rotation1);
         saci_Draw_Cube(cube_opts);
