@@ -153,6 +153,10 @@ void sa_DArray_Debug_Print(const sa_dArray* arr) {
            arr->data, arr->length, arr->capacity, arr->elem_size, arr->is_fixed_size);
 }
 
+SA_API sa_bool sa_DArray_Is_Null(const sa_dArray* arr) {
+    return arr->data == NULL;
+}
+
 /* === DArray impl === */
 
 SA_INTERNAL sa_bool sa_DArray_Can_Append(const sa_dArray* dest, const sa_dArray* src) {

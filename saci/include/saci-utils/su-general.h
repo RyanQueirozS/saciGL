@@ -226,4 +226,6 @@ SA_API void sa_DArray_Append(sa_dArray* dest, const sa_dArray* src);
 
 SA_API void sa_DArray_Debug_Print(const sa_dArray* arr);
 
+SA_API sa_bool sa_DArray_Is_Null(const sa_dArray* arr);
+
 #endif // SACI_UTILS_SU_GENERAL_H
