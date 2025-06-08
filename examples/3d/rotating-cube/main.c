@@ -111,13 +111,13 @@ int main() {
         sa_DArray_Push(colors, &cubeColors[i]);
     }
 
-    sa_dArray* translations = sa_DArray_Create(3, sizeof(sa_mat4), sa_TRUE);
+    sa_dArray* transforms = sa_DArray_Create(3, sizeof(sa_mat4), sa_TRUE);
     sa_mat4 mat1 = sa_Mat4_Model_Matrix_RTS(pos[0], rotation[0], (sa_vec3){1, 1, 1});
     sa_mat4 mat2 = sa_Mat4_Model_Matrix_RTS(pos[1], rotation[1], (sa_vec3){1, 1, 1});
     sa_mat4 mat3 = sa_Mat4_Model_Matrix_RTS(pos[2], rotation[2], (sa_vec3){1, 1, 1});
-    sa_DArray_Push(translations, &mat1);
-    sa_DArray_Push(translations, &mat2);
-    sa_DArray_Push(translations, &mat3);
+    sa_DArray_Push(transforms, &mat1);
+    sa_DArray_Push(transforms, &mat2);
+    sa_DArray_Push(transforms, &mat3);
 
     while (!sc_Window_Should_Close(window)) {
         sc_Event_Poll();
@@ -129,6 +129,7 @@ int main() {
         sc_Renderer_Set_Uniform(rendr, view_loc, &uniforms.view, SA_TYPE_MAT4);
         sc_Renderer_Set_Uniform(rendr, model_loc, &uniforms.model, SA_TYPE_MAT4);
         sc_Renderer_Set_Uniform(rendr, flag_loc, &uniforms.flags, SA_TYPE_S32);
+        sc_Renderer_Set_Instance_Transforms(rendr, transforms);
         sc_Renderer_Bind_Index_Buffer(rendr, indices);
         sc_Renderer_Push_Mesh(rendr, positions, NULL, colors);
         sc_Renderer_Draw(rendr);
@@ -149,9 +150,9 @@ int main() {
             mat1 = sa_Mat4_Model_Matrix_TRS(pos[0], rotation[0], (sa_vec3){1, 1, 1});
             mat2 = sa_Mat4_Model_Matrix_TRS(pos[1], rotation[1], (sa_vec3){1, 1, 1});
             mat3 = sa_Mat4_Model_Matrix_RTS(pos[2], rotation[2], (sa_vec3){1, 1, 1});
-            sa_DArray_Set(translations, 0, &mat1);
-            sa_DArray_Set(translations, 1, &mat2);
-            sa_DArray_Set(translations, 2, &mat3);
+            sa_DArray_Set(transforms, 0, &mat1);
+            sa_DArray_Set(transforms, 1, &mat2);
+            sa_DArray_Set(transforms, 2, &mat3);
         }
     }
     sc_Renderer_Free(rendr);

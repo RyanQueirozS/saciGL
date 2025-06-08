@@ -320,6 +320,7 @@ struct sc_staticRenderer {
 
 struct sc_instanceRenderer {
     struct sc_rendererCommon common;
+    sa_dArray* bound_transform_array;
     sa_bufferId instance_vbo; // used for instancing
 
     struct sc_instanceBatchInfo batch_info;
@@ -364,43 +365,9 @@ SA_INTERNAL void s_Renderer_Instanced_New(sc_renderer* rendr);
 SA_INTERNAL void s_Renderer_Static_Fill_Default(struct sc_staticRenderer* rendr);
 
 SA_INTERNAL sa_s32 s_Renderer_Get_Uniform_Id(struct sc_renderer* self,
-                                             const char* const uniform_name) {
-    switch (self->type) {
-    case sc_RENDERER_STATIC:
-        return sc_GL_Uniform_Location(
-            self->rendr.static_renderer->common.shader_program,
-            uniform_name);
-    case sc_RENDERER_DYNAMIC:
-    case sc_RENDERER_INSTANCE:
-        return sc_GL_Uniform_Location(
-            self->rendr.instance_renderer->common.shader_program,
-            uniform_name);
-    }
-    return -1;
-}
+                                             const char* const uniform_name);
 
-SA_INTERNAL void s_Renderer_Bind_Index_Buffer(struct sc_renderer* self, const sa_dArray* new_indices) {
-    if (!new_indices) {
-        sa_Log_Warn_Print_m(sa_LOG_SEVERITY_MEDIUM,
-                            sa_LOG_CONTEXT_RENDERER,
-                            "Indices are NULL and cannot be bound");
-        return;
-    }
-    sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, sa_LOG_CONTEXT_RENDERER,
-                          "Bound %lu indices", sa_DArray_Length(new_indices));
-
-    switch (self->type) {
-    case sc_RENDERER_STATIC:
-        sa_DArray_Clear(self->rendr.static_renderer->common.bound.index_array);
-        sa_DArray_Append(self->rendr.static_renderer->common.bound.index_array, new_indices);
-        break;
-    case sc_RENDERER_DYNAMIC:
-    case sc_RENDERER_INSTANCE:
-        sa_DArray_Clear(self->rendr.instance_renderer->common.bound.index_array);
-        sa_DArray_Append(self->rendr.instance_renderer->common.bound.index_array, new_indices);
-        break;
-    }
-}
+SA_INTERNAL void s_Renderer_Bind_Index_Buffer(struct sc_renderer* self, const sa_dArray* new_indices);
 
 SA_INTERNAL void s_Renderer_Instance_Fill_Default(struct sc_instanceRenderer* rendr);
 
@@ -421,116 +388,19 @@ SA_INTERNAL void s_Renderer_Set_Uniform_From_Uniform_Data(const struct sc_render
 
 SA_INTERNAL void s_Renderer_Draw_Instance_Batch(const struct sc_renderer* rendr);
 
-SA_INTERNAL void s_Renderer_Bind_Texture(struct sc_renderer* self, sa_textureId tex_id) {
-    switch (self->type) {
-    case sc_RENDERER_STATIC:
-        self->rendr.static_renderer->common.bound.texture = tex_id;
-        break;
-    case sc_RENDERER_DYNAMIC:
-        // TODO
-    case sc_RENDERER_INSTANCE:
-        self->rendr.instance_renderer->common.bound.texture = tex_id;
-        break;
-    }
-}
+SA_INTERNAL void s_Renderer_Bind_Texture(struct sc_renderer* self, sa_textureId tex_id);
+
 SA_INTERNAL void s_Renderer_Push_Mesh_Instanced(struct sc_renderer* self,
                                                 const sa_dArray* pos_array,
                                                 const sa_dArray* uv_array,
-                                                const sa_dArray* color_array) {
-    struct sc_instanceRenderer* rendr = self->rendr.instance_renderer;
-    const sa_dArray* instance_transform_array = NULL; // TODO
-    // s_Renderer_Validate_Before_Push(rendr, pos_array, uv_array, color_array);
-    // TODO validate instance_transform
+                                                const sa_dArray* color_array);
 
-    sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
-                          sa_LOG_CONTEXT_RENDERER,
-                          "Attempting to push %lu vertices to instance batch",
-                          sa_DArray_Length(pos_array));
-    sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
-                          sa_LOG_CONTEXT_RENDERER,
-                          "Attempting to push %lu indices to instance batch",
-                          sa_DArray_Length(rendr->common.bound.index_array));
-    struct sc_instanceBatch* batch = rendr->batch_ptr_array[rendr->batch_info.in_use];
-    sa_color default_color = {0, 0, 0, 0};
-    sa_uv default_uv = {0, 0};
-    for (sa_u64 i = 0; i < sa_DArray_Length(pos_array); ++i) {
-        sa_vec3 pos;
-        sa_color color = default_color;
-        sa_uv uv = default_uv;
-        sa_DArray_Get(pos_array, i, &pos);
-        if (uv_array) {
-            sa_DArray_Get(uv_array, i, &uv);
-        }
-        if (color_array) {
-            sa_DArray_Get(color_array, i, &color);
-        }
-        struct sc_vertex vertex = (struct sc_vertex){pos, color, uv};
-        sa_DArray_Push(batch->vertex_array, &vertex);
-    }
-    sa_DArray_Append(batch->index_array, rendr->common.bound.index_array);
-    sa_DArray_Append(batch->uniform_data, rendr->common.bound.uniform_data_array);
-    // sa_DArray_Append(batch->model_matrix_array, instance_transform_array);
-    rendr->batch_info.in_use++;
-}
-
-// TODO
-SA_INTERNAL void s_Renderer_Set_Uniform(struct sc_renderer* rendr,
+SA_INTERNAL void s_Renderer_Set_Uniform(struct sc_renderer* self,
                                         const sa_s32 uniform_id,
                                         const void* const value,
-                                        const sa_dataType type) {
-#if 0
-    if (uniform_id < 0 || uniform_id >= SA_TYPE_MAX ||
-        uniform_id == SA_TYPE_BUFFERID || uniform_id == SA_TYPE_SHADERID ||
-        uniform_id == SA_TYPE_TEXTUREID) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_RENDERER,
-                             "Trying to bind uniform with invalid ID");
-        return;
-    }
-    if (sa_Scast_To_m(int)(type) == 0 || sa_Scast_To_m(int)(type) > 26) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_RENDERER,
-                             "Trying to bind uniform with invalid type");
-        return;
-    }
-    struct sc_rendererUniformData new_uniform = {0};
-    new_uniform.type = type;
-    new_uniform.value = s_Renderer_Uniform_Value_From_Type(type, value);
-    new_uniform.location = uniform_id;
+                                        const sa_dataType type);
 
-    struct sc_rendererUniformData* uniform_data = sa_Malloc_m(sizeof(struct sc_rendererUniformData));
-    for (sa_u64 i = 0; i < sa_DArray_Length(rendr->bound.uniform_data_array); ++i) {
-        sa_DArray_Get(rendr->bound.uniform_data_array, i, uniform_data);
-        if (uniform_data->location == uniform_id) {
-            sa_Free_m(uniform_data);
-            sa_DArray_Set(rendr->bound.uniform_data_array, i, &new_uniform);
-            return;
-        }
-    }
-    sa_DArray_Push(rendr->bound.uniform_data_array, &new_uniform);
-    sa_Free_m(uniform_data);
-#endif
-    switch (rendr->type) {
-    case sc_RENDERER_STATIC:
-    case sc_RENDERER_DYNAMIC:
-    case sc_RENDERER_INSTANCE:
-        break;
-    }
-}
-
-SA_INTERNAL void s_Renderer_Instance_Begin(const struct sc_renderer* self) {
-    sa_DArray_Clear(self->rendr.instance_renderer->common.bound.index_array);
-    sa_DArray_Clear(self->rendr.instance_renderer->common.bound.uniform_data_array);
-    self->rendr.instance_renderer->common.bound.texture = SC_TEXTURE_INVALID;
-
-    self->rendr.instance_renderer->batch_info.in_use = 0;
-    for (sa_u8 i = 0; i < self->rendr.instance_renderer->batch_info.batch_capacity; ++i) {
-        struct sc_instanceBatch* batch = self->rendr.instance_renderer->batch_ptr_array[i];
-        batch->texture = SC_TEXTURE_INVALID;
-        sa_DArray_Clear(batch->index_array);
-        sa_DArray_Clear(batch->model_matrix_array);
-        sa_DArray_Clear(batch->vertex_array);
-        sa_DArray_Clear(batch->uniform_data);
-    }
-}
+SA_INTERNAL void s_Renderer_Instance_Begin(const struct sc_renderer* self);
 
 SA_INTERNAL const struct sc_rendererInterface sc_INSTANCE_RENDERER_DEFAULT_INTERFACE =
     (struct sc_rendererInterface){
@@ -604,6 +474,21 @@ SA_API void sc_Renderer_Free(struct sc_renderer* rendr) {
 
 SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts) {
     rendr->interface->free_opts(rendr, free_opts);
+}
+
+/* --- Renderer specific impl --- */
+
+// TODO, it's working but needs some improvement
+SA_API void sc_Renderer_Set_Instance_Transforms(struct sc_renderer* rendr, sa_dArray* transform_array) {
+    sa_Log_Assert_Message_m(rendr->type == sc_RENDERER_INSTANCE, "Trying to set instance transforms in non instance renderer");
+
+    sa_Log_DebugF_Print_m(
+        sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
+        sa_LOG_CONTEXT_RENDERER,
+        "Binding %lu transforms",
+        sa_DArray_Length(transform_array));
+    sa_DArray_Clear(rendr->rendr.instance_renderer->bound_transform_array);
+    sa_DArray_Append(rendr->rendr.instance_renderer->bound_transform_array, transform_array);
 }
 
 /* --- Renderer Helper impl --- */
@@ -732,6 +617,9 @@ SA_INTERNAL void s_Renderer_Init_Instance_Batch(struct sc_instanceRenderer* rend
     rendr->batch_info.batch_struct_allocation_size = batch_arena_element_size;
 
     rendr->batch_ptr_array = sa_Calloc_m(instance_info.batch_capacity, sizeof(struct sc_instanceBatch*));
+    // TODO
+    rendr->bound_transform_array = sa_DArray_Create(instance_info.transform_array_capacity, sizeof(sa_mat4), sa_TRUE);
+
     ArenaInit(
         &rendr->batch_arena,
         batch_arena_element_size * instance_info.batch_capacity + 1024);
@@ -874,6 +762,158 @@ SA_INTERNAL void s_Renderer_Instance_Fill_Default(struct sc_instanceRenderer* re
     rendr->common.bound_info.index_array_capacity = SC_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY;
     rendr->common.bound_info.uniform_array_capacity = SC_RENDERER_DEFAULT_UNIFORM_CAPACITY;
     rendr->common.bound.texture = SC_TEXTURE_INVALID;
+}
+
+SA_INTERNAL sa_s32 s_Renderer_Get_Uniform_Id(struct sc_renderer* self,
+                                             const char* const uniform_name) {
+    switch (self->type) {
+    case sc_RENDERER_STATIC:
+        return sc_GL_Uniform_Location(
+            self->rendr.static_renderer->common.shader_program,
+            uniform_name);
+    case sc_RENDERER_DYNAMIC:
+    case sc_RENDERER_INSTANCE:
+        return sc_GL_Uniform_Location(
+            self->rendr.instance_renderer->common.shader_program,
+            uniform_name);
+    }
+    return -1;
+}
+
+SA_INTERNAL void s_Renderer_Bind_Index_Buffer(struct sc_renderer* self, const sa_dArray* new_indices) {
+    if (!new_indices) {
+        sa_Log_Warn_Print_m(sa_LOG_SEVERITY_MEDIUM,
+                            sa_LOG_CONTEXT_RENDERER,
+                            "Indices are NULL and cannot be bound");
+        return;
+    }
+    sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, sa_LOG_CONTEXT_RENDERER,
+                          "Bound %lu indices", sa_DArray_Length(new_indices));
+
+    switch (self->type) {
+    case sc_RENDERER_STATIC:
+        sa_DArray_Clear(self->rendr.static_renderer->common.bound.index_array);
+        sa_DArray_Append(self->rendr.static_renderer->common.bound.index_array, new_indices);
+        break;
+    case sc_RENDERER_DYNAMIC:
+    case sc_RENDERER_INSTANCE:
+        sa_DArray_Clear(self->rendr.instance_renderer->common.bound.index_array);
+        sa_DArray_Append(self->rendr.instance_renderer->common.bound.index_array, new_indices);
+        break;
+    }
+}
+
+SA_INTERNAL void s_Renderer_Bind_Texture(struct sc_renderer* self, sa_textureId tex_id) {
+    switch (self->type) {
+    case sc_RENDERER_STATIC:
+        self->rendr.static_renderer->common.bound.texture = tex_id;
+        break;
+    case sc_RENDERER_DYNAMIC:
+        // TODO
+    case sc_RENDERER_INSTANCE:
+        self->rendr.instance_renderer->common.bound.texture = tex_id;
+        break;
+    }
+}
+
+SA_INTERNAL void s_Renderer_Push_Mesh_Instanced(struct sc_renderer* self,
+                                                const sa_dArray* pos_array,
+                                                const sa_dArray* uv_array,
+                                                const sa_dArray* color_array) {
+    struct sc_instanceRenderer* rendr = self->rendr.instance_renderer;
+    // s_Renderer_Validate_Before_Push(rendr, pos_array, uv_array, color_array);
+    // TODO validate instance_transform
+
+    sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
+                          sa_LOG_CONTEXT_RENDERER,
+                          "Attempting to push %lu vertices to instance batch",
+                          sa_DArray_Length(pos_array));
+    sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
+                          sa_LOG_CONTEXT_RENDERER,
+                          "Attempting to push %lu indices to instance batch",
+                          sa_DArray_Length(rendr->common.bound.index_array));
+    struct sc_instanceBatch* batch = rendr->batch_ptr_array[rendr->batch_info.in_use];
+    sa_color default_color = {0, 0, 0, 0};
+    sa_uv default_uv = {0, 0};
+    for (sa_u64 i = 0; i < sa_DArray_Length(pos_array); ++i) {
+        sa_vec3 pos;
+        sa_color color = default_color;
+        sa_uv uv = default_uv;
+        sa_DArray_Get(pos_array, i, &pos);
+        if (uv_array) {
+            sa_DArray_Get(uv_array, i, &uv);
+        }
+        if (color_array) {
+            sa_DArray_Get(color_array, i, &color);
+        }
+        struct sc_vertex vertex = (struct sc_vertex){pos, color, uv};
+        sa_DArray_Push(batch->vertex_array, &vertex);
+    }
+    sa_DArray_Append(batch->index_array, rendr->common.bound.index_array);
+    sa_DArray_Append(batch->uniform_data, rendr->common.bound.uniform_data_array);
+    sa_DArray_Append(batch->model_matrix_array, rendr->bound_transform_array);
+    rendr->batch_info.in_use++;
+}
+
+SA_INTERNAL void s_Renderer_Set_Uniform(struct sc_renderer* self,
+                                        const sa_s32 uniform_id,
+                                        const void* const value,
+                                        const sa_dataType type) {
+    // check if is needed
+    sa_dArray** uniform_data_array;
+    switch (self->type) {
+    case sc_RENDERER_STATIC:
+        uniform_data_array = &self->rendr.static_renderer->common.bound.uniform_data_array;
+    case sc_RENDERER_DYNAMIC:
+    case sc_RENDERER_INSTANCE:
+        uniform_data_array = &self->rendr.instance_renderer->common.bound.uniform_data_array;
+        break;
+    }
+
+    if (uniform_id < 0 || uniform_id >= SA_TYPE_MAX ||
+        uniform_id == SA_TYPE_BUFFERID || uniform_id == SA_TYPE_SHADERID ||
+        uniform_id == SA_TYPE_TEXTUREID) {
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_RENDERER,
+                             "Trying to bind uniform with invalid ID");
+        return;
+    }
+    if (sa_Scast_To_m(int)(type) == 0 || sa_Scast_To_m(int)(type) > 26) {
+        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_RENDERER,
+                             "Trying to bind uniform with invalid type");
+        return;
+    }
+    struct sc_rendererUniformData new_uniform = {0};
+    new_uniform.type = type;
+    new_uniform.value = s_Renderer_Uniform_Value_From_Type(type, value);
+    new_uniform.location = uniform_id;
+
+    struct sc_rendererUniformData* uniform_data = sa_Malloc_m(sizeof(struct sc_rendererUniformData));
+    for (sa_u64 i = 0; i < sa_DArray_Length(*uniform_data_array); ++i) {
+        sa_DArray_Get(*uniform_data_array, i, uniform_data);
+        if (uniform_data->location == uniform_id) {
+            sa_Free_m(uniform_data);
+            sa_DArray_Set(*uniform_data_array, i, &new_uniform);
+            return;
+        }
+    }
+    sa_DArray_Push(*uniform_data_array, &new_uniform);
+    sa_Free_m(uniform_data);
+}
+
+SA_INTERNAL void s_Renderer_Instance_Begin(const struct sc_renderer* self) {
+    sa_DArray_Clear(self->rendr.instance_renderer->common.bound.index_array);
+    sa_DArray_Clear(self->rendr.instance_renderer->common.bound.uniform_data_array);
+    self->rendr.instance_renderer->common.bound.texture = SC_TEXTURE_INVALID;
+
+    self->rendr.instance_renderer->batch_info.in_use = 0;
+    for (sa_u8 i = 0; i < self->rendr.instance_renderer->batch_info.batch_capacity; ++i) {
+        struct sc_instanceBatch* batch = self->rendr.instance_renderer->batch_ptr_array[i];
+        batch->texture = SC_TEXTURE_INVALID;
+        sa_DArray_Clear(batch->index_array);
+        sa_DArray_Clear(batch->model_matrix_array);
+        sa_DArray_Clear(batch->vertex_array);
+        sa_DArray_Clear(batch->uniform_data);
+    }
 }
 
 SA_INTERNAL void s_Renderer_Init_Bound(struct sc_rendererCommon* common, const struct sc_rendererConfig cfg) {
@@ -1038,6 +1078,7 @@ SA_INTERNAL void s_Renderer_Draw_Instance_Batch(const struct sc_renderer* self) 
                         sa_Scast_To_m(long int)(sizeof(sa_u32) * sa_DArray_Length(batch->index_array)),
                         sa_DArray_Get_Ptr(batch->index_array, 0));
 
+        // TODO this should be checked before, since if it is empty there is no reason to drawing
         if (!sa_DArray_Is_Empty(batch->model_matrix_array)) {
             glBindBuffer(GL_ARRAY_BUFFER, rendr->instance_vbo);
             glBufferSubData(GL_ARRAY_BUFFER, 0,
@@ -1071,4 +1112,79 @@ SA_INTERNAL void s_Renderer_Draw_Instance_Batch(const struct sc_renderer* self) 
                                 sa_Scast_To_m(int)(sa_DArray_Length(batch->model_matrix_array))); // instance count
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
+}
+
+SA_INTERNAL union sc_uniformValue s_Renderer_Uniform_Value_From_Type(sa_dataType type, const void* value) {
+    union sc_uniformValue result = {0};
+
+    switch (type) {
+    case SA_TYPE_U8:
+        result.u8 = *(const sa_u8*)value;
+        break;
+    case SA_TYPE_U16:
+        result.u16 = *(const sa_u16*)value;
+        break;
+    case SA_TYPE_U32:
+        result.u32 = *(const sa_u32*)value;
+        break;
+    case SA_TYPE_U64:
+        result.u64 = *(const sa_u64*)value;
+        break;
+
+    case SA_TYPE_S8:
+        result.s8 = *(const sa_s8*)value;
+        break;
+    case SA_TYPE_S16:
+        result.s16 = *(const sa_s16*)value;
+        break;
+    case SA_TYPE_S32:
+        result.s32 = *(const sa_s32*)value;
+        break;
+    case SA_TYPE_S64:
+        result.s64 = *(const sa_s64*)value;
+        break;
+
+    case SA_TYPE_BOOL:
+        result.boolean = *(const sa_bool*)value;
+        break;
+
+    case SA_TYPE_UV:
+        result.uv = *(const sa_uv*)value;
+        break;
+    case SA_TYPE_VEC2:
+        result.vec2 = *(const sa_vec2*)value;
+        break;
+    case SA_TYPE_VEC3:
+        result.vec3 = *(const sa_vec3*)value;
+        break;
+    case SA_TYPE_VEC4:
+        result.vec4 = *(const sa_vec4*)value;
+        break;
+
+    case SA_TYPE_COLOR:
+        result.color = *(const sa_color*)value;
+        break;
+
+    case SA_TYPE_MAT2:
+    case SA_TYPE_MAT3:
+        break;
+    case SA_TYPE_MAT4:
+        result.mat4 = *(const sa_mat4*)value;
+        break;
+
+    case SA_TYPE_MAT2X3:
+    case SA_TYPE_MAT2X4:
+    case SA_TYPE_MAT3X2:
+    case SA_TYPE_MAT3X4:
+    case SA_TYPE_MAT4X2:
+    case SA_TYPE_MAT4X3:
+        break;
+
+    default:
+        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+                              "Invalid type %d for uniform", type);
+        break;
+    }
+
+    return result;
 }

@@ -103,4 +103,9 @@ SA_API void sc_Renderer_Free(struct sc_renderer* rendr);
 
 SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts);
 
+/* --- Renderer specific --- */
+
+// This needs to be used with a instanced renderer, else it should crash
+SA_API void sc_Renderer_Set_Instance_Transforms(struct sc_renderer* rendr, sa_dArray* transform_array);
+
 #endif // SACI_CORE_SC_RENDERER_H
