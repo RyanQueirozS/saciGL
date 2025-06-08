@@ -77,7 +77,7 @@ void init_saci() {
     sc_Window_Make_Context(window);
     assert(sc_GLAD_Init());
 
-    rendr = sc_Renderer_New_Default();
+    rendr = sc_Renderer_New(sc_RENDERER_INSTANCE);
 
     uniforms.model = sa_Mat4_Identity();
     uniforms.view = sa_Mat4_Look_At((sa_vec3){0.0f, 2.0f, -20.0f}, (sa_vec3){0.0f, 0.0f, 0.0f}, (sa_vec3){0.0f, 1.0f, 0.0f});
@@ -130,8 +130,8 @@ int main() {
         sc_Renderer_Set_Uniform(rendr, model_loc, &uniforms.model, SA_TYPE_MAT4);
         sc_Renderer_Set_Uniform(rendr, flag_loc, &uniforms.flags, SA_TYPE_S32);
         sc_Renderer_Bind_Index_Buffer(rendr, indices);
-        sc_Renderer_Push_Mesh_Instanced(rendr, positions, NULL, colors, translations);
-        sc_Renderer_End(rendr);
+        sc_Renderer_Push_Mesh(rendr, positions, NULL, colors);
+        sc_Renderer_Draw(rendr);
         sc_Window_Swap_Buffer(window);
         {
             rotation[0].x += 0.01;

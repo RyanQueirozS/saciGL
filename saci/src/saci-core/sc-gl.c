@@ -125,8 +125,8 @@ SA_API sa_u32 sc_GL_Create_Index_Buffer_Static(sa_u32* indices, sa_u64 indice_am
     return ibo;
 }
 
-SA_API void sc_GL_Create_Vertex_Array(sa_u64 size, sa_u32* arrays) {
-    glGenVertexArrays(sa_Scast_To_m(int)(size), arrays);
+SA_API void sc_GL_Create_Vertex_Array(sa_u64 amount, sa_u32* arrays) {
+    glGenVertexArrays(sa_Scast_To_m(int)(amount), arrays);
 }
 
 SA_API void sc_GL_Bind_Vertex_Array(sa_u32 array) {

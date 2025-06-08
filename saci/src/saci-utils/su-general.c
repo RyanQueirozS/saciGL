@@ -157,6 +157,10 @@ SA_API sa_bool sa_DArray_Is_Null(const sa_dArray* arr) {
     return arr->data == NULL;
 }
 
+SA_API sa_bool sa_DArray_Is_Empty(const sa_dArray* arr) {
+    return arr->length == 0;
+}
+
 /* === DArray impl === */
 
 SA_INTERNAL sa_bool sa_DArray_Can_Append(const sa_dArray* dest, const sa_dArray* src) {

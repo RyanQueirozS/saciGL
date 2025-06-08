@@ -68,19 +68,21 @@ struct sc_renderer {
 #  define sc_RENDERER_CALL_OVERFLOW_ACTION_RESIZE 04
 #endif // TODO to be implemented
 
-SA_API sc_renderer* sc_Renderer_New_Default(void);
+enum sc_rendererType {
+    sc_RENDERER_STATIC,
+    sc_RENDERER_DYNAMIC,
+    sc_RENDERER_INSTANCE,
+};
 
-SA_API sc_renderer* sc_Renderer_New_Default_Ctx(void* mem_ctx,
-                                                sa_u64 batch_index_capacity,
-                                                sa_u64 batch_vertex_capacity,
-                                                sa_u64 bound_capacity);
-
-SA_API sc_renderer* sc_Renderer_New_From_Config(const char* file_path);
+SA_API sc_renderer* sc_Renderer_New(const enum sc_rendererType type);
 
 SA_API void sc_Renderer_Begin(struct sc_renderer* rendr);
 
 SA_API void sc_Renderer_Bind_Texture(struct sc_renderer* rendr,
                                      const sa_textureId tex_id);
+
+SA_API sa_s32 sc_Renderer_Get_Uniform_Id(struct sc_renderer* rendr,
+                                         const char* const uniform_name);
 
 SA_API void sc_Renderer_Set_Uniform(struct sc_renderer* rendr,
                                     const sa_s32 uniform_id,
@@ -90,27 +92,15 @@ SA_API void sc_Renderer_Set_Uniform(struct sc_renderer* rendr,
 SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr,
                                           const sa_dArray* new_indices);
 
-SA_API void sc_Renderer_Push_Mesh_Dynamic(struct sc_renderer* rendr,
-                                          const sa_dArray* pos_array,
-                                          const sa_dArray* uv_array,
-                                          const sa_dArray* color_array);
+SA_API void sc_Renderer_Push_Mesh(struct sc_renderer* rendr,
+                                  const sa_dArray* pos_array,
+                                  const sa_dArray* uv_array,
+                                  const sa_dArray* color_array);
 
-SA_API void sc_Renderer_Push_Mesh_Instanced(struct sc_renderer* rendr,
-                                            const sa_dArray* pos_array,
-                                            const sa_dArray* uv_array,
-                                            const sa_dArray* color_array,
-                                            const sa_dArray* instance_transform_array);
-
-SA_API void sc_Renderer_Push_Model_Mesh(struct sc_renderer* rendr,
-                                        const sc_modelMesh* model_mesh);
-
-SA_API void sc_Renderer_End(struct sc_renderer* rendr);
+SA_API void sc_Renderer_Draw(const struct sc_renderer* rendr);
 
 SA_API void sc_Renderer_Free(struct sc_renderer* rendr);
 
 SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts);
-
-SA_API sa_s32 sc_Renderer_Get_Uniform_Id(struct sc_renderer* rendr,
-                                         const char* const uniform_name);
 
 #endif // SACI_CORE_SC_RENDERER_H

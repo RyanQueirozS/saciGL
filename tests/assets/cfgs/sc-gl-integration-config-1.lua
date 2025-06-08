@@ -5,3 +5,28 @@ core_renderer = {
 	batch_array_capacity = 10,
 	batch_vertex_capacity = batch_vertex_capacity,
 }
+
+static_renderer = {
+	bound = {
+		index = {
+			fixed_size = true,
+			capacity = 10000,
+		},
+		uniform = {
+			fixed_size = true,
+			capacity = 1024,
+		},
+	},
+	batch = {
+		index = {
+			capacity = 10000,
+			fixed_size = true,
+		},
+		vertex = {
+			capacity = 10000,
+			fixed_size = true,
+		},
+		capacity = 10,
+		fixed_size = true,
+	},
+}

@@ -228,4 +228,6 @@ SA_API void sa_DArray_Debug_Print(const sa_dArray* arr);
 
 SA_API sa_bool sa_DArray_Is_Null(const sa_dArray* arr);
 
+SA_API sa_bool sa_DArray_Is_Empty(const sa_dArray* arr);
+
 #endif // SACI_UTILS_SU_GENERAL_H
