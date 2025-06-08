@@ -91,7 +91,7 @@
 
 #define SC_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH (300)
 
-SA_INTERNAL const char* const sc_VERT_SHADER =
+SA_INTERNAL const char* const sc_INSTANCE_VERT_SHADER =
     // TODO Evaluate if there should be multiple shaders, one for 2d, 3d
     // instancing, 3d dynamic mesh etc. Saci-Core needs to be
     // performatic but also "just work", so the user shouldn't need to
@@ -114,12 +114,7 @@ SA_INTERNAL const char* const sc_VERT_SHADER =
 
     "void main()\n"
     "{\n"
-    "   vec4 world_position = u_model_matrix * a_model_matrix * vec4(a_pos, 1.0);\n"
-    "   if ((u_flags & 0x1) == 1){\n"
-    "       gl_Position = u_projection_matrix * u_view_matrix * world_position;\n"
-    "   } else {\n"
-    "       gl_Position = world_position;\n"
-    "   }\n"
+    "   gl_Position = u_projection_matrix * u_view_matrix * u_model_matrix * a_model_matrix * vec4(a_pos, 1.0);\n"
     "   v_color = a_color;\n"
     "   v_texcoord = a_texcoord;\n"
     "}\n\0";
@@ -525,7 +520,7 @@ SA_INTERNAL void s_Renderer_Instanced_New(sc_renderer* self) {
 SA_INTERNAL void s_Renderer_Init_GL(struct sc_rendererCommon* rendr_common, const struct sc_rendererConfig rendr_cfg) {
 #ifndef SACI_RENDERING_DISABLED
     { // Shader init
-        sa_shaderId v_shader = sc_Shader_Compile_Shader_Vert(sc_VERT_SHADER);
+        sa_shaderId v_shader = sc_Shader_Compile_Shader_Vert(sc_INSTANCE_VERT_SHADER);
         sa_shaderId f_shader = sc_Shader_Compile_Shader_Frag(sc_FRAG_SHADER);
         sa_Log_Assert_Message_m(v_shader && f_shader, "Shaders could not be initialized");
         rendr_common->shader_program = sc_Shader_Create_Shader_Program(v_shader, f_shader);

@@ -53,8 +53,11 @@ struct sc_renderer {
 #define sc_RENDERER_FREE_OPT_MEMORY 0b01
 #define sc_RENDERER_FREE_OPT_OPENGL 0b10
 
-#define sc_RENDERER_UNIFORM_FLAG_IS_2D 0b0
-#define sc_RENDERER_UNIFORM_FLAG_IS_3D 0b1
+// TODO
+#if 0
+#  define sc_RENDERER_UNIFORM_FLAG_
+#  define sc_RENDERER_UNIFORM_FLAG_
+#endif
 
 #if 0
 #  define sc_RENDERER_BATCH_OVERFLOW_ACTION_FLUSH 01
