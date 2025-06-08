@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "saci-core/sc-windowing.h"
+#include "saci-backend/sc-windowing.h"
 #include "saci-utils/su-debug.h"
 #include "saci-utils/su-general.h"
 

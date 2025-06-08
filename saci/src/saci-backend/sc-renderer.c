@@ -1,14 +1,14 @@
 #include <glad/glad.h>
 
-#include "saci-core/sc-renderer.h"
+#include "saci-backend/sc-renderer.h"
 
-#include "saci-core/sc-gl.h"
+#include "saci-backend/sc-gl.h"
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-debug.h"
 #include "saci-utils/su-types.h"
 
-#include "saci-core/sc-texture.h"
-#include "saci-core/sc-config.h"
+#include "saci-backend/sc-texture.h"
+#include "saci-backend/sc-config.h"
 
 #include <stdio.h>
 #include <stdlib.h>

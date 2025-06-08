@@ -1,0 +1,93 @@
+Checks: >
+  -*,
+  clang-analyzer-*,
+  cert-*,
+  bugprone-*,
+  portability-*,
+  modernize-*,
+  readability-braces-around-statements,
+  readability-else-after-return,
+  readability-function-cognitive-complexity,
+  readability-function-size,
+  readability-misleading-indentation,
+  readability-simplify-boolean-expr,
+  readability-avoid-magic-numbers,
+  readability-identifier-naming,
+  -bugprone-easily-swappable-parameters
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*'
+FormatStyle: file
+CheckOptions:
+  
+  # Functions There needs to be a check for static functions
+  - key: readability-identifier-naming.FunctionPrefix
+    value: "s_"
+  - key: readability-identifier-naming.FunctionCase
+    value: Camel_Snake_Case
+  - key: readability-identifier-naming.GlobalFunctionPrefix
+    value: "sc_"
+
+  # Variables
+  - key: readability-identifier-naming.GlobalVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.GlobalVariablePrefix
+    value: "sc_"
+  - key: readability-identifier-naming.StaticVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.StaticVariablePrefix
+    value: "s_"
+  - key: readability-identifier-naming.StaticConstantPrefix
+    value: "s_"
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.LocalVariableCase
+    value: lower_case
+
+  # Constants
+  - key: readability-identifier-naming.ConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.GlobalConstantPrefix
+    value: "sc_"
+  - key: readability-identifier-naming.LocalConstantCase
+    value: lower_case
+  - key: readability-identifier-naming.ConstantParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.ConstantPointerParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.StaticConstantPrefix
+    value: "s_"
+
+  # # Structs Need to separate from local and global declarations
+  # - key: readability-identifier-naming.StructCase
+  #   value: camelCase
+  # - key: readability-identifier-naming.StructPrefix
+  #   value: "sc_"
+  # - key: readability-identifier-naming.MemberCase
+  #   value: lower_case
+
+  # Enums
+  - key: readability-identifier-naming.EnumCase
+    value: camelCase
+  - key: readability-identifier-naming.EnumPrefix
+    value: "sc_"
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.EnumConstantPrefix
+    value: "sc_"
+
+  # Typedefs
+  - key: readability-identifier-naming.TypedefCase
+    value: camelCase
+  - key: readability-identifier-naming.TypedefPrefix
+    value: "sc_"
+
+  # # Macros are not used, because clang-tidy cannot differenciate macro functions between other macro types
+  # - key: readability-identifier-naming.MacroDefinitionCase
+  #   value: ALL_CAPS
+  # - key: readability-identifier-naming.MacroDefinitionPrefix
+  #   value: "SC_"
+  # - key: readability-identifier-naming.MacroDefinitionSuffix
+  #   value: "_m"
+

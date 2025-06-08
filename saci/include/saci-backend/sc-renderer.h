@@ -1,7 +1,7 @@
 #ifndef SACI_CORE_SC_RENDERER_H
 #define SACI_CORE_SC_RENDERER_H
 
-#include "saci-core/sc-model.h"
+#include "saci-backend/sc-model.h"
 #include "saci-utils/su-types.h"
 #include "saci-utils/su-general.h"
 

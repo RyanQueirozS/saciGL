@@ -3,7 +3,7 @@
 // would be nice
 #include <glad/glad.h>
 
-#include "saci-core/sc-gl.h"
+#include "saci-backend/sc-gl.h"
 
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-debug.h"
