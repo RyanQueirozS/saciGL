@@ -46,8 +46,8 @@ set_property(TARGET saci PROPERTY C_STANDARD 99)
 # Include directories
 include_directories(${LUA_INCLUDE_DIR})
 
-target_include_directories(saci SYSTEM PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"           # Include headers
+target_include_directories(saci 
+    SYSTEM PRIVATE
 
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/stb"           # STB image headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/memory"        # Memory headers
@@ -57,6 +57,9 @@ target_include_directories(saci SYSTEM PRIVATE
 
     PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/"            # Root include directory
+
+    PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"           # Include headers
 )
 
 # Add Glad source file to the library
