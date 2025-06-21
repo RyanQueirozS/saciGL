@@ -1,6 +1,6 @@
 #include "saci-utils/su-debug.h"
 
-#include "glad/glad.h"
+#include <glad/glad.h>
 #include "saci-utils/su-types.h"
 
 #include <complex.h>
@@ -10,38 +10,38 @@
 
 /* === Static vars=== */
 
-static enum sa_logSeverity sa_logging_severity_s = sa_LOG_SEVERITY_LOW;
+static enum su_logSeverity sa_logging_severity_s = su_LOG_SEVERITY_LOW;
 
 static sa_bool sa_should_log_source_s = sa_FALSE;
 
 /* === Helpers === */
 
-static const char* sa_Log_Severity_To_String_s(enum sa_logSeverity severity) {
+static const char* sa_Log_Severity_To_String_s(enum su_logSeverity severity) {
     switch (severity) {
-    case sa_LOG_SEVERITY_LOW:
+    case su_LOG_SEVERITY_LOW:
         return "LOW";
-    case sa_LOG_SEVERITY_MEDIUM:
+    case su_LOG_SEVERITY_MEDIUM:
         return "MEDIUM";
-    case sa_LOG_SEVERITY_HIGH:
+    case su_LOG_SEVERITY_HIGH:
         return "HIGH";
     default:
         return "UNKOWN";
     }
 }
 
-static const char* sa_Log_Context_To_String_s(enum sa_logContext context) {
+static const char* sa_Log_Context_To_String_s(enum su_logContext context) {
     switch (context) {
-    case sa_LOG_CONTEXT_OPENGL:
+    case su_LOG_CONTEXT_OPENGL:
         return "OpenGL";
-    case sa_LOG_CONTEXT_MODEL_LOADING:
+    case su_LOG_CONTEXT_MODEL_LOADING:
         return "MODEL_LOADING";
-    case sa_LOG_CONTEXT_RENDERER:
+    case su_LOG_CONTEXT_RENDERER:
         return "Renderer";
-    case sa_LOG_CONTEXT_STBI:
+    case su_LOG_CONTEXT_STBI:
         return "STBI";
-    case sa_LOG_CONTEXT_MEMORY:
+    case su_LOG_CONTEXT_MEMORY:
         return "MEMORY_ALLOC";
-    case sa_LOG_CONTEXT_CONFIG:
+    case su_LOG_CONTEXT_CONFIG:
         return "CONFIG";
     }
     // There isn't a "default" case because clang sees that
@@ -52,11 +52,11 @@ static const char* sa_Log_Context_To_String_s(enum sa_logContext context) {
 
 /* === Implementations=== */
 
-void sa_Log_Should_Print_Origin(sa_bool enable) {
+void su_Log_Should_Print_Origin(sa_bool enable) {
     sa_should_log_source_s = enable;
 }
 
-void sa_Log_Info(enum sa_logContext context,
+void su_Log_Info(enum su_logContext context,
                  const char* message, const char* file, int line) {
     if (sa_should_log_source_s) {
         printf("INFO: [%s]: %s: [FILE:%s][LINE:%d]\n",
@@ -69,11 +69,11 @@ void sa_Log_Info(enum sa_logContext context,
            message);
 }
 
-void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
+void su_Log_Debug(enum su_logDebugType type, enum su_logContext context,
                   const char* message, const char* file, int line) {
     char type_str[32];
     switch (type) {
-    case sa_LOG_DEBUG_TYPE_WINDOWING:
+    case su_LOG_DEBUG_TYPE_WINDOWING:
         {
 #if defined(SACI_DEBUG_MODE_ALL) || defined(SACI_DEBUG_MODE_WINDOWING)
             strcpy(type_str, "WINDOWING");
@@ -89,7 +89,7 @@ void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
 #endif
             break;
         }
-    case sa_LOG_DEBUG_TYPE_TEXTURE:
+    case su_LOG_DEBUG_TYPE_TEXTURE:
         {
 #if defined(SACI_DEBUG_MODE_ALL) || defined(SACI_DEBUG_MODE_TEXTURE)
             strcpy(type_str, "TEXTURE");
@@ -105,7 +105,7 @@ void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
 #endif
             break;
         }
-    case sa_LOG_DEBUG_TYPE_MODEL:
+    case su_LOG_DEBUG_TYPE_MODEL:
         {
 #if defined(SACI_DEBUG_MODE_ALL) || defined(SACI_DEBUG_MODE_MODEL)
             strcpy(type_str, "MODEL");
@@ -121,7 +121,7 @@ void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
 #endif
             break;
         }
-    case sa_LOG_DEBUG_TYPE_OPENGL:
+    case su_LOG_DEBUG_TYPE_OPENGL:
         {
 #if defined(SACI_DEBUG_MODE_ALL) || defined(SACI_DEBUG_MODE_OPENGL)
             strcpy(type_str, "OPENGL");
@@ -138,7 +138,7 @@ void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
 #endif
             break;
         }
-    case sa_LOG_DEBUG_TYPE_RENDERER:
+    case su_LOG_DEBUG_TYPE_RENDERER:
         {
 #if defined(SACI_DEBUG_MODE_ALL) || defined(SACI_DEBUG_MODE_RENDERER)
             strcpy(type_str, "RENDERER");
@@ -155,7 +155,7 @@ void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
 #endif
             break;
         }
-    case sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS:
+    case su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS:
         {
 #if defined(SACI_DEBUG_MODE_ALL) || defined(SACI_DEBUG_MODE_RENDERER_FUNCTIONS)
             strcpy(type_str, "RENDERER_FUNCTIONS");
@@ -172,7 +172,7 @@ void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
 #endif
             break;
         }
-    case sa_LOG_DEBUG_TYPE_RENDERER_BATCH:
+    case su_LOG_DEBUG_TYPE_RENDERER_BATCH:
         {
 #if defined(SACI_DEBUG_MODE_ALL) || defined(SACI_DEBUG_MODE_RENDERER_BATCH)
             strcpy(type_str, "RENDERER_BATCH");
@@ -189,7 +189,7 @@ void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
 #endif
             break;
         }
-    case sa_LOG_DEBUG_TYPE_RENDERER_CALL:
+    case su_LOG_DEBUG_TYPE_RENDERER_CALL:
         {
 #if defined(SACI_DEBUG_MODE_ALL) || defined(SACI_DEBUG_MODE_RENDERER_CALL)
             strcpy(type_str, "RENDERER_CALL");
@@ -214,8 +214,8 @@ void sa_Log_Debug(enum sa_logDebugType type, enum sa_logContext context,
     }
 }
 
-void sa_Log_Warn(enum sa_logSeverity severity,
-                 enum sa_logContext context,
+void su_Log_Warn(enum su_logSeverity severity,
+                 enum su_logContext context,
                  const char* message, const char* file, int line) {
     if (severity < sa_logging_severity_s) {
         return;
@@ -226,7 +226,7 @@ void sa_Log_Warn(enum sa_logSeverity severity,
                sa_Log_Context_To_String_s(context),
                sa_Log_Severity_To_String_s(severity),
                message, file, line);
-        if (severity >= sa_LOG_SEVERITY_HIGH) {
+        if (severity >= su_LOG_SEVERITY_HIGH) {
             exit(EXIT_FAILURE);
         }
         return;
@@ -235,13 +235,13 @@ void sa_Log_Warn(enum sa_logSeverity severity,
            sa_Log_Context_To_String_s(context),
            sa_Log_Severity_To_String_s(severity),
            message);
-    if (severity >= sa_LOG_SEVERITY_HIGH) {
+    if (severity >= su_LOG_SEVERITY_HIGH) {
         exit(EXIT_FAILURE);
     }
 }
 
-void sa_Log_Error(enum sa_logSeverity severity,
-                  enum sa_logContext context,
+void su_Log_Error(enum su_logSeverity severity,
+                  enum su_logContext context,
                   const char* message, const char* file, int line) {
     if (severity < sa_logging_severity_s) {
         return;
@@ -252,7 +252,7 @@ void sa_Log_Error(enum sa_logSeverity severity,
                sa_Log_Context_To_String_s(context),
                sa_Log_Severity_To_String_s(severity),
                message, file, line);
-        if (severity >= sa_LOG_SEVERITY_HIGH) {
+        if (severity >= su_LOG_SEVERITY_HIGH) {
             exit(EXIT_FAILURE);
         }
         return;
@@ -261,7 +261,7 @@ void sa_Log_Error(enum sa_logSeverity severity,
            sa_Log_Context_To_String_s(context),
            sa_Log_Severity_To_String_s(severity),
            message);
-    if (severity >= sa_LOG_SEVERITY_HIGH) {
+    if (severity >= su_LOG_SEVERITY_HIGH) {
         exit(EXIT_FAILURE);
     }
 }

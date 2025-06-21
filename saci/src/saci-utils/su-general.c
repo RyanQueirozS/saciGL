@@ -18,13 +18,13 @@ typedef struct sa_dArray {
 
 SA_API sa_dArray* sa_DArray_Create(sa_u64 capacity, sa_u64 elem_size, sa_bool fixed_size) {
     sa_dArray* array = sa_Calloc_m(1, sizeof(sa_dArray));
-    sa_Log_Assert_Message_m(array, "dArray couldn't be created");
+    su_Log_Assert_Message_m(array, "dArray couldn't be created");
     array->length = 0;
     array->capacity = capacity;
     array->elem_size = elem_size;
     array->is_fixed_size = fixed_size;
     array->data = sa_Calloc_m(capacity, elem_size);
-    sa_Log_Assert_Message_m(array->data, "Could not allocate memory for sa_dArray");
+    su_Log_Assert_Message_m(array->data, "Could not allocate memory for sa_dArray");
     return array;
 }
 
@@ -33,7 +33,7 @@ SA_API sa_dArray* sa_DArray_Create_Ctx(void* memctx, sa_u64 memctx_size, sa_u64 
     sa_u64 data_size = capacity * elem_size;
     sa_u64 total_size = struct_size + data_size;
 
-    sa_Log_AssertF_Message_m(memctx && memctx_size >= total_size,
+    su_Log_AssertF_Message_m(memctx && memctx_size >= total_size,
                              "Memory context is too small for sa_dArray and its "
                              "data. Passed: (%lu) expected min: (%lu)",
                              memctx_size, total_size);
@@ -59,19 +59,19 @@ SA_API void sa_DArray_Free(sa_dArray* array) {
 }
 
 SA_API void sa_DArray_Clear(sa_dArray* array) {
-    sa_Log_Assert_Message_m(array, "sa_DArray_Clear: array is NULL");
+    su_Log_Assert_Message_m(array, "sa_DArray_Clear: array is NULL");
     array->length = 0;
 }
 
 SA_API sa_bool sa_DArray_Resize(sa_dArray* array, sa_u64 new_cap) {
     if (array->is_fixed_size) {
-        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY,
+        su_Log_ErrorF_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_MEMORY,
                               "Cannot resize fixed-size sa_dArray");
         return sa_FALSE;
     }
     void* new_data = realloc(array->data, new_cap * array->elem_size);
     if (!new_data) {
-        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY,
+        su_Log_ErrorF_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_MEMORY,
                               "Could not allocate for sa_dArray when resizing");
         return sa_FALSE;
     }
@@ -83,7 +83,7 @@ SA_API sa_bool sa_DArray_Resize(sa_dArray* array, sa_u64 new_cap) {
 SA_API sa_bool sa_DArray_Push(sa_dArray* array, const void* value) {
     if (array->length == array->capacity) {
         if (array->is_fixed_size) {
-            sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_MEMORY,
+            su_Log_ErrorF_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_MEMORY,
                                   "Cannot push to full fixed-size sa_dArray");
             return sa_FALSE;
         }
@@ -99,25 +99,25 @@ SA_API sa_bool sa_DArray_Push(sa_dArray* array, const void* value) {
 }
 
 SA_API void sa_DArray_Pop(sa_dArray* array) {
-    sa_Log_Assert_Message_m(array->length > 0, "Length is zero cannot pop sa_dArray");
+    su_Log_Assert_Message_m(array->length > 0, "Length is zero cannot pop sa_dArray");
     array->length--;
 }
 
 SA_API void sa_DArray_Get(const sa_dArray* array, sa_u64 index, void* out_value) {
-    sa_Log_AssertF_Message_m(index < array->length,
+    su_Log_AssertF_Message_m(index < array->length,
                              "sa_dArray accessed at %lu while length is %lu", index, array->length);
     const void* src = (const char*)array->data + index * array->elem_size;
     memcpy(out_value, src, array->elem_size);
 }
 
 SA_API void* sa_DArray_Get_Ptr(const sa_dArray* array, sa_u64 index) {
-    sa_Log_AssertF_Message_m(index < array->length,
+    su_Log_AssertF_Message_m(index < array->length,
                              "sa_dArray accessed at %lu while length is %lu", index, array->length);
     return (char*)array->data + index * array->elem_size;
 }
 
 SA_API void sa_DArray_Set(sa_dArray* array, sa_u64 index, const void* value) {
-    sa_Log_AssertF_Message_m(index < array->length,
+    su_Log_AssertF_Message_m(index < array->length,
                              "sa_dArray accessed at %lu while length is %lu", index, array->length);
     void* dest = (char*)array->data + index * array->elem_size;
     memcpy(dest, value, array->elem_size);
@@ -164,13 +164,13 @@ SA_API sa_bool sa_DArray_Is_Empty(const sa_dArray* arr) {
 /* === DArray impl === */
 
 SA_INTERNAL sa_bool sa_DArray_Can_Append(const sa_dArray* dest, const sa_dArray* src) {
-    sa_Log_Assert_Message_m(dest, "dest is NULL");
-    sa_Log_Assert_Message_m(src, "src is NULL");
-    sa_Log_Assert_Message_m(dest->data != NULL, "dest->data is NULL");
-    sa_Log_Assert_Message_m(src->data != NULL, "src->data is NULL");
-    sa_Log_Assert_Message_m(dest->elem_size == src->elem_size, "dest->elem_size is not src->elem_size");
-    sa_Log_Assert_Message_m(dest->elem_size > 0, "dest->elem_size is less than or equal to 0");
-    sa_Log_Assert_Message_m(src->elem_size > 0, "dest->elem_size is less than or equal to 0");
+    su_Log_Assert_Message_m(dest, "dest is NULL");
+    su_Log_Assert_Message_m(src, "src is NULL");
+    su_Log_Assert_Message_m(dest->data != NULL, "dest->data is NULL");
+    su_Log_Assert_Message_m(src->data != NULL, "src->data is NULL");
+    su_Log_Assert_Message_m(dest->elem_size == src->elem_size, "dest->elem_size is not src->elem_size");
+    su_Log_Assert_Message_m(dest->elem_size > 0, "dest->elem_size is less than or equal to 0");
+    su_Log_Assert_Message_m(src->elem_size > 0, "dest->elem_size is less than or equal to 0");
     if (src->length == 0) {
         return false;
     }
@@ -184,7 +184,7 @@ SA_INTERNAL sa_bool sa_DArray_Ensure_Capacity(sa_dArray* dest, sa_u64 required_c
     }
 
     if (dest->is_fixed_size) {
-        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_MEMORY,
+        su_Log_ErrorF_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_MEMORY,
                               "Cannot append to fixed-size sa_dArray");
         return sa_FALSE;
     }

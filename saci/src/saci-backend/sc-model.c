@@ -54,7 +54,7 @@ SA_API struct sc_modelMesh* sc_Model_Mesh_Load(const char* path) {
                                     &mesh->indice_array,
                                     &mesh->indices_count);
     if (!success) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_MODEL_LOADING, "Couldn't load model");
+        su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_MODEL_LOADING, "Couldn't load model");
         sa_Free_m(mesh);
         return NULL;
     }
@@ -80,8 +80,8 @@ SA_API void sc_Model_Get_Vertex_Indice_Array(const struct sc_modelMesh* model_me
     *indice_array_out = sa_Malloc_m(sizeof(struct sc_vertexIndice) *
                                     model_mesh->indices_count);
     if (!*indice_array_out) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM,
-                             sa_LOG_CONTEXT_MEMORY,
+        su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM,
+                             su_LOG_CONTEXT_MEMORY,
                              "Could not allocate memory for indice_array_out");
         return;
     }
@@ -183,20 +183,20 @@ SA_INTERNAL sa_bool s_Model_Parse(const char* file_path,
             strncpy(error_reason, "Error reading file", 255);
             break;
         }
-        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_MODEL_LOADING, "Could not load model: %s", error_reason);
+        su_Log_ErrorF_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_MODEL_LOADING, "Could not load model: %s", error_reason);
     };
 
     *positions_count_out = attribute.num_vertices;
     if (!(*positions_count_out)) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM,
-                             sa_LOG_CONTEXT_MODEL_LOADING,
+        su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM,
+                             su_LOG_CONTEXT_MODEL_LOADING,
                              "Could not load position array");
         return false;
     }
     *position_array_out = sa_Scast_To_m(sa_vec3*) sa_Malloc_m(sizeof(sa_vec3) * (*positions_count_out));
     if (!(*position_array_out)) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM,
-                             sa_LOG_CONTEXT_MODEL_LOADING, "Couldn't malloc positions");
+        su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM,
+                             su_LOG_CONTEXT_MODEL_LOADING, "Couldn't malloc positions");
         return false;
     }
     for (sa_u64 i = 0; i < (*positions_count_out); ++i) {

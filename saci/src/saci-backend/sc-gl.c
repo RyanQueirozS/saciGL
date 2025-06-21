@@ -89,7 +89,7 @@ SA_API void sc_GL_Uniform_Set_Value(const sa_s32 location, sa_dataType type, con
         break;
 
     default:
-        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+        su_Log_ErrorF_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
                               "Invalid type %d for uniform", type);
         break;
     }
@@ -182,7 +182,7 @@ sa_u32 sc_Shader_Create_Shader_Program(sa_u32 vshader, sa_u32 fshader) {
         char gl_err_message[1024];
         int size_returned = 0;
         glGetProgramInfoLog(program_id, 2048, &size_returned, gl_err_message);
-        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, "Shader program couldn't be loaded: %s", gl_err_message);
+        su_Log_ErrorF_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_OPENGL, "Shader program couldn't be loaded: %s", gl_err_message);
         return 0;
     }
     glDetachShader(program_id, vshader);
@@ -190,7 +190,7 @@ sa_u32 sc_Shader_Create_Shader_Program(sa_u32 vshader, sa_u32 fshader) {
     glDeleteShader(vshader);
     glDeleteShader(fshader);
 
-    sa_Log_InfoF_Print_m(sa_LOG_CONTEXT_OPENGL,
+    su_Log_InfoF_Print_m(su_LOG_CONTEXT_OPENGL,
                          "Shader program %d loaded successfully", program_id);
     return program_id;
 }
@@ -208,7 +208,7 @@ sa_u32 sc_Shader_Create_Shader_Program_Geom(sa_u32 vshader, sa_u32 fshader, sa_u
         char gl_err_message[1024];
         int size_returned = 0;
         glGetProgramInfoLog(program_id, 2048, &size_returned, gl_err_message);
-        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, "Shader program couldn't be loaded: %s", gl_err_message);
+        su_Log_ErrorF_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_OPENGL, "Shader program couldn't be loaded: %s", gl_err_message);
         return 0;
     }
     glDetachShader(program_id, vshader);
@@ -217,7 +217,7 @@ sa_u32 sc_Shader_Create_Shader_Program_Geom(sa_u32 vshader, sa_u32 fshader, sa_u
     glDeleteShader(vshader);
     glDeleteShader(fshader);
     glDeleteShader(gshader);
-    sa_Log_InfoF_Print_m(sa_LOG_CONTEXT_OPENGL,
+    su_Log_InfoF_Print_m(su_LOG_CONTEXT_OPENGL,
                          "Shader program %d loaded successfully", program_id);
 
     return program_id;
@@ -255,7 +255,7 @@ SA_INTERNAL sa_u32 s_Shader_Compile(const char* shader_source, sa_u32 shader_typ
             if (shader_type == GL_GEOMETRY_SHADER) {
                 log_message = "Geometry shader couldn't be loaded";
             }
-            sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, log_message);
+            su_Log_Error_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_OPENGL, log_message);
         }
         return 0;
     }
@@ -271,7 +271,7 @@ SA_INTERNAL sa_u32 s_Shader_Compile(const char* shader_source, sa_u32 shader_typ
         if (shader_type == GL_GEOMETRY_SHADER) {
             log_message = "Geometry shader loaded succesfully";
         }
-        sa_Log_Info_Print_m(sa_LOG_CONTEXT_OPENGL, log_message);
+        su_Log_Info_Print_m(su_LOG_CONTEXT_OPENGL, log_message);
     }
 
     return shader_id;

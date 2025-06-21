@@ -19,7 +19,7 @@ void sc_Texture_Load_Data(const char* path, sa_bool flip_img, int* width_out, in
     stbi_set_flip_vertically_on_load(!flip_img);
     *data_out = stbi_load(path, width_out, height_out, nr_channels_out, 0);
     if ((*width_out) <= 0 || (*height_out) <= 0) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+        su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Texture Width or Height is equal to 0");
     }
 }
@@ -32,7 +32,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flip_img) {
     sc_Texture_Load_Data(path, flip_img, &width, &height, &nr_channels, &data);
 
     if (!data) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+        su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Image could not be loaded");
         return 0;
     }
@@ -40,7 +40,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flip_img) {
     sa_u32 format = s_Texture_Determine_Format(nr_channels);
     if (format == 0) {
         sa_Free_m(data);
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+        su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Unsupported number of channels");
         return 0;
     }
@@ -58,7 +58,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flip_img) {
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &gl_height);
 
     if (gl_width <= 0 || gl_height <= 0) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+        su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Texture Width or Height is equal to 0");
         sa_Free_m(data);
         return 0;
@@ -67,12 +67,12 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flip_img) {
     glGenerateMipmap(GL_TEXTURE_2D);
 
     sa_Free_m(data);
-    sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_TEXTURE, sa_LOG_CONTEXT_OPENGL, "Loaded texture");
+    su_Log_Debug_Print_m(su_LOG_DEBUG_TYPE_TEXTURE, su_LOG_CONTEXT_OPENGL, "Loaded texture");
     return id;
 }
 
 void sc_Texture_Free(sa_textureId texture_id) {
-    sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_TEXTURE, sa_LOG_CONTEXT_OPENGL, "Freed texture");
+    su_Log_Debug_Print_m(su_LOG_DEBUG_TYPE_TEXTURE, su_LOG_CONTEXT_OPENGL, "Freed texture");
     glDeleteTextures(1, &texture_id);
 }
 

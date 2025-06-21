@@ -22,9 +22,9 @@ CheckOptions:
   - key: readability-identifier-naming.FunctionCase
     value: Camel_Snake_Case
   - key: readability-identifier-naming.GlobalFunctionPrefix
-    value: "sa_"
+    value: "su_"
   - key: readability-identifier-naming.FunctionPrefix
-    value: "sa_"
+    value: "su_"
   - key: readability-identifier-naming.FunctionSuffix
     value: "_s"
 
@@ -32,7 +32,7 @@ CheckOptions:
   - key: readability-identifier-naming.GlobalVariableCase
     value: lower_case
   - key: readability-identifier-naming.GlobalVariablePrefix
-    value: "sa_"
+    value: "su_"
   - key: readability-identifier-naming.StaticVariableCase
     value: lower_case
   - key: readability-identifier-naming.StaticVariableSuffix
@@ -50,7 +50,7 @@ CheckOptions:
   - key: readability-identifier-naming.GlobalConstantCase
     value: UPPER_CASE
   - key: readability-identifier-naming.GlobalConstantPrefix
-    value: "sa_"
+    value: "su_"
   - key: readability-identifier-naming.LocalConstantCase
     value: lower_case
   - key: readability-identifier-naming.ConstantParameterCase
@@ -64,7 +64,7 @@ CheckOptions:
   # - key: readability-identifier-naming.StructCase
   #   value: camelCase
   # - key: readability-identifier-naming.StructPrefix
-  #   value: "sa_"
+  #   value: "su_"
   # - key: readability-identifier-naming.MemberCase
   #   value: lower_case
 
@@ -72,7 +72,7 @@ CheckOptions:
   - key: readability-identifier-naming.EnumCase
     value: camelCase
   - key: readability-identifier-naming.EnumPrefix
-    value: "sa_"
+    value: "su_"
   - key: readability-identifier-naming.EnumConstantCase
     value: UPPER_CASE
 
@@ -80,12 +80,12 @@ CheckOptions:
   - key: readability-identifier-naming.TypedefCase
     value: camelCase
   - key: readability-identifier-naming.TypedefPrefix
-    value: "sa_"
+    value: "su_"
 
   # # Macros are not used, because clang-tidy cannot differenciate macro functions between other macro types
   # - key: readability-identifier-naming.MacroDefinitionCase
   #   value: ALL_CAPS
   # - key: readability-identifier-naming.MacroDefinitionPrefix
-  #   value: "SC_"
+  #   value: "SU_"
   # - key: readability-identifier-naming.MacroDefinitionSuffix
   #   value: "_m"

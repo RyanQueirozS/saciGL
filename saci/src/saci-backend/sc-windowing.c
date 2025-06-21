@@ -19,10 +19,10 @@ SA_INTERNAL void s_Opengl_Initialize_Debugger(void);
 sa_bool sc_GLFW_Init(void) {
     int success = glfwInit();
     if (!success) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, "Couldn't load glfw");
+        su_Log_Error_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_OPENGL, "Couldn't load glfw");
         return sa_FALSE;
     }
-    sa_Log_Info_Print_m(sa_LOG_CONTEXT_OPENGL, "Loaded glfw");
+    su_Log_Info_Print_m(su_LOG_CONTEXT_OPENGL, "Loaded glfw");
     // TODO make user defined version
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -33,13 +33,13 @@ sa_bool sc_GLFW_Init(void) {
 
 sa_bool sc_GLAD_Init(void) {
     if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != sa_TRUE) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_OPENGL, "Couldn't Load glad");
+        su_Log_Error_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_OPENGL, "Couldn't Load glad");
         return sa_FALSE;
     }
-    sa_Log_Info_Print_m(sa_LOG_CONTEXT_OPENGL, "Loaded glad");
+    su_Log_Info_Print_m(su_LOG_CONTEXT_OPENGL, "Loaded glad");
     s_Opengl_Initialize_Debugger();
 
-    sa_Log_InfoF_Print_m(sa_LOG_CONTEXT_OPENGL,
+    su_Log_InfoF_Print_m(su_LOG_CONTEXT_OPENGL,
                          "Using OpenGL version: %s", glGetString(GL_VERSION));
 
     return sa_TRUE;
@@ -64,17 +64,17 @@ sa_bool sc_Window_Should_Close(sc_window_t* window) {
 
 void sc_Window_Set_Pos_Handler(sc_window_t* window, sc_window_posHandler_t window_pos_handler) {
     glfwSetWindowPosCallback(window, window_pos_handler);
-    sa_Log_Info_Print_m(sa_LOG_CONTEXT_OPENGL, "Set window pos handler");
+    su_Log_Info_Print_m(su_LOG_CONTEXT_OPENGL, "Set window pos handler");
 }
 
 void sc_Window_Set_Size_Handler(sc_window_t* window, sc_window_sizeHandler_t window_size_handler) {
     glfwSetWindowSizeCallback(window, window_size_handler);
-    sa_Log_Info_Print_m(sa_LOG_CONTEXT_OPENGL, "Set window size callback");
+    su_Log_Info_Print_m(su_LOG_CONTEXT_OPENGL, "Set window size callback");
 }
 
 void sc_Window_Terminate(void) {
     glfwTerminate();
-    sa_Log_Info_Print_m(sa_LOG_CONTEXT_OPENGL, "Terminated glfw");
+    su_Log_Info_Print_m(su_LOG_CONTEXT_OPENGL, "Terminated glfw");
 }
 
 void sc_Window_Clear_Color(sa_color color) {
@@ -91,8 +91,8 @@ void sc_Window_Swap_Buffer(sc_window_t* window) {
 void s_Opengl_Initialize_Debugger(void) {
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(sa_Log_OpenGL_Debug_Message_Callback, NULL);
-    sa_Log_Debug_Print_m(sa_LOG_DEBUG_TYPE_OPENGL, sa_LOG_CONTEXT_OPENGL, "Loaded OpenGL debugger");
+    glDebugMessageCallback(su_Log_OpenGL_Debug_Message_Callback, NULL);
+    su_Log_Debug_Print_m(su_LOG_DEBUG_TYPE_OPENGL, su_LOG_CONTEXT_OPENGL, "Loaded OpenGL debugger");
 }
 
 /* === Event === */

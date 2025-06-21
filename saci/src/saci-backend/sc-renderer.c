@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ARENA_ASSERT(x) sa_Log_Assert_Message_m(x, "Error in arena function")
+#define ARENA_ASSERT(x) su_Log_Assert_Message_m(x, "Error in arena function")
 #define ARENA_FREE(x) sa_Free_m(x)
 #define ARENA_MALLOC(x) sa_Malloc_m(x)
 #define ARENA_ALLOCATOR_IMPL
@@ -398,7 +398,7 @@ SA_INTERNAL void s_Renderer_Set_Uniform(struct sc_renderer* self,
 SA_INTERNAL void s_Renderer_Instance_Begin(const struct sc_renderer* self);
 
 SA_INTERNAL const struct sc_rendererInterface sc_INSTANCE_RENDERER_DEFAULT_INTERFACE =
-    (struct sc_rendererInterface){
+    {
         .new = s_Renderer_Instanced_New,
         .begin = s_Renderer_Instance_Begin,
         .bind_texture = s_Renderer_Bind_Texture,
@@ -409,7 +409,7 @@ SA_INTERNAL const struct sc_rendererInterface sc_INSTANCE_RENDERER_DEFAULT_INTER
         .draw = s_Renderer_Draw_Instance_Batch,
         .free = NULL,
         .free_opts = NULL,
-    };
+};
 
 /* --- Renderer Header Impl --- */
 
@@ -475,11 +475,11 @@ SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts) {
 
 // TODO, it's working but needs some improvement
 SA_API void sc_Renderer_Set_Instance_Transforms(struct sc_renderer* rendr, sa_dArray* transform_array) {
-    sa_Log_Assert_Message_m(rendr->type == sc_RENDERER_INSTANCE, "Trying to set instance transforms in non instance renderer");
+    su_Log_Assert_Message_m(rendr->type == sc_RENDERER_INSTANCE, "Trying to set instance transforms in non instance renderer");
 
-    sa_Log_DebugF_Print_m(
-        sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
-        sa_LOG_CONTEXT_RENDERER,
+    su_Log_DebugF_Print_m(
+        su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
+        su_LOG_CONTEXT_RENDERER,
         "Binding %lu transforms",
         sa_DArray_Length(transform_array));
     sa_DArray_Clear(rendr->rendr.instance_renderer->bound_transform_array);
@@ -522,19 +522,19 @@ SA_INTERNAL void s_Renderer_Init_GL(struct sc_rendererCommon* rendr_common, cons
     { // Shader init
         sa_shaderId v_shader = sc_Shader_Compile_Shader_Vert(sc_INSTANCE_VERT_SHADER);
         sa_shaderId f_shader = sc_Shader_Compile_Shader_Frag(sc_FRAG_SHADER);
-        sa_Log_Assert_Message_m(v_shader && f_shader, "Shaders could not be initialized");
+        su_Log_Assert_Message_m(v_shader && f_shader, "Shaders could not be initialized");
         rendr_common->shader_program = sc_Shader_Create_Shader_Program(v_shader, f_shader);
-        sa_Log_Assert_Message_m(rendr_common->shader_program, "Shader program could not be initialized");
+        su_Log_Assert_Message_m(rendr_common->shader_program, "Shader program could not be initialized");
     }
     { // Opengl buffers
         rendr_common->vbo = sc_GL_Create_Vertex_Buffer(
             sizeof(struct sc_vertex) * SC_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY,
             NULL, GL_DYNAMIC_DRAW);
-        sa_Log_Assert_Message_m(rendr_common->vbo, "VBO could not be initialized");
+        su_Log_Assert_Message_m(rendr_common->vbo, "VBO could not be initialized");
         rendr_common->ibo = sc_GL_Create_Index_Buffer_Dynamic(NULL, SC_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY);
-        sa_Log_Assert_Message_m(rendr_common->ibo, "IBO could not be initialized");
+        su_Log_Assert_Message_m(rendr_common->ibo, "IBO could not be initialized");
         sc_GL_Create_Vertex_Array(1, &rendr_common->vao);
-        sa_Log_Assert_Message_m(rendr_common->vao, "VAO could not be initialized");
+        su_Log_Assert_Message_m(rendr_common->vao, "VAO could not be initialized");
         // TODO
     }
     { // VertexAttrib init
@@ -727,7 +727,7 @@ SA_INTERNAL void s_Renderer_Set_Uniform_From_Uniform_Data(const struct sc_render
         break;
 
     default:
-        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+        su_Log_ErrorF_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
                               "Invalid type %d for uniform", uniform_data.type);
         return;
     }
@@ -777,12 +777,12 @@ SA_INTERNAL sa_s32 s_Renderer_Get_Uniform_Id(struct sc_renderer* self,
 
 SA_INTERNAL void s_Renderer_Bind_Index_Buffer(struct sc_renderer* self, const sa_dArray* new_indices) {
     if (!new_indices) {
-        sa_Log_Warn_Print_m(sa_LOG_SEVERITY_MEDIUM,
-                            sa_LOG_CONTEXT_RENDERER,
+        su_Log_Warn_Print_m(su_LOG_SEVERITY_MEDIUM,
+                            su_LOG_CONTEXT_RENDERER,
                             "Indices are NULL and cannot be bound");
         return;
     }
-    sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, sa_LOG_CONTEXT_RENDERER,
+    su_Log_DebugF_Print_m(su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
                           "Bound %lu indices", sa_DArray_Length(new_indices));
 
     switch (self->type) {
@@ -819,12 +819,12 @@ SA_INTERNAL void s_Renderer_Push_Mesh_Instanced(struct sc_renderer* self,
     // s_Renderer_Validate_Before_Push(rendr, pos_array, uv_array, color_array);
     // TODO validate instance_transform
 
-    sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
-                          sa_LOG_CONTEXT_RENDERER,
+    su_Log_DebugF_Print_m(su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
+                          su_LOG_CONTEXT_RENDERER,
                           "Attempting to push %lu vertices to instance batch",
                           sa_DArray_Length(pos_array));
-    sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
-                          sa_LOG_CONTEXT_RENDERER,
+    su_Log_DebugF_Print_m(su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
+                          su_LOG_CONTEXT_RENDERER,
                           "Attempting to push %lu indices to instance batch",
                           sa_DArray_Length(rendr->common.bound.index_array));
     struct sc_instanceBatch* batch = rendr->batch_ptr_array[rendr->batch_info.in_use];
@@ -859,6 +859,7 @@ SA_INTERNAL void s_Renderer_Set_Uniform(struct sc_renderer* self,
     switch (self->type) {
     case sc_RENDERER_STATIC:
         uniform_data_array = &self->rendr.static_renderer->common.bound.uniform_data_array;
+        break;
     case sc_RENDERER_DYNAMIC:
     case sc_RENDERER_INSTANCE:
         uniform_data_array = &self->rendr.instance_renderer->common.bound.uniform_data_array;
@@ -868,12 +869,12 @@ SA_INTERNAL void s_Renderer_Set_Uniform(struct sc_renderer* self,
     if (uniform_id < 0 || uniform_id >= SA_TYPE_MAX ||
         uniform_id == SA_TYPE_BUFFERID || uniform_id == SA_TYPE_SHADERID ||
         uniform_id == SA_TYPE_TEXTUREID) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_RENDERER,
+        su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_RENDERER,
                              "Trying to bind uniform with invalid ID");
         return;
     }
     if (sa_Scast_To_m(int)(type) == 0 || sa_Scast_To_m(int)(type) > 26) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_RENDERER,
+        su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_RENDERER,
                              "Trying to bind uniform with invalid type");
         return;
     }
@@ -933,18 +934,18 @@ SA_INTERNAL void s_Renderer_Init_Bound(struct sc_rendererCommon* common, const s
 SA_INTERNAL struct sc_rendererConfig s_Renderer_Get_Static_Config(const char* const path) {
     struct sc_rendererConfig cfg = {0};
     if (!path) {
-        sa_Log_Warn_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_RENDERER,
+        su_Log_Warn_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_RENDERER,
                             "Could not open renderer config");
         return cfg;
     }
     sc_configState* state = sc_Config_Load(path);
     if (!state) {
-        sa_Log_Error_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
+        su_Log_Error_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER,
                              "Couldn't load config state");
         return cfg;
     }
     if (!sc_Config_Load_Table(state, "static_renderer")) {
-        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_HIGH, sa_LOG_CONTEXT_RENDERER,
+        su_Log_ErrorF_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER,
                               "Couldn't find 'static' renderer in config: %s", path);
         return cfg;
     }
@@ -995,8 +996,8 @@ SA_INTERNAL struct sc_rendererConfig s_Renderer_Get_Static_Config(const char* co
 }
 
 SA_INTERNAL void s_Renderer_Draw_Static_Batch(const struct sc_staticRenderer* rendr) {
-    sa_Log_DebugF_Print_m(sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
-                          sa_LOG_CONTEXT_RENDERER,
+    su_Log_DebugF_Print_m(su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
+                          su_LOG_CONTEXT_RENDERER,
                           "Flushing %d batches", rendr->batch_info.in_use);
 
     struct previousBatch { // Will get bigger later
@@ -1046,9 +1047,9 @@ SA_INTERNAL void s_Renderer_Draw_Static_Batch(const struct sc_staticRenderer* re
 
 SA_INTERNAL void s_Renderer_Draw_Instance_Batch(const struct sc_renderer* self) {
     const struct sc_instanceRenderer* rendr = self->rendr.instance_renderer;
-    sa_Log_DebugF_Print_m(
-        sa_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
-        sa_LOG_CONTEXT_RENDERER,
+    su_Log_DebugF_Print_m(
+        su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
+        su_LOG_CONTEXT_RENDERER,
         "Flushing %d instance batches",
         rendr->batch_info.in_use);
 
@@ -1176,7 +1177,7 @@ SA_INTERNAL union sc_uniformValue s_Renderer_Uniform_Value_From_Type(sa_dataType
         break;
 
     default:
-        sa_Log_ErrorF_Print_m(sa_LOG_SEVERITY_MEDIUM, sa_LOG_CONTEXT_OPENGL,
+        su_Log_ErrorF_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
                               "Invalid type %d for uniform", type);
         break;
     }
