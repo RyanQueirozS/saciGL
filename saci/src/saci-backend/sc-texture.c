@@ -39,7 +39,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flip_img) {
 
     sa_u32 format = s_Texture_Determine_Format(nr_channels);
     if (format == 0) {
-        sa_Free_m(data);
+        su_Free_m(data);
         su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Unsupported number of channels");
         return 0;
@@ -50,7 +50,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flip_img) {
 
     glBindTexture(GL_TEXTURE_2D, id);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, sa_Scast_To_m(int)(format), width, height, 0, format,
+    glTexImage2D(GL_TEXTURE_2D, 0, su_Scast_To_m(int)(format), width, height, 0, format,
                  GL_UNSIGNED_BYTE, data);
 
     int gl_width = 0, gl_height = 0;
@@ -60,13 +60,13 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flip_img) {
     if (gl_width <= 0 || gl_height <= 0) {
         su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Texture Width or Height is equal to 0");
-        sa_Free_m(data);
+        su_Free_m(data);
         return 0;
     }
 
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    sa_Free_m(data);
+    su_Free_m(data);
     su_Log_Debug_Print_m(su_LOG_DEBUG_TYPE_TEXTURE, su_LOG_CONTEXT_OPENGL, "Loaded texture");
     return id;
 }

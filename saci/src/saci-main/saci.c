@@ -51,7 +51,7 @@ enum saci_shapeType {
 
 // Each index is a shape so there is no need to store the shape type directly
 struct saci_shapeDrawCall {
-    sa_dArray* transforms;
+    su_dArray* transforms;
 };
 
 struct saci_contextBoundInfo {
@@ -61,9 +61,9 @@ struct saci_contextBoundInfo {
 };
 
 SA_INTERNAL struct saci_context {
-    sa_dArray* renderer_array;
+    su_dArray* renderer_array;
 
-    sa_dArray* shape_draw_call_array;
+    su_dArray* shape_draw_call_array;
 
     struct saci_contextBoundInfo bound_info;
 
@@ -77,30 +77,30 @@ SA_INTERNAL struct saci_context {
 } saci_context = {0};
 
 SA_API void saci_Init(void) {
-    saci_context.renderer_array = sa_DArray_Create(
+    saci_context.renderer_array = su_DArray_Create(
         SACI_RENDERER_AMOUNT,
         sizeof(struct sc_renderer*),
         sa_TRUE);
     struct sc_renderer* static_rendr = sc_Renderer_New(sc_RENDERER_STATIC);
     struct sc_renderer* instance_rendr = sc_Renderer_New(sc_RENDERER_STATIC);
-    sa_DArray_Push(saci_context.renderer_array, static_rendr);
-    sa_DArray_Push(saci_context.renderer_array, instance_rendr);
+    su_DArray_Push(saci_context.renderer_array, static_rendr);
+    su_DArray_Push(saci_context.renderer_array, instance_rendr);
 }
 
 SA_API void saci_Begin(void) {
-    for (sa_u64 i = 0; i < sa_DArray_Length(saci_context.renderer_array); ++i) {
-        struct sc_renderer* renderer = sa_DArray_Get_Ptr(saci_context.renderer_array, i);
+    for (sa_u64 i = 0; i < su_DArray_Length(saci_context.renderer_array); ++i) {
+        struct sc_renderer* renderer = su_DArray_Get_Ptr(saci_context.renderer_array, i);
         sc_Renderer_Begin(renderer);
     }
 
-    for (sa_u64 i = 0; i < sa_DArray_Length(saci_context.renderer_array); ++i) {
-        struct sc_renderer* renderer = sa_DArray_Get_Ptr(saci_context.renderer_array, i);
+    for (sa_u64 i = 0; i < su_DArray_Length(saci_context.renderer_array); ++i) {
+        struct sc_renderer* renderer = su_DArray_Get_Ptr(saci_context.renderer_array, i);
         sc_Renderer_Draw(renderer);
     }
 }
 
 SA_API void saci_Set_Loop_Func(saci_loopFunc loop_func) {
-    sa_Log_Assert_Message_m(loop_func, "Loop function is NULL");
+    su_Log_Assert_Message_m(loop_func, "Loop function is NULL");
     saci_context.loop_func = loop_func;
 }
 
@@ -120,15 +120,15 @@ SA_API void saci_Translation_Rotate(const sa_vec3 rotation) {
 // Doesn't actually draw it but instead pushes to shape draw call array
 SA_API void saci_Draw_Cube(const saci_cube cube) {
     struct saci_shapeDrawCall* call;
-    call = sa_DArray_Get_Ptr(saci_context.shape_draw_call_array, saci_SHAPE_CUBE);
+    call = su_DArray_Get_Ptr(saci_context.shape_draw_call_array, saci_SHAPE_CUBE);
 
     sa_mat4 transform = s_Mat4_Create_Transform_From_Flag(
         cube.pos_center,
         cube.rotation,
         cube.dimentions,
         saci_context.enable_flags);
-    sa_DArray_Push(call->transforms, &transform);
-    sa_DArray_Set(saci_context.shape_draw_call_array, saci_SHAPE_CUBE, call);
+    su_DArray_Push(call->transforms, &transform);
+    su_DArray_Set(saci_context.shape_draw_call_array, saci_SHAPE_CUBE, call);
 }
 
 SA_API void saci_Present(void) {

@@ -45,7 +45,7 @@ struct sc_modelMesh {
 #endif
 
 SA_API struct sc_modelMesh* sc_Model_Mesh_Load(const char* path) {
-    struct sc_modelMesh* mesh = sa_Malloc_m(sizeof(struct sc_modelMesh));
+    struct sc_modelMesh* mesh = su_Malloc_m(sizeof(struct sc_modelMesh));
     sa_bool success = s_Model_Parse(path,
                                     &mesh->position_array,
                                     &mesh->positions_count,
@@ -55,29 +55,29 @@ SA_API struct sc_modelMesh* sc_Model_Mesh_Load(const char* path) {
                                     &mesh->indices_count);
     if (!success) {
         su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_MODEL_LOADING, "Couldn't load model");
-        sa_Free_m(mesh);
+        su_Free_m(mesh);
         return NULL;
     }
     return mesh;
 }
 
 void sc_Model_Delete(struct sc_modelMesh* model_mesh) {
-    sa_Free_m(model_mesh->indice_array);
-    sa_Free_m(model_mesh->position_array);
-    sa_Free_m(model_mesh->uv_array);
+    su_Free_m(model_mesh->indice_array);
+    su_Free_m(model_mesh->position_array);
+    su_Free_m(model_mesh->uv_array);
 
     model_mesh->indice_array = NULL;
     model_mesh->position_array = NULL;
     model_mesh->uv_array = NULL;
 
-    sa_Free_m(model_mesh);
+    su_Free_m(model_mesh);
     model_mesh = NULL;
 }
 
 SA_API void sc_Model_Get_Vertex_Indice_Array(const struct sc_modelMesh* model_mesh,
                                              struct sc_vertexIndice** indice_array_out,
                                              sa_u64* indice_count_out) {
-    *indice_array_out = sa_Malloc_m(sizeof(struct sc_vertexIndice) *
+    *indice_array_out = su_Malloc_m(sizeof(struct sc_vertexIndice) *
                                     model_mesh->indices_count);
     if (!*indice_array_out) {
         su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM,
@@ -98,13 +98,13 @@ SA_API void sc_Model_Get_Separated_Indice_Data(const struct sc_modelMesh* model_
     *indice_array_count_out = model_mesh->indices_count;
 
     if (vertex_index_out) {
-        *vertex_index_out = (sa_u32*)sa_Malloc_m(sizeof(sa_u32) * (*indice_array_count_out));
+        *vertex_index_out = (sa_u32*)su_Malloc_m(sizeof(sa_u32) * (*indice_array_count_out));
     }
     if (uv_index_out) {
-        *uv_index_out = (sa_u32*)sa_Malloc_m(sizeof(sa_u32) * (*indice_array_count_out));
+        *uv_index_out = (sa_u32*)su_Malloc_m(sizeof(sa_u32) * (*indice_array_count_out));
     }
     if (normal_index_out) {
-        *normal_index_out = (sa_u32*)sa_Malloc_m(sizeof(sa_u32) * (*indice_array_count_out));
+        *normal_index_out = (sa_u32*)su_Malloc_m(sizeof(sa_u32) * (*indice_array_count_out));
     }
 
     for (sa_u64 i = 0; i < *indice_array_count_out; ++i) {
@@ -123,7 +123,7 @@ SA_API void sc_Model_Get_Separated_Indice_Data(const struct sc_modelMesh* model_
 SA_API void sc_Model_Get_Position_Array(const struct sc_modelMesh* model_mesh,
                                         sa_vec3** position_array_out,
                                         sa_u64* position_count_out) {
-    *position_array_out = sa_Malloc_m(sizeof(sa_vec3) * model_mesh->positions_count);
+    *position_array_out = su_Malloc_m(sizeof(sa_vec3) * model_mesh->positions_count);
     *position_count_out = model_mesh->positions_count;
     memcpy(*position_array_out, model_mesh->position_array,
            (sizeof(sa_vec3) * model_mesh->positions_count));
@@ -132,7 +132,7 @@ SA_API void sc_Model_Get_Position_Array(const struct sc_modelMesh* model_mesh,
 SA_API void sc_Model_Get_Uv_Array(const struct sc_modelMesh* model_mesh,
                                   sa_uv** uv_array_out,
                                   sa_u64* uv_count_out) {
-    *uv_array_out = sa_Malloc_m(sizeof(sa_uv) * model_mesh->uv_count);
+    *uv_array_out = su_Malloc_m(sizeof(sa_uv) * model_mesh->uv_count);
     *uv_count_out = model_mesh->uv_count;
     memcpy(*uv_array_out, model_mesh->uv_array,
            (sizeof(sa_uv) * model_mesh->uv_count));
@@ -143,9 +143,9 @@ SA_API void sc_Model_Vertex_Indice_Get_Data(const struct sc_vertexIndice* vertex
                                             sa_u32** vertex_index_out,
                                             sa_u32** uv_index_out,
                                             sa_u32** normal_index_out) {
-    *vertex_index_out = sa_Malloc_m(sizeof(sa_u32) * vertex_indice_amount);
-    *uv_index_out = sa_Malloc_m(sizeof(sa_u32) * vertex_indice_amount);
-    *normal_index_out = sa_Malloc_m(sizeof(sa_u32) * vertex_indice_amount);
+    *vertex_index_out = su_Malloc_m(sizeof(sa_u32) * vertex_indice_amount);
+    *uv_index_out = su_Malloc_m(sizeof(sa_u32) * vertex_indice_amount);
+    *normal_index_out = su_Malloc_m(sizeof(sa_u32) * vertex_indice_amount);
     for (sa_u64 i = 0; i < vertex_indice_amount; ++i) {
         (*vertex_index_out)[i] = vertex_indice[i].vertex_index;
         (*uv_index_out)[i] = vertex_indice[i].uv_index;
@@ -193,7 +193,7 @@ SA_INTERNAL sa_bool s_Model_Parse(const char* file_path,
                              "Could not load position array");
         return false;
     }
-    *position_array_out = sa_Scast_To_m(sa_vec3*) sa_Malloc_m(sizeof(sa_vec3) * (*positions_count_out));
+    *position_array_out = su_Scast_To_m(sa_vec3*) su_Malloc_m(sizeof(sa_vec3) * (*positions_count_out));
     if (!(*position_array_out)) {
         su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM,
                              su_LOG_CONTEXT_MODEL_LOADING, "Couldn't malloc positions");
@@ -203,11 +203,11 @@ SA_INTERNAL sa_bool s_Model_Parse(const char* file_path,
         float pos_x = attribute.vertices[3 * i + 0];
         float pos_y = attribute.vertices[3 * i + 1];
         float pos_z = attribute.vertices[3 * i + 2];
-        (*position_array_out)[i] = sa_Scast_To_m(sa_vec3){pos_x, pos_y, pos_z};
+        (*position_array_out)[i] = su_Scast_To_m(sa_vec3){pos_x, pos_y, pos_z};
     }
 
     *uv_count_out = attribute.num_texcoords;
-    *uv_array_out = sa_Malloc_m(sizeof(sa_uv) * (*uv_count_out));
+    *uv_array_out = su_Malloc_m(sizeof(sa_uv) * (*uv_count_out));
     for (sa_u64 i = 0; i < (*uv_count_out); ++i) {
         float u = attribute.texcoords[2 * i + 0];
         float v = attribute.texcoords[2 * i + 1];
@@ -215,19 +215,19 @@ SA_INTERNAL sa_bool s_Model_Parse(const char* file_path,
     }
 
     *indices_count_out = attribute.num_faces;
-    *indice_array_out = sa_Malloc_m(sizeof(struct sc_vertexIndice) * (*indices_count_out));
+    *indice_array_out = su_Malloc_m(sizeof(struct sc_vertexIndice) * (*indices_count_out));
     for (sa_u64 i = 0; i < (attribute.num_faces); ++i) {
-        (*indice_array_out)[i].vertex_index = sa_Scast_To_m(sa_u32)(attribute.faces[i].v_idx);
-        (*indice_array_out)[i].uv_index = sa_Scast_To_m(sa_u32) attribute.faces[i].vt_idx;
-        (*indice_array_out)[i].normal_index = sa_Scast_To_m(sa_u32) attribute.faces[i].vn_idx;
+        (*indice_array_out)[i].vertex_index = su_Scast_To_m(sa_u32)(attribute.faces[i].v_idx);
+        (*indice_array_out)[i].uv_index = su_Scast_To_m(sa_u32) attribute.faces[i].vt_idx;
+        (*indice_array_out)[i].normal_index = su_Scast_To_m(sa_u32) attribute.faces[i].vn_idx;
     }
 
-    // These will not be changed to sa_FREE, since they are already changed
+    // These will not be changed to su_FREE, since they are already changed
     // through macro
     tinyobj_attrib_free(&attribute);
     tinyobj_shapes_free(shape_array, shape_array_amount);
     tinyobj_materials_free(material_array, material_array_size);
-    sa_Free_m(sc_file_buffer_s);
+    su_Free_m(sc_file_buffer_s);
 
     return true;
 }
@@ -237,9 +237,9 @@ SA_INTERNAL sa_bool s_Model_Parse(const char* file_path,
 
 SA_INTERNAL void s_File_Reader_Function(void* ctx, const char* filename, int is_mtl,
                                         const char* obj_filename2, char** buf, size_t* len) {
-    sa_Not_Used_m(ctx); // suppress unused warning
-    sa_Not_Used_m(is_mtl);
-    sa_Not_Used_m(obj_filename2);
+    su_Not_Used_m(ctx); // suppress unused warning
+    su_Not_Used_m(is_mtl);
+    su_Not_Used_m(obj_filename2);
 
     FILE* file = fopen(filename, "rb");
     if (!file) {
@@ -249,7 +249,7 @@ SA_INTERNAL void s_File_Reader_Function(void* ctx, const char* filename, int is_
     }
 
     fseek(file, 0, SEEK_END);
-    sa_u64 file_size = sa_Scast_To_m(sa_u64)(ftell(file));
+    sa_u64 file_size = su_Scast_To_m(sa_u64)(ftell(file));
     rewind(file);
 
     // Allocate or reallocate the static buffer if needed

@@ -99,7 +99,7 @@ SA_API void sc_GL_Resize_Vertex_Buffer(sa_u32 vao_id, sa_u32 vbo_id, sa_u64 new_
     glBindVertexArray(vao_id);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-    glBufferData(GL_ARRAY_BUFFER, sa_Scast_To_m(sa_s64)(new_size), NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, su_Scast_To_m(sa_s64)(new_size), NULL, GL_DYNAMIC_DRAW);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -109,7 +109,7 @@ SA_API sa_u32 sc_GL_Create_Index_Buffer_Dynamic(sa_u32* indices, sa_u64 indice_a
     sa_u32 ibo;
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sa_Scast_To_m(sa_s64)(indice_amount * sizeof(sa_u32)), &indices[0],
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, su_Scast_To_m(sa_s64)(indice_amount * sizeof(sa_u32)), &indices[0],
                  GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     return ibo;
@@ -119,14 +119,14 @@ SA_API sa_u32 sc_GL_Create_Index_Buffer_Static(sa_u32* indices, sa_u64 indice_am
     sa_u32 ibo;
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sa_Scast_To_m(sa_s64)(indice_amount * sizeof(sa_u32)), &indices[0],
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, su_Scast_To_m(sa_s64)(indice_amount * sizeof(sa_u32)), &indices[0],
                  GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     return ibo;
 }
 
 SA_API void sc_GL_Create_Vertex_Array(sa_u64 amount, sa_u32* arrays) {
-    glGenVertexArrays(sa_Scast_To_m(int)(amount), arrays);
+    glGenVertexArrays(su_Scast_To_m(int)(amount), arrays);
 }
 
 SA_API void sc_GL_Bind_Vertex_Array(sa_u32 array) {
@@ -141,13 +141,13 @@ SA_API sa_u32 sc_GL_Create_Vertex_Buffer(sa_u64 size, const void* data, sa_u32 u
     sa_u32 vbo = 0;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sa_Scast_To_m(long int)(size), data, usage);
+    glBufferData(GL_ARRAY_BUFFER, su_Scast_To_m(long int)(size), data, usage);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     return vbo;
 }
 
 SA_API void sc_GL_Set_Vertex_Attrib_Pointer(sa_u32 index, int size, sa_u32 type, sa_bool normalized, sa_u64 stride, void* ptr) {
-    glVertexAttribPointer(index, size, type, normalized, sa_Scast_To_m(int)(stride), ptr);
+    glVertexAttribPointer(index, size, type, normalized, su_Scast_To_m(int)(stride), ptr);
 }
 
 void sc_GL_Enable_Vertex_Attrib_Array(sa_u32 id) {

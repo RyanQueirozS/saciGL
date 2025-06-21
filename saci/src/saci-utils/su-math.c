@@ -43,7 +43,7 @@ sa_vec3 sa_Vec3_Scale(sa_vec3 v, float scalar) {
 }
 
 sa_vec3 sa_Vec3_Normalize(sa_vec3 v) {
-    float mag = sa_Scast_To_m(float)(sa_math_preferences.sqrt_function(v.x * v.x + v.y * v.y + v.z * v.z));
+    float mag = su_Scast_To_m(float)(sa_math_preferences.sqrt_function(v.x * v.x + v.y * v.y + v.z * v.z));
     if (mag == 0.0f) {
         return (sa_vec3){0.0f, 0.0f, 0.0f};
     }
@@ -66,19 +66,19 @@ float sa_Vec3_Dot(sa_vec3 a, sa_vec3 b) {
 
 sa_color sa_Color_From_Hex(sa_u32 hex) {
     sa_color color;
-    color.r = sa_Scast_To_m(float)(((hex >> 24)) & 0xFF) * sa_COLOR_8BIT_INVERSE_MAX;
-    color.g = sa_Scast_To_m(float)(((hex >> 16)) & 0xFF) * sa_COLOR_8BIT_INVERSE_MAX;
-    color.b = sa_Scast_To_m(float)(((hex >> 8)) & 0xFF) * sa_COLOR_8BIT_INVERSE_MAX;
-    color.a = sa_Scast_To_m(float)((hex & 0xFF)) * sa_COLOR_8BIT_INVERSE_MAX;
+    color.r = su_Scast_To_m(float)(((hex >> 24)) & 0xFF) * sa_COLOR_8BIT_INVERSE_MAX;
+    color.g = su_Scast_To_m(float)(((hex >> 16)) & 0xFF) * sa_COLOR_8BIT_INVERSE_MAX;
+    color.b = su_Scast_To_m(float)(((hex >> 8)) & 0xFF) * sa_COLOR_8BIT_INVERSE_MAX;
+    color.a = su_Scast_To_m(float)((hex & 0xFF)) * sa_COLOR_8BIT_INVERSE_MAX;
     return color;
 }
 
 sa_color sa_Color_From_U8(sa_u8 r, sa_u8 g, sa_u8 b, sa_u8 a) {
     sa_color color;
-    color.r = sa_Scast_To_m(float)(r) * sa_COLOR_8BIT_INVERSE_MAX;
-    color.g = sa_Scast_To_m(float)(g) * sa_COLOR_8BIT_INVERSE_MAX;
-    color.b = sa_Scast_To_m(float)(b) * sa_COLOR_8BIT_INVERSE_MAX;
-    color.a = sa_Scast_To_m(float)(a) * sa_COLOR_8BIT_INVERSE_MAX;
+    color.r = su_Scast_To_m(float)(r) * sa_COLOR_8BIT_INVERSE_MAX;
+    color.g = su_Scast_To_m(float)(g) * sa_COLOR_8BIT_INVERSE_MAX;
+    color.b = su_Scast_To_m(float)(b) * sa_COLOR_8BIT_INVERSE_MAX;
+    color.a = su_Scast_To_m(float)(a) * sa_COLOR_8BIT_INVERSE_MAX;
     return color;
 }
 
@@ -131,7 +131,7 @@ sa_mat4 sa_Mat4_Look_At(sa_vec3 eye, sa_vec3 center, sa_vec3 up) {
 // TODO evaluate if there is a way not to use tan operations
 sa_mat4 sa_Mat4_Perspective(float fov, float aspect, float near, float far) {
     sa_mat4 result = {0};
-    float tanHalfFov = sa_Scast_To_m(float)(sa_math_preferences.tan_function(sa_Deg_To_Rad_m(fov) / 2.0f));
+    float tanHalfFov = su_Scast_To_m(float)(sa_math_preferences.tan_function(sa_Deg_To_Rad_m(fov) / 2.0f));
 
     result.data[0][0] = 1.0f / (aspect * tanHalfFov);
     result.data[1][1] = 1.0f / tanHalfFov;

@@ -1,44 +1,45 @@
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-debug.h"
+
 #include <string.h>
 
 /* === DArray === */
 
-SA_INTERNAL sa_bool sa_DArray_Can_Append(const sa_dArray* dest, const sa_dArray* src);
+SA_INTERNAL sa_bool su_DArray_Can_Append(const su_dArray* dest, const su_dArray* src);
 
-SA_INTERNAL sa_bool sa_DArray_Ensure_Capacity(sa_dArray* dest, sa_u64 required_capacity);
+SA_INTERNAL sa_bool su_DArray_Ensure_Capacity(su_dArray* dest, sa_u64 required_capacity);
 
-typedef struct sa_dArray {
+typedef struct su_dArray {
     void* data;
     sa_u64 length;
     sa_u64 capacity;
     sa_u64 elem_size;
     sa_bool is_fixed_size;
-} sa_dArray;
+} su_dArray;
 
-SA_API sa_dArray* sa_DArray_Create(sa_u64 capacity, sa_u64 elem_size, sa_bool fixed_size) {
-    sa_dArray* array = sa_Calloc_m(1, sizeof(sa_dArray));
+SA_API su_dArray* su_DArray_Create(sa_u64 capacity, sa_u64 elem_size, sa_bool fixed_size) {
+    su_dArray* array = su_Calloc_m(1, sizeof(su_dArray));
     su_Log_Assert_Message_m(array, "dArray couldn't be created");
     array->length = 0;
     array->capacity = capacity;
     array->elem_size = elem_size;
     array->is_fixed_size = fixed_size;
-    array->data = sa_Calloc_m(capacity, elem_size);
-    su_Log_Assert_Message_m(array->data, "Could not allocate memory for sa_dArray");
+    array->data = su_Calloc_m(capacity, elem_size);
+    su_Log_Assert_Message_m(array->data, "Could not allocate memory for su_dArray");
     return array;
 }
 
-SA_API sa_dArray* sa_DArray_Create_Ctx(void* memctx, sa_u64 memctx_size, sa_u64 capacity, sa_u64 elem_size, sa_bool fixed_size) {
-    sa_u64 struct_size = sizeof(sa_dArray);
+SA_API su_dArray* su_DArray_Create_Ctx(void* memctx, sa_u64 memctx_size, sa_u64 capacity, sa_u64 elem_size, sa_bool fixed_size) {
+    sa_u64 struct_size = sizeof(su_dArray);
     sa_u64 data_size = capacity * elem_size;
     sa_u64 total_size = struct_size + data_size;
 
     su_Log_AssertF_Message_m(memctx && memctx_size >= total_size,
-                             "Memory context is too small for sa_dArray and its "
+                             "Memory context is too small for su_dArray and its "
                              "data. Passed: (%lu) expected min: (%lu)",
                              memctx_size, total_size);
 
-    sa_dArray* array = (sa_dArray*)memctx;
+    su_dArray* array = (su_dArray*)memctx;
 
     array->length = 0;
     array->capacity = capacity;
@@ -50,29 +51,29 @@ SA_API sa_dArray* sa_DArray_Create_Ctx(void* memctx, sa_u64 memctx_size, sa_u64 
     return array;
 }
 
-SA_API void sa_DArray_Free(sa_dArray* array) {
-    sa_Free_m(array->data);
+SA_API void su_DArray_Free(su_dArray* array) {
+    su_Free_m(array->data);
     array->data = NULL;
     array->length = 0;
     array->capacity = 0;
     array->elem_size = 0;
 }
 
-SA_API void sa_DArray_Clear(sa_dArray* array) {
-    su_Log_Assert_Message_m(array, "sa_DArray_Clear: array is NULL");
+SA_API void su_DArray_Clear(su_dArray* array) {
+    su_Log_Assert_Message_m(array, "su_DArray_Clear: array is NULL");
     array->length = 0;
 }
 
-SA_API sa_bool sa_DArray_Resize(sa_dArray* array, sa_u64 new_cap) {
+SA_API sa_bool su_DArray_Resize(su_dArray* array, sa_u64 new_cap) {
     if (array->is_fixed_size) {
         su_Log_ErrorF_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_MEMORY,
-                              "Cannot resize fixed-size sa_dArray");
+                              "Cannot resize fixed-size su_dArray");
         return sa_FALSE;
     }
     void* new_data = realloc(array->data, new_cap * array->elem_size);
     if (!new_data) {
         su_Log_ErrorF_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_MEMORY,
-                              "Could not allocate for sa_dArray when resizing");
+                              "Could not allocate for su_dArray when resizing");
         return sa_FALSE;
     }
     array->data = new_data;
@@ -80,15 +81,15 @@ SA_API sa_bool sa_DArray_Resize(sa_dArray* array, sa_u64 new_cap) {
     return sa_TRUE;
 }
 
-SA_API sa_bool sa_DArray_Push(sa_dArray* array, const void* value) {
+SA_API sa_bool su_DArray_Push(su_dArray* array, const void* value) {
     if (array->length == array->capacity) {
         if (array->is_fixed_size) {
             su_Log_ErrorF_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_MEMORY,
-                                  "Cannot push to full fixed-size sa_dArray");
+                                  "Cannot push to full fixed-size su_dArray");
             return sa_FALSE;
         }
         sa_u64 new_cap = array->capacity ? array->capacity * 2 : 4;
-        if (!sa_DArray_Resize(array, new_cap)) {
+        if (!su_DArray_Resize(array, new_cap)) {
             return sa_FALSE;
         }
     }
@@ -98,46 +99,46 @@ SA_API sa_bool sa_DArray_Push(sa_dArray* array, const void* value) {
     return sa_TRUE;
 }
 
-SA_API void sa_DArray_Pop(sa_dArray* array) {
-    su_Log_Assert_Message_m(array->length > 0, "Length is zero cannot pop sa_dArray");
+SA_API void su_DArray_Pop(su_dArray* array) {
+    su_Log_Assert_Message_m(array->length > 0, "Length is zero cannot pop su_dArray");
     array->length--;
 }
 
-SA_API void sa_DArray_Get(const sa_dArray* array, sa_u64 index, void* out_value) {
+SA_API void su_DArray_Get(const su_dArray* array, sa_u64 index, void* out_value) {
     su_Log_AssertF_Message_m(index < array->length,
-                             "sa_dArray accessed at %lu while length is %lu", index, array->length);
+                             "su_dArray accessed at %lu while length is %lu", index, array->length);
     const void* src = (const char*)array->data + index * array->elem_size;
     memcpy(out_value, src, array->elem_size);
 }
 
-SA_API void* sa_DArray_Get_Ptr(const sa_dArray* array, sa_u64 index) {
+SA_API void* su_DArray_Get_Ptr(const su_dArray* array, sa_u64 index) {
     su_Log_AssertF_Message_m(index < array->length,
-                             "sa_dArray accessed at %lu while length is %lu", index, array->length);
+                             "su_dArray accessed at %lu while length is %lu", index, array->length);
     return (char*)array->data + index * array->elem_size;
 }
 
-SA_API void sa_DArray_Set(sa_dArray* array, sa_u64 index, const void* value) {
+SA_API void su_DArray_Set(su_dArray* array, sa_u64 index, const void* value) {
     su_Log_AssertF_Message_m(index < array->length,
-                             "sa_dArray accessed at %lu while length is %lu", index, array->length);
+                             "su_dArray accessed at %lu while length is %lu", index, array->length);
     void* dest = (char*)array->data + index * array->elem_size;
     memcpy(dest, value, array->elem_size);
 }
 
-SA_API sa_u64 sa_DArray_Length(const sa_dArray* array) {
+SA_API sa_u64 su_DArray_Length(const su_dArray* array) {
     return array->length;
 }
 
-SA_API sa_u64 sa_DArray_Capacity(const sa_dArray* array) {
+SA_API sa_u64 su_DArray_Capacity(const su_dArray* array) {
     return array->capacity;
 }
 
-SA_API void sa_DArray_Append(sa_dArray* dest, const sa_dArray* src) {
-    if (!sa_DArray_Can_Append(dest, src)) {
+SA_API void su_DArray_Append(su_dArray* dest, const su_dArray* src) {
+    if (!su_DArray_Can_Append(dest, src)) {
         return;
     }
 
     sa_u64 required_capacity = dest->length + src->length;
-    if (!sa_DArray_Ensure_Capacity(dest, required_capacity)) {
+    if (!su_DArray_Ensure_Capacity(dest, required_capacity)) {
         return;
     }
 
@@ -148,22 +149,22 @@ SA_API void sa_DArray_Append(sa_dArray* dest, const sa_dArray* src) {
     dest->length += src->length;
 }
 
-void sa_DArray_Debug_Print(const sa_dArray* arr) {
-    printf("sa_dArray Debug: data=%p, length=%lu, capacity=%lu, elem_size=%lu, fixed=%d\n",
+void su_DArray_Debug_Print(const su_dArray* arr) {
+    printf("su_dArray Debug: data=%p, length=%lu, capacity=%lu, elem_size=%lu, fixed=%d\n",
            arr->data, arr->length, arr->capacity, arr->elem_size, arr->is_fixed_size);
 }
 
-SA_API sa_bool sa_DArray_Is_Null(const sa_dArray* arr) {
+SA_API sa_bool su_DArray_Is_Null(const su_dArray* arr) {
     return arr->data == NULL;
 }
 
-SA_API sa_bool sa_DArray_Is_Empty(const sa_dArray* arr) {
+SA_API sa_bool su_DArray_Is_Empty(const su_dArray* arr) {
     return arr->length == 0;
 }
 
 /* === DArray impl === */
 
-SA_INTERNAL sa_bool sa_DArray_Can_Append(const sa_dArray* dest, const sa_dArray* src) {
+SA_INTERNAL sa_bool su_DArray_Can_Append(const su_dArray* dest, const su_dArray* src) {
     su_Log_Assert_Message_m(dest, "dest is NULL");
     su_Log_Assert_Message_m(src, "src is NULL");
     su_Log_Assert_Message_m(dest->data != NULL, "dest->data is NULL");
@@ -178,14 +179,14 @@ SA_INTERNAL sa_bool sa_DArray_Can_Append(const sa_dArray* dest, const sa_dArray*
     return sa_TRUE;
 }
 
-SA_INTERNAL sa_bool sa_DArray_Ensure_Capacity(sa_dArray* dest, sa_u64 required_capacity) {
+SA_INTERNAL sa_bool su_DArray_Ensure_Capacity(su_dArray* dest, sa_u64 required_capacity) {
     if (required_capacity <= dest->capacity) {
         return sa_TRUE;
     }
 
     if (dest->is_fixed_size) {
         su_Log_ErrorF_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_MEMORY,
-                              "Cannot append to fixed-size sa_dArray");
+                              "Cannot append to fixed-size su_dArray");
         return sa_FALSE;
     }
 
@@ -194,5 +195,5 @@ SA_INTERNAL sa_bool sa_DArray_Ensure_Capacity(sa_dArray* dest, sa_u64 required_c
         new_capacity *= 2;
     }
 
-    return sa_DArray_Resize(dest, new_capacity);
+    return su_DArray_Resize(dest, new_capacity);
 }

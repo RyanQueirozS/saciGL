@@ -40,7 +40,7 @@ SA_API sa_s8 sc_Config_Get_Bool(sc_configState* state, const char* b_name) {
     }
     lua_getfield(state, -1, b_name);
     if (lua_isboolean(state, -1)) {
-        sa_s8 val = sa_Scast_To_m(sa_s8)(lua_tointeger(state, -1));
+        sa_s8 val = su_Scast_To_m(sa_s8)(lua_tointeger(state, -1));
         lua_pop(state, 1);
         return val;
     }
@@ -55,7 +55,7 @@ SA_API sa_u8 sc_Config_Get_Uint8(sc_configState* state, const char* i_name) {
     }
     lua_getfield(state, -1, i_name);
     if (lua_isnumber(state, -1)) {
-        sa_u8 val = sa_Scast_To_m(sa_u8)(lua_tointeger(state, -1));
+        sa_u8 val = su_Scast_To_m(sa_u8)(lua_tointeger(state, -1));
         lua_pop(state, 1);
         return val;
     }
@@ -69,7 +69,7 @@ SA_API sa_u32 sc_Config_Get_Uint32(sc_configState* state, const char* i_name) {
     }
     lua_getfield(state, -1, i_name);
     if (lua_isnumber(state, -1)) {
-        sa_u32 val = sa_Scast_To_m(sa_u32)(lua_tointeger(state, -1));
+        sa_u32 val = su_Scast_To_m(sa_u32)(lua_tointeger(state, -1));
         lua_pop(state, 1);
         return val;
     }
@@ -84,7 +84,7 @@ SA_API sa_u64 sc_Config_Get_Uint64(sc_configState* state, const char* i_name) {
     }
     lua_getfield(state, -1, i_name);
     if (lua_isnumber(state, -1)) {
-        sa_u32 val = sa_Scast_To_m(sa_u64)(lua_tointeger(state, -1));
+        sa_u64 val = su_Scast_To_m(sa_u64)(lua_tointeger(state, -1));
         lua_pop(state, 1);
         return val;
     }

@@ -118,5 +118,5 @@ SA_API void sc_Event_Set_Mouse_Pos_Handler(sc_window_t* window, sc_event_mousePo
 }
 
 SA_API sa_bool sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
-    return glfwGetKey(window, sa_Scast_To_m(int)(keycode)) == GLFW_PRESS;
+    return glfwGetKey(window, su_Scast_To_m(int)(keycode)) == GLFW_PRESS;
 }

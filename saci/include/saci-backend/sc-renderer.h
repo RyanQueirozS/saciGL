@@ -93,12 +93,12 @@ SA_API void sc_Renderer_Set_Uniform(struct sc_renderer* rendr,
                                     const sa_dataType type);
 
 SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr,
-                                          const sa_dArray* new_indices);
+                                          const su_dArray* new_indices);
 
 SA_API void sc_Renderer_Push_Mesh(struct sc_renderer* rendr,
-                                  const sa_dArray* pos_array,
-                                  const sa_dArray* uv_array,
-                                  const sa_dArray* color_array);
+                                  const su_dArray* pos_array,
+                                  const su_dArray* uv_array,
+                                  const su_dArray* color_array);
 
 SA_API void sc_Renderer_Draw(const struct sc_renderer* rendr);
 
@@ -109,6 +109,6 @@ SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts);
 /* --- Renderer specific --- */
 
 // This needs to be used with a instanced renderer, else it should crash
-SA_API void sc_Renderer_Set_Instance_Transforms(struct sc_renderer* rendr, sa_dArray* transform_array);
+SA_API void sc_Renderer_Set_Instance_Transforms(struct sc_renderer* rendr, su_dArray* transform_array);
 
 #endif // SACI_CORE_SC_RENDERER_H
