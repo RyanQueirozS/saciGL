@@ -46,6 +46,15 @@
  */
 #define sa_Rad_To_Deg_m(x) ((x) * sa_RAD2DEG_MULT)
 
+static const sa_mat4 SU_IDENTITY_MAT4 = {
+    .data = {
+        {1.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 1.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 1.0f},
+    },
+};
+
 /* === Vec3 Operations === */
 
 /**
@@ -162,14 +171,6 @@ sa_u32 sa_Color_To_Hex(sa_color color);
  */
 
 sa_mat4 sa_Mat4_Multiply(sa_mat4 a, sa_mat4 b);
-
-/**
- * @fn sa_Mat4_Identity
- * @brief Returns an identiy matrix
- *
- * @return sa_mat4 The identity matrix
- */
-sa_mat4 sa_Mat4_Identity(void);
 
 /**
  * @fn sa_Mat4_Look_At

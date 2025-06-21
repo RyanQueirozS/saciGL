@@ -10,6 +10,7 @@ static sa_vec3 rotation = {0};
 static saci_cube cube = {
     .dimentions = (sa_vec3){1, 1, 1},
     .pos_center = (sa_vec3){0, 0, 0},
+    .rotation = (sa_vec3){0, 0, 0},
 };
 
 void Draw_Fps(void) {
@@ -27,7 +28,7 @@ void Draw_Fps(void) {
 void Loop_Func(double delta) {
     saci_Begin();
 
-    saci_Translation_Rotate(sa_Vec3_Add(saci_Translation_Rotation_Get(), rotation));
+    cube.rotation = sa_Vec3_Add(cube.rotation, rotation);
 
     saci_Draw_Cube(cube);
 

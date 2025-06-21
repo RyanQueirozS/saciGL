@@ -6,11 +6,19 @@
 typedef struct saci_cube {
     sa_vec3 pos_center;
     sa_vec3 dimentions;
+    sa_vec3 rotation;
 } saci_cube;
 
 typedef void (*saci_loopFunc)(const double delta);
 
+typedef enum {
+    saci_ENABLE_ROTATION_RTS = 0,
+    saci_ENABLE_ROTATION_TRS = 1,
+} saci_enableFlags;
+
 SA_API void saci_Init(void);
+
+SA_API void saci_Enable(saci_enableFlags commands);
 
 SA_API void saci_Begin(void);
 

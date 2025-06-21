@@ -1,14 +1,43 @@
 #include "saci-main/saci.h"
 
 #include "saci-backend/sc-renderer.h"
+#include "saci-backend/sc-windowing.h"
 
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-math.h"
 #include "saci-utils/su-types.h"
+#include "saci-utils/su-debug.h"
 
 #define SACI_RENDERER_AMOUNT 2
 
 // Helper
+
+SA_INTERNAL sa_bool s_Has_Flag(sa_u64 flag_var, sa_u64 flag_to_check) {
+    return ((flag_var & flag_to_check) == flag_to_check);
+}
+
+SA_INTERNAL sa_mat4 s_Mat4_Create_Transform_From_Flag(sa_vec3 pos,
+                                                      sa_vec3 rotation,
+                                                      sa_vec3 dimentions,
+                                                      sa_u64 flag_var) {
+    sa_mat4 transform = SU_IDENTITY_MAT4;
+    if (s_Has_Flag(flag_var, saci_ENABLE_ROTATION_RTS)) { // Most likelly
+        transform = sa_Mat4_Model_Matrix_RTS(
+            pos,
+            rotation,
+            dimentions);
+    } else {
+        transform = sa_Mat4_Model_Matrix_TRS(
+            pos,
+            rotation,
+            dimentions);
+    }
+    return transform;
+}
+
+SA_INTERNAL double s_Get_Delta(void) {
+    return 0.0; // TODO
+}
 
 /* === Header impl === */
 
@@ -20,16 +49,15 @@ enum saci_shapeType {
     saci_SHAPE_CUBE = 1,
 };
 
+// Each index is a shape so there is no need to store the shape type directly
 struct saci_shapeDrawCall {
     sa_dArray* transforms;
 };
 
-struct saci_contextShapeInfo {
-    sa_vec3 rotation;
-};
-
 struct saci_contextBoundInfo {
-    struct saci_contextShapeInfo shapes;
+    sa_vec3 rotation;
+    sa_vec3 scale;
+    sa_vec3 pos;
 };
 
 SA_INTERNAL struct saci_context {
@@ -39,6 +67,13 @@ SA_INTERNAL struct saci_context {
 
     struct saci_contextBoundInfo bound_info;
 
+    struct saci_windowing {
+        sc_window_t* window;
+    } windowing;
+
+    saci_loopFunc loop_func;
+
+    sa_u64 enable_flags;
 } saci_context = {0};
 
 SA_API void saci_Init(void) {
@@ -64,7 +99,22 @@ SA_API void saci_Begin(void) {
     }
 }
 
-SA_API void saci_Uniform_Translation_Rotate(const sa_vec3 rotation) {
+SA_API void saci_Set_Loop_Func(saci_loopFunc loop_func) {
+    sa_Log_Assert_Message_m(loop_func, "Loop function is NULL");
+    saci_context.loop_func = loop_func;
+}
+
+SA_API void saci_Loop(void) {
+    while (!sc_Window_Should_Close(saci_context.windowing.window)) {
+        saci_context.loop_func(s_Get_Delta());
+    }
+}
+
+SA_API sa_vec3 saci_Translation_Rotation_Get(void) {
+    return saci_context.bound_info.rotation;
+}
+
+SA_API void saci_Translation_Rotate(const sa_vec3 rotation) {
 }
 
 // Doesn't actually draw it but instead pushes to shape draw call array
@@ -72,11 +122,13 @@ SA_API void saci_Draw_Cube(const saci_cube cube) {
     struct saci_shapeDrawCall* call;
     call = sa_DArray_Get_Ptr(saci_context.shape_draw_call_array, saci_SHAPE_CUBE);
 
-    sa_mat4 transform = sa_Mat4_Model_Matrix_RTS(
+    sa_mat4 transform = s_Mat4_Create_Transform_From_Flag(
         cube.pos_center,
-        saci_context.bound_info.shapes.rotation,
-        cube.dimentions);
+        cube.rotation,
+        cube.dimentions,
+        saci_context.enable_flags);
     sa_DArray_Push(call->transforms, &transform);
+    sa_DArray_Set(saci_context.shape_draw_call_array, saci_SHAPE_CUBE, call);
 }
 
 SA_API void saci_Present(void) {

@@ -106,17 +106,12 @@ sa_mat4 sa_Mat4_Multiply(sa_mat4 a, sa_mat4 b) {
     return result;
 }
 
-sa_mat4 sa_Mat4_Identity(void) {
-    sa_mat4 result = {{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}}};
-    return result;
-}
-
 sa_mat4 sa_Mat4_Look_At(sa_vec3 eye, sa_vec3 center, sa_vec3 up) {
     sa_vec3 f = sa_Vec3_Normalize(sa_Vec3_Subtract(center, eye));
     sa_vec3 s = sa_Vec3_Normalize(sa_Vec3_Cross(f, up));
     sa_vec3 u = sa_Vec3_Cross(s, f);
 
-    sa_mat4 result = sa_Mat4_Identity();
+    sa_mat4 result = SU_IDENTITY_MAT4;
     result.data[0][0] = s.x;
     result.data[0][1] = u.x;
     result.data[0][2] = -f.x;
@@ -165,11 +160,11 @@ sa_mat4 sa_Mat4_Model_Matrix_RTS(sa_vec3 position, sa_vec3 rotation, sa_vec3 sca
     sa_mat4 scaleMat = sa_Mat4_Scale(scale.x, scale.y, scale.z);
 
     sa_mat4 rotationX =
-        sa_Mat4_Rotate_Z(sa_Mat4_Identity(), rotation.x); // Rotate around X-axis
+        sa_Mat4_Rotate_Z(SU_IDENTITY_MAT4, rotation.x); // Rotate around X-axis
     sa_mat4 rotationY =
-        sa_Mat4_Rotate_Y(sa_Mat4_Identity(), rotation.y); // Rotate around Y-axis
+        sa_Mat4_Rotate_Y(SU_IDENTITY_MAT4, rotation.y); // Rotate around Y-axis
     sa_mat4 rotationZ =
-        sa_Mat4_Rotate_Z(sa_Mat4_Identity(), rotation.z); // Rotate around Z-axis
+        sa_Mat4_Rotate_Z(SU_IDENTITY_MAT4, rotation.z); // Rotate around Z-axis
 
     sa_mat4 rotationMat = sa_Mat4_Multiply(rotationZ, sa_Mat4_Multiply(rotationY, rotationX));
 
@@ -183,9 +178,9 @@ sa_mat4 sa_Mat4_Model_Matrix_RTS(sa_vec3 position, sa_vec3 rotation, sa_vec3 sca
 sa_mat4 sa_Mat4_Model_Matrix_TRS(sa_vec3 position, sa_vec3 rotation, sa_vec3 scale) {
     sa_mat4 scaleMat = sa_Mat4_Scale(scale.x, scale.y, scale.z);
 
-    sa_mat4 rotationX = sa_Mat4_Rotate_X(sa_Mat4_Identity(), rotation.x);
-    sa_mat4 rotationY = sa_Mat4_Rotate_Y(sa_Mat4_Identity(), rotation.y);
-    sa_mat4 rotationZ = sa_Mat4_Rotate_Z(sa_Mat4_Identity(), rotation.z);
+    sa_mat4 rotationX = sa_Mat4_Rotate_X(SU_IDENTITY_MAT4, rotation.x);
+    sa_mat4 rotationY = sa_Mat4_Rotate_Y(SU_IDENTITY_MAT4, rotation.y);
+    sa_mat4 rotationZ = sa_Mat4_Rotate_Z(SU_IDENTITY_MAT4, rotation.z);
 
     sa_mat4 rotationMat = sa_Mat4_Multiply(rotationZ, sa_Mat4_Multiply(rotationY, rotationX));
 
@@ -197,7 +192,7 @@ sa_mat4 sa_Mat4_Model_Matrix_TRS(sa_vec3 position, sa_vec3 rotation, sa_vec3 sca
 }
 
 sa_mat4 sa_Mat4_Rotate_X(sa_mat4 mat, float angle) {
-    sa_mat4 rotation = sa_Mat4_Identity();
+    sa_mat4 rotation = SU_IDENTITY_MAT4;
     float cosA = cosf(angle);
     float sinA = sinf(angle);
 
@@ -210,7 +205,7 @@ sa_mat4 sa_Mat4_Rotate_X(sa_mat4 mat, float angle) {
 }
 
 sa_mat4 sa_Mat4_Rotate_Y(sa_mat4 mat, float angle) {
-    sa_mat4 rotation = sa_Mat4_Identity();
+    sa_mat4 rotation = SU_IDENTITY_MAT4;
     float cosA = cosf(angle);
     float sinA = sinf(angle);
 
@@ -223,7 +218,7 @@ sa_mat4 sa_Mat4_Rotate_Y(sa_mat4 mat, float angle) {
 }
 
 sa_mat4 sa_Mat4_Rotate_Z(sa_mat4 mat, float angle) {
-    sa_mat4 rotation = sa_Mat4_Identity();
+    sa_mat4 rotation = SU_IDENTITY_MAT4;
     float cosA = cosf(angle);
     float sinA = sinf(angle);
 
@@ -236,7 +231,7 @@ sa_mat4 sa_Mat4_Rotate_Z(sa_mat4 mat, float angle) {
 }
 
 sa_mat4 sa_Mat4_Scale(float sx, float sy, float sz) {
-    sa_mat4 result = sa_Mat4_Identity();
+    sa_mat4 result = SU_IDENTITY_MAT4;
     result.data[0][0] = sx; // Scale in x direction
     result.data[1][1] = sy; // Scale in y direction
     result.data[2][2] = sz; // Scale in z direction
@@ -244,7 +239,7 @@ sa_mat4 sa_Mat4_Scale(float sx, float sy, float sz) {
 }
 
 sa_mat4 sa_Mat4_Translate(float tx, float ty, float tz) {
-    sa_mat4 result = sa_Mat4_Identity();
+    sa_mat4 result = SU_IDENTITY_MAT4;
     result.data[3][0] = tx; // Translate in x direction
     result.data[3][1] = ty; // Translate in y direction
     result.data[3][2] = tz; // Translate in z direction
