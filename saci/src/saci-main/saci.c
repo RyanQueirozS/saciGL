@@ -12,32 +12,15 @@
 
 // Helper
 
-SA_INTERNAL su_bool s_Has_Flag(su_u64 flag_var, su_u64 flag_to_check) {
-    return ((flag_var & flag_to_check) == flag_to_check);
-}
+SA_INTERNAL su_bool s_Has_Flag(su_u64 flag_var, su_u64 flag_to_check);
 
-SA_INTERNAL su_mat4 s_Mat4_Create_Transform_From_Flag(su_vec3 pos,
-                                                      su_vec3 rotation,
-                                                      su_vec3 dimentions,
-                                                      su_u64 flag_var) {
-    su_mat4 transform = SU_IDENTITY_MAT4;
-    if (s_Has_Flag(flag_var, saci_ENABLE_ROTATION_RTS)) { // Most likelly
-        transform = su_Mat4_Model_Matrix_RTS(
-            pos,
-            rotation,
-            dimentions);
-    } else {
-        transform = su_Mat4_Model_Matrix_TRS(
-            pos,
-            rotation,
-            dimentions);
-    }
-    return transform;
-}
+SA_INTERNAL su_mat4 s_Mat4_Create_Transform_From_Flag(
+    su_vec3 pos,
+    su_vec3 rotation,
+    su_vec3 dimentions,
+    su_u64 flag_var);
 
-SA_INTERNAL double s_Get_Delta(void) {
-    return 0.0; // TODO
-}
+SA_INTERNAL double s_Get_Delta(void);
 
 /* === Header impl === */
 
@@ -137,3 +120,30 @@ SA_API void saci_Present(void) {
 SA_API void saci_Free(void) {}
 
 // Helper
+
+SA_INTERNAL su_bool s_Has_Flag(su_u64 flag_var, su_u64 flag_to_check) {
+    return ((flag_var & flag_to_check) == flag_to_check);
+}
+
+SA_INTERNAL su_mat4 s_Mat4_Create_Transform_From_Flag(su_vec3 pos,
+                                                      su_vec3 rotation,
+                                                      su_vec3 dimentions,
+                                                      su_u64 flag_var) {
+    su_mat4 transform = SU_IDENTITY_MAT4;
+    if (s_Has_Flag(flag_var, saci_ENABLE_ROTATION_RTS)) { // Most likelly
+        transform = su_Mat4_Model_Matrix_RTS(
+            pos,
+            rotation,
+            dimentions);
+    } else {
+        transform = su_Mat4_Model_Matrix_TRS(
+            pos,
+            rotation,
+            dimentions);
+    }
+    return transform;
+}
+
+SA_INTERNAL double s_Get_Delta(void) {
+    return 0.0; // TODO
+}

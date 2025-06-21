@@ -1,6 +1,7 @@
 # Compiler flags
 CFLAGS = -Wall -Wextra -O0 -g \
 	-I../saci/src \
+	-I../saci/include \
 	-I../saci/deps/glad/include \
 	-I../saci/deps/glfw/include \
 	-I../saci/deps/stb \
@@ -19,8 +20,9 @@ endif
 
 # Sources for the saci library
 SACI_SRC = \
-	../saci/src/saci-core/**.c \
+	../saci/src/saci-backend/**.c \
 	../saci/src/saci-utils/**.c \
+	../saci/src/saci-main/**.c \
 	../saci/deps/glad/src/glad.c
 
 SRC_DIR = saci-core

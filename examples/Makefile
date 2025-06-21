@@ -4,8 +4,8 @@ CC = $(COMPILER)
 
 # Compiler Flags
 CFLAGS = -Wall -Wextra -O0 -g \
-	-I../saci/src \
 	-I../saci/include \
+	-I../saci/src\
 	-I../saci/deps/glad/include \
 	-I../saci/deps/glfw/include \
 	-I../saci/deps/stb \
@@ -18,47 +18,11 @@ ifeq ($(COMPILER),clang)
 	COMPILER = clang	
 endif
 
-# Debug mode flags
-ifeq ($(DEBUG),1)
-    CFLAGS += -DSACI_DEBUG_MODE_ALL
-endif
-ifeq ($(DEBUG_WINDOWING), 1)
-    CFLAGS += -DSACI_DEBUG_MODE_WINDOWING
-endif
-
-ifeq ($(DEBUG_TEXTURE), 1)
-    CFLAGS += -DSACI_DEBUG_MODE_TEXTURE
-endif
-
-ifeq ($(DEBUG_MODEL), 1)
-    CFLAGS += -DSACI_DEBUG_MODE_MODEL
-endif
-
-ifeq ($(DEBUG_OPENGL), 1)
-    CFLAGS += -DSACI_DEBUG_MODE_OPENGL
-endif
-
-ifeq ($(DEBUG_RENDERER), 1)
-    CFLAGS += -DSACI_DEBUG_MODE_RENDERER
-endif
-
-ifeq ($(DEBUG_RENDERER_FUNCTIONS), 1)
-    CFLAGS += -DSACI_DEBUG_MODE_RENDERER_FUNCTIONS
-endif
-
-ifeq ($(DEBUG_RENDERER_BATCH), 1)
-    CFLAGS += -DSACI_DEBUG_MODE_RENDERER_BATCH
-endif
-
-ifeq ($(DEBUG_RENDERER_CALL), 1)
-    CFLAGS += -DSACI_DEBUG_MODE_RENDERER_CALL
-endif
-
-
 # Source files from saci-core and saci-utils
 SACI_SRC = \
-	../saci/src/saci-core/**.c \
-	../saci/src/saci-utils/**.c \
+	$(wildcard ../saci/src/saci-backend/*.c) \
+	$(wildcard ../saci/src/saci-main/*.c) \
+	$(wildcard ../saci/src/saci-utils/*.c) \
 	../saci/deps/glad/src/glad.c
 
 # Linking libraries and flags

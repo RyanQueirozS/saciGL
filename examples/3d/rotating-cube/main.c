@@ -5,12 +5,12 @@
 #include <stddef.h>
 #include <assert.h>
 
-static sa_vec3 rotation = {0};
+static su_vec3 rotation = {0};
 
 static saci_cube cube = {
-    .dimentions = (sa_vec3){1, 1, 1},
-    .pos_center = (sa_vec3){0, 0, 0},
-    .rotation = (sa_vec3){0, 0, 0},
+    .dimentions = (su_vec3){1, 1, 1},
+    .pos_center = (su_vec3){0, 0, 0},
+    .rotation = (su_vec3){0, 0, 0},
 };
 
 void Draw_Fps(void) {
@@ -28,7 +28,7 @@ void Draw_Fps(void) {
 void Loop_Func(double delta) {
     saci_Begin();
 
-    cube.rotation = sa_Vec3_Add(cube.rotation, rotation);
+    cube.rotation = su_Vec3_Add(cube.rotation, rotation);
 
     saci_Draw_Cube(cube);
 
