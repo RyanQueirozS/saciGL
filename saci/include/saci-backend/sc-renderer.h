@@ -82,15 +82,15 @@ SA_API sc_renderer* sc_Renderer_New(const enum sc_rendererType type);
 SA_API void sc_Renderer_Begin(struct sc_renderer* rendr);
 
 SA_API void sc_Renderer_Bind_Texture(struct sc_renderer* rendr,
-                                     const sa_textureId tex_id);
+                                     const su_textureId tex_id);
 
-SA_API sa_s32 sc_Renderer_Get_Uniform_Id(struct sc_renderer* rendr,
+SA_API su_s32 sc_Renderer_Get_Uniform_Id(struct sc_renderer* rendr,
                                          const char* const uniform_name);
 
 SA_API void sc_Renderer_Set_Uniform(struct sc_renderer* rendr,
-                                    const sa_s32 uniform_id,
+                                    const su_s32 uniform_id,
                                     const void* const value,
-                                    const sa_dataType type);
+                                    const su_dataType type);
 
 SA_API void sc_Renderer_Bind_Index_Buffer(struct sc_renderer* rendr,
                                           const su_dArray* new_indices);

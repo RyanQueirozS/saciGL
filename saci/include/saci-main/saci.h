@@ -4,9 +4,9 @@
 #include "saci-utils/su-general.h"
 
 typedef struct saci_cube {
-    sa_vec3 pos_center;
-    sa_vec3 dimentions;
-    sa_vec3 rotation;
+    su_vec3 pos_center;
+    su_vec3 dimentions;
+    su_vec3 rotation;
 } saci_cube;
 
 typedef void (*saci_loopFunc)(const double delta);
@@ -26,9 +26,9 @@ SA_API void saci_Set_Loop_Func(saci_loopFunc loop_func);
 
 SA_API void saci_Loop(void);
 
-SA_API sa_vec3 saci_Translation_Rotation_Get(void);
+SA_API su_vec3 saci_Translation_Rotation_Get(void);
 
-SA_API void saci_Translation_Rotate(const sa_vec3 rotation);
+SA_API void saci_Translation_Rotate(const su_vec3 rotation);
 
 SA_API void saci_Draw_Cube(const saci_cube cube);
 

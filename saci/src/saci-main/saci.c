@@ -12,22 +12,22 @@
 
 // Helper
 
-SA_INTERNAL sa_bool s_Has_Flag(sa_u64 flag_var, sa_u64 flag_to_check) {
+SA_INTERNAL su_bool s_Has_Flag(su_u64 flag_var, su_u64 flag_to_check) {
     return ((flag_var & flag_to_check) == flag_to_check);
 }
 
-SA_INTERNAL sa_mat4 s_Mat4_Create_Transform_From_Flag(sa_vec3 pos,
-                                                      sa_vec3 rotation,
-                                                      sa_vec3 dimentions,
-                                                      sa_u64 flag_var) {
-    sa_mat4 transform = SU_IDENTITY_MAT4;
+SA_INTERNAL su_mat4 s_Mat4_Create_Transform_From_Flag(su_vec3 pos,
+                                                      su_vec3 rotation,
+                                                      su_vec3 dimentions,
+                                                      su_u64 flag_var) {
+    su_mat4 transform = SU_IDENTITY_MAT4;
     if (s_Has_Flag(flag_var, saci_ENABLE_ROTATION_RTS)) { // Most likelly
-        transform = sa_Mat4_Model_Matrix_RTS(
+        transform = su_Mat4_Model_Matrix_RTS(
             pos,
             rotation,
             dimentions);
     } else {
-        transform = sa_Mat4_Model_Matrix_TRS(
+        transform = su_Mat4_Model_Matrix_TRS(
             pos,
             rotation,
             dimentions);
@@ -55,9 +55,9 @@ struct saci_shapeDrawCall {
 };
 
 struct saci_contextBoundInfo {
-    sa_vec3 rotation;
-    sa_vec3 scale;
-    sa_vec3 pos;
+    su_vec3 rotation;
+    su_vec3 scale;
+    su_vec3 pos;
 };
 
 SA_INTERNAL struct saci_context {
@@ -73,14 +73,14 @@ SA_INTERNAL struct saci_context {
 
     saci_loopFunc loop_func;
 
-    sa_u64 enable_flags;
+    su_u64 enable_flags;
 } saci_context = {0};
 
 SA_API void saci_Init(void) {
     saci_context.renderer_array = su_DArray_Create(
         SACI_RENDERER_AMOUNT,
         sizeof(struct sc_renderer*),
-        sa_TRUE);
+        su_TRUE);
     struct sc_renderer* static_rendr = sc_Renderer_New(sc_RENDERER_STATIC);
     struct sc_renderer* instance_rendr = sc_Renderer_New(sc_RENDERER_STATIC);
     su_DArray_Push(saci_context.renderer_array, static_rendr);
@@ -88,12 +88,12 @@ SA_API void saci_Init(void) {
 }
 
 SA_API void saci_Begin(void) {
-    for (sa_u64 i = 0; i < su_DArray_Length(saci_context.renderer_array); ++i) {
+    for (su_u64 i = 0; i < su_DArray_Length(saci_context.renderer_array); ++i) {
         struct sc_renderer* renderer = su_DArray_Get_Ptr(saci_context.renderer_array, i);
         sc_Renderer_Begin(renderer);
     }
 
-    for (sa_u64 i = 0; i < su_DArray_Length(saci_context.renderer_array); ++i) {
+    for (su_u64 i = 0; i < su_DArray_Length(saci_context.renderer_array); ++i) {
         struct sc_renderer* renderer = su_DArray_Get_Ptr(saci_context.renderer_array, i);
         sc_Renderer_Draw(renderer);
     }
@@ -110,11 +110,11 @@ SA_API void saci_Loop(void) {
     }
 }
 
-SA_API sa_vec3 saci_Translation_Rotation_Get(void) {
+SA_API su_vec3 saci_Translation_Rotation_Get(void) {
     return saci_context.bound_info.rotation;
 }
 
-SA_API void saci_Translation_Rotate(const sa_vec3 rotation) {
+SA_API void saci_Translation_Rotate(const su_vec3 rotation) {
 }
 
 // Doesn't actually draw it but instead pushes to shape draw call array
@@ -122,7 +122,7 @@ SA_API void saci_Draw_Cube(const saci_cube cube) {
     struct saci_shapeDrawCall* call;
     call = su_DArray_Get_Ptr(saci_context.shape_draw_call_array, saci_SHAPE_CUBE);
 
-    sa_mat4 transform = s_Mat4_Create_Transform_From_Flag(
+    su_mat4 transform = s_Mat4_Create_Transform_From_Flag(
         cube.pos_center,
         cube.rotation,
         cube.dimentions,

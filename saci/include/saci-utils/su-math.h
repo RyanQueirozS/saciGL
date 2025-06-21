@@ -17,36 +17,36 @@
 /* === Constants === */
 
 /**
- * @define sa_PI
+ * @define su_PI
  * @brief PI declaration up to 14 digits
  */
-#define sa_PI 3.141592653589793f
+#define su_PI 3.141592653589793f
 
 /**
- * @define sa_DEG2RAD_MULT
+ * @define su_DEG2RAD_MULT
  * @brief Multiplication constant value for degree to radian operations
  */
-#define sa_DEG2RAD_MULT (sa_PI / 180.0f)
+#define su_DEG2RAD_MULT (su_PI / 180.0f)
 
 /**
- * @define sa_Deg_To_Rad_m
+ * @define su_Deg_To_Rad_m
  * @brief Macro that returns a degree from a radian
  */
-#define sa_Deg_To_Rad_m(x) ((x) * sa_DEG2RAD_MULT)
+#define su_Deg_To_Rad_m(x) ((x) * su_DEG2RAD_MULT)
 
 /**
- * @define sa_RAD2DEG_MULT
+ * @define su_RAD2DEG_MULT
  * @brief Multiplication constant value for radian to degree operations
  */
-#define sa_RAD2DEG_MULT (180.0f / SACI_PI)
+#define su_RAD2DEG_MULT (180.0f / SACI_PI)
 
 /**
- * @define sa_Rad_To_Deg_m
+ * @define su_Rad_To_Deg_m
  * @brief Macro that returns a radian from a degree
  */
-#define sa_Rad_To_Deg_m(x) ((x) * sa_RAD2DEG_MULT)
+#define su_Rad_To_Deg_m(x) ((x) * su_RAD2DEG_MULT)
 
-static const sa_mat4 SU_IDENTITY_MAT4 = {
+static const su_mat4 SU_IDENTITY_MAT4 = {
     .data = {
         {1.0f, 0.0f, 0.0f, 0.0f},
         {0.0f, 1.0f, 0.0f, 0.0f},
@@ -58,62 +58,62 @@ static const sa_mat4 SU_IDENTITY_MAT4 = {
 /* === Vec3 Operations === */
 
 /**
- * @fn sa_Vec3_Subtract
+ * @fn su_Vec3_Subtract
  * @brief Returns a new vector from a vector subtracted from another
  *
  * @param[in] a The base vector that will be subtracted
  * @param[in] b The vetor that will subtract
  *
- * @return sa_vec3 The result of the subtraction
+ * @return su_vec3 The result of the subtraction
  */
-sa_vec3 sa_Vec3_Subtract(sa_vec3 a, sa_vec3 b);
+su_vec3 su_Vec3_Subtract(su_vec3 a, su_vec3 b);
 
 /**
- * @fn sa_Vec3_Add
+ * @fn su_Vec3_Add
  * @brief Returns a new vector from a vector added from another
  *
  * @param[in] a The vector that will be added
  * @param[in] b The vetor that will added
  *
- * @return sa_vec3 The result of the subtraction
+ * @return su_vec3 The result of the subtraction
  */
-sa_vec3 sa_Vec3_Add(sa_vec3 a, sa_vec3 b);
+su_vec3 su_Vec3_Add(su_vec3 a, su_vec3 b);
 
 /**
- * @fn sa_Vec3_Scale
+ * @fn su_Vec3_Scale
  * @brief Returns a new scaled vector
  *
  * @param[in] a The vector that will be added
  * @param[in] b The vetor that will added
  *
- * @return sa_vec3 The result of the scalation
+ * @return su_vec3 The result of the scalation
  */
-sa_vec3 sa_Vec3_Scale(sa_vec3 v, float scalar);
+su_vec3 su_Vec3_Scale(su_vec3 v, float scalar);
 
 /**
- * @fn sa_Vec3_Normalize
+ * @fn su_Vec3_Normalize
  * @brief Returns a normalized vector to unit length (1)
  *
  * @param[in] v The vector to normalize
  *
- * @return sa_vec3 The normalized vector with a length of 1
+ * @return su_vec3 The normalized vector with a length of 1
  */
-sa_vec3 sa_Vec3_Normalize(sa_vec3 v);
+su_vec3 su_Vec3_Normalize(su_vec3 v);
 
 /**
- * @fn sa_Vec3_Cross
+ * @fn su_Vec3_Cross
  * @brief Returns the computed cross product of two vectors
  *
  * @param[in] a The first vector
  * @param[in] b The second vector
  *
- * @return sa_vec3 The result of the cross product of vectors a and b
+ * @return su_vec3 The result of the cross product of vectors a and b
  */
 
-sa_vec3 sa_Vec3_Cross(sa_vec3 a, sa_vec3 b);
+su_vec3 su_Vec3_Cross(su_vec3 a, su_vec3 b);
 
 /**
- * @fn sa_Vec3_Dot
+ * @fn su_Vec3_Dot
  * @brief Returns the computed dot product of two vectors
  *
  * @param[in] a The first vector
@@ -121,22 +121,22 @@ sa_vec3 sa_Vec3_Cross(sa_vec3 a, sa_vec3 b);
  *
  * @return float The result of the dot product of vectors a and b
  */
-float sa_Vec3_Dot(sa_vec3 a, sa_vec3 b);
+float su_Vec3_Dot(su_vec3 a, su_vec3 b);
 
 /* === Color Operations === */
 
 /**
- * @fn sa_Color_From_Hex
- * @brief Returns a new sa_color from a given hex code
+ * @fn su_Color_From_Hex
+ * @brief Returns a new su_color from a given hex code
  *
  * @param[in] hex The hex code 0x12345678
  *
- * @return sa_color The new color based on the hex code
+ * @return su_color The new color based on the hex code
  */
-sa_color sa_Color_From_Hex(sa_u32 hex);
+su_color su_Color_From_Hex(su_u32 hex);
 
 /**
- * @fn sa_Color_From_U8
+ * @fn su_Color_From_U8
  * @brief Returns a new color from given rgba values
  *
  * @param[in] r The r component of the color
@@ -144,48 +144,48 @@ sa_color sa_Color_From_Hex(sa_u32 hex);
  * @param[in] b The b component of the color
  * @param[in] a The a component of the color
  *
- * @return sa_color The new color based on the rgba value
+ * @return su_color The new color based on the rgba value
  */
-sa_color sa_Color_From_U8(sa_u8 r, sa_u8 g, sa_u8 b, sa_u8 a);
+su_color su_Color_From_U8(su_u8 r, su_u8 g, su_u8 b, su_u8 a);
 
 /**
- * @fn sa_Color_To_Hex
+ * @fn su_Color_To_Hex
  * @brief Returns a new hex code from a color
  *
  * @param[in] color The color to be evaluated
  *
- * @return sa_u32 The new hex code
+ * @return su_u32 The new hex code
  */
-sa_u32 sa_Color_To_Hex(sa_color color);
+su_u32 su_Color_To_Hex(su_color color);
 
 /* === Mat Operations === */
 
 /**
- * @fn sa_Mat4_Multiply
+ * @fn su_Mat4_Multiply
  * @brief Returns a Multiplied matrix given another
  *
  * @param[in] a The matrix to be multiplied
  * @param[in] b The matrix to be multiplied
  *
- * @return sa_mat4 The multiplied matrix
+ * @return su_mat4 The multiplied matrix
  */
 
-sa_mat4 sa_Mat4_Multiply(sa_mat4 a, sa_mat4 b);
+su_mat4 su_Mat4_Multiply(su_mat4 a, su_mat4 b);
 
 /**
- * @fn sa_Mat4_Look_At
+ * @fn su_Mat4_Look_At
  * @brief Returns a "view" matrix
  *
  * @param[in] eye The camera's position in world space
  * @param[in] center The target point or the "look-at" point
  * @param[in] up The "up" direction for the camera
  *
- * @return sa_mat4 The new view matrix
+ * @return su_mat4 The new view matrix
  */
-sa_mat4 sa_Mat4_Look_At(sa_vec3 eye, sa_vec3 center, sa_vec3 up);
+su_mat4 su_Mat4_Look_At(su_vec3 eye, su_vec3 center, su_vec3 up);
 
 /**
- * @fn sa_Mat4_Perspective
+ * @fn su_Mat4_Perspective
  * @brief Returns a perspective "projection" matrix
  *
  * @param[in] fov The camera's fov
@@ -193,12 +193,12 @@ sa_mat4 sa_Mat4_Look_At(sa_vec3 eye, sa_vec3 center, sa_vec3 up);
  * @param[in] near The camera's nearest renderable object
  * @param[in] far The camera's furthest renderable object
  *
- * @return sa_mat4 The new projection matrix
+ * @return su_mat4 The new projection matrix
  */
-sa_mat4 sa_Mat4_Perspective(float fov, float aspect, float near, float far);
+su_mat4 su_Mat4_Perspective(float fov, float aspect, float near, float far);
 
 /**
- * @fn sa_Mat4_Ortho
+ * @fn su_Mat4_Ortho
  * @brief Returns an orthogonal "projection" matrix
  *
  * @param[in] left The max coordinate of the left side
@@ -208,12 +208,12 @@ sa_mat4 sa_Mat4_Perspective(float fov, float aspect, float near, float far);
  * @param[in] near The camera's nearest renderable object
  * @param[in] far The camera's furthest renderable object
  *
- * @return sa_mat4 The new projection matrix
+ * @return su_mat4 The new projection matrix
  */
-sa_mat4 sa_Mat4_Ortho(float left, float right, float bottom, float top, float near, float far);
+su_mat4 su_Mat4_Ortho(float left, float right, float bottom, float top, float near, float far);
 
 /**
- * @fn sa_Mat4_Model_Matrix_TRS
+ * @fn su_Mat4_Model_Matrix_TRS
  * @brief Returns a new model matrix from position, rotation, and scale.
  * It follows a `rotation * translation * scale` order.
  *
@@ -221,12 +221,12 @@ sa_mat4 sa_Mat4_Ortho(float left, float right, float bottom, float top, float ne
  * @param[in] rotation The rotation vector (angles in radians for X, Y, Z axes)
  * @param[in] scale The scale vector for X, Y, Z axes
  *
- * @return sa_mat4 A combined model matrix applying scale, rotation, and translation
+ * @return su_mat4 A combined model matrix applying scale, rotation, and translation
  */
-sa_mat4 sa_Mat4_Model_Matrix_RTS(sa_vec3 position, sa_vec3 rotation, sa_vec3 scale);
+su_mat4 su_Mat4_Model_Matrix_RTS(su_vec3 position, su_vec3 rotation, su_vec3 scale);
 
 /**
- * @fn sa_Mat4_Model_Matrix_TRS
+ * @fn su_Mat4_Model_Matrix_TRS
  * @brief Returns a new model matrix from position, rotation, and scale.
  * It follows a `translation * rotation * scale` order.
  *
@@ -234,65 +234,65 @@ sa_mat4 sa_Mat4_Model_Matrix_RTS(sa_vec3 position, sa_vec3 rotation, sa_vec3 sca
  * @param[in] rotation The rotation vector (angles in radians for X, Y, Z axes)
  * @param[in] scale The scale vector for X, Y, Z axes
  *
- * @return sa_mat4 A combined model matrix applying scale, rotation, and translation
+ * @return su_mat4 A combined model matrix applying scale, rotation, and translation
  */
-sa_mat4 sa_Mat4_Model_Matrix_TRS(sa_vec3 position, sa_vec3 rotation, sa_vec3 scale);
+su_mat4 su_Mat4_Model_Matrix_TRS(su_vec3 position, su_vec3 rotation, su_vec3 scale);
 
 /**
- * @fn sa_Mat4_Rotate_X
+ * @fn su_Mat4_Rotate_X
  * @brief Returns a matrix rotated around the X-axis
  *
  * @param[in] mat The matrix to be rotated
  * @param[in] angle The angle in radians to rotate around the X-axis
  *
- * @return sa_mat4 The resulting rotated matrix
+ * @return su_mat4 The resulting rotated matrix
  */
-sa_mat4 sa_Mat4_Rotate_X(sa_mat4 mat, float angle);
+su_mat4 su_Mat4_Rotate_X(su_mat4 mat, float angle);
 
 /**
- * @fn sa_Mat4_Rotate_Y
+ * @fn su_Mat4_Rotate_Y
  * @brief Returns a matrix rotated around the Y-axis
  *
  * @param[in] mat The matrix to be rotated
  * @param[in] angle The angle in radians to rotate around the Y-axis
  *
- * @return sa_mat4 The resulting rotated matrix
+ * @return su_mat4 The resulting rotated matrix
  */
-sa_mat4 sa_Mat4_Rotate_Y(sa_mat4 mat, float angle);
+su_mat4 su_Mat4_Rotate_Y(su_mat4 mat, float angle);
 
 /**
- * @fn sa_Mat4_Rotate_Z
+ * @fn su_Mat4_Rotate_Z
  * @brief Returns a matrix rotated around the Z-axis
  *
  * @param[in] mat The matrix to be rotated
  * @param[in] angle The angle in radians to rotate around the Z-axis
  *
- * @return sa_mat4 The resulting rotated matrix
+ * @return su_mat4 The resulting rotated matrix
  */
-sa_mat4 sa_Mat4_Rotate_Z(sa_mat4 mat, float angle);
+su_mat4 su_Mat4_Rotate_Z(su_mat4 mat, float angle);
 
 /**
- * @fn sa_Mat4_Scale
+ * @fn su_Mat4_Scale
  * @brief Returns the new scaled matrix
  *
  * @param[in] sx Scaling factor along the X-axis
  * @param[in] sy Scaling factor along the Y-axis
  * @param[in] sz Scaling factor along the Z-axis
  *
- * @return sa_mat4 A matrix representing the scale transformation
+ * @return su_mat4 A matrix representing the scale transformation
  */
-sa_mat4 sa_Mat4_Scale(float sx, float sy, float sz);
+su_mat4 su_Mat4_Scale(float sx, float sy, float sz);
 
 /**
- * @fn sa_Mat4_Translate
+ * @fn su_Mat4_Translate
  * @brief Returns the new translation matrix
  *
  * @param[in] tx Translation along the X-axis
  * @param[in] ty Translation along the Y-axis
  * @param[in] tz Translation along the Z-axis
  *
- * @return sa_mat4 A matrix representing the translation transformation
+ * @return su_mat4 A matrix representing the translation transformation
  */
-sa_mat4 sa_Mat4_Translate(float tx, float ty, float tz);
+su_mat4 su_Mat4_Translate(float tx, float ty, float tz);
 
 #endif // SACI_UTILS_SU_MATH_H

@@ -10,11 +10,11 @@
 
 /* === Helper Func declarations === */
 
-SA_INTERNAL sa_u32 s_Texture_Determine_Format(int nr_channels);
+SA_INTERNAL su_u32 s_Texture_Determine_Format(int nr_channels);
 
 /* === Header impl === */
 
-void sc_Texture_Load_Data(const char* path, sa_bool flip_img, int* width_out, int* height_out, int* nr_channels_out, sa_u8** data_out) {
+void sc_Texture_Load_Data(const char* path, su_bool flip_img, int* width_out, int* height_out, int* nr_channels_out, su_u8** data_out) {
     // NOTE: flipImg is used with a `!` operator because stbi automatically flips the image
     stbi_set_flip_vertically_on_load(!flip_img);
     *data_out = stbi_load(path, width_out, height_out, nr_channels_out, 0);
@@ -24,11 +24,11 @@ void sc_Texture_Load_Data(const char* path, sa_bool flip_img, int* width_out, in
     }
 }
 
-sa_textureId sc_Texture_Load(const char* path, sa_bool flip_img) {
+su_textureId sc_Texture_Load(const char* path, su_bool flip_img) {
     int width = 0;
     int height = 0;
     int nr_channels = 0;
-    sa_u8* data = NULL;
+    su_u8* data = NULL;
     sc_Texture_Load_Data(path, flip_img, &width, &height, &nr_channels, &data);
 
     if (!data) {
@@ -37,7 +37,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flip_img) {
         return 0;
     }
 
-    sa_u32 format = s_Texture_Determine_Format(nr_channels);
+    su_u32 format = s_Texture_Determine_Format(nr_channels);
     if (format == 0) {
         su_Free_m(data);
         su_Log_Error_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
@@ -45,7 +45,7 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flip_img) {
         return 0;
     }
 
-    sa_textureId id;
+    su_textureId id;
     glGenTextures(1, &id);
 
     glBindTexture(GL_TEXTURE_2D, id);
@@ -71,14 +71,14 @@ sa_textureId sc_Texture_Load(const char* path, sa_bool flip_img) {
     return id;
 }
 
-void sc_Texture_Free(sa_textureId texture_id) {
+void sc_Texture_Free(su_textureId texture_id) {
     su_Log_Debug_Print_m(su_LOG_DEBUG_TYPE_TEXTURE, su_LOG_CONTEXT_OPENGL, "Freed texture");
     glDeleteTextures(1, &texture_id);
 }
 
 /* === Helper Func impl === */
 
-sa_u32 s_Texture_Determine_Format(int nr_channels) {
+su_u32 s_Texture_Determine_Format(int nr_channels) {
     if (nr_channels == 3) {
         return GL_RGB;
     }

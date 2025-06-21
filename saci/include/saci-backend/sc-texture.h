@@ -9,11 +9,11 @@
 
 /* === Texture Loading Functions === */
 
-sa_textureId sc_Texture_Load(const char* path, sa_bool flip_img);
+su_textureId sc_Texture_Load(const char* path, su_bool flip_img);
 
-void sc_Texture_Load_Data(const char* path, sa_bool flip_img, int* width_out, int* height_out,
-                          int* nr_channels_out, sa_u8** data_out);
+void sc_Texture_Load_Data(const char* path, su_bool flip_img, int* width_out, int* height_out,
+                          int* nr_channels_out, su_u8** data_out);
 
-void sc_Texture_Free(sa_textureId texture_id);
+void sc_Texture_Free(su_textureId texture_id);
 
 #endif // SACI_CORE_SC_TEXTURE_H

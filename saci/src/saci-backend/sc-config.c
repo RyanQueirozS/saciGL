@@ -21,7 +21,7 @@ SA_API sc_configState* sc_Config_Load(const char* file_path) {
     return lua_state;
 }
 
-SA_API sa_bool sc_Config_Load_Table(sc_configState* state, const char* table_name) {
+SA_API su_bool sc_Config_Load_Table(sc_configState* state, const char* table_name) {
     if (!state) {
         return false;
     }
@@ -34,13 +34,13 @@ SA_API sa_bool sc_Config_Load_Table(sc_configState* state, const char* table_nam
     return true;
 }
 
-SA_API sa_s8 sc_Config_Get_Bool(sc_configState* state, const char* b_name) {
+SA_API su_s8 sc_Config_Get_Bool(sc_configState* state, const char* b_name) {
     if (!state) {
         return -1;
     }
     lua_getfield(state, -1, b_name);
     if (lua_isboolean(state, -1)) {
-        sa_s8 val = su_Scast_To_m(sa_s8)(lua_tointeger(state, -1));
+        su_s8 val = su_Scast_To_m(su_s8)(lua_tointeger(state, -1));
         lua_pop(state, 1);
         return val;
     }
@@ -49,27 +49,13 @@ SA_API sa_s8 sc_Config_Get_Bool(sc_configState* state, const char* b_name) {
     return -1;
 }
 
-SA_API sa_u8 sc_Config_Get_Uint8(sc_configState* state, const char* i_name) {
+SA_API su_u8 sc_Config_Get_Uint8(sc_configState* state, const char* i_name) {
     if (!state) {
         return 0;
     }
     lua_getfield(state, -1, i_name);
     if (lua_isnumber(state, -1)) {
-        sa_u8 val = su_Scast_To_m(sa_u8)(lua_tointeger(state, -1));
-        lua_pop(state, 1);
-        return val;
-    }
-    su_Log_ErrorF_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_CONFIG, "Missing or invalid integer: %s", i_name);
-    lua_pop(state, 1);
-    return 0;
-}
-SA_API sa_u32 sc_Config_Get_Uint32(sc_configState* state, const char* i_name) {
-    if (!state) {
-        return 0;
-    }
-    lua_getfield(state, -1, i_name);
-    if (lua_isnumber(state, -1)) {
-        sa_u32 val = su_Scast_To_m(sa_u32)(lua_tointeger(state, -1));
+        su_u8 val = su_Scast_To_m(su_u8)(lua_tointeger(state, -1));
         lua_pop(state, 1);
         return val;
     }
@@ -78,13 +64,28 @@ SA_API sa_u32 sc_Config_Get_Uint32(sc_configState* state, const char* i_name) {
     return 0;
 }
 
-SA_API sa_u64 sc_Config_Get_Uint64(sc_configState* state, const char* i_name) {
+SA_API su_u32 sc_Config_Get_Uint32(sc_configState* state, const char* i_name) {
     if (!state) {
         return 0;
     }
     lua_getfield(state, -1, i_name);
     if (lua_isnumber(state, -1)) {
-        sa_u64 val = su_Scast_To_m(sa_u64)(lua_tointeger(state, -1));
+        su_u32 val = su_Scast_To_m(su_u32)(lua_tointeger(state, -1));
+        lua_pop(state, 1);
+        return val;
+    }
+    su_Log_ErrorF_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_CONFIG, "Missing or invalid integer: %s", i_name);
+    lua_pop(state, 1);
+    return 0;
+}
+
+SA_API su_u64 sc_Config_Get_Uint64(sc_configState* state, const char* i_name) {
+    if (!state) {
+        return 0;
+    }
+    lua_getfield(state, -1, i_name);
+    if (lua_isnumber(state, -1)) {
+        su_u64 val = su_Scast_To_m(su_u64)(lua_tointeger(state, -1));
         lua_pop(state, 1);
         return val;
     }

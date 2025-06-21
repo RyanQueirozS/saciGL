@@ -16,11 +16,11 @@ SA_INTERNAL void s_Opengl_Initialize_Debugger(void);
 
 /* === Main declaration=== */
 
-sa_bool sc_GLFW_Init(void) {
+su_bool sc_GLFW_Init(void) {
     int success = glfwInit();
     if (!success) {
         su_Log_Error_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_OPENGL, "Couldn't load glfw");
-        return sa_FALSE;
+        return su_FALSE;
     }
     su_Log_Info_Print_m(su_LOG_CONTEXT_OPENGL, "Loaded glfw");
     // TODO make user defined version
@@ -28,13 +28,13 @@ sa_bool sc_GLFW_Init(void) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    return sa_TRUE;
+    return su_TRUE;
 }
 
-sa_bool sc_GLAD_Init(void) {
-    if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != sa_TRUE) {
+su_bool sc_GLAD_Init(void) {
+    if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) != su_TRUE) {
         su_Log_Error_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_OPENGL, "Couldn't Load glad");
-        return sa_FALSE;
+        return su_FALSE;
     }
     su_Log_Info_Print_m(su_LOG_CONTEXT_OPENGL, "Loaded glad");
     s_Opengl_Initialize_Debugger();
@@ -42,7 +42,7 @@ sa_bool sc_GLAD_Init(void) {
     su_Log_InfoF_Print_m(su_LOG_CONTEXT_OPENGL,
                          "Using OpenGL version: %s", glGetString(GL_VERSION));
 
-    return sa_TRUE;
+    return su_TRUE;
 }
 
 sc_window_t* sc_Window_Create(int width, int height, const char* title,
@@ -58,7 +58,7 @@ void sc_Window_Make_Context(sc_window_t* window) {
     glfwMakeContextCurrent(window);
 }
 
-sa_bool sc_Window_Should_Close(sc_window_t* window) {
+su_bool sc_Window_Should_Close(sc_window_t* window) {
     return glfwWindowShouldClose(window);
 }
 
@@ -77,7 +77,7 @@ void sc_Window_Terminate(void) {
     su_Log_Info_Print_m(su_LOG_CONTEXT_OPENGL, "Terminated glfw");
 }
 
-void sc_Window_Clear_Color(sa_color color) {
+void sc_Window_Clear_Color(su_color color) {
     glClearColor(color.r, color.g, color.b, color.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -117,6 +117,6 @@ SA_API void sc_Event_Set_Mouse_Pos_Handler(sc_window_t* window, sc_event_mousePo
     glfwSetCursorPosCallback(window, mouse_pos_handler);
 }
 
-SA_API sa_bool sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
+SA_API su_bool sc_Event_Is_Key_Pressed(sc_window_t* window, int keycode) {
     return glfwGetKey(window, su_Scast_To_m(int)(keycode)) == GLFW_PRESS;
 }

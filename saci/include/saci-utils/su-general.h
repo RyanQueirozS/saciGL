@@ -198,36 +198,36 @@ typedef struct su_dArray su_dArray;
 
 #define SIZE_OF_DARRAY 40
 
-SA_API su_dArray* su_DArray_Create(sa_u64 capacity, sa_u64 elem_size, sa_bool fixed_size);
+SA_API su_dArray* su_DArray_Create(su_u64 capacity, su_u64 elem_size, su_bool fixed_size);
 
-SA_API su_dArray* su_DArray_Create_Ctx(void* memctx, sa_u64 memctx_size, sa_u64 capacity, sa_u64 elem_size, sa_bool fixed_size);
+SA_API su_dArray* su_DArray_Create_Ctx(void* memctx, su_u64 memctx_size, su_u64 capacity, su_u64 elem_size, su_bool fixed_size);
 
 SA_API void su_DArray_Free(su_dArray* array);
 
 SA_API void su_DArray_Clear(su_dArray* array);
 
-SA_API sa_bool su_DArray_Resize(su_dArray* array, sa_u64 new_cap);
+SA_API su_bool su_DArray_Resize(su_dArray* array, su_u64 new_cap);
 
-SA_API sa_bool su_DArray_Push(su_dArray* array, const void* value);
+SA_API su_bool su_DArray_Push(su_dArray* array, const void* value);
 
 SA_API void su_DArray_Pop(su_dArray* array);
 
-SA_API void su_DArray_Get(const su_dArray* array, sa_u64 index, void* out_value);
+SA_API void su_DArray_Get(const su_dArray* array, su_u64 index, void* out_value);
 
-SA_API void* su_DArray_Get_Ptr(const su_dArray* array, sa_u64 index);
+SA_API void* su_DArray_Get_Ptr(const su_dArray* array, su_u64 index);
 
-SA_API void su_DArray_Set(su_dArray* array, sa_u64 index, const void* value);
+SA_API void su_DArray_Set(su_dArray* array, su_u64 index, const void* value);
 
-SA_API sa_u64 su_DArray_Length(const su_dArray* array);
+SA_API su_u64 su_DArray_Length(const su_dArray* array);
 
-SA_API sa_u64 su_DArray_Capacity(const su_dArray* array);
+SA_API su_u64 su_DArray_Capacity(const su_dArray* array);
 
 SA_API void su_DArray_Append(su_dArray* dest, const su_dArray* src);
 
 SA_API void su_DArray_Debug_Print(const su_dArray* arr);
 
-SA_API sa_bool su_DArray_Is_Null(const su_dArray* arr);
+SA_API su_bool su_DArray_Is_Null(const su_dArray* arr);
 
-SA_API sa_bool su_DArray_Is_Empty(const su_dArray* arr);
+SA_API su_bool su_DArray_Is_Empty(const su_dArray* arr);
 
 #endif // SACI_UTILS_SU_GENERAL_H
