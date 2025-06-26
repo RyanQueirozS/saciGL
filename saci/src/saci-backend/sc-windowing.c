@@ -6,6 +6,7 @@
 #include "saci-backend/sc-windowing.h"
 #include "saci-utils/su-debug.h"
 #include "saci-utils/su-general.h"
+#include "saci-utils/su-types.h"
 
 /* === Helper === */
 

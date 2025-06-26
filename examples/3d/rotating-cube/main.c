@@ -4,6 +4,7 @@
 #include <float.h>
 #include <stddef.h>
 #include <assert.h>
+#include <stdio.h>
 
 static su_vec3 rotation = {0};
 
@@ -37,6 +38,7 @@ void Loop_Func(double delta) {
 
 int main(void) {
     saci_Init();
+    saci_Set_Background_Color(su_Color_From_U8(25, 70, 125, 255));
 
     saci_Set_Loop_Func(Loop_Func);
 

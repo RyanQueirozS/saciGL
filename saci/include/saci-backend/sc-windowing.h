@@ -22,6 +22,9 @@ typedef void (*sc_window_posHandler_t)(sc_window_t* window, int pos_x, int pos_y
 typedef void (*sc_window_sizeHandler_t)(sc_window_t* window, int width, int height);
 #endif
 
+// These need to have an abstraction such as: load window lib and load graphics
+// lib. This needs to be done such that a different window and graphics lib can
+// be used more easily.
 su_bool sc_GLFW_Init(void);
 su_bool sc_GLAD_Init(void);
 
@@ -46,10 +49,19 @@ void sc_Window_Swap_Buffer(sc_window_t* window);
 
 /* === Event === */
 
-#ifndef SC_EVENT_MOUSE_POS_HANDLER_t
-#  define SC_EVENT_MOUSE_POS_HANDLER_t
+#ifndef SC_EVENT_KEY_AMOUTN
+#  define SC_EVENT_KEY_AMOUNT GLFW_KEY_LAST
+#endif
+
+#ifndef SC_EVENT_MOUSE_BUTTON_AMOUNT
+#  define SC_EVENT_MOUSE_BUTTON_AMOUNT 8
+#endif
+
+#ifndef SC_EVENT_CONTROLLER_BUTTON_AMOUNT
+#  define SC_EVENT_CONTROLLER_BUTTON_AMOUNT 16
+#endif
+
 typedef void (*sc_event_mousePosHandler_t)(sc_window_t* window, double posx, double posy);
-#endif // SC_EVENT_MOUSE_POS_HANDLER_t
 
 enum sc_key {
     sc_KEY_SPACE = 32,
