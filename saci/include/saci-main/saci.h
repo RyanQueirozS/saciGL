@@ -9,6 +9,7 @@ typedef struct saci_cube {
     su_vec3 pos_center;
     su_vec3 dimentions;
     su_vec3 rotation;
+    su_color color;
 } saci_cube;
 
 typedef void (*saci_loopFunc)(const double delta);

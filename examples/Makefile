@@ -11,7 +11,8 @@ CFLAGS = -Wall -Wextra -O0 -g \
 	-I../saci/deps/stb \
 	-I../saci/deps/memory \
 	-I../saci/deps/model-loading \
-	-DSACI_TEST_BUILD
+	-DSACI_TEST_BUILD \
+	-DSACI_DEBUG_MODE_ALL
 
 # Clang-specific tweaks (optional)
 ifeq ($(COMPILER),clang)

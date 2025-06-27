@@ -4,14 +4,14 @@
 #include <float.h>
 #include <stddef.h>
 #include <assert.h>
-#include <stdio.h>
 
-static su_vec3 rotation = {0};
+static su_vec3 rotation = {0.02, 0.02, 0.02};
 
 static saci_cube cube = {
     .dimentions = (su_vec3){1, 1, 1},
     .pos_center = (su_vec3){0, 0, 0},
     .rotation = (su_vec3){0, 0, 0},
+    .color = (su_color){1, 0, 0, 1},
 };
 
 void Draw_Fps(void) {
@@ -29,7 +29,17 @@ void Draw_Fps(void) {
 void Loop_Func(double delta) {
     saci_Begin();
 
+    cube.pos_center = su_Vec3_Add(cube.rotation, rotation);
     cube.rotation = su_Vec3_Add(cube.rotation, rotation);
+
+    saci_Draw_Cube(cube);
+
+    cube.pos_center = su_Vec3_Add(cube.rotation, rotation);
+
+    saci_Draw_Cube(cube);
+
+    cube.pos_center = su_Vec3_Add(cube.rotation, rotation);
+    cube.dimentions = su_Vec3_Add(cube.rotation, rotation);
 
     saci_Draw_Cube(cube);
 

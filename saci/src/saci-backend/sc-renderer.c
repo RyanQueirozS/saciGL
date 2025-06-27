@@ -420,6 +420,7 @@ SA_API sc_renderer* sc_Renderer_New(const enum sc_rendererType type) {
     case sc_RENDERER_STATIC:
     case sc_RENDERER_DYNAMIC:
     case sc_RENDERER_INSTANCE:
+        rendr->type = sc_RENDERER_INSTANCE;
         rendr->interface = &sc_INSTANCE_RENDERER_DEFAULT_INTERFACE;
         rendr->interface->new(rendr);
         break;
