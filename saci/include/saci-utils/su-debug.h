@@ -43,6 +43,7 @@ enum su_logContext {
     su_LOG_CONTEXT_STBI,
     su_LOG_CONTEXT_MEMORY,
     su_LOG_CONTEXT_CONFIG,
+    su_LOG_CONTEXT_SACI_MAIN_SHAPES,
 };
 
 enum su_logDebugType {

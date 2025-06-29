@@ -108,6 +108,8 @@ SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts);
 
 /* --- Renderer specific --- */
 
+SA_API void sc_Renderer_Set_Instance_Colors(struct sc_renderer* rendr, su_dArray* color_array);
+
 // This needs to be used with a instanced renderer, else it should crash
 SA_API void sc_Renderer_Set_Instance_Transforms(struct sc_renderer* rendr, su_dArray* transform_array);
 

@@ -101,7 +101,8 @@ SA_INTERNAL const char* const sc_INSTANCE_VERT_SHADER =
     "layout (location = 0) in vec3 a_pos;\n"
     "layout (location = 1) in vec4 a_color;\n"
     "layout (location = 2) in vec2 a_texcoord;\n"
-    "layout (location = 3) in mat4 a_model_matrix;\n"
+    "layout (location = 3) in mat4 i_model_matrix;\n"
+    "layout (location = 4) in vec4 i_color;\n"
 
     "uniform mat4 u_model_matrix;\n"
     "uniform mat4 u_view_matrix;\n"
@@ -114,8 +115,8 @@ SA_INTERNAL const char* const sc_INSTANCE_VERT_SHADER =
 
     "void main()\n"
     "{\n"
-    "   gl_Position = u_projection_matrix * u_view_matrix * u_model_matrix * a_model_matrix * vec4(a_pos, 1.0);\n"
-    "   v_color = a_color;\n"
+    "   gl_Position = u_projection_matrix * u_view_matrix * u_model_matrix * i_model_matrix * vec4(a_pos, 1.0);\n"
+    "   v_color = a_color + i_color;\n" // TODO later there might be some flag or way to not only add but multiply or divide or whatever
     "   v_texcoord = a_texcoord;\n"
     "}\n\0";
 
@@ -191,6 +192,7 @@ struct sc_rendererUniformData {
 struct sc_instanceBatch {
     su_textureId texture;
     su_dArray* model_matrix_array;
+    su_dArray* color_array;
     su_dArray* index_array;
     su_dArray* vertex_array;
     su_dArray* uniform_data;
@@ -313,9 +315,14 @@ struct sc_staticRenderer {
     Arena batch_arena;
 };
 
+struct sc_instanceBoundExtra {
+    su_dArray* bound_transform_array;
+    su_dArray* bound_color_array;
+};
+
 struct sc_instanceRenderer {
     struct sc_rendererCommon common;
-    su_dArray* bound_transform_array;
+    struct sc_instanceBoundExtra bound_extra;
     su_bufferId instance_vbo; // used for instancing
 
     struct sc_instanceBatchInfo batch_info;
@@ -474,6 +481,21 @@ SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts) {
 
 /* --- Renderer specific impl --- */
 
+// TODO there can be a discrepancy in these instance bindings as there can be a
+// bigger amount of colors then transform, the renderer will use the smallest
+// amount of either but that shouldn't be the case
+SA_API void sc_Renderer_Set_Instance_Colors(struct sc_renderer* rendr, su_dArray* color_array) {
+    su_Log_Assert_Message_m(rendr->type == sc_RENDERER_INSTANCE, "Trying to set instance transforms in non instance renderer");
+
+    su_Log_DebugF_Print_m(
+        su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
+        su_LOG_CONTEXT_RENDERER,
+        "Binding %lu transforms",
+        su_DArray_Length(color_array));
+    su_DArray_Clear(rendr->rendr.instance_renderer->bound_extra.bound_color_array);
+    su_DArray_Append(rendr->rendr.instance_renderer->bound_extra.bound_color_array, color_array);
+}
+
 // TODO, it's working but needs some improvement
 SA_API void sc_Renderer_Set_Instance_Transforms(struct sc_renderer* rendr, su_dArray* transform_array) {
     su_Log_Assert_Message_m(rendr->type == sc_RENDERER_INSTANCE, "Trying to set instance transforms in non instance renderer");
@@ -483,8 +505,8 @@ SA_API void sc_Renderer_Set_Instance_Transforms(struct sc_renderer* rendr, su_dA
         su_LOG_CONTEXT_RENDERER,
         "Binding %lu transforms",
         su_DArray_Length(transform_array));
-    su_DArray_Clear(rendr->rendr.instance_renderer->bound_transform_array);
-    su_DArray_Append(rendr->rendr.instance_renderer->bound_transform_array, transform_array);
+    su_DArray_Clear(rendr->rendr.instance_renderer->bound_extra.bound_transform_array);
+    su_DArray_Append(rendr->rendr.instance_renderer->bound_extra.bound_transform_array, transform_array);
 }
 
 /* --- Renderer Helper impl --- */
@@ -508,7 +530,7 @@ SA_INTERNAL void s_Renderer_Instanced_New(sc_renderer* self) {
     s_Renderer_Init_Bound(&rendr->common, cfg);
     // todo send to a separate function
     rendr->instance_vbo = sc_GL_Create_Vertex_Buffer(
-        sizeof(su_mat4) * 1024, NULL, GL_DYNAMIC_DRAW);
+        (sizeof(su_mat4) + sizeof(su_color)) * 1024, NULL, GL_DYNAMIC_DRAW);
     sc_GL_Bind_Vertex_Buffer(rendr->instance_vbo);
     for (su_u32 i = 0; i < 4; ++i) {
         sc_GL_Set_Vertex_Attrib_Pointer(3 + i, 4, GL_FLOAT, GL_FALSE,
@@ -516,6 +538,11 @@ SA_INTERNAL void s_Renderer_Instanced_New(sc_renderer* self) {
         sc_GL_Enable_Vertex_Attrib_Array(3 + i);
         glVertexAttribDivisor(3 + i, 1);
     }
+    sc_GL_Set_Vertex_Attrib_Pointer(7, 4, GL_FLOAT, GL_FALSE,
+                                    sizeof(su_mat4) + sizeof(su_vec4),
+                                    (void*)(sizeof(su_mat4)));
+    sc_GL_Enable_Vertex_Attrib_Array(7);
+    glVertexAttribDivisor(7, 1);
 }
 
 SA_INTERNAL void s_Renderer_Init_GL(struct sc_rendererCommon* rendr_common, const struct sc_rendererConfig rendr_cfg) {
@@ -608,13 +635,15 @@ SA_INTERNAL void s_Renderer_Init_Instance_Batch(struct sc_instanceRenderer* rend
     su_u64 index_size = instance_info.index_array_capacity * sizeof(su_u32);
     su_u64 vertex_size = instance_info.vertex_array_capacity * sizeof(struct sc_vertex);
     su_u64 transform_size = instance_info.transform_array_capacity * sizeof(su_mat4);
+    su_u64 color_size = instance_info.transform_array_capacity * sizeof(su_color);
     su_u64 uniform_size = bound_info.uniform_array_capacity * sizeof(struct sc_rendererUniformData);
-    su_u64 batch_arena_element_size = index_size + vertex_size + transform_size + uniform_size + sizeof(struct sc_instanceBatch);
+    su_u64 batch_arena_element_size = index_size + vertex_size + transform_size + color_size + uniform_size + sizeof(struct sc_instanceBatch);
     rendr->batch_info.batch_struct_allocation_size = batch_arena_element_size;
 
     rendr->batch_ptr_array = su_Calloc_m(instance_info.batch_capacity, sizeof(struct sc_instanceBatch*));
     // TODO
-    rendr->bound_transform_array = su_DArray_Create(instance_info.transform_array_capacity, sizeof(su_mat4), su_TRUE);
+    rendr->bound_extra.bound_color_array = su_DArray_Create(instance_info.transform_array_capacity, sizeof(su_color), su_TRUE);
+    rendr->bound_extra.bound_transform_array = su_DArray_Create(instance_info.transform_array_capacity, sizeof(su_mat4), su_TRUE);
 
     ArenaInit(
         &rendr->batch_arena,
@@ -625,6 +654,7 @@ SA_INTERNAL void s_Renderer_Init_Instance_Batch(struct sc_instanceRenderer* rend
         void* index_mem = ArenaPush(&rendr->batch_arena, index_size);
         void* vertex_mem = ArenaPush(&rendr->batch_arena, vertex_size);
         void* transform_mem = ArenaPush(&rendr->batch_arena, transform_size);
+        void* color_mem = ArenaPush(&rendr->batch_arena, color_size);
         void* uniform_mem = ArenaPush(&rendr->batch_arena, uniform_size);
 
         struct sc_instanceBatch* instance_batch =
@@ -647,6 +677,12 @@ SA_INTERNAL void s_Renderer_Init_Instance_Batch(struct sc_instanceRenderer* rend
             transform_size + SIZE_OF_DARRAY,
             instance_info.transform_array_capacity,
             sizeof(su_mat4),
+            su_TRUE);
+        instance_batch->color_array = su_DArray_Create_Ctx(
+            color_mem,
+            color_size + SIZE_OF_DARRAY,
+            instance_info.transform_array_capacity,
+            sizeof(su_color),
             su_TRUE);
         instance_batch->uniform_data = su_DArray_Create_Ctx(
             uniform_mem,
@@ -843,11 +879,14 @@ SA_INTERNAL void s_Renderer_Push_Mesh_Instanced(struct sc_renderer* self,
             su_DArray_Get(color_array, i, &color);
         }
         struct sc_vertex vertex = (struct sc_vertex){pos, color, uv};
-        su_DArray_Push(batch->vertex_array, &vertex);
+        if (!su_DArray_Push(batch->vertex_array, &vertex)) {
+            su_Log_Error_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER, "Could not push vertex to instance batch");
+        }
     }
     su_DArray_Append(batch->index_array, rendr->common.bound.index_array);
     su_DArray_Append(batch->uniform_data, rendr->common.bound.uniform_data_array);
-    su_DArray_Append(batch->model_matrix_array, rendr->bound_transform_array);
+    su_DArray_Append(batch->model_matrix_array, rendr->bound_extra.bound_transform_array);
+    su_DArray_Append(batch->color_array, rendr->bound_extra.bound_color_array);
     rendr->batch_info.in_use++;
 }
 
@@ -893,7 +932,10 @@ SA_INTERNAL void s_Renderer_Set_Uniform(struct sc_renderer* self,
             return;
         }
     }
-    su_DArray_Push(*uniform_data_array, &new_uniform);
+    if (!su_DArray_Push(*uniform_data_array, &new_uniform)) {
+        su_Log_ErrorF_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER,
+                              "Could not set uniform in renderer");
+    }
     su_Free_m(uniform_data);
 }
 
@@ -908,6 +950,7 @@ SA_INTERNAL void s_Renderer_Instance_Begin(const struct sc_renderer* self) {
         batch->texture = SC_TEXTURE_INVALID;
         su_DArray_Clear(batch->index_array);
         su_DArray_Clear(batch->model_matrix_array);
+        su_DArray_Clear(batch->color_array);
         su_DArray_Clear(batch->vertex_array);
         su_DArray_Clear(batch->uniform_data);
     }
@@ -1079,7 +1122,7 @@ SA_INTERNAL void s_Renderer_Draw_Instance_Batch(const struct sc_renderer* self) 
         if (!su_DArray_Is_Empty(batch->model_matrix_array)) {
             glBindBuffer(GL_ARRAY_BUFFER, rendr->instance_vbo);
             glBufferSubData(GL_ARRAY_BUFFER, 0,
-                            su_Scast_To_m(long int)(sizeof(su_mat4) * su_DArray_Length(batch->model_matrix_array)),
+                            su_Scast_To_m(long int)((sizeof(su_mat4) + sizeof(su_color)) * su_Min_m(su_DArray_Length(batch->model_matrix_array), su_DArray_Length(batch->color_array))),
                             su_DArray_Get_Ptr(batch->model_matrix_array, 0));
         }
 

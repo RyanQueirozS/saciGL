@@ -61,6 +61,7 @@ enum saci_shapeType {
 // Each index is a shape so there is no need to store the shape type directly
 struct saci_shapeDrawCall {
     su_dArray* transforms;
+    su_dArray* colors;
 };
 
 SA_INTERNAL struct saci_context {
@@ -105,18 +106,22 @@ void saci_Init(void) {
     saci_cube_pos = su_DArray_Create(8, sizeof(su_vec3), su_TRUE);
     saci_cube_index = su_DArray_Create(36, sizeof(su_u32), su_TRUE);
     for (int i = 0; i < 8; ++i) {
-        su_DArray_Push(saci_cube_pos, &cube_vertices[i]);
+        su_Log_Assert_Message_m(su_DArray_Push(saci_cube_pos, &cube_vertices[i]), "Could not push to cube_pos DArray");
     }
     for (int i = 0; i < 36; ++i) {
-        su_DArray_Push(saci_cube_index, &indices[i]);
+        su_Log_Assert_Message_m(su_DArray_Push(saci_cube_index, &indices[i]), "Could not push to cube_index DArray");
     }
 
     s_Init_Windowing(&saci_context.windowing.window, 1600, 900, "test");
     s_Init_Memory();
 }
 
-void saci_Enable(saci_enableFlags enable_flag) {
-    saci_context.enable_flags |= enable_flag;
+void saci_Enable(saci_renderingFlags enable_flag, su_bool enable) {
+    if (enable) {
+        saci_context.enable_flags |= enable_flag;
+    } else {
+        saci_context.enable_flags &= ~enable_flag;
+    }
 }
 
 void saci_Begin(void) {
@@ -153,8 +158,14 @@ void saci_Draw_Cube(const saci_cube cube) {
             cube.dimentions,
         },
         saci_context.enable_flags);
-    su_DArray_Push(saci_context.shape_draw_call_array[saci_SHAPE_CUBE].transforms,
-                   &transform);
+    if (!su_DArray_Push(saci_context.shape_draw_call_array[saci_SHAPE_CUBE].transforms,
+                        &transform)) {
+        su_Log_Error_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_SACI_MAIN_SHAPES, "Could not push cube transform");
+    }
+    if (!su_DArray_Push(saci_context.shape_draw_call_array[saci_SHAPE_CUBE].colors,
+                        &cube.color)) {
+        su_Log_Error_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_SACI_MAIN_SHAPES, "Could not push cube color");
+    }
 }
 
 void saci_Present(void) {
@@ -180,22 +191,19 @@ void saci_Present(void) {
     sc_Renderer_Bind_Index_Buffer(
         saci_context.renderer_info_array[sc_RENDERER_INSTANCE].renderer,
         saci_cube_index);
+    sc_Renderer_Set_Instance_Colors(
+        saci_context.renderer_info_array[sc_RENDERER_INSTANCE].renderer,
+        saci_context.shape_draw_call_array[saci_SHAPE_CUBE].colors);
     sc_Renderer_Set_Instance_Transforms(
         saci_context.renderer_info_array[sc_RENDERER_INSTANCE].renderer,
         saci_context.shape_draw_call_array[saci_SHAPE_CUBE].transforms);
-    su_dArray* color_arr = su_DArray_Create(8, sizeof(su_color), su_TRUE);
-    for (su_u32 i = 0; i < 8; ++i) {
-        su_color color = su_Color_From_U8((su_u8)(rand() % 255), 20, 20, 255);
-        su_DArray_Push(color_arr, &color);
-    }
     sc_Renderer_Push_Mesh(
         saci_context.renderer_info_array[sc_RENDERER_INSTANCE].renderer,
         saci_cube_pos,
         NULL,
-        color_arr);
+        NULL);
     sc_Renderer_Draw(saci_context.renderer_info_array[sc_RENDERER_INSTANCE].renderer);
     sc_Window_Swap_Buffer(saci_context.windowing.window);
-    su_DArray_Free(color_arr);
 }
 
 void saci_Free(void) {}
@@ -243,6 +251,7 @@ SA_INTERNAL void s_Init_Memory(void) {
     for (su_s32 i = 0; i < saci_shape_amount; ++i) {
         saci_context.shape_draw_call_array[i] = (struct saci_shapeDrawCall){
             .transforms = su_DArray_Create(1024, sizeof(su_mat4), su_TRUE),
+            .colors = su_DArray_Create(1024, sizeof(su_color), su_TRUE),
         };
     }
 }
@@ -258,13 +267,13 @@ SA_INTERNAL su_mat4 s_Mat4_Create_Transform_From_Flag(
     struct saci_transform transform,
     su_u64 flag_var) {
     su_mat4 transform_mat = SU_IDENTITY_MAT4;
-    if (s_Has_Flag(flag_var, saci_ENABLE_ROTATION_RTS)) { // Most likelly
-        transform_mat = su_Mat4_Model_Matrix_RTS(
+    if (!s_Has_Flag(flag_var, saci_RENDERING_FLAG_ROTATION_RTS)) { // Most likelly
+        transform_mat = su_Mat4_Model_Matrix_TRS(
             transform.pos,
             transform.rotation,
             transform.dimentions);
     } else {
-        transform_mat = su_Mat4_Model_Matrix_TRS(
+        transform_mat = su_Mat4_Model_Matrix_RTS(
             transform.pos,
             transform.rotation,
             transform.dimentions);

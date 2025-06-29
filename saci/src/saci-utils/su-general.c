@@ -18,12 +18,17 @@ typedef struct su_dArray {
 } su_dArray;
 
 SA_API su_dArray* su_DArray_Create(su_u64 capacity, su_u64 elem_size, su_bool fixed_size) {
+    su_Log_Assert_Message_m(capacity > 0, "Capacity must be greater than zero");
+    su_Log_Assert_Message_m(elem_size > 0, "Element size must be greater than zero");
+
     su_dArray* array = su_Calloc_m(1, sizeof(su_dArray));
     su_Log_Assert_Message_m(array, "dArray couldn't be created");
+
     array->length = 0;
     array->capacity = capacity;
     array->elem_size = elem_size;
     array->is_fixed_size = fixed_size;
+
     array->data = su_Calloc_m(capacity, elem_size);
     su_Log_Assert_Message_m(array->data, "Could not allocate memory for su_dArray");
     return array;
@@ -60,28 +65,32 @@ SA_API void su_DArray_Free(su_dArray* array) {
 }
 
 SA_API void su_DArray_Clear(su_dArray* array) {
-    su_Log_Assert_Message_m(array, "su_DArray_Clear: array is NULL");
+    su_Log_Assert_Message_m(array, "Array is NULL");
+    su_Log_Assert_Message_m(array->data, "Array data is NULL");
     array->length = 0;
 }
 
 SA_API su_bool su_DArray_Resize(su_dArray* array, su_u64 new_cap) {
+    su_Log_Assert_Message_m(new_cap > array->capacity, "New capacity must be greater than current capacity");
+
     if (array->is_fixed_size) {
         su_Log_ErrorF_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_MEMORY,
                               "Cannot resize fixed-size su_dArray");
         return su_FALSE;
     }
+
     void* new_data = realloc(array->data, new_cap * array->elem_size);
-    if (!new_data) {
-        su_Log_ErrorF_Print_m(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_MEMORY,
-                              "Could not allocate for su_dArray when resizing");
-        return su_FALSE;
-    }
+    su_Log_Assert_Message_m(new_data, "Memory allocation failed during resizing");
+
     array->data = new_data;
     array->capacity = new_cap;
     return su_TRUE;
 }
 
 SA_API su_bool su_DArray_Push(su_dArray* array, const void* value) {
+    su_Log_Assert_Message_m(array, "Array is NULL");
+    su_Log_Assert_Message_m(value, "Value to push is NULL");
+
     if (array->length == array->capacity) {
         if (array->is_fixed_size) {
             su_Log_ErrorF_Print_m(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_MEMORY,
@@ -105,6 +114,8 @@ SA_API void su_DArray_Pop(su_dArray* array) {
 }
 
 SA_API void su_DArray_Get(const su_dArray* array, su_u64 index, void* out_value) {
+    su_Log_Assert_Message_m(array, "Array is NULL");
+    su_Log_Assert_Message_m(array->data, "Array data is NULL");
     su_Log_AssertF_Message_m(index < array->length,
                              "su_dArray accessed at %lu while length is %lu", index, array->length);
     const void* src = (const char*)array->data + index * array->elem_size;
@@ -118,6 +129,9 @@ SA_API void* su_DArray_Get_Ptr(const su_dArray* array, su_u64 index) {
 }
 
 SA_API void su_DArray_Set(su_dArray* array, su_u64 index, const void* value) {
+    su_Log_Assert_Message_m(array, "Array is NULL");
+    su_Log_Assert_Message_m(array->data, "Array data is NULL");
+    su_Log_Assert_Message_m(value, "Value is NULL");
     su_Log_AssertF_Message_m(index < array->length,
                              "su_dArray accessed at %lu while length is %lu", index, array->length);
     void* dest = (char*)array->data + index * array->elem_size;
@@ -167,8 +181,8 @@ SA_API su_bool su_DArray_Is_Empty(const su_dArray* arr) {
 SA_INTERNAL su_bool su_DArray_Can_Append(const su_dArray* dest, const su_dArray* src) {
     su_Log_Assert_Message_m(dest, "dest is NULL");
     su_Log_Assert_Message_m(src, "src is NULL");
-    su_Log_Assert_Message_m(dest->data != NULL, "dest->data is NULL");
-    su_Log_Assert_Message_m(src->data != NULL, "src->data is NULL");
+    su_Log_Assert_Message_m(dest->data, "dest->data is NULL");
+    su_Log_Assert_Message_m(src->data, "src->data is NULL");
     su_Log_Assert_Message_m(dest->elem_size == src->elem_size, "dest->elem_size is not src->elem_size");
     su_Log_Assert_Message_m(dest->elem_size > 0, "dest->elem_size is less than or equal to 0");
     su_Log_Assert_Message_m(src->elem_size > 0, "dest->elem_size is less than or equal to 0");

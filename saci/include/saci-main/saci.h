@@ -15,9 +15,8 @@ typedef struct saci_cube {
 typedef void (*saci_loopFunc)(const double delta);
 
 typedef enum {
-    saci_ENABLE_ROTATION_RTS = 0,
-    saci_ENABLE_ROTATION_TRS = 1,
-} saci_enableFlags;
+    saci_RENDERING_FLAG_ROTATION_RTS = 1, // Default is TRS
+} saci_renderingFlags;
 
 typedef struct {
     struct {
@@ -39,7 +38,7 @@ typedef struct {
 
 SA_API void saci_Init(void);
 
-SA_API void saci_Enable(saci_enableFlags enable_flag);
+SA_API void saci_Enable(saci_renderingFlags flag, su_bool enable);
 
 SA_API void saci_Begin(void);
 
