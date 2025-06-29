@@ -16,7 +16,7 @@ static saci_cube cube_small_left = {
     .dimentions = (su_vec3){0.75, 0.5, 0.5},
     .pos_center = (su_vec3){8, 3, 0},
     .rotation = (su_vec3){0, 0, 0},
-    .color = (su_color){0, 1, 0, 1},
+    .color = (su_color){0, 0, 1, 1},
 };
 
 static saci_cube cube_big_orbiting = {

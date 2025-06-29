@@ -102,7 +102,7 @@ SA_INTERNAL const char* const sc_INSTANCE_VERT_SHADER =
     "layout (location = 1) in vec4 a_color;\n"
     "layout (location = 2) in vec2 a_texcoord;\n"
     "layout (location = 3) in mat4 i_model_matrix;\n"
-    "layout (location = 4) in vec4 i_color;\n"
+    "layout (location = 7) in vec4 i_color;\n"
 
     "uniform mat4 u_model_matrix;\n"
     "uniform mat4 u_view_matrix;\n"
@@ -323,7 +323,8 @@ struct sc_instanceBoundExtra {
 struct sc_instanceRenderer {
     struct sc_rendererCommon common;
     struct sc_instanceBoundExtra bound_extra;
-    su_bufferId instance_vbo; // used for instancing
+    su_bufferId instance_transform_vbo;
+    su_bufferId instance_color_vbo;
 
     struct sc_instanceBatchInfo batch_info;
     struct sc_instanceBatch** batch_ptr_array;
@@ -485,12 +486,12 @@ SA_API void sc_Renderer_Free_Opts(struct sc_renderer* rendr, int free_opts) {
 // bigger amount of colors then transform, the renderer will use the smallest
 // amount of either but that shouldn't be the case
 SA_API void sc_Renderer_Set_Instance_Colors(struct sc_renderer* rendr, su_dArray* color_array) {
-    su_Log_Assert_Message_m(rendr->type == sc_RENDERER_INSTANCE, "Trying to set instance transforms in non instance renderer");
+    su_Log_Assert_Message_m(rendr->type == sc_RENDERER_INSTANCE, "Trying to set instance colors in non instance renderer");
 
     su_Log_DebugF_Print_m(
         su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
         su_LOG_CONTEXT_RENDERER,
-        "Binding %lu transforms",
+        "Binding %lu colors",
         su_DArray_Length(color_array));
     su_DArray_Clear(rendr->rendr.instance_renderer->bound_extra.bound_color_array);
     su_DArray_Append(rendr->rendr.instance_renderer->bound_extra.bound_color_array, color_array);
@@ -529,18 +530,21 @@ SA_INTERNAL void s_Renderer_Instanced_New(sc_renderer* self) {
     s_Renderer_Init_Instance_Batch(rendr);
     s_Renderer_Init_Bound(&rendr->common, cfg);
     // todo send to a separate function
-    rendr->instance_vbo = sc_GL_Create_Vertex_Buffer(
-        (sizeof(su_mat4) + sizeof(su_color)) * 1024, NULL, GL_DYNAMIC_DRAW);
-    sc_GL_Bind_Vertex_Buffer(rendr->instance_vbo);
+    rendr->instance_transform_vbo = sc_GL_Create_Vertex_Buffer(
+        sizeof(su_mat4) * 1024, NULL, GL_DYNAMIC_DRAW);
+    rendr->instance_color_vbo = sc_GL_Create_Vertex_Buffer(
+        sizeof(su_color) * 1024, NULL, GL_DYNAMIC_DRAW);
+    sc_GL_Bind_Vertex_Buffer(rendr->instance_transform_vbo);
     for (su_u32 i = 0; i < 4; ++i) {
         sc_GL_Set_Vertex_Attrib_Pointer(3 + i, 4, GL_FLOAT, GL_FALSE,
                                         sizeof(su_mat4), (void*)(sizeof(float) * i * 4));
         sc_GL_Enable_Vertex_Attrib_Array(3 + i);
         glVertexAttribDivisor(3 + i, 1);
     }
+    sc_GL_Bind_Vertex_Buffer(rendr->instance_color_vbo);
     sc_GL_Set_Vertex_Attrib_Pointer(7, 4, GL_FLOAT, GL_FALSE,
-                                    sizeof(su_mat4) + sizeof(su_vec4),
-                                    (void*)(sizeof(su_mat4)));
+                                    sizeof(su_vec4),
+                                    (void*)(0));
     sc_GL_Enable_Vertex_Attrib_Array(7);
     glVertexAttribDivisor(7, 1);
 }
@@ -1120,10 +1124,16 @@ SA_INTERNAL void s_Renderer_Draw_Instance_Batch(const struct sc_renderer* self) 
 
         // TODO this should be checked before, since if it is empty there is no reason to drawing
         if (!su_DArray_Is_Empty(batch->model_matrix_array)) {
-            glBindBuffer(GL_ARRAY_BUFFER, rendr->instance_vbo);
+            glBindBuffer(GL_ARRAY_BUFFER, rendr->instance_transform_vbo);
             glBufferSubData(GL_ARRAY_BUFFER, 0,
-                            su_Scast_To_m(long int)((sizeof(su_mat4) + sizeof(su_color)) * su_Min_m(su_DArray_Length(batch->model_matrix_array), su_DArray_Length(batch->color_array))),
+                            su_Scast_To_m(long int)(sizeof(su_mat4) * su_DArray_Length(batch->model_matrix_array)),
                             su_DArray_Get_Ptr(batch->model_matrix_array, 0));
+        }
+        if (!su_DArray_Is_Empty(batch->color_array)) {
+            glBindBuffer(GL_ARRAY_BUFFER, rendr->instance_color_vbo);
+            glBufferSubData(GL_ARRAY_BUFFER, 0,
+                            su_Scast_To_m(long int)(sizeof(su_color) * su_DArray_Length(batch->color_array)),
+                            su_DArray_Get_Ptr(batch->color_array, 0));
         }
 
         { // Uniforms

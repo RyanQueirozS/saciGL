@@ -260,6 +260,7 @@ SA_INTERNAL void s_Reset_Memory(void) {
     const su_s32 saci_shape_amount = 10; /// TODO
     for (su_s32 i = 0; i < saci_shape_amount; ++i) {
         su_DArray_Clear(saci_context.shape_draw_call_array[i].transforms);
+        su_DArray_Clear(saci_context.shape_draw_call_array[i].colors);
     }
 }
 
