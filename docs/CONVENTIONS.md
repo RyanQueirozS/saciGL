@@ -42,7 +42,7 @@ mentioned below should be enough to make your changes fit in the saci project:
 
 ### General Naming Rules
 
-1. **GLOBAL HEADER** elements must be prefixed with:
+1. **GLOBAL** elements must be prefixed with:
    - `sc_` if part of saciCore.
    - `sl_` if part of saciLib.
    - `sa_` if not one of the above.

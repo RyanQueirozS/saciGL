@@ -1,72 +1,91 @@
-Checks: '-*,readability-identifier-naming,clang-diagnostic-*,clang-analyzer-*,portability-*,cert-*,performance-*,misc-*'
-WarningsAsErrors: true
-
+Checks: >
+  -*,
+  clang-analyzer-*,
+  cert-*,
+  bugprone-*,
+  portability-*,
+  modernize-*,
+  readability-braces-around-statements,
+  readability-else-after-return,
+  readability-function-cognitive-complexity,
+  readability-function-size,
+  readability-misleading-indentation,
+  readability-simplify-boolean-expr,
+  readability-avoid-magic-numbers,
+  -bugprone-easily-swappable-parameters
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*'
+FormatStyle: file
 CheckOptions:
   
   # Functions
   - key: readability-identifier-naming.FunctionCase
-    value: Pascal_Case_Underlined
+    value: Camel_Snake_Case
   - key: readability-identifier-naming.GlobalFunctionPrefix
-    value: "sc_"
+    value: "su_"
   - key: readability-identifier-naming.FunctionPrefix
-    value: "sc_"
+    value: "su_"
+  - key: readability-identifier-naming.FunctionSuffix
+    value: "_s"
 
   # Variables
   - key: readability-identifier-naming.GlobalVariableCase
-    value: snake_case
+    value: lower_case
   - key: readability-identifier-naming.GlobalVariablePrefix
-    value: "sc_"
+    value: "su_"
   - key: readability-identifier-naming.StaticVariableCase
-    value: snake_case
+    value: lower_case
   - key: readability-identifier-naming.StaticVariableSuffix
     value: "_s"
+  - key: readability-identifier-naming.StaticConstantSuffix
+    value: "_s"
   - key: readability-identifier-naming.ParameterCase
-    value: snake_case
+    value: lower_case
   - key: readability-identifier-naming.LocalVariableCase
-    value: snake_case
+    value: lower_case
 
   # Constants
   - key: readability-identifier-naming.ConstantCase
-    value: ALL_CAPS
+    value: UPPER_CASE
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: UPPER_CASE
   - key: readability-identifier-naming.GlobalConstantPrefix
-    value: "sc_"
+    value: "su_"
   - key: readability-identifier-naming.LocalConstantCase
-    value: snake_case
-  - key: readability-identifier-naming.LocalConstantPrefix
-    value: "k_"
+    value: lower_case
   - key: readability-identifier-naming.ConstantParameterCase
-    value: snake_case
-  - key: readability-identifier-naming.ConstantParameterPrefix
-    value: "k_"
+    value: lower_case
+  - key: readability-identifier-naming.ConstantPointerParameterCase
+    value: lower_case
   - key: readability-identifier-naming.StaticConstantSuffix
     value: "_s"
 
-  # Structs
-  - key: readability-identifier-naming.StructCase
-    value: camelCase
-  - key: readability-identifier-naming.StructPrefix
-    value: "sc_"
-  - key: readability-identifier-naming.MemberCase
-    value: snake_case
+  # # Structs Need to separate from local and global declarations
+  # - key: readability-identifier-naming.StructCase
+  #   value: camelCase
+  # - key: readability-identifier-naming.StructPrefix
+  #   value: "su_"
+  # - key: readability-identifier-naming.MemberCase
+  #   value: lower_case
 
   # Enums
   - key: readability-identifier-naming.EnumCase
     value: camelCase
   - key: readability-identifier-naming.EnumPrefix
-    value: "sc_"
+    value: "su_"
   - key: readability-identifier-naming.EnumConstantCase
-    value: ALL_CAPS
+    value: UPPER_CASE
 
   # Typedefs
   - key: readability-identifier-naming.TypedefCase
     value: camelCase
   - key: readability-identifier-naming.TypedefPrefix
-    value: "sc_"
+    value: "su_"
 
   # # Macros are not used, because clang-tidy cannot differenciate macro functions between other macro types
   # - key: readability-identifier-naming.MacroDefinitionCase
   #   value: ALL_CAPS
   # - key: readability-identifier-naming.MacroDefinitionPrefix
-  #   value: "SC_"
+  #   value: "SU_"
   # - key: readability-identifier-naming.MacroDefinitionSuffix
   #   value: "_m"

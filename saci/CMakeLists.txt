@@ -26,8 +26,9 @@ file(GLOB_RECURSE HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.h")
 # Finding glfw
 set(GLFW_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/lib/GLFW/libglfw.so.3.4")
 
-# Find OpenGL
+# Find Libraries
 find_package(OpenGL REQUIRED)
+find_package(Lua 5.4 REQUIRED)
 
 # Set CMake policy for OpenGL GLVND preference
 if (POLICY CMP0072)
@@ -43,14 +44,22 @@ add_library(saci STATIC ${SOURCES})
 set_property(TARGET saci PROPERTY C_STANDARD 99)
 
 # Include directories
-target_include_directories(saci SYSTEM PRIVATE
+include_directories(${LUA_INCLUDE_DIR})
+
+target_include_directories(saci 
+    SYSTEM PRIVATE
+
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/stb"           # STB image headers
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/memory"        # Memory headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/include"  # Glad headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/model-loading" # Model Loaders headers
     "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/include"  # GLFW headers
 
     PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/"            # Root include directory
+
+    PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"           # Include headers
 )
 
 # Add Glad source file to the library
@@ -62,6 +71,7 @@ set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/src/glad.c" P
 target_link_libraries(saci PUBLIC
     ${OPENGL_LIBRARIES}  # Link OpenGL
     ${GLFW_LIBRARY}      # Link GLFW
+    ${LUA_LIBRARIES}
     m                    # Link math library (libm)
 )
 
@@ -80,6 +90,7 @@ endif()
 target_compile_options(saci PRIVATE
     -Wall                      # Enable all warnings
     -Wextra                    # Enable extra warnings
+    # -Werror                    # Warnings as errors
     -Wpedantic                 # Enable pedantic warnings
     -Wshadow                   # Warn when a local variable or function shadows another
     -Wconversion               # Warn about implicit type conversions that may lose data
