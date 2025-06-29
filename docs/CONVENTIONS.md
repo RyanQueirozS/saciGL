@@ -42,24 +42,19 @@ mentioned below should be enough to make your changes fit in the saci project:
 
 ### General Naming Rules
 
-1. **GLOBAL HEADER** elements must be prefixed with:
+1. **GLOBAL** elements must be prefixed with:
    - `sc_` if part of saciCore.
    - `sl_` if part of saciLib.
    - `sa_` if not one of the above.
 
-2. **GLOBAL SOURCE** elements must be prefixed with:
-   - `__sc_` if part of saciCore.
-   - `__sl_` if part of saciLib.
-   - `__sa_` if not one of the above.
-
-3. Rules 1 and 2 **do not apply** in **LOCAL** scopes (e.g., inside functions,
+2. Rules 1 **do not apply** in **LOCAL** scopes (e.g., inside functions,
    structs, etc.).
 
-4. Prefixes and suffixes should maintain their defined casing and should not
+3. Prefixes and suffixes should maintain their defined casing and should not
    affect overall casing, `sc_` will not be capitalized even if in a
    `sc_CONST_VALUE`.
 
-5. Prefere `count` or `lenght` over `size`, and `array` or `list` over plural.
+4. Prefere `count` or `lenght` over `size`, and `array` or `list` over plural.
    Example:
    ```c
    // BAD:
@@ -70,7 +65,7 @@ mentioned below should be enough to make your changes fit in the saci project:
    int key_press_array_count; // depending on context could just be key_press_count.
    ```
 
-6. Names should use keywords that go from most important to least, and separate
+5. Names should use keywords that go from most important to least, and separate
    **what it is RELATED to (`_Scope_`, `_Event_`, `_Renderer_`)**. Example:
 
 ```c
@@ -91,8 +86,7 @@ typedef void (*sc_Event_MousePosHandler_t)(sc_Window_t* window, double posx, dou
 
 | CONVENTION             | ELEMENTS                          |
 | ---------------------- | --------------------------------- |
-| `__` + ALL_CAPS + `__` | Header Guards                     |
-| ALL_CAPS               | Defines, Consts                   |
+| ALL_CAPS               | Header Guards, Defines, Consts    |
 | Pascal_Case_Underlined | Functions, Macros                 |
 | camelCase              | Enum, Structs                     |
 | snake_case             | Variables, params, struct members |
@@ -100,7 +94,7 @@ typedef void (*sc_Event_MousePosHandler_t)(sc_Window_t* window, double posx, dou
 NOTE:
 
 1. `Header guards` should contain the full path related to `/saci/include/`.
-   Example: `/saci/include/my-dir/my-file.h` will be `__MY_DIR_MY_FILE_H__`;
+   Example: `/saci/include/my-dir/my-file.h` will be `MY_DIR_MY_FILE_H`;
 2. Even const params should use `snake_case`;
 3. `Static` values should use `_s` suffix independent of being constant or
    variable;

@@ -1,0 +1,20 @@
+Checks: >
+  -*,
+  clang-analyzer-*,
+  cert-*,
+  bugprone-*,
+  portability-*,
+  modernize-*,
+  readability-braces-around-statements,
+  readability-else-after-return,
+  readability-function-cognitive-complexity,
+  readability-function-size,
+  readability-misleading-indentation,
+  readability-simplify-boolean-expr,
+  readability-avoid-magic-numbers,
+  -readability-identifier-naming,
+  -bugprone-easily-swappable-parameters
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*'
+FormatStyle: file
+CheckOptions:

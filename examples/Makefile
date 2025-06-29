@@ -5,30 +5,30 @@ CC = $(COMPILER)
 # Compiler Flags
 CFLAGS = -Wall -Wextra -O0 -g \
 	-I../saci/include \
+	-I../saci/src\
 	-I../saci/deps/glad/include \
 	-I../saci/deps/glfw/include \
 	-I../saci/deps/stb \
+	-I../saci/deps/memory \
 	-I../saci/deps/model-loading \
-	-I../saci/deps/ryanqueirozs
+	-DSACI_TEST_BUILD \
+	-DSACI_DEBUG_MODE_ALL
 
 # Clang-specific tweaks (optional)
 ifeq ($(COMPILER),clang)
-endif
-
-# Debug mode flag
-ifeq ($(DEBUG),1)
-    CFLAGS += -DSACI_DEBUG_MODE
+	COMPILER = clang	
 endif
 
 # Source files from saci-core and saci-utils
 SACI_SRC = \
-	../saci/src/saci-core/**.c \
-	../saci/src/saci-utils/**.c \
+	$(wildcard ../saci/src/saci-backend/*.c) \
+	$(wildcard ../saci/src/saci-main/*.c) \
+	$(wildcard ../saci/src/saci-utils/*.c) \
 	../saci/deps/glad/src/glad.c
 
 # Linking libraries and flags
-LIBS = -L../saci/deps/glfw/lib/GLFW/ -lglfw -lm \
-	-Wl,-rpath,/home/ryan/projects/c/saciGL/saci/deps/glfw/lib/GLFW
+LIBS = -L../saci/deps/glfw/lib/GLFW/ -lglfw -llua5.4 -lm \
+    -Wl,-rpath,$(PWD)/../saci/deps/glfw/lib/GLFW
 
 # Example directories
 EXAMPLES = \

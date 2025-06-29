@@ -1,3 +1,5 @@
+#define SC_RENDERER_STRUCT_EXPOSE
+#define GLITCH_STD
 #include "glitch/glitc-complex.h"
 #include "glitch/glitc-rand.h"
 #include "glitch/glitc.h"
@@ -6,16 +8,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// #define SC_RENDERER_STRUCT_EXPOSE // Already defined in the compiler
-#define SC_RENDERER_STRUCT_EXPOSE
 #include "saci-core/sc-gl.h"
 
-#define VERTICE_AMOUNT 500
-#define OFFSET_AMOUNT 10
-
-// External "sc-gl" funcs
-extern struct __sc_renderer __sc_renderer;
-extern void __sc_Renderer_Reset_Bound(struct __sc_renderer* rendr);
+// External "sc-gl.c" funcs
+extern void s_Renderer_Reset_Bound(struct sc_renderer* rendr);
 
 // Helper
 void Print_Vec3(sa_vec3 v1);
@@ -23,16 +19,16 @@ void Gen_Array_Rand_Offset(sa_vec3** vertex_array_out, int** offset_array_out);
 
 // Test funcs
 /// Static
-static void __sc_Renderer_Reset_Bound_Test(GlitchTester* t);
-static void __sc_Renderer_Reset_Batch_Test(GlitchTester* t);
-static void __sc_Renderer_Reset_Call_Test(GlitchTester* t);
-static void __sc_Renderer_Init_Test(GlitchTester* t);
-static void __sc_Renderer_Init_Batch_Test(GlitchTester* t);
-static void __sc_Renderer_Init_Call_Test(GlitchTester* t);
-static void __sc_Renderer_Call_Array_Sort_Test(GlitchTester* t);
-static void __sc_Renderer_Uniform_Is_Equal(GlitchTester* t);
-static void __sc_Renderer_Batch_Flush_Test(GlitchTester* t);
-static void __sc_Renderer_Batch_Calls_Test(GlitchTester* t);
+static void s_Renderer_Reset_Bound_Test(GlitchTester* t);
+static void s_Renderer_Reset_Batch_Test(GlitchTester* t);
+static void s_Renderer_Reset_Call_Test(GlitchTester* t);
+static void s_Renderer_Init_Test(GlitchTester* t);
+static void s_Renderer_Init_Batch_Test(GlitchTester* t);
+static void s_Renderer_Init_Call_Test(GlitchTester* t);
+static void s_Renderer_Call_Array_Sort_Test(GlitchTester* t);
+static void s_Renderer_Uniform_Is_Equal(GlitchTester* t);
+static void s_Renderer_Batch_Flush_Test(GlitchTester* t);
+static void s_Renderer_Batch_Calls_Test(GlitchTester* t);
 /// Non static
 static void sc_Renderer_New_Default_Test(GlitchTester* t);
 static void sc_Renderer_New_Default_Ctx_Test(GlitchTester* t);
@@ -48,16 +44,16 @@ static void sc_Renderer_Free_Opts_Test(GlitchTester* t);
 
 // Main test
 void Test_Rendering(GlitchTester* t) {
-    __sc_Renderer_Reset_Bound_Test(t);
-    __sc_Renderer_Reset_Batch_Test(t);
-    __sc_Renderer_Reset_Call_Test(t);
-    __sc_Renderer_Init_Test(t);
-    __sc_Renderer_Init_Batch_Test(t);
-    __sc_Renderer_Init_Call_Test(t);
-    __sc_Renderer_Call_Array_Sort_Test(t);
-    __sc_Renderer_Uniform_Is_Equal(t);
-    __sc_Renderer_Batch_Flush_Test(t);
-    __sc_Renderer_Batch_Calls_Test(t);
+    s_Renderer_Reset_Bound_Test(t);
+    s_Renderer_Reset_Batch_Test(t);
+    s_Renderer_Reset_Call_Test(t);
+    s_Renderer_Init_Test(t);
+    s_Renderer_Init_Batch_Test(t);
+    s_Renderer_Init_Call_Test(t);
+    s_Renderer_Call_Array_Sort_Test(t);
+    s_Renderer_Uniform_Is_Equal(t);
+    s_Renderer_Batch_Flush_Test(t);
+    s_Renderer_Batch_Calls_Test(t);
     sc_Renderer_New_Default_Test(t);
     sc_Renderer_New_Default_Ctx_Test(t);
     sc_Renderer_Bind_Texture_Test(t);
@@ -71,11 +67,13 @@ void Test_Rendering(GlitchTester* t) {
     sc_Renderer_Free_Opts_Test(t);
 }
 
+int main(void) {}
+
 // Test funcs
 
 /// Static
-void __sc_Renderer_Reset_Bound_Test(GlitchTester* t) {
-    sc_renderer* rendr = malloc(sizeof(struct __sc_renderer));
+void s_Renderer_Reset_Bound_Test(GlitchTester* t) {
+    struct sc_renderer* rendr = malloc(sizeof(struct sc_renderer));
     sa_u32* buff = malloc(sizeof(sa_u32) * 1000);
     sa_u32 capacity = 1000;
 
@@ -85,7 +83,7 @@ void __sc_Renderer_Reset_Bound_Test(GlitchTester* t) {
     rendr->bound_index_array_length = 100;
 
     {
-        __sc_Renderer_Reset_Bound(rendr);
+        s_Renderer_Reset_Bound(rendr);
         GLITCH_ASSERT(t, rendr->bound_texture_id == 0, "Texture id should be reset");
         GLITCH_ASSERT(t, rendr->bound_index_array_buffer == buff, "Index buffer should NOT be freed")
         GLITCH_ASSERT(t, rendr->bound_index_array_capacity == capacity, "Capacity should NOT be reset")
@@ -97,40 +95,40 @@ void __sc_Renderer_Reset_Bound_Test(GlitchTester* t) {
 }
 
 // TODO, this function will change, since uniform block isn't currently being freed
-void __sc_Renderer_Reset_Batch_Test(GlitchTester* t) {
+void s_Renderer_Reset_Batch_Test(GlitchTester* t) {
     (void)t;
 }
 
 // TODO same as above
-void __sc_Renderer_Reset_Call_Test(GlitchTester* t) {
+void s_Renderer_Reset_Call_Test(GlitchTester* t) {
     (void)t;
 }
 
-void __sc_Renderer_Init_Test(GlitchTester* t) {
+void s_Renderer_Init_Test(GlitchTester* t) {
     (void)t;
 }
 
-void __sc_Renderer_Init_Batch_Test(GlitchTester* t) {
+void s_Renderer_Init_Batch_Test(GlitchTester* t) {
     (void)t;
 }
 
-void __sc_Renderer_Init_Call_Test(GlitchTester* t) {
+void s_Renderer_Init_Call_Test(GlitchTester* t) {
     (void)t;
 }
 
-void __sc_Renderer_Call_Array_Sort_Test(GlitchTester* t) {
+void s_Renderer_Call_Array_Sort_Test(GlitchTester* t) {
     (void)t;
 }
 
-void __sc_Renderer_Uniform_Is_Equal(GlitchTester* t) {
+void s_Renderer_Uniform_Is_Equal(GlitchTester* t) {
     (void)t;
 }
 
-void __sc_Renderer_Batch_Flush_Test(GlitchTester* t) {
+void s_Renderer_Batch_Flush_Test(GlitchTester* t) {
     (void)t;
 }
 
-void __sc_Renderer_Batch_Calls_Test(GlitchTester* t) {
+void s_Renderer_Batch_Calls_Test(GlitchTester* t) {
     (void)t;
 }
 
