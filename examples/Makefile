@@ -1,22 +1,34 @@
 # Choose compiler (default: gcc)
 COMPILER ?= gcc
-CC = $(COMPILER)
+
+ifeq ($(COMPILER),emcc)
+	CC = emcc
+else
+	CC = $(COMPILER)
+endif
 
 # Compiler Flags
 CFLAGS = -Wall -Wextra -O0 -g \
 	-I../saci/include \
-	-I../saci/src\
+	-I../saci/src \
 	-I../saci/deps/glad/include \
 	-I../saci/deps/glfw/include \
 	-I../saci/deps/stb \
 	-I../saci/deps/memory \
+	-I../saci/deps/lua \
 	-I../saci/deps/model-loading \
 	-DSACI_TEST_BUILD \
 	-DSACI_DEBUG_MODE_ALL
 
-# Clang-specific tweaks (optional)
-ifeq ($(COMPILER),clang)
-	COMPILER = clang	
+# Emscripten-specific flags
+ifeq ($(COMPILER),emcc)
+	CFLAGS += -s USE_GLFW=3 -s FULL_ES3=1 -s ASYNCIFY -s ALLOW_MEMORY_GROWTH=1
+	LIBS =
+	OUTPUT_EXT = .html
+else
+	LIBS = -L../saci/deps/glfw/lib/GLFW/ -lglfw -lm \
+		-Wl,-rpath,$(PWD)/../saci/deps/glfw/lib/GLFW
+	OUTPUT_EXT =
 endif
 
 # Source files from saci-core and saci-utils
@@ -25,10 +37,6 @@ SACI_SRC = \
 	$(wildcard ../saci/src/saci-main/*.c) \
 	$(wildcard ../saci/src/saci-utils/*.c) \
 	../saci/deps/glad/src/glad.c
-
-# Linking libraries and flags
-LIBS = -L../saci/deps/glfw/lib/GLFW/ -lglfw -llua5.4 -lm \
-    -Wl,-rpath,$(PWD)/../saci/deps/glfw/lib/GLFW
 
 # Example directories
 EXAMPLES = \
@@ -39,13 +47,13 @@ EXAMPLES = \
 	texture/basic-img
 
 # Targets for all example builds
-TARGETS = $(EXAMPLES:%=build/%/main)
+TARGETS = $(EXAMPLES:%=build/%/main$(OUTPUT_EXT))
 
 # If a specific target is passed, use it, else default to all
 ifeq ($(TARGET),)
     TARGETS := $(TARGETS)
 else
-    TARGETS := build/$(TARGET)/main
+    TARGETS := build/$(TARGET)/main$(OUTPUT_EXT)
 endif
 
 .PHONY: all clean run
@@ -54,13 +62,13 @@ endif
 all: $(TARGETS)
 
 # Rule to compile each example
-build/%/main: %/main.c $(SACI_SRC)
+build/%/main$(OUTPUT_EXT): %/main.c $(SACI_SRC)
 	@echo "\nBuilding $< with $(CC)"
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< $(SACI_SRC) -o $@ $(LIBS)
-	@echo "Build succeeded for $<\n"
+	@echo "Build succeeded for $< -> $@\n"
 
-# Run a specific example
+# Run is not used for emscripten builds, but kept for native
 run: all
 	@echo "\nAvailable examples to run:"
 	@$(foreach ex, $(EXAMPLES), echo $(ex);)
@@ -72,3 +80,6 @@ run: all
 clean:
 	rm -rf build
 	@echo "\nCleaned all build files."
+
+
+
