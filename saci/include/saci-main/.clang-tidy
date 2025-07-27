@@ -79,7 +79,7 @@ CheckOptions:
 
   # Typedefs
   - key: readability-identifier-naming.TypedefCase
-    value: camelCase
+    value: CamelCase
   - key: readability-identifier-naming.TypedefPrefix
     value: "saci_"
 

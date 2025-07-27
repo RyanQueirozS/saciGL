@@ -11,7 +11,7 @@
 
 /* === OpenGL === */
 
-SA_API void sc_GL_Uniform_Set_Value(const su_s32 location, su_dataType type, const void* value) {
+SA_API void sb_sc_GL_Uniform_Set_Value(const su_s32 location, su_dataType type, const void* value) {
     switch (type) {
     case SU_TYPE_U8:
     case SU_TYPE_U16:

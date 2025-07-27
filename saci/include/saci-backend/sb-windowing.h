@@ -1,5 +1,5 @@
-#ifndef SACI_CORE_SC_WINDOWING_H
-#define SACI_CORE_SC_WINDOWING_H
+#ifndef SACI_BACKEND_SC_WINDOWING_H
+#define SACI_BACKEND_SC_WINDOWING_H
 
 #include <GLFW/glfw3.h>
 #include <saci-utils/su-general.h>
@@ -164,4 +164,4 @@ SA_API void sb_event_post_empty(void);
 SA_API void sb_event_set_mouse_pos_handler(sb_Window* window, sb_EventMousePosHandler mouse_pos_handler);
 SA_API su_bool sb_event_is_key_pressed(sb_Window* window, int keycode);
 
-#endif // SACI_CORE_SC_WINDOWING_H
+#endif // SACI_BACKEND_SC_WINDOWING_H

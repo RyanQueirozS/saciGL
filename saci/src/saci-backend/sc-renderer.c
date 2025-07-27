@@ -773,7 +773,7 @@ SA_INTERNAL void s_Renderer_Set_Uniform_From_Uniform_Data(const struct sc_render
         return;
     }
 
-    sc_GL_Uniform_Set_Value(uniform_data.location, uniform_data.type, value_ptr);
+    sb_sc_GL_Uniform_Set_Value(uniform_data.location, uniform_data.type, value_ptr);
 }
 
 SA_INTERNAL void s_Renderer_Static_Fill_Default(struct sc_staticRenderer* rendr) {

@@ -81,36 +81,36 @@ SA_API sb_Renderer* sb_renderer_new(const enum sb_RendererType type);
 
 SA_API void sb_renderer_begin(struct sb_Renderer* rendr);
 
-SA_API void sb_Renderer_Bind_Texture(struct sb_Renderer* rendr,
+SA_API void sb_renderer_bind_texture(struct sb_Renderer* rendr,
                                      const su_textureId tex_id);
 
-SA_API su_s32 sb_Renderer_Get_Uniform_Id(struct sb_Renderer* rendr,
+SA_API su_s32 sb_renderer_get_uniform_id(struct sb_Renderer* rendr,
                                          const char* const uniform_name);
 
-SA_API void sb_Renderer_Set_Uniform(struct sb_Renderer* rendr,
+SA_API void sb_renderer_set_uniform(struct sb_Renderer* rendr,
                                     const su_s32 uniform_id,
                                     const void* const value,
                                     const su_dataType type);
 
-SA_API void sb_Renderer_Bind_Index_Buffer(struct sb_Renderer* rendr,
+SA_API void sb_renderer_bind_index_buffer(struct sb_Renderer* rendr,
                                           const su_dArray* new_indices);
 
-SA_API void sb_Renderer_Push_Mesh(struct sb_Renderer* rendr,
+SA_API void sb_renderer_push_mesh(struct sb_Renderer* rendr,
                                   const su_dArray* pos_array,
                                   const su_dArray* uv_array,
                                   const su_dArray* color_array);
 
-SA_API void sb_Renderer_Draw(const struct sb_Renderer* rendr);
+SA_API void sb_renderer_draw(const struct sb_Renderer* rendr);
 
-SA_API void sb_Renderer_Free(struct sb_Renderer* rendr);
+SA_API void sb_renderer_free(struct sb_Renderer* rendr);
 
-SA_API void sb_Renderer_Free_Opts(struct sb_Renderer* rendr, int free_opts);
+SA_API void sb_renderer_free_opts(struct sb_Renderer* rendr, int free_opts);
 
 /* --- Renderer specific --- */
 
-SA_API void sb_Renderer_Set_Instance_Colors(struct sb_Renderer* rendr, su_dArray* color_array);
+SA_API void sb_renderer_set_instance_colors(struct sb_Renderer* rendr, su_dArray* color_array);
 
 // This needs to be used with a instanced renderer, else it should crash
-SA_API void sb_Renderer_Set_Instance_Transforms(struct sb_Renderer* rendr, su_dArray* transform_array);
+SA_API void sb_renderer_set_instance_transforms(struct sb_Renderer* rendr, su_dArray* transform_array);
 
 #endif // SACI_BACKEND_SB_RENDERER_H
