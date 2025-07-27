@@ -1,0 +1,116 @@
+#ifndef SACI_BACKEND_SC_RENDERER_H
+#define SACI_BACKEND_SC_RENDERER_H
+
+#include "saci-backend/sb-model.h"
+#include "saci-utils/su-types.h"
+#include "saci-utils/su-general.h"
+
+typedef struct sb_Renderer sb_Renderer;
+
+#ifdef SB_RENDERER_STRUCT_EXPOSE
+#  ifndef SB_RENDERER_STRUCT
+#    define SB_RENDERER_STRUCT
+
+struct sb_vertex {
+    sa_vec3 pos;
+    sa_color color;
+    sa_uv uv;
+};
+
+// The fields are structured in a way that enforces minimum memory change over time
+struct sb_renderer {
+    sa_textureId bound_texture_id;
+    sa_u32 bound_index_array_length;
+    sa_u32 bound_index_array_capacity;
+    sa_u64 bound_uniform_struct_size;
+
+    sa_shaderId shader_program;
+    sa_bufferId ibo, ubo, vbo, vao;
+
+    sa_u32 batch_index_capacity;
+    sa_u32 batch_vertex_capacity;
+    sa_u8 batch_array_capacity;
+    sa_u8 batch_in_use;
+
+    struct sb_renderBatch {
+        sa_u64 uniform_struct_block_size;
+        sa_textureId texture;
+        sa_u32 index_array_length;
+        sa_u32 vertex_array_length;
+        sa_u32* index_array;
+        struct sb_vertex* vertex_array;
+        sa_u8* uniform_struct_block;
+    }* batch_array;
+
+    sa_u8* uniform_struct_block;
+
+    sa_u32* bound_index_array_buffer;
+};
+
+#  endif // SB_RENDERER_STRUCT
+#endif   // SB_RENDERER_STRUCT_EXPOSE
+
+#define sb_RENDERER_FREE_OPT_MEMORY 0b01
+#define sb_RENDERER_FREE_OPT_OPENGL 0b10
+
+// TODO
+#if 0
+#  define sb_RENDERER_UNIFORM_FLAG_
+#  define sb_RENDERER_UNIFORM_FLAG_
+#endif
+
+#if 0
+#  define sb_RENDERER_BATCH_OVERFLOW_ACTION_FLUSH 01
+#  define sb_RENDERER_BATCH_OVERFLOW_ACTION_CRASH 02
+#  define sb_RENDERER_BATCH_OVERFLOW_ACTION_SKIP 03
+#  define sb_RENDERER_BATCH_OVERFLOW_ACTION_RESIZE 04
+
+#  define sb_RENDERER_CALL_OVERFLOW_ACTION_FLUSH 01
+#  define sb_RENDERER_CALL_OVERFLOW_ACTION_CRASH 02
+#  define sb_RENDERER_CALL_OVERFLOW_ACTION_SKIP 03
+#  define sb_RENDERER_CALL_OVERFLOW_ACTION_RESIZE 04
+#endif // TODO to be implemented
+
+enum sb_RendererType {
+    sb_RENDERER_STATIC,
+    sb_RENDERER_DYNAMIC,
+    sb_RENDERER_INSTANCE,
+};
+
+SA_API sb_Renderer* sb_renderer_new(const enum sb_RendererType type);
+
+SA_API void sb_renderer_begin(struct sb_Renderer* rendr);
+
+SA_API void sb_Renderer_Bind_Texture(struct sb_Renderer* rendr,
+                                     const su_textureId tex_id);
+
+SA_API su_s32 sb_Renderer_Get_Uniform_Id(struct sb_Renderer* rendr,
+                                         const char* const uniform_name);
+
+SA_API void sb_Renderer_Set_Uniform(struct sb_Renderer* rendr,
+                                    const su_s32 uniform_id,
+                                    const void* const value,
+                                    const su_dataType type);
+
+SA_API void sb_Renderer_Bind_Index_Buffer(struct sb_Renderer* rendr,
+                                          const su_dArray* new_indices);
+
+SA_API void sb_Renderer_Push_Mesh(struct sb_Renderer* rendr,
+                                  const su_dArray* pos_array,
+                                  const su_dArray* uv_array,
+                                  const su_dArray* color_array);
+
+SA_API void sb_Renderer_Draw(const struct sb_Renderer* rendr);
+
+SA_API void sb_Renderer_Free(struct sb_Renderer* rendr);
+
+SA_API void sb_Renderer_Free_Opts(struct sb_Renderer* rendr, int free_opts);
+
+/* --- Renderer specific --- */
+
+SA_API void sb_Renderer_Set_Instance_Colors(struct sb_Renderer* rendr, su_dArray* color_array);
+
+// This needs to be used with a instanced renderer, else it should crash
+SA_API void sb_Renderer_Set_Instance_Transforms(struct sb_Renderer* rendr, su_dArray* transform_array);
+
+#endif // SACI_BACKEND_SB_RENDERER_H

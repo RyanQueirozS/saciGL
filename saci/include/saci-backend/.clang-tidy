@@ -23,7 +23,7 @@ CheckOptions:
   - key: readability-identifier-naming.FunctionPrefix
     value: "sb__"
   - key: readability-identifier-naming.FunctionCase
-    value: snake_case
+    value: lower_case
   - key: readability-identifier-naming.GlobalFunctionPrefix
     value: "sb_"
 
@@ -79,13 +79,13 @@ CheckOptions:
 
   # Typedefs
   - key: readability-identifier-naming.TypedefCase
-    value: camelCase
+    value: CamelCase
   - key: readability-identifier-naming.TypedefPrefix
     value: "sb_"
 
   # Macros
   - key: readability-identifier-naming.MacroDefinitionCase
-    value: ALL_CAPS
+    value: UPPER_CASE
   - key: readability-identifier-naming.MacroDefinitionPrefix
     value: "sb_"
   # Function macros need a _m suffix
