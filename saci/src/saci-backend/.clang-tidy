@@ -21,23 +21,23 @@ CheckOptions:
   
   # Functions There needs to be a check for static functions
   - key: readability-identifier-naming.FunctionPrefix
-    value: "s_"
+    value: "sb__"
   - key: readability-identifier-naming.FunctionCase
-    value: Camel_Snake_Case
+    value: snake_case
   - key: readability-identifier-naming.GlobalFunctionPrefix
-    value: "sc_"
+    value: "sb_"
 
   # Variables
   - key: readability-identifier-naming.GlobalVariableCase
     value: lower_case
   - key: readability-identifier-naming.GlobalVariablePrefix
-    value: "sc_"
+    value: "sb_"
   - key: readability-identifier-naming.StaticVariableCase
     value: lower_case
   - key: readability-identifier-naming.StaticVariablePrefix
-    value: "s_"
+    value: "sb__"
   - key: readability-identifier-naming.StaticConstantPrefix
-    value: "s_"
+    value: "sb__"
   - key: readability-identifier-naming.ParameterCase
     value: lower_case
   - key: readability-identifier-naming.LocalVariableCase
@@ -49,7 +49,7 @@ CheckOptions:
   - key: readability-identifier-naming.GlobalConstantCase
     value: UPPER_CASE
   - key: readability-identifier-naming.GlobalConstantPrefix
-    value: "sc_"
+    value: "sb_"
   - key: readability-identifier-naming.LocalConstantCase
     value: lower_case
   - key: readability-identifier-naming.ConstantParameterCase
@@ -57,37 +57,37 @@ CheckOptions:
   - key: readability-identifier-naming.ConstantPointerParameterCase
     value: lower_case
   - key: readability-identifier-naming.StaticConstantPrefix
-    value: "s_"
+    value: "sb__"
 
-  # # Structs Need to separate from local and global declarations
-  # - key: readability-identifier-naming.StructCase
-  #   value: camelCase
-  # - key: readability-identifier-naming.StructPrefix
-  #   value: "sc_"
-  # - key: readability-identifier-naming.MemberCase
-  #   value: lower_case
+  # Structs
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructPrefix
+    value: "sb_"
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
 
   # Enums
   - key: readability-identifier-naming.EnumCase
-    value: camelCase
+    value: CamelCase
   - key: readability-identifier-naming.EnumPrefix
-    value: "sc_"
+    value: "sb_"
   - key: readability-identifier-naming.EnumConstantCase
     value: UPPER_CASE
   - key: readability-identifier-naming.EnumConstantPrefix
-    value: "sc_"
+    value: "sb_"
 
   # Typedefs
   - key: readability-identifier-naming.TypedefCase
     value: camelCase
   - key: readability-identifier-naming.TypedefPrefix
-    value: "sc_"
+    value: "sb_"
 
-  # # Macros are not used, because clang-tidy cannot differenciate macro functions between other macro types
-  # - key: readability-identifier-naming.MacroDefinitionCase
-  #   value: ALL_CAPS
-  # - key: readability-identifier-naming.MacroDefinitionPrefix
-  #   value: "SC_"
+  # Macros
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: ALL_CAPS
+  - key: readability-identifier-naming.MacroDefinitionPrefix
+    value: "sb_"
+  # Function macros need a _m suffix
   # - key: readability-identifier-naming.MacroDefinitionSuffix
   #   value: "_m"
-
