@@ -59,16 +59,16 @@
  * @return The expression with the applied cast. In C++, uses `static_cast<type>`,
  *         and in C, uses `(type)`.
  */
-#ifndef su_Scast_To_m
+#ifndef su_SCAST_TO_M
 #  ifdef __cplusplus
-#    define su_Scast_To_m(type) static_cast<type>
+#    define su_SCAST_TO_M(type) static_cast<type>
 #  else
-#    define su_Scast_To_m(type) (type)
+#    define su_SCAST_TO_M(type) (type)
 #  endif // __cplusplus
-#endif   // su_Scast_To_m
+#endif   // su_SCAST_TO_M
 
 /**
- * @define su_Malloc_m
+ * @define su_MALLOC_M
  * @brief `malloc` version of saciGL
  *
  * Feel free to overwrite it with your own! When in SACI_DEBUG_MODE will print
@@ -78,12 +78,12 @@
  *
  * @return The allocated buffer
  */
-#ifndef su_Malloc_m
+#ifndef su_MALLOC_M
 #  include <stdlib.h>
 #  include <stdio.h>
 
 #  ifdef SACI_DEBUG_MODE
-#    define su_Malloc_m(x)                                       \
+#    define su_MALLOC_M(x)                                       \
         ({                                                       \
         size_t _size = (x);                                      \
         void* _ptr = malloc(_size);                              \
@@ -92,13 +92,13 @@
         _ptr;                                                    \
         })
 #  else
-#    define su_Malloc_m(x) malloc(x)
+#    define su_MALLOC_M(x) malloc(x)
 #  endif
 
-#endif // su_Malloc_m
+#endif // su_MALLOC_M
 
 /**
- * @define su_Calloc_m
+ * @define su_CALLOC_M
  * @brief `calloc` version of saciGL
  *
  * Feel free to overwrite it with your own! When in SACI_DEBUG_MODE will print
@@ -109,12 +109,12 @@
  *
  * @return The allocated buffer
  */
-#ifndef su_Calloc_m
+#ifndef su_CALLOC_M
 #  include <stdlib.h>
 #  include <stdio.h>
 
 #  ifdef SACI_DEBUG_MODE
-#    define su_Calloc_m(n, x)                                    \
+#    define su_CALLOC_M(n, x)                                    \
         ({                                                       \
         size_t _size = ((n) * (x));                              \
         void* _ptr = calloc(n, x);                               \
@@ -123,13 +123,13 @@
         _ptr;                                                    \
         })
 #  else
-#    define su_Calloc_m(n, x) calloc(n, x)
+#    define su_CALLOC_M(n, x) calloc(n, x)
 #  endif
 
-#endif // su_Calloc_m
+#endif // su_CALLOC_M
 
 /**
- * @define su_Free_m
+ * @define su_FREE_M
  * @brief `free` version of saciGL
  *
  * Feel free to overwrite it with your own! When in SACI_DEBUG_MODE will print
@@ -137,10 +137,10 @@
  *
  * @param[in] x The buffer to be freed
  */
-#ifndef su_Free_m
+#ifndef su_FREE_M
 #  include <stdlib.h>
 #  ifdef SACI_DEBUG_MODE
-#    define su_Free_m(x)                                                                  \
+#    define su_FREE_M(x)                                                                  \
         ({                                                                                \
         if (x) {                                                                          \
             printf("freeing %p in func: %s at line: %d\n", (void*)x, __func__, __LINE__); \
@@ -151,83 +151,83 @@
         }                                                                                 \
         })
 #  else
-#    define su_Free_m(x) free(x)
+#    define su_FREE_M(x) free(x)
 #  endif // SACI_DEBUG_MODE
-#endif   // su_Free_m
+#endif   // su_FREE_M
 
 /**
- * @define su_Not_Used_m
+ * @define su_NOT_USED_M
  * @brief Removes a warning from a not used var when in debug mode
  *
- * When not in debug mode, generates a message: "Warning: su_Not_Used_m is used —
+ * When not in debug mode, generates a message: "Warning: su_NOT_USED_M is used —
  * remove before release!"
  * @param[in] x The variable to have it's not used warning suppresed
  */
-#ifndef su_Not_Used_m
+#ifndef su_NOT_USED_M
 #  ifdef SACI_DEBUG_MODE
 
-#    define su_Not_Used_m(x) (void)(x) // Or leave it undefined to cause a build error
+#    define su_NOT_USED_M(x) (void)(x) // Or leave it undefined to cause a build error
 #  else
-#    define su_Not_Used_m(x) \
-        _Pragma("message(\"Warning: su_Not_Used_m is used — remove before release!\")")(void)(x)
+#    define su_NOT_USED_M(x) \
+        _Pragma("message(\"Warning: su_NOT_USED_M is used — remove before release!\")")(void)(x)
 
 #  endif // SACI_DEBUG_MODE
-#endif   // su_Not_Used_m
+#endif   // su_NOT_USED_M
 
 /**
- * @define su_Min_m
+ * @define su_MIN_M
  * @brief Returns the smallest of two values
  *
  * @param[in] x The smallest value
  */
-#ifndef su_Min_m
-#  define su_Min_m(x, y) ((x) < (y) ? (x) : (y))
-#endif // su_Min_m
+#ifndef su_MIN_M
+#  define su_MIN_M(x, y) ((x) < (y) ? (x) : (y))
+#endif // su_MIN_M
 
 /**
- * @define su_Max_m
+ * @define su_MAX_M
  * @brief Returns the biggest of two values
  *
  * @param[in] x The biggest value
  */
-#ifndef su_Max_m
-#  define su_Max_m(x, y) ((x) > (y) ? (x) : (y))
-#endif // su_Max_m
+#ifndef su_MAX_M
+#  define su_MAX_M(x, y) ((x) > (y) ? (x) : (y))
+#endif // su_MAX_M
 
-typedef struct su_dArray su_dArray;
+typedef struct su_DArray su_DArray;
 
-#define SIZE_OF_DARRAY 40
+#define su_SIZE_OF_DARRAY 40
 
-SA_API su_dArray* su_DArray_Create(su_u64 capacity, su_u64 elem_size, su_bool fixed_size);
+SA_API su_DArray* su_darray_create(su_u64 capacity, su_u64 elem_size, su_bool fixed_size);
 
-SA_API su_dArray* su_DArray_Create_Ctx(void* memctx, su_u64 memctx_size, su_u64 capacity, su_u64 elem_size, su_bool fixed_size);
+SA_API su_DArray* su_darray_create_ctx(void* memctx, su_u64 memctx_size, su_u64 capacity, su_u64 elem_size, su_bool fixed_size);
 
-SA_API void su_DArray_Free(su_dArray* array);
+SA_API void su_darray_free(su_DArray* array);
 
-SA_API void su_DArray_Clear(su_dArray* array);
+SA_API void su_darray_clear(su_DArray* array);
 
-SA_API su_bool su_DArray_Resize(su_dArray* array, su_u64 new_cap);
+SA_API su_bool su_darray_resize(su_DArray* array, su_u64 new_cap);
 
-SA_API su_bool su_DArray_Push(su_dArray* array, const void* value);
+SA_API su_bool su_darray_push(su_DArray* array, const void* value);
 
-SA_API void su_DArray_Pop(su_dArray* array);
+SA_API void su_darray_pop(su_DArray* array);
 
-SA_API void su_DArray_Get(const su_dArray* array, su_u64 index, void* out_value);
+SA_API void su_darray_get(const su_DArray* array, su_u64 index, void* out_value);
 
-SA_API void* su_DArray_Get_Ptr(const su_dArray* array, su_u64 index);
+SA_API void* su_darray_get_ptr(const su_DArray* array, su_u64 index);
 
-SA_API void su_DArray_Set(su_dArray* array, su_u64 index, const void* value);
+SA_API void su_darray_set(su_DArray* array, su_u64 index, const void* value);
 
-SA_API su_u64 su_DArray_Length(const su_dArray* array);
+SA_API su_u64 su_darray_length(const su_DArray* array);
 
-SA_API su_u64 su_DArray_Capacity(const su_dArray* array);
+SA_API su_u64 su_darray_capacity(const su_DArray* array);
 
-SA_API void su_DArray_Append(su_dArray* dest, const su_dArray* src);
+SA_API void su_darray_append(su_DArray* dest, const su_DArray* src);
 
-SA_API void su_DArray_Debug_Print(const su_dArray* arr);
+SA_API void su_darray_debug_print(const su_DArray* arr);
 
-SA_API su_bool su_DArray_Is_Null(const su_dArray* arr);
+SA_API su_bool su_darray_is_null(const su_DArray* arr);
 
-SA_API su_bool su_DArray_Is_Empty(const su_dArray* arr);
+SA_API su_bool su_darray_is_empty(const su_DArray* arr);
 
 #endif // SACI_UTILS_SU_GENERAL_H

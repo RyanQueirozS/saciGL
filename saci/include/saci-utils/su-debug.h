@@ -23,20 +23,20 @@
 #include "saci-utils/su-types.h"
 
 /**
- * @enum su_logSeverity
+ * @enum su_LogSeverity
  * @brief The severity of log information
  */
-enum su_logSeverity {
+enum su_LogSeverity {
     su_LOG_SEVERITY_LOW = 0,
     su_LOG_SEVERITY_MEDIUM,
     su_LOG_SEVERITY_HIGH,
 };
 
 /**
- * @enum su_logContext
+ * @enum su_LogContext
  * @brief The context of log information
  */
-enum su_logContext {
+enum su_LogContext {
     su_LOG_CONTEXT_OPENGL = 0,
     su_LOG_CONTEXT_RENDERER,
     su_LOG_CONTEXT_MODEL_LOADING,
@@ -46,7 +46,7 @@ enum su_logContext {
     su_LOG_CONTEXT_SACI_MAIN_SHAPES,
 };
 
-enum su_logDebugType {
+enum su_LogDebugType {
     su_LOG_DEBUG_TYPE_WINDOWING,
     su_LOG_DEBUG_TYPE_TEXTURE,
     su_LOG_DEBUG_TYPE_MODEL,
@@ -58,15 +58,15 @@ enum su_logDebugType {
 };
 
 /**
- * @brief su_Log_Should_Print_Origin Enables or disables origin printing,
+ * @brief su_log_should_print_origin Enables or disables origin printing,
  * default is false, unless in debug mode
  *
  * @param[in] enable The option to enable or disable
  */
-void su_Log_Should_Print_Origin(su_bool enable);
+void su_log_should_print_origin(su_bool enable);
 
 /**
- * @fn su_Log_Error
+ * @fn su_log_error
  * @brief Logs an error using saci's print template
  * @note DO NOT USE THIS. There is already a provided macro that reduces param
  * amount
@@ -77,12 +77,12 @@ void su_Log_Should_Print_Origin(su_bool enable);
  * @param[in] file The file the error occoured
  * @param[in] line The line the error occoured
  */
-void su_Log_Error(enum su_logSeverity severity,
-                  enum su_logContext context,
+void su_log_error(enum su_LogSeverity severity,
+                  enum su_LogContext context,
                   const char* message, const char* file, int line);
 
 /**
- * @fn su_Log_Warn
+ * @fn su_log_warn
  * @brief Logs a warning using saci's print template
  * @note DO NOT USE THIS. There is already a provided macro that reduces param
  * amount
@@ -93,12 +93,12 @@ void su_Log_Error(enum su_logSeverity severity,
  * @param[in] file The file the error occoured
  * @param[in] line The line the error occoured
  */
-void su_Log_Warn(enum su_logSeverity severity,
-                 enum su_logContext context,
+void su_log_warn(enum su_LogSeverity severity,
+                 enum su_LogContext context,
                  const char* message, const char* file, int line);
 
 /**
- * @fn su_Log_Info
+ * @fn su_log_info
  * @brief Logs an information using saci's print template
  * @note DO NOT USE THIS. There is already a provided macro that reduces param
  * amount
@@ -108,11 +108,11 @@ void su_Log_Warn(enum su_logSeverity severity,
  * @param[in] file The file the info comes from
  * @param[in] line The line the info comes from
  */
-void su_Log_Info(enum su_logContext context,
+void su_log_info(enum su_LogContext context,
                  const char* message, const char* file, int line);
 
 /**
- * @fn su_Log_Debug
+ * @fn su_log_debug
  * @brief Logs a debug information using saci's print template
  * @note DO NOT USE THIS. There is already a provided macro that reduces param
  * amount
@@ -123,145 +123,145 @@ void su_Log_Info(enum su_logContext context,
  * @param[in] file The file the debug comes from
  * @param[in] line The line the debug comes from
  */
-void su_Log_Debug(enum su_logDebugType type, enum su_logContext context,
+void su_log_debug(enum su_LogDebugType type, enum su_LogContext context,
                   const char* message, const char* file, int line);
 
 /**
- * @define su_Log_Info_Print_m
- * @brief A macro that prints info, using @ref su_Log_Info
+ * @define su_LOG_INFO_PRINT_M
+ * @brief A macro that prints info, using @ref su_log_info
  *
  * @param[in] context The context of the info
  * @param[in] message The message explaining the info
  */
-#define su_Log_Info_Print_m(context, message)              \
+#define su_LOG_INFO_PRINT_M(context, message)              \
     do {                                                   \
-        su_Log_Info(context, message, __FILE__, __LINE__); \
+        su_log_info(context, message, __FILE__, __LINE__); \
     } while (0)
 
-#define su_Log_InfoF_Print_m(context, fmt, ...)                                 \
+#define su_LOG_INFOF_PRINT_M(context, fmt, ...)                                 \
     do {                                                                        \
         char su_log_info_buf[2048];                                             \
         snprintf(su_log_info_buf, sizeof(su_log_info_buf), fmt, ##__VA_ARGS__); \
-        su_Log_Info_Print_m(context, su_log_info_buf);                          \
+        su_LOG_INFO_PRINT_M(context, su_log_info_buf);                          \
     } while (0)
 
 /**
- * @define su_Log_Debug_Print_m
- * @brief A macro that prints debug info, using @ref su_Log_Debug
+ * @define su_LOG_DEBUG_PRINT_M
+ * @brief A macro that prints debug info, using @ref su_log_debug
  *
  * @param[in] type The type of the info
  * @param[in] context The context of the info
  * @param[in] message The message explaining the info
  */
 #ifdef SACI_DEBUG_MODE_ENABLED
-#  define su_Log_Debug_Print_m(debug_type, context, message)              \
+#  define su_LOG_DEBUG_PRINT_M(debug_type, context, message)              \
       do {                                                                \
-          su_Log_Debug(debug_type, context, message, __FILE__, __LINE__); \
+          su_log_debug(debug_type, context, message, __FILE__, __LINE__); \
       } while (0)
 
 #else
-#  define su_Log_Debug_Print_m(debug_type, context, message)
+#  define su_LOG_DEBUG_PRINT_M(debug_type, context, message)
 #endif
 
 /**
- * @define su_Log_Debug_Print_m
- * @brief A macro that prints debug info if a condition is met, using @ref su_Log_Debug
+ * @define su_LOG_DEBUG_PRINT_M
+ * @brief A macro that prints debug info if a condition is met, using @ref su_log_debug
  *
  * @param[in] type The type of the info
  * @param[in] context The context of the info
  * @param[in] message The message explaining the info
  */
 #ifdef SACI_DEBUG_MODE_ENABLED
-#  define su_Log_Debug_Condition_Print_m(condition, debug_type, context, message) \
+#  define su_LOG_DEBUG_CONDITION_PRINT_M(condition, debug_type, context, message) \
       do {                                                                        \
           if (condition) {                                                        \
-              su_Log_Debug(debug_type, context, message, __FILE__, __LINE__);     \
+              su_log_debug(debug_type, context, message, __FILE__, __LINE__);     \
           }                                                                       \
       } while (0)
 
 #else
-#  define su_Log_Debug_Condition_Print_m(condition, debug_type, context, message)
+#  define su_LOG_DEBUG_CONDITION_PRINT_M(condition, debug_type, context, message)
 #endif
 
 /**
- * @define su_Log_DebugF_Print_m
- * @brief A macro that prints formatted debug info, using @ref su_Log_Debug
+ * @define su_LOG_DEBUGF_PRINT_M
+ * @brief A macro that prints formatted debug info, using @ref su_log_debug
  *
  * @param[in] type The type of the info
  * @param[in] context The context of the info
  * @param[in] message The message explaining the info
  */
 #ifdef SACI_DEBUG_MODE_ENABLED
-#  define su_Log_DebugF_Print_m(debug_type, context, fmt, ...)                  \
+#  define su_LOG_DEBUGF_PRINT_M(debug_type, context, fmt, ...)                  \
       do {                                                                      \
           char su_log_dbg_buf[2048];                                            \
           snprintf(su_log_dbg_buf, sizeof(su_log_dbg_buf), fmt, ##__VA_ARGS__); \
-          su_Log_Debug_Print_m(debug_type, context, su_log_dbg_buf);            \
+          su_LOG_DEBUG_PRINT_M(debug_type, context, su_log_dbg_buf);            \
       } while (0)
 #else
-#  define su_Log_DebugF_Print_m(debug_type, context, fmt, ...)
+#  define su_LOG_DEBUGF_PRINT_M(debug_type, context, fmt, ...)
 #endif
 
 /**
- * @define su_Log_Warn_Print_m(
- * @brief A macro that prints warnings, using @ref su_Log_Info
+ * @define su_LOG_WARN_PRINT_M(
+ * @brief A macro that prints warnings, using @ref su_log_info
  *
  * @param[in] context The context of the warning
  * @param[in] message The message explaining the warning
  */
-#define su_Log_Warn_Print_m(severity, context, message)              \
+#define su_LOG_WARN_PRINT_M(severity, context, message)              \
     do {                                                             \
-        su_Log_Warn(severity, context, message, __FILE__, __LINE__); \
+        su_log_warn(severity, context, message, __FILE__, __LINE__); \
     } while (0)
 
 /**
- * @define su_Log_WarnF_Print_m
- * @brief A macro that prints formatted warnings, using @ref su_Log_Info
+ * @define su_LOG_WARNF_PRINT_M
+ * @brief A macro that prints formatted warnings, using @ref su_log_info
  *
  * @param[in] context The context of the warning
  * @param[in] message The message explaining the warning
  */
-#define su_Log_WarnF_Print_m(severity, context, fmt, ...)                       \
+#define su_LOG_WARNF_PRINT_M(severity, context, fmt, ...)                       \
     do {                                                                        \
         char su_log_warn_buf[2048];                                             \
         snprintf(su_log_warn_buf, sizeof(su_log_warn_buf), fmt, ##__VA_ARGS__); \
-        su_Log_Warn_Print_m(severity, context, su_log_warn_buf);                \
+        su_LOG_WARN_PRINT_M(severity, context, su_log_warn_buf);                \
     } while (0)
 
 /**
- * @define su_Log_Error_Print_m
- * @brief A macro that prints errors, using @ref su_Log_Error
+ * @define su_LOG_ERROR_PRINT_M
+ * @brief A macro that prints errors, using @ref su_log_error
  *
  * @param[in] context The context of the error
  * @param[in] message The message explaining the error
  */
-#define su_Log_Error_Print_m(severity, context, message)              \
+#define su_LOG_ERROR_PRINT_M(severity, context, message)              \
     do {                                                              \
-        su_Log_Error(severity, context, message, __FILE__, __LINE__); \
+        su_log_error(severity, context, message, __FILE__, __LINE__); \
     } while (0)
 
 /**
- * @define su_Log_ErrorF_Print_m
- * @brief A macro that prints formatted errors, using @ref su_Log_Error
+ * @define su_LOG_ERRORF_PRINT_M
+ * @brief A macro that prints formatted errors, using @ref su_log_error
  *
  * @param[in] context The context of the error
  * @param[in] message The message explaining the error
  */
-#define su_Log_ErrorF_Print_m(severity, context, fmt, ...)                    \
+#define su_LOG_ERRORF_PRINT_M(severity, context, fmt, ...)                    \
     do {                                                                      \
         char su_log_err_buf[2048];                                            \
         snprintf(su_log_err_buf, sizeof(su_log_err_buf), fmt, ##__VA_ARGS__); \
-        su_Log_Error_Print_m(severity, context, su_log_err_buf);              \
+        su_LOG_ERROR_PRINT_M(severity, context, su_log_err_buf);              \
     } while (0)
 
 /**
- * @define su_Log_Assert_Message_m
+ * @define su_LOG_ASSERT_MESSAGE_M
  * @brief A macro that asserts conditions
  *
  * @param[in] condition The condition
  * @param[in] message The message explaining the error
  */
-#define su_Log_Assert_Message_m(condition, message)                                              \
+#define su_LOG_ASSERT_MESSAGE_M(condition, message)                                              \
     do {                                                                                         \
         if (!(condition)) {                                                                      \
             fprintf(stderr, "[ASSERTION FAILED]: LOCATION %s:%d: CONDITION: (%s) MESSAGE: %s\n", \
@@ -270,7 +270,7 @@ void su_Log_Debug(enum su_logDebugType type, enum su_logContext context,
         }                                                                                        \
     } while (0)
 
-#define su_Log_AssertF_Message_m(condition, fmt, ...)                                    \
+#define su_LOG_ASSERTF_MESSAGE_M(condition, fmt, ...)                                    \
     do {                                                                                 \
         if (!(condition)) {                                                              \
             char log_assert_buf[1024];                                                   \
@@ -283,6 +283,6 @@ void su_Log_Debug(enum su_logDebugType type, enum su_logContext context,
     } while (0)
 
 // TODO doc
-void su_Log_OpenGL_Debug_Message_Callback(su_u32 source, su_u32 type, su_u32 id, su_u32 severity, int length, const char* msg, const void* data);
+void su_log_opengl_debug_message_callback(su_u32 source, su_u32 type, su_u32 id, su_u32 severity, int length, const char* msg, const void* data);
 
 #endif // SACI_UTILS_SU_DEBUG_H

@@ -17,21 +17,21 @@
 
 /* === Typedefs === */
 
-typedef uint64_t su_u64;
+typedef uint64_t su_U64;
 
-typedef uint32_t su_u32;
+typedef uint32_t su_U32;
 
-typedef uint16_t su_u16;
+typedef uint16_t su_U16;
 
-typedef uint8_t su_u8;
+typedef uint8_t su_U8;
 
-typedef int64_t su_s64;
+typedef int64_t su_S64;
 
-typedef int32_t su_s32;
+typedef int32_t su_S32;
 
-typedef int16_t su_s16;
+typedef int16_t su_S16;
 
-typedef int8_t su_s8;
+typedef int8_t su_S8;
 
 /* === Boolean Constants === */
 
@@ -39,40 +39,40 @@ typedef int8_t su_s8;
 
 #define su_FALSE false
 
-typedef bool su_bool;
+typedef bool su_Bool;
 
 /* === Identifiers === */
 
-typedef su_u32 su_shaderId;
+typedef su_U32 su_ShaderId;
 
-typedef su_u32 su_textureId;
+typedef su_U32 su_TextureId;
 
-typedef su_u32 su_bufferId;
+typedef su_U32 su_BufferId;
 
 /* === Vector Structures === */
 
 typedef struct {
     float u; /**< U compoonent */
     float v; /**< V compoonent */
-} su_uv;
+} su_Uv;
 
 typedef struct {
     float x; /**< X compoonent */
     float y; /**< Y compoonent */
-} su_vec2;
+} su_Vec2;
 
 typedef struct {
     float x; /**< X compoonent */
     float y; /**< Y compoonent */
     float z; /**< Z compoonent */
-} su_vec3;
+} su_Vec3;
 
 typedef struct {
     float x; /**< X compoonent */
     float y; /**< Y compoonent */
     float z; /**< Z compoonent */
     float w; /**< W compoonent */
-} su_vec4;
+} su_Vec4;
 
 /* === Color Structure === */
 
@@ -81,87 +81,87 @@ typedef struct {
     float g; /**< Green compoonent */
     float b; /**< Blue compoonent */
     float a; /**< Alpha (transparency) compoonent */
-} su_color;
+} su_Color;
 
 /* === Matrix Structure === */
 
 typedef struct {
     float data[4][4]; /**< 4x4 matrix of floats */
-} su_mat4;
+} su_Mat4;
 
 /* === Types === */
 
 typedef enum {
-    SU_TYPE_U8 = 1,  // unsigned int8
-    SU_TYPE_U16 = 2, // unsigned int16
-    SU_TYPE_U32 = 3, // unsigned int32
-    SU_TYPE_U64 = 4, // unsigned int64
-    SU_TYPE_S8 = 5,  // signed int8
-    SU_TYPE_S16 = 6, // signed int16
-    SU_TYPE_S32 = 7, // signed int32
-    SU_TYPE_S64 = 8, // signed int64
+    su_TYPE_U8 = 1,  // unsigned int8
+    su_TYPE_U16 = 2, // unsigned int16
+    su_TYPE_U32 = 3, // unsigned int32
+    su_TYPE_U64 = 4, // unsigned int64
+    su_TYPE_S8 = 5,  // signed int8
+    su_TYPE_S16 = 6, // signed int16
+    su_TYPE_S32 = 7, // signed int32
+    su_TYPE_S64 = 8, // signed int64
 
-    SU_TYPE_BOOL = 9, // boolean
+    su_TYPE_BOOL = 9, // boolean
 
-    SU_TYPE_SHADERID = 10,  // unsgined int32
-    SU_TYPE_TEXTUREID = 11, // unsgined int32
-    SU_TYPE_BUFFERID = 12,  // unsigned int32
+    su_TYPE_SHADERID = 10,  // unsgined int32
+    su_TYPE_TEXTUREID = 11, // unsgined int32
+    su_TYPE_BUFFERID = 12,  // unsigned int32
 
-    SU_TYPE_UV = 13,   // 2 floats (u, v)
-    SU_TYPE_VEC2 = 14, // 2 floats (x, y)
-    SU_TYPE_VEC3 = 15, // 3 floats (x, y, z)
-    SU_TYPE_VEC4 = 16, // 4 floats (x, y, z, w)
+    su_TYPE_UV = 13,   // 2 floats (u, v)
+    su_TYPE_VEC2 = 14, // 2 floats (x, y)
+    su_TYPE_VEC3 = 15, // 3 floats (x, y, z)
+    su_TYPE_VEC4 = 16, // 4 floats (x, y, z, w)
 
-    SU_TYPE_COLOR = 17, // 4 floats (r, g, b, a)
+    su_TYPE_COLOR = 17, // 4 floats (r, g, b, a)
 
-    SU_TYPE_MAT2 = 18, // 2x2 matrix
-    SU_TYPE_MAT3 = 19, // 3x3 matrix
-    SU_TYPE_MAT4 = 20, // 4x4 matrix
+    su_TYPE_MAT2 = 18, // 2x2 matrix
+    su_TYPE_MAT3 = 19, // 3x3 matrix
+    su_TYPE_MAT4 = 20, // 4x4 matrix
 
-    SU_TYPE_MAT2X3 = 21, // 2 columns, 3 rows
-    SU_TYPE_MAT2X4 = 22, // 2 columns, 4 rows
-    SU_TYPE_MAT3X2 = 23, // 3 columns, 2 rows
-    SU_TYPE_MAT3X4 = 24, // 3 columns, 4 rows
-    SU_TYPE_MAT4X2 = 25, // 4 columns, 2 rows
-    SU_TYPE_MAT4X3 = 26, // 4 columns, 3 rows
-} su_dataType;
+    su_TYPE_MAT2X3 = 21, // 2 columns, 3 rows
+    su_TYPE_MAT2X4 = 22, // 2 columns, 4 rows
+    su_TYPE_MAT3X2 = 23, // 3 columns, 2 rows
+    su_TYPE_MAT3X4 = 24, // 3 columns, 4 rows
+    su_TYPE_MAT4X2 = 25, // 4 columns, 2 rows
+    su_TYPE_MAT4X3 = 26, // 4 columns, 3 rows
+} su_DataType;
 
-#define SU_TYPE_MAX 26
-static const su_u64 SU_SIZE_OF_TYPE[] = {
+#define su_TYPE_MAX 26
+static const su_U64 su_SIZE_OF_TYPE[] = {
     0, // index 0 (unused)
 
-    1, // SU_TYPE_U8        = 1
-    2, // SU_TYPE_U16       = 2
-    4, // SU_TYPE_U32       = 3
-    8, // SU_TYPE_U64       = 4
-    1, // SU_TYPE_S8        = 5
-    2, // SU_TYPE_S16       = 6
-    4, // SU_TYPE_S32       = 7
-    8, // SU_TYPE_S64       = 8
+    1, // su_TYPE_U8        = 1
+    2, // su_TYPE_U16       = 2
+    4, // su_TYPE_U32       = 3
+    8, // su_TYPE_U64       = 4
+    1, // su_TYPE_S8        = 5
+    2, // su_TYPE_S16       = 6
+    4, // su_TYPE_S32       = 7
+    8, // su_TYPE_S64       = 8
 
-    1, // SU_TYPE_BOOL      = 9
+    1, // su_TYPE_BOOL      = 9
 
-    4, // SU_TYPE_SHADERID  = 10
-    4, // SU_TYPE_TEXTUREID = 11
-    4, // SU_TYPE_BUFFERID  = 12
+    4, // su_TYPE_SHADERID  = 10
+    4, // su_TYPE_TEXTUREID = 11
+    4, // su_TYPE_BUFFERID  = 12
 
-    8,  // SU_TYPE_UV        = 13 (2 floats)
-    8,  // SU_TYPE_VEC2      = 14 (2 floats)
-    12, // SU_TYPE_VEC3      = 15 (3 floats)
-    16, // SU_TYPE_VEC4      = 16 (4 floats)
+    8,  // su_TYPE_UV        = 13 (2 floats)
+    8,  // su_TYPE_VEC2      = 14 (2 floats)
+    12, // su_TYPE_VEC3      = 15 (3 floats)
+    16, // su_TYPE_VEC4      = 16 (4 floats)
 
-    16, // SU_TYPE_COLOR     = 17 (4 floats, e.g. RGBA)
+    16, // su_TYPE_COLOR     = 17 (4 floats, e.g. RGBA)
 
-    16, // SU_TYPE_MAT2      = 18 (2x2 floats = 4 floats)
-    36, // SU_TYPE_MAT3      = 19 (3x3 = 9 floats)
-    64, // SU_TYPE_MAT4      = 20 (4x4 = 16 floats)
+    16, // su_TYPE_MAT2      = 18 (2x2 floats = 4 floats)
+    36, // su_TYPE_MAT3      = 19 (3x3 = 9 floats)
+    64, // su_TYPE_MAT4      = 20 (4x4 = 16 floats)
 
-    24, // SU_TYPE_MAT2X3    = 21 (2 columns * 3 rows = 6 floats)
-    32, // SU_TYPE_MAT2X4    = 22 (2 * 4 = 8 floats)
-    24, // SU_TYPE_MAT3X2    = 23 (3 * 2 = 6 floats)
-    48, // SU_TYPE_MAT3X4    = 24 (3 * 4 = 12 floats)
-    32, // SU_TYPE_MAT4X2    = 25 (4 * 2 = 8 floats)
-    48  // SU_TYPE_MAT4X3    = 26 (4 * 3 = 12 floats)
+    24, // su_TYPE_MAT2X3    = 21 (2 columns * 3 rows = 6 floats)
+    32, // su_TYPE_MAT2X4    = 22 (2 * 4 = 8 floats)
+    24, // su_TYPE_MAT3X2    = 23 (3 * 2 = 6 floats)
+    48, // su_TYPE_MAT3X4    = 24 (3 * 4 = 12 floats)
+    32, // su_TYPE_MAT4X2    = 25 (4 * 2 = 8 floats)
+    48  // su_TYPE_MAT4X3    = 26 (4 * 3 = 12 floats)
 };
 
 #endif // SACI_UTILS_SU_TYPES_H
