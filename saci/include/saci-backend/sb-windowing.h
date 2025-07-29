@@ -8,19 +8,19 @@
 typedef GLFWmonitor sb_Monitor;
 typedef GLFWwindow sb_Window;
 typedef void (*sb_WindowPosHandler)(sb_Window* window, int pos_x, int pos_y);
-typedef void (*sb_WindowSizeHandlerT)(sb_Window* window, int width, int height);
+typedef void (*sb_WindowSizeHandler)(sb_Window* window, int width, int height);
 
-su_bool sb_glfw_init(void);
-su_bool sb_glad_init(void);
+su_Bool sb_glfw_init(void);
+su_Bool sb_glad_init(void);
 sb_Window* sb_window_create(int width, int height, const char* title,
                             sb_Monitor* monitor, sb_Window* share);
 void sb_window_free(sb_Window* window);
 void sb_window_make_context(sb_Window* window);
-su_bool sb_window_should_close(sb_Window* window);
-void sb_window_set_pos_handler(sb_Window* window, sb_WindowSizeHandlerT window_pos_handler);
-void sb_window_set_size_handler(sb_Window* window, sb_WindowSizeHandlerT window_size_handler);
+su_Bool sb_window_should_close(sb_Window* window);
+void sb_window_set_pos_handler(sb_Window* window, sb_WindowSizeHandler window_pos_handler);
+void sb_window_set_size_handler(sb_Window* window, sb_WindowSizeHandler window_size_handler);
 void sb_window_terminate(void);
-void sb_window_clear_color(const su_color color);
+void sb_window_clear_color(const su_Color color);
 void sb_window_swap_buffer(sb_Window* window);
 
 /* === Event === */
@@ -162,6 +162,6 @@ SA_API void sb_event_wait(void);
 SA_API void sb_event_wait_for_timeout(double timeout);
 SA_API void sb_event_post_empty(void);
 SA_API void sb_event_set_mouse_pos_handler(sb_Window* window, sb_EventMousePosHandler mouse_pos_handler);
-SA_API su_bool sb_event_is_key_pressed(sb_Window* window, int keycode);
+SA_API su_Bool sb_event_is_key_pressed(sb_Window* window, int keycode);
 
 #endif // SACI_BACKEND_SC_WINDOWING_H

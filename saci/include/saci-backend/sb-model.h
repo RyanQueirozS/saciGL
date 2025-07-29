@@ -34,26 +34,26 @@ void sb_model_delete(struct sb_ModelMesh* model_mesh);
 
 void sb_model_get_vertex_index_array(const struct sb_ModelMesh* model_mesh,
                                      struct sb_VertexIndex** indice_array_out,
-                                     su_u64* indice_count_out);
+                                     su_U64* indice_count_out);
 
 void sb_model_get_separated_index_data(const struct sb_ModelMesh* model_mesh,
-                                       su_u32** vertex_index_array_out,
-                                       su_u32** uv_index_array_out,
-                                       su_u32** normal_index_array_out,
-                                       su_u64* indice_count_out);
+                                       su_U32** vertex_index_array_out,
+                                       su_U32** uv_index_array_out,
+                                       su_U32** normal_index_array_out,
+                                       su_U64* indice_count_out);
 
 void sb_model_get_position_array(const struct sb_ModelMesh* model_mesh,
-                                 su_vec3** position_array_out,
-                                 su_u64* position_count_out);
+                                 su_Vec3** position_array_out,
+                                 su_U64* position_count_out);
 
 void sb_model_get_uv_array(const struct sb_ModelMesh* model_mesh,
-                           su_uv** uv_array_out,
-                           su_u64* uv_count_out);
+                           su_Uv** uv_array_out,
+                           su_U64* uv_count_out);
 
 void sb_model_vertex_index_get_data(const struct sb_VertexIndex* vertex_indice,
-                                    su_u64 vertex_indice_amount,
-                                    su_u32** vertex_index_out,
-                                    su_u32** uv_index_out,
-                                    su_u32** normal_index_out);
+                                    su_U64 vertex_indice_amount,
+                                    su_U32** vertex_index_out,
+                                    su_U32** uv_index_out,
+                                    su_U32** normal_index_out);
 
 #endif // SACI_BACKEND_SB_MODEL_H

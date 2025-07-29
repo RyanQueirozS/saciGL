@@ -10,13 +10,13 @@
 
 /* === Static vars=== */
 
-static enum su_logSeverity su_logging_severity_s = su_LOG_SEVERITY_LOW;
+static enum su_LogSeverity su_logging_severity_s = su_LOG_SEVERITY_LOW;
 
-static su_bool su_should_log_source_s = su_FALSE;
+static su_Bool su_should_log_source_s = su_FALSE;
 
 /* === Helpers === */
 
-static const char* su_Log_Severity_To_String_s(enum su_logSeverity severity) {
+static const char* su__log_severity_to_string_s(enum su_LogSeverity severity) {
     switch (severity) {
     case su_LOG_SEVERITY_LOW:
         return "LOW";
@@ -29,7 +29,7 @@ static const char* su_Log_Severity_To_String_s(enum su_logSeverity severity) {
     }
 }
 
-static const char* su_Log_Context_To_String_s(enum su_logContext context) {
+static const char* su__log_context_to_string_s(enum su_LogContext context) {
     switch (context) {
     case su_LOG_CONTEXT_OPENGL:
         return "OpenGL";
@@ -52,24 +52,24 @@ static const char* su_Log_Context_To_String_s(enum su_logContext context) {
 
 /* === Implementations=== */
 
-void su_Log_Should_Print_Origin(su_bool enable) {
+void su_log_should_print_origin(su_Bool enable) {
     su_should_log_source_s = enable;
 }
 
-void su_Log_Info(enum su_logContext context,
+void su_log_info(enum su_LogContext context,
                  const char* message, const char* file, int line) {
     if (su_should_log_source_s) {
         printf("INFO: [%s]: %s: [FILE:%s][LINE:%d]\n",
-               su_Log_Context_To_String_s(context),
+               su__log_context_to_string_s(context),
                message, file, line);
         return;
     }
     printf("INFO: [%s]: %s\n",
-           su_Log_Context_To_String_s(context),
+           su__log_context_to_string_s(context),
            message);
 }
 
-void su_Log_Debug(enum su_logDebugType type, enum su_logContext context,
+void su_log_debug(enum su_LogDebugType type, enum su_LogContext context,
                   const char* message, const char* file, int line) {
     char type_str[32];
     switch (type) {
@@ -79,12 +79,12 @@ void su_Log_Debug(enum su_logDebugType type, enum su_logContext context,
             strcpy(type_str, "WINDOWING");
             if (su_should_log_source_s) {
                 printf("DEBUG %s: [%s] of %s: [FILE:%s][LINE:%d]\n",
-                       type_str, su_Log_Context_To_String_s(context),
+                       type_str, su__log_context_to_string_s(context),
                        message, file, line);
                 return;
             }
             printf("DEBUG %s: [%s] of %s\n",
-                   type_str, su_Log_Context_To_String_s(context),
+                   type_str, su__log_context_to_string_s(context),
                    message);
 #endif
             break;
@@ -95,12 +95,12 @@ void su_Log_Debug(enum su_logDebugType type, enum su_logContext context,
             strcpy(type_str, "TEXTURE");
             if (su_should_log_source_s) {
                 printf("DEBUG %s: [%s] of %s: [FILE:%s][LINE:%d]\n",
-                       type_str, su_Log_Context_To_String_s(context),
+                       type_str, su__log_context_to_string_s(context),
                        message, file, line);
                 return;
             }
             printf("DEBUG %s: [%s] of %s\n",
-                   type_str, su_Log_Context_To_String_s(context),
+                   type_str, su__log_context_to_string_s(context),
                    message);
 #endif
             break;
@@ -111,12 +111,12 @@ void su_Log_Debug(enum su_logDebugType type, enum su_logContext context,
             strcpy(type_str, "MODEL");
             if (su_should_log_source_s) {
                 printf("DEBUG %s: [%s] of %s: [FILE:%s][LINE:%d]\n",
-                       type_str, su_Log_Context_To_String_s(context),
+                       type_str, su__log_context_to_string_s(context),
                        message, file, line);
                 return;
             }
             printf("DEBUG %s: [%s] of %s\n",
-                   type_str, su_Log_Context_To_String_s(context),
+                   type_str, su__log_context_to_string_s(context),
                    message);
 #endif
             break;
@@ -127,12 +127,12 @@ void su_Log_Debug(enum su_logDebugType type, enum su_logContext context,
             strcpy(type_str, "OPENGL");
             if (su_should_log_source_s) {
                 printf("DEBUG %s: [%s] of %s: [FILE:%s][LINE:%d]\n",
-                       type_str, su_Log_Context_To_String_s(context),
+                       type_str, su__log_context_to_string_s(context),
                        message, file, line);
                 return;
             }
             printf("DEBUG %s: [%s] of %s\n",
-                   type_str, su_Log_Context_To_String_s(context),
+                   type_str, su__log_context_to_string_s(context),
                    message);
 
 #endif
@@ -144,12 +144,12 @@ void su_Log_Debug(enum su_logDebugType type, enum su_logContext context,
             strcpy(type_str, "RENDERER");
             if (su_should_log_source_s) {
                 printf("DEBUG %s: [%s] %s: [FILE:%s][LINE:%d]\n",
-                       type_str, su_Log_Context_To_String_s(context),
+                       type_str, su__log_context_to_string_s(context),
                        message, file, line);
                 return;
             }
             printf("DEBUG %s: [%s] %s\n",
-                   type_str, su_Log_Context_To_String_s(context),
+                   type_str, su__log_context_to_string_s(context),
                    message);
 
 #endif
@@ -161,12 +161,12 @@ void su_Log_Debug(enum su_logDebugType type, enum su_logContext context,
             strcpy(type_str, "RENDERER_FUNCTIONS");
             if (su_should_log_source_s) {
                 printf("DEBUG %s: [%s] %s: [FILE:%s][LINE:%d]\n",
-                       type_str, su_Log_Context_To_String_s(context),
+                       type_str, su__log_context_to_string_s(context),
                        message, file, line);
                 return;
             }
             printf("DEBUG %s: [%s] %s\n",
-                   type_str, su_Log_Context_To_String_s(context),
+                   type_str, su__log_context_to_string_s(context),
                    message);
 
 #endif
@@ -178,12 +178,12 @@ void su_Log_Debug(enum su_logDebugType type, enum su_logContext context,
             strcpy(type_str, "RENDERER_BATCH");
             if (su_should_log_source_s) {
                 printf("DEBUG %s: [%s] %s: [FILE:%s][LINE:%d]\n",
-                       type_str, su_Log_Context_To_String_s(context),
+                       type_str, su__log_context_to_string_s(context),
                        message, file, line);
                 return;
             }
             printf("DEBUG %s: [%s] %s\n",
-                   type_str, su_Log_Context_To_String_s(context),
+                   type_str, su__log_context_to_string_s(context),
                    message);
 
 #endif
@@ -195,12 +195,12 @@ void su_Log_Debug(enum su_logDebugType type, enum su_logContext context,
             strcpy(type_str, "RENDERER_CALL");
             if (su_should_log_source_s) {
                 printf("DEBUG %s: [%s] %s: [FILE:%s][LINE:%d]\n",
-                       type_str, su_Log_Context_To_String_s(context),
+                       type_str, su__log_context_to_string_s(context),
                        message, file, line);
                 return;
             }
             printf("DEBUG %s: [%s] %s\n",
-                   type_str, su_Log_Context_To_String_s(context),
+                   type_str, su__log_context_to_string_s(context),
                    message);
 
 #endif
@@ -214,8 +214,8 @@ void su_Log_Debug(enum su_logDebugType type, enum su_logContext context,
     }
 }
 
-void su_Log_Warn(enum su_logSeverity severity,
-                 enum su_logContext context,
+void su_log_warn(enum su_LogSeverity severity,
+                 enum su_LogContext context,
                  const char* message, const char* file, int line) {
     if (severity < su_logging_severity_s) {
         return;
@@ -223,8 +223,8 @@ void su_Log_Warn(enum su_logSeverity severity,
 
     if (su_should_log_source_s) {
         printf("ERROR: [%s] %s severity: %s: [FILE:%s][LINE:%d]\n",
-               su_Log_Context_To_String_s(context),
-               su_Log_Severity_To_String_s(severity),
+               su__log_context_to_string_s(context),
+               su__log_severity_to_string_s(severity),
                message, file, line);
         if (severity >= su_LOG_SEVERITY_HIGH) {
             exit(EXIT_FAILURE);
@@ -232,16 +232,16 @@ void su_Log_Warn(enum su_logSeverity severity,
         return;
     }
     printf("ERROR: [%s] of %s severity: %s\n",
-           su_Log_Context_To_String_s(context),
-           su_Log_Severity_To_String_s(severity),
+           su__log_context_to_string_s(context),
+           su__log_severity_to_string_s(severity),
            message);
     if (severity >= su_LOG_SEVERITY_HIGH) {
         exit(EXIT_FAILURE);
     }
 }
 
-void su_Log_Error(enum su_logSeverity severity,
-                  enum su_logContext context,
+void su_log_error(enum su_LogSeverity severity,
+                  enum su_LogContext context,
                   const char* message, const char* file, int line) {
     if (severity < su_logging_severity_s) {
         return;
@@ -249,8 +249,8 @@ void su_Log_Error(enum su_logSeverity severity,
 
     if (su_should_log_source_s) {
         printf("ERROR: [%s] of %s severity: %s: [FILE:%s][LINE:%d]\n",
-               su_Log_Context_To_String_s(context),
-               su_Log_Severity_To_String_s(severity),
+               su__log_context_to_string_s(context),
+               su__log_severity_to_string_s(severity),
                message, file, line);
         if (severity >= su_LOG_SEVERITY_HIGH) {
             exit(EXIT_FAILURE);
@@ -258,15 +258,15 @@ void su_Log_Error(enum su_logSeverity severity,
         return;
     }
     printf("ERROR: [%s] of %s severity: %s\n",
-           su_Log_Context_To_String_s(context),
-           su_Log_Severity_To_String_s(severity),
+           su__log_context_to_string_s(context),
+           su__log_severity_to_string_s(severity),
            message);
     if (severity >= su_LOG_SEVERITY_HIGH) {
         exit(EXIT_FAILURE);
     }
 }
 
-void su_Log_OpenGL_Debug_Message_Callback(su_u32 source, su_u32 type, su_u32 id, su_u32 severity,
+void su_log_opengl_debug_message_callback(su_U32 source, su_U32 type, su_U32 id, su_U32 severity,
                                           int length, const char* msg, const void* data) {
     (void)length, (void)data;
     char* _source;

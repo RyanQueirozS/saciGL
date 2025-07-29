@@ -5,15 +5,15 @@
 
 #include <stdint.h>
 
-#define SC_TEXTURE_INVALID (UINT32_MAX)
+#define sb_TEXTURE_INVALID (UINT32_MAX)
 
 /* === Texture Loading Functions === */
 
-su_textureId sb_texture_load(const char* path, su_bool flip_img);
+su_TextureId sb_texture_load(const char* path, su_Bool flip_img);
 
-void sb_texture_load_data(const char* path, su_bool flip_img, int* width_out, int* height_out,
-                          int* nr_channels_out, su_u8** data_out);
+void sb_texture_load_data(const char* path, su_Bool flip_img, int* width_out, int* height_out,
+                          int* nr_channels_out, su_U8** data_out);
 
-void sb_texture_free(su_textureId texture_id);
+void sb_texture_free(su_TextureId texture_id);
 
 #endif // SACI_BACKEND_SC_TEXTURE_H

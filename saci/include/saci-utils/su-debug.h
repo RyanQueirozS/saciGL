@@ -63,7 +63,7 @@ enum su_LogDebugType {
  *
  * @param[in] enable The option to enable or disable
  */
-void su_log_should_print_origin(su_bool enable);
+void su_log_should_print_origin(su_Bool enable);
 
 /**
  * @fn su_log_error
@@ -283,6 +283,6 @@ void su_log_debug(enum su_LogDebugType type, enum su_LogContext context,
     } while (0)
 
 // TODO doc
-void su_log_opengl_debug_message_callback(su_u32 source, su_u32 type, su_u32 id, su_u32 severity, int length, const char* msg, const void* data);
+void su_log_opengl_debug_message_callback(su_U32 source, su_U32 type, su_U32 id, su_U32 severity, int length, const char* msg, const void* data);
 
 #endif // SACI_UTILS_SU_DEBUG_H

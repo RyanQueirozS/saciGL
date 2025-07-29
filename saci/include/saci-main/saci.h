@@ -6,10 +6,10 @@
 #include "saci-utils/su-general.h"
 
 typedef struct saci_Cube {
-    su_vec3 pos_center;
-    su_vec3 dimentions;
-    su_vec3 rotation;
-    su_color color;
+    su_Vec3 pos_center;
+    su_Vec3 dimentions;
+    su_Vec3 rotation;
+    su_Color color;
 } saci_Cube;
 
 typedef void (*saci_LoopFunc)(const double delta);
@@ -20,40 +20,40 @@ typedef enum {
 
 typedef struct {
     struct {
-        su_bool key_held[sb_EVENT_KEY_AMOUNT];
-        su_bool key_was_pressed[sb_EVENT_KEY_AMOUNT];
-        su_bool key_was_released[sb_EVENT_KEY_AMOUNT];
+        su_Bool key_held[sb_EVENT_KEY_AMOUNT];
+        su_Bool key_was_pressed[sb_EVENT_KEY_AMOUNT];
+        su_Bool key_was_released[sb_EVENT_KEY_AMOUNT];
     } keyboard;
     struct {
-        su_bool button_held[sb_EVENT_MOUSE_BUTTON_AMOUNT];
-        su_bool button_was_pressed[sb_EVENT_MOUSE_BUTTON_AMOUNT];
-        su_bool button_was_released[sb_EVENT_MOUSE_BUTTON_AMOUNT];
+        su_Bool button_held[sb_EVENT_MOUSE_BUTTON_AMOUNT];
+        su_Bool button_was_pressed[sb_EVENT_MOUSE_BUTTON_AMOUNT];
+        su_Bool button_was_released[sb_EVENT_MOUSE_BUTTON_AMOUNT];
     } mouse;
     struct {
-        su_bool button_held[sb_EVENT_CONTROLLER_BUTTON_AMOUNT];
-        su_bool button_was_pressed[sb_EVENT_MOUSE_BUTTON_AMOUNT];
-        su_bool button_was_released[sb_EVENT_MOUSE_BUTTON_AMOUNT];
+        su_Bool button_held[sb_EVENT_CONTROLLER_BUTTON_AMOUNT];
+        su_Bool button_was_pressed[sb_EVENT_MOUSE_BUTTON_AMOUNT];
+        su_Bool button_was_released[sb_EVENT_MOUSE_BUTTON_AMOUNT];
     } controller;
 } saci_Event;
 
-SA_API void saci_Init(void);
+SA_API void saci_init(void);
 
-SA_API void saci_Enable(saci_RenderingFlags flag, su_bool enable);
+SA_API void saci_enable(saci_RenderingFlags flag, su_Bool enable);
 
-SA_API void saci_Begin(void);
+SA_API void saci_begin(void);
 
-SA_API void saci_Set_Background_Color(const su_color color);
+SA_API void saci_set_background_color(const su_Color color);
 
-SA_API void saci_Set_Loop_Func(saci_LoopFunc loop_func);
+SA_API void saci_set_loop_func(saci_LoopFunc loop_func);
 
-SA_API const saci_Event* saci_Get_Event(void);
+SA_API const saci_Event* saci_get_event(void);
 
-SA_API void saci_Loop(void);
+SA_API void saci_loop(void);
 
-SA_API void saci_Draw_Cube(const saci_Cube cube);
+SA_API void saci_draw_cube(const saci_Cube cube);
 
-SA_API void saci_Present(void);
+SA_API void saci_present(void);
 
-SA_API void saci_Free(void);
+SA_API void saci_free(void);
 
 #endif // SACI_MAIN_SACI_H
