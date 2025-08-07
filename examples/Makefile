@@ -11,6 +11,7 @@ CFLAGS = -Wall -Wextra -O0 -g \
 	-I../saci/deps/stb \
 	-I../saci/deps/memory \
 	-I../saci/deps/model-loading \
+	-I../saci/deps/ryanqueirozs \
 	-DSACI_TEST_BUILD \
 	-DSACI_DEBUG_MODE_ALL
 

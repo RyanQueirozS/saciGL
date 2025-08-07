@@ -2,6 +2,7 @@
 
 #include "saci-backend/sb-renderer.h"
 #include "saci-backend/sb-windowing.h"
+#include "saci-backend/sb-config-manager.h"
 
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-math.h"
@@ -86,6 +87,7 @@ SA_INTERNAL struct saci_Context {
 } saci_context = {0};
 
 void saci_init(void) {
+    sb_cfg_manager_load_default();
     su_Vec3 cube_vertices[] = {
         {-1, -1, -1},
         {-1, -1, 1},

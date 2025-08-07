@@ -50,6 +50,7 @@ target_include_directories(saci
         "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/deps/model-loading"
         "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/deps/ryanqueirozs/"
         "${CMAKE_CURRENT_SOURCE_DIR}/deps/lua/lua5.4"  # Headers only
 
     PRIVATE
@@ -79,6 +80,10 @@ else()
         ${GLFW_LIBRARY}
         m
     )
+    if(UNIX AND NOT APPLE)  # Linux only
+        target_compile_definitions(saci PRIVATE _GNU_SOURCE)
+        target_link_libraries(saci PUBLIC dl)
+    endif()
 endif()
 
 # --- Git Debug Mode ---
