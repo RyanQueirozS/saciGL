@@ -86,13 +86,11 @@ else()
     endif()
 endif()
 
-# --- Git Debug Mode ---
-if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/../.git")
-    message(STATUS "Git repository detected. Enabling SACI_DEBUG_MODE.")
-    target_compile_definitions(saci PRIVATE SACI_DEBUG_MODE_ALL)
-endif()
-
 # --- Compiler flags ---
+set(SACI_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Path to SACI's dir")
+target_compile_definitions(saci PRIVATE
+    SACI_LIB_PATH="${SACI_LIB_PATH}"
+)
 target_compile_options(saci PRIVATE
     -Wall
     -Wextra

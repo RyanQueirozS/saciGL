@@ -10,6 +10,10 @@
 #ifndef SACI_UTILS_SU_GENERAL_H
 #define SACI_UTILS_SU_GENERAL_H
 
+#ifndef SACI_LIB_PATH
+#  error "SACI_LIB_PATH not defined! Set it in CMakeLists.txt or config.sh"
+#endif
+
 #include "saci-utils/su-types.h"
 
 #ifndef SA_API

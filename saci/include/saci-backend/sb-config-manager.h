@@ -1,6 +1,8 @@
 #ifndef SACI_BACKEND_SB_PLATFORM_H
 #define SACI_BACKEND_SB_PLATFORM_H
 
+#include <dylilo/dylilo.h>
+
 #include <saci-utils/su-general.h>
 
 enum sb_RendererApi {
@@ -16,16 +18,39 @@ enum sb_WindowApi {
 };
 
 struct sb_ConfigManager {
-    const char* saci_lib_path;
-    enum sb_RendererApi sc_renderer_api;
-    enum sb_RenderApiLoader sc_render_api_loader;
-    enum sb_WindowApi sc_window_api;
+    struct {
+        enum sb_RendererApi api;
+        char* path_to_api;
+    } render_api_data;
+    struct {
+        enum sb_RenderApiLoader api_loader;
+        char* path_to_api;
+    } render_api_loader_data;
+    struct {
+        enum sb_WindowApi api;
+        char* path_to_api;
+    } windowing_api_data;
+
+    struct {
+        DyliloHandle handle;
+        void* init_func;
+        void* load_proc_func;
+    } window_funcs;
 };
 
 SA_INTERNAL_CONST struct sb_ConfigManager sb_CFG_MANAGER_DEFAULT = {
-    .sc_renderer_api = sb_RENDERER_API_OPENGL,
-    .sc_render_api_loader = sb_RENDER_API_LOADER_GLAD,
-    .sc_window_api = sb_WINDOW_API_GLFW,
+    .render_api_data = {
+        .api = sb_RENDERER_API_OPENGL,
+        .path_to_api = NULL,
+    },
+    .render_api_loader_data = {
+        .api_loader = sb_RENDER_API_LOADER_GLAD,
+        .path_to_api = NULL,
+    },
+    .windowing_api_data = {
+        .api = sb_WINDOW_API_GLFW,
+        .path_to_api = NULL,
+    },
 };
 
 SA_API void sb_cfg_manager_load_default(void);
