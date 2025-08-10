@@ -283,6 +283,51 @@ void su_log_debug(enum su_LogDebugType type, enum su_LogContext context,
         }                                                                                \
     } while (0)
 
+/**
+ * @define su_DUMMY_CHECK_M
+ * @brief A dummy check that asserts a condition is true only in debug builds.
+ *
+ * @details
+ * This is intended for sanity checks on conditions that should *never* fail
+ * during normal operation. It is compiled out entirely if
+ * `SACI_DUMMY_CHECK_DISABLE` is defined, to avoid any runtime cost in release builds.
+ *
+ * @param[in] condition The condition that must be true.
+ * @param[in] message   Message printed if the condition fails.
+ */
+#ifndef SACI_DUMMY_CHECK_DISABLE
+#  define su_DUMMY_CHECK_M(condition, message)                                               \
+      do {                                                                                   \
+          if (!(condition)) {                                                                \
+              fprintf(stderr,                                                                \
+                      "[DUMMY CHECK FAILED]: LOCATION %s:%d: CONDITION: (%s) MESSAGE: %s\n", \
+                      __func__, __LINE__, #condition, message);                              \
+              exit(EXIT_FAILURE);                                                            \
+          }                                                                                  \
+      } while (0)
+
+#  define su_DUMMY_CHECKF_M(condition, fmt, ...)                                             \
+      do {                                                                                   \
+          if (!(condition)) {                                                                \
+              char log_dummy_buf[1024];                                                      \
+              snprintf(log_dummy_buf, sizeof(log_dummy_buf), fmt, ##__VA_ARGS__);            \
+              fprintf(stderr,                                                                \
+                      "[DUMMY CHECK FAILED]: LOCATION %s:%d: CONDITION: (%s) MESSAGE: %s\n", \
+                      __func__, __LINE__, #condition, log_dummy_buf);                        \
+              exit(EXIT_FAILURE);                                                            \
+          }                                                                                  \
+      } while (0)
+#else
+#  define su_DUMMY_CHECK_M(condition, message) \
+      do {                                     \
+          (void)(condition);                   \
+      } while (0)
+#  define su_DUMMY_CHECKF_M(condition, fmt, ...) \
+      do {                                       \
+          (void)(condition);                     \
+      } while (0)
+#endif
+
 // TODO doc
 void su_log_opengl_debug_message_callback(su_U32 source, su_U32 type, su_U32 id, su_U32 severity, int length, const char* msg, const void* data);
 
