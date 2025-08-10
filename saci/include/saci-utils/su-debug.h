@@ -38,6 +38,7 @@ enum su_LogSeverity {
  */
 enum su_LogContext {
     su_LOG_CONTEXT_OPENGL = 0,
+    su_LOG_CONTEXT_INIT,
     su_LOG_CONTEXT_RENDERER,
     su_LOG_CONTEXT_MODEL_LOADING,
     su_LOG_CONTEXT_STBI,

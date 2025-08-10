@@ -2,26 +2,23 @@
 #define SACI_BACKEND_SC_WINDOWING_H
 
 #include <GLFW/glfw3.h>
-#include <saci-utils/su-general.h>
-#include <saci-utils/su-types.h>
 
-typedef GLFWmonitor sb_Monitor;
-typedef GLFWwindow sb_Window;
-typedef void (*sb_WindowPosHandler)(sb_Window* window, int pos_x, int pos_y);
-typedef void (*sb_WindowSizeHandler)(sb_Window* window, int width, int height);
+#include "saci-utils/su-general.h"
+#include "saci-utils/su-types.h"
 
+su_Bool sb_load_windowing(void);
 su_Bool sb_glfw_init(void);
 su_Bool sb_glad_init(void);
-sb_Window* sb_window_create(int width, int height, const char* title,
-                            sb_Monitor* monitor, sb_Window* share);
-void sb_window_free(sb_Window* window);
-void sb_window_make_context(sb_Window* window);
-su_Bool sb_window_should_close(sb_Window* window);
-void sb_window_set_pos_handler(sb_Window* window, sb_WindowSizeHandler window_pos_handler);
-void sb_window_set_size_handler(sb_Window* window, sb_WindowSizeHandler window_size_handler);
+su_Window sb_window_create(int width, int height, const char* title,
+                           su_Monitor monitor, su_Window share);
+void sb_window_free(su_Window window);
+void sb_window_make_context(su_Window window);
+su_Bool sb_window_should_close(su_Window window);
+void sb_window_set_pos_handler(su_Window window, su_WindowSizeHandler window_pos_handler);
+void sb_window_set_size_handler(su_Window window, su_WindowSizeHandler window_size_handler);
 void sb_window_terminate(void);
 void sb_window_clear_color(const su_Color color);
-void sb_window_swap_buffer(sb_Window* window);
+void sb_window_swap_buffer(su_Window window);
 
 /* === Event === */
 
@@ -30,8 +27,6 @@ void sb_window_swap_buffer(sb_Window* window);
 #define sb_EVENT_MOUSE_BUTTON_AMOUNT 8
 
 #define sb_EVENT_CONTROLLER_BUTTON_AMOUNT 16
-
-typedef void (*sb_EventMousePosHandler)(sb_Window* window, double posx, double posy);
 
 enum sb_Key {
     sb_KEY_SPACE = 32,
@@ -161,7 +156,7 @@ SA_API void sb_event_poll(void);
 SA_API void sb_event_wait(void);
 SA_API void sb_event_wait_for_timeout(double timeout);
 SA_API void sb_event_post_empty(void);
-SA_API void sb_event_set_mouse_pos_handler(sb_Window* window, sb_EventMousePosHandler mouse_pos_handler);
-SA_API su_Bool sb_event_is_key_pressed(sb_Window* window, int keycode);
+SA_API void sb_event_set_mouse_pos_handler(su_Window window, su_EventMousePosHandler mouse_pos_handler);
+SA_API su_Bool sb_event_is_key_pressed(su_Window window, int keycode);
 
 #endif // SACI_BACKEND_SC_WINDOWING_H

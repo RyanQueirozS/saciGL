@@ -172,6 +172,15 @@ typedef enum su_ReallocationKind {
     su_REALLOCATION_KIND_FIXED_SIZE = 2,
 } su_ReallocationKind;
 
+/* === Rendering Specific === */
+
+typedef void* (*su_GLProc)(const char* name);
+typedef void* su_Window;
+typedef void* su_Monitor;
+typedef void (*su_WindowPosHandler)(su_Window* window, int pos_x, int pos_y);
+typedef void (*su_WindowSizeHandler)(su_Window* window, int width, int height);
+typedef void (*su_EventMousePosHandler)(su_Window window, double posx, double posy);
+
 /* === DArray === */
 
 typedef struct su_DArray su_DArray;

@@ -11,6 +11,7 @@ Checks: >
   readability-function-size,
   readability-misleading-indentation,
   readability-simplify-boolean-expr,
+  readability-avoid-bad-function
   readability-avoid-magic-numbers,
   readability-identifier-naming,
   -bugprone-easily-swappable-parameters
@@ -19,6 +20,9 @@ HeaderFilterRegex: '.*'
 FormatStyle: file
 CheckOptions:
   
+  - key: readability-avoid-bad-function.Functions
+  value: 'free:Use su_FREE_M instead, malloc:Use su_MALLOC_M instead, calloc:Use su_CALLOC_M instead'
+
   # Functions There needs to be a check for static functions
   - key: readability-identifier-naming.FunctionPrefix
     value: "sb__"

@@ -66,18 +66,24 @@ void sb_cfg_manager_load_dependencies(void) {
 
     switch (sb_cfg_manager.windowing_api_data.api) {
     case sb_WINDOW_API_GLFW:
-        dylilo_load_lib(sb_cfg_manager.windowing_api_data.path_to_api
-                            ? sb_cfg_manager.windowing_api_data.path_to_api
-                            : SB_DEFAULT_GLFW_PATH,
-                        DYLILO_FLAGS_DEFAULT);
+        sb_cfg_manager.window_funcs.handle = dylilo_load_lib(sb_cfg_manager.windowing_api_data.path_to_api
+                                                                 ? sb_cfg_manager.windowing_api_data.path_to_api
+                                                                 : SB_DEFAULT_GLFW_PATH,
+                                                             DYLILO_FLAGS_DEFAULT);
         break;
     default:
         su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_CONFIG,
                              "Invalid windowing api");
         exit(1);
     }
+    if (!sb_cfg_manager.window_funcs.handle) {
+    }
 }
 
 enum sb_RendererApi sb_cfg_manager_get_renderer_api(void) {
     return sb_cfg_manager.render_api_data.api;
+}
+
+struct sb_WindowingApiFuncs sb_cfg_manager_get_window_funcs(void) {
+    return sb_cfg_manager.window_funcs;
 }
