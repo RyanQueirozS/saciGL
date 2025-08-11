@@ -8,6 +8,7 @@
 
 /* === OpenGL === */
 
+SA_API void sb_gl_load(void);
 SA_API void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, const void* value);
 SA_API su_U32 sb_gl_create_index_buffer_dynamic(su_U32* indices, su_U64 indice_amount);
 SA_API su_U32 sb_gl_create_index_buffer_static(su_U32* indices, su_U64 indice_amount);

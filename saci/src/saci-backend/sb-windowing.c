@@ -1,4 +1,3 @@
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include "saci-backend/sb-config-manager.h"
@@ -27,6 +26,19 @@ SA_INTERNAL enum sb_RendererApi render_api;
 
 su_Bool sb_load_windowing(void) {
     windowing_dependent_funcs = sb_cfg_manager_get_window_funcs();
+    loader_dependent_funcs = sb_cfg_manager_get_loader_funcs();
+    render_dependent_funcs = sb_cfg_manager_get_render_funcs();
+    { // TODO none of these tests should be needed
+        su_LOG_ASSERT_MESSAGE_M(windowing_dependent_funcs.get_proc != NULL, "get_proc is NULL");
+        su_LOG_ASSERT_MESSAGE_M(loader_dependent_funcs.load_opengl != NULL, "load_opengl is NULL");
+        su_LOG_ASSERT_MESSAGE_M(windowing_dependent_funcs.get_proc,
+                                "Could not load windowing dependent functions");
+        su_LOG_ASSERT_MESSAGE_M(loader_dependent_funcs.load_opengl,
+                                "Could not load loader dependent functions");
+        su_LOG_ASSERT_MESSAGE_M(render_dependent_funcs.clear,
+                                "Could not load render dependent functions");
+    }
+
     int success = windowing_dependent_funcs.init();
     if (!success) {
         su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_INIT,
@@ -66,6 +78,7 @@ void sb_window_free(su_Window window) {
 
 void sb_window_make_context(su_Window window) {
     windowing_dependent_funcs.make_context_current(window);
+    su_LOG_INFO_PRINT_M(su_LOG_CONTEXT_INIT, "Making context current");
 }
 
 su_Bool sb_window_should_close(su_Window window) {

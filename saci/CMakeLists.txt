@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.11)
 # Set project name and languages
 project(saci LANGUAGES C)
 
-set(OpenGL_GL_PREFERENCE "GLVND")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -23,12 +22,6 @@ endif()
 # --- External Dependencies ---
 if(NOT IS_EMSCRIPTEN)
     set(GLFW_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/lib/GLFW/libglfw.so.3.4")
-endif()
-
-find_package(OpenGL REQUIRED)
-
-if (POLICY CMP0072)
-    cmake_policy(SET CMP0072 NEW)
 endif()
 
 # --- Add Lua ---
@@ -67,7 +60,6 @@ set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/src/glad.c" P
 if(IS_EMSCRIPTEN)
     target_link_libraries(saci PUBLIC
         lua
-        ${OPENGL_LIBRARIES}
         m
         "-s USE_GLFW=3"
         "-s FULL_ES3=1"
@@ -76,8 +68,6 @@ if(IS_EMSCRIPTEN)
 else()
     target_link_libraries(saci PUBLIC
         lua
-        ${OPENGL_LIBRARIES}
-        ${GLFW_LIBRARY}
         m
     )
     if(UNIX AND NOT APPLE)  # Linux only

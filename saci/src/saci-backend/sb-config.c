@@ -110,6 +110,32 @@ const char* sb_config_get_str(sb_ConfigState* state, const char* s_name) {
     return NULL;
 }
 
+su_Bool sb_config_push_global_table(sb_ConfigState* state, const char* table_name) {
+    lua_getglobal(state, table_name);
+    if (!lua_istable(state, -1)) {
+        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_CONFIG,
+                              "Global table '%s' not found or invalid", table_name);
+        lua_pop(state, 1);
+        return false;
+    }
+    return true;
+}
+
+su_Bool sb_config_push_field_table(sb_ConfigState* state, const char* field_name) {
+    lua_getfield(state, -1, field_name);
+    if (!lua_istable(state, -1)) {
+        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_CONFIG,
+                              "Field '%s' not found or not a table", field_name);
+        lua_pop(state, 1);
+        return false;
+    }
+    return true;
+}
+
+void sb_config_pop(sb_ConfigState* state, int count) {
+    lua_pop(state, count);
+}
+
 void sb_config_close(sb_ConfigState* state) {
     if (!state) {
         return;

@@ -22,6 +22,12 @@ SA_API su_U64 sb_config_get_uint64(sb_ConfigState* state, const char* i_name);
 
 SA_API const char* sb_config_get_str(sb_ConfigState* state, const char* s_name);
 
+SA_API su_Bool sb_config_push_global_table(sb_ConfigState* state, const char* table_name);
+
+SA_API su_Bool sb_config_push_field_table(sb_ConfigState* state, const char* field_name);
+
+SA_API void sb_config_pop(sb_ConfigState* state, int count);
+
 SA_API void sb_config_close(sb_ConfigState* state);
 
 #endif // SACI_BACKEND_CONFIG_H

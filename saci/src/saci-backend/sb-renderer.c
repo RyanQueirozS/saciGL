@@ -1,7 +1,6 @@
-#include <glad/glad.h>
-
 #include "saci-backend/sb-renderer.h"
 
+#include "saci-backend/sb-config-manager.h"
 #include "saci-backend/sb-gl.h"
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-debug.h"
@@ -90,6 +89,8 @@
 #define sb_RENDERER_DEFAULT_INSTANCE_TRANSFORM_IS_FIXED_SIZE su_TRUE
 
 #define sb_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH (300)
+
+SA_INTERNAL struct sb_RenderApiFuncs sb_gl_funcs;
 
 SA_INTERNAL const char* const sb_INSTANCE_VERT_SHADER =
     // TODO Evaluate if there should be multiple shaders, one for 2d, 3d
@@ -422,6 +423,9 @@ SA_INTERNAL const struct sb_RendererInterface sb_INSTANCE_RENDERER_DEFAULT_INTER
 /* --- Renderer Header Impl --- */
 
 sb_Renderer* sb_renderer_new(const enum sb_RendererType type) {
+    if (!sb_gl_funcs.attach_shader) {
+        sb_gl_funcs = sb_cfg_manager_get_render_funcs();
+    }
     sb_Renderer* rendr = su_MALLOC_M(sizeof(struct sb_Renderer));
     rendr->type = type;
     switch (type) {
@@ -539,14 +543,14 @@ SA_INTERNAL void sb__renderer_instanced_new(sb_Renderer* self) {
         sb_gl_set_vertex_attrib_pointer(3 + i, 4, GL_FLOAT, GL_FALSE,
                                         sizeof(su_Mat4), (void*)(sizeof(float) * i * 4));
         sb_gl_enable_vertex_attrib_array(3 + i);
-        glVertexAttribDivisor(3 + i, 1);
+        sb_gl_funcs.vertex_attrib_divisor(3 + i, 1);
     }
     sb_gl_bind_vertex_buffer(rendr->instance_color_vbo);
     sb_gl_set_vertex_attrib_pointer(7, 4, GL_FLOAT, GL_FALSE,
                                     sizeof(su_Vec4),
                                     (void*)(0));
     sb_gl_enable_vertex_attrib_array(7);
-    glVertexAttribDivisor(7, 1);
+    sb_gl_funcs.vertex_attrib_divisor(7, 1);
 }
 
 SA_INTERNAL void sb__renderer_init_gl(struct sb_RendererCommon* rendr_common, const struct sb_RendererConfig rendr_cfg) {
@@ -1055,24 +1059,24 @@ SA_INTERNAL void sb__renderer_draw_static_batch(const struct sb_StaticRenderer* 
     for (su_U8 i = 0; i < rendr->batch_info.in_use; ++i) {
         struct sb_StaticBatch* batch = rendr->batch_ptr_array[i];
 
-        glUseProgram(rendr->common.shader_program);
+        sb_gl_funcs.use_program(rendr->common.shader_program);
 
-        glBindVertexArray(rendr->common.vao);
+        sb_gl_funcs.bind_vertex_array(rendr->common.vao);
 
-        glBindBuffer(GL_ARRAY_BUFFER, rendr->common.vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0,
-                        su_SCAST_TO_M(long int)(sizeof(struct sb_Vertex) * su_darray_length(batch->vertex_array)),
-                        su_darray_get_ptr(batch->vertex_array, 0));
+        sb_gl_funcs.bind_buffer(GL_ARRAY_BUFFER, rendr->common.vbo);
+        sb_gl_funcs.buffer_subdata(GL_ARRAY_BUFFER, 0,
+                                   su_SCAST_TO_M(long int)(sizeof(struct sb_Vertex) * su_darray_length(batch->vertex_array)),
+                                   su_darray_get_ptr(batch->vertex_array, 0));
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendr->common.ibo);
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
-                        su_SCAST_TO_M(long int)(sizeof(su_U32) * su_darray_length(batch->index_array)),
-                        su_darray_get_ptr(batch->index_array, 0));
+        sb_gl_funcs.bind_buffer(GL_ELEMENT_ARRAY_BUFFER, rendr->common.ibo);
+        sb_gl_funcs.buffer_subdata(GL_ELEMENT_ARRAY_BUFFER, 0,
+                                   su_SCAST_TO_M(long int)(sizeof(su_U32) * su_darray_length(batch->index_array)),
+                                   su_darray_get_ptr(batch->index_array, 0));
 
         { // Uniforms
             {
                 // TODO should be removed
-                glEnable(GL_DEPTH_TEST);
+                sb_gl_funcs.enable(GL_DEPTH_TEST);
             }
             for (su_U32 j = 0; j < su_darray_length(rendr->common.bound.uniform_data_array); ++j) {
                 struct sb_RendererUniformData uniform_data = {0};
@@ -1082,14 +1086,14 @@ SA_INTERNAL void sb__renderer_draw_static_batch(const struct sb_StaticRenderer* 
         }
 
         if (batch->texture != previous_batch.texture) {
-            glUniform1i(SC_U_USE_TEXTURE_LOC, su_TRUE);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, batch->texture);
+            sb_gl_funcs.uniform1i(SC_U_USE_TEXTURE_LOC, su_TRUE);
+            sb_gl_funcs.active_texture(GL_TEXTURE0);
+            sb_gl_funcs.bind_texture(GL_TEXTURE_2D, batch->texture);
             previous_batch.texture = batch->texture;
         }
 
-        glDrawElements(GL_TRIANGLES, su_SCAST_TO_M(int)(su_darray_length(batch->index_array)), GL_UNSIGNED_INT, 0);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        sb_gl_funcs.draw_elements(GL_TRIANGLES, su_SCAST_TO_M(int)(su_darray_length(batch->index_array)), GL_UNSIGNED_INT, 0);
+        sb_gl_funcs.bind_buffer(GL_UNIFORM_BUFFER, 0);
     }
 }
 
@@ -1108,38 +1112,38 @@ SA_INTERNAL void sb__renderer_draw_instance_batch(const struct sb_Renderer* self
     for (su_U8 i = 0; i < rendr->batch_info.in_use; ++i) {
         struct sb_InstanceBatch* batch = rendr->batch_ptr_array[i];
 
-        glUseProgram(rendr->common.shader_program);
+        sb_gl_funcs.use_program(rendr->common.shader_program);
 
-        glBindVertexArray(rendr->common.vao);
+        sb_gl_funcs.bind_vertex_array(rendr->common.vao);
 
-        glBindBuffer(GL_ARRAY_BUFFER, rendr->common.vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0,
-                        su_SCAST_TO_M(long int)(sizeof(struct sb_Vertex) * su_darray_length(batch->vertex_array)),
-                        su_darray_get_ptr(batch->vertex_array, 0));
+        sb_gl_funcs.bind_buffer(GL_ARRAY_BUFFER, rendr->common.vbo);
+        sb_gl_funcs.buffer_subdata(GL_ARRAY_BUFFER, 0,
+                                   su_SCAST_TO_M(long int)(sizeof(struct sb_Vertex) * su_darray_length(batch->vertex_array)),
+                                   su_darray_get_ptr(batch->vertex_array, 0));
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendr->common.ibo);
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
-                        su_SCAST_TO_M(long int)(sizeof(su_U32) * su_darray_length(batch->index_array)),
-                        su_darray_get_ptr(batch->index_array, 0));
+        sb_gl_funcs.bind_buffer(GL_ELEMENT_ARRAY_BUFFER, rendr->common.ibo);
+        sb_gl_funcs.buffer_subdata(GL_ELEMENT_ARRAY_BUFFER, 0,
+                                   su_SCAST_TO_M(long int)(sizeof(su_U32) * su_darray_length(batch->index_array)),
+                                   su_darray_get_ptr(batch->index_array, 0));
 
         // TODO this should be checked before, since if it is empty there is no reason to drawing
         if (!su_darray_is_empty(batch->model_matrix_array)) {
-            glBindBuffer(GL_ARRAY_BUFFER, rendr->instance_transform_vbo);
-            glBufferSubData(GL_ARRAY_BUFFER, 0,
-                            su_SCAST_TO_M(long int)(sizeof(su_Mat4) * su_darray_length(batch->model_matrix_array)),
-                            su_darray_get_ptr(batch->model_matrix_array, 0));
+            sb_gl_funcs.bind_buffer(GL_ARRAY_BUFFER, rendr->instance_transform_vbo);
+            sb_gl_funcs.buffer_subdata(GL_ARRAY_BUFFER, 0,
+                                       su_SCAST_TO_M(long int)(sizeof(su_Mat4) * su_darray_length(batch->model_matrix_array)),
+                                       su_darray_get_ptr(batch->model_matrix_array, 0));
         }
         if (!su_darray_is_empty(batch->color_array)) {
-            glBindBuffer(GL_ARRAY_BUFFER, rendr->instance_color_vbo);
-            glBufferSubData(GL_ARRAY_BUFFER, 0,
-                            su_SCAST_TO_M(long int)(sizeof(su_Color) * su_darray_length(batch->color_array)),
-                            su_darray_get_ptr(batch->color_array, 0));
+            sb_gl_funcs.bind_buffer(GL_ARRAY_BUFFER, rendr->instance_color_vbo);
+            sb_gl_funcs.buffer_subdata(GL_ARRAY_BUFFER, 0,
+                                       su_SCAST_TO_M(long int)(sizeof(su_Color) * su_darray_length(batch->color_array)),
+                                       su_darray_get_ptr(batch->color_array, 0));
         }
 
         { // Uniforms
             {
                 // TODO should be removed
-                glEnable(GL_DEPTH_TEST);
+                sb_gl_funcs.enable(GL_DEPTH_TEST);
             }
             for (su_U32 j = 0; j < su_darray_length(rendr->common.bound.uniform_data_array); ++j) {
                 struct sb_RendererUniformData uniform_data = {0};
@@ -1149,18 +1153,18 @@ SA_INTERNAL void sb__renderer_draw_instance_batch(const struct sb_Renderer* self
         }
 
         if (batch->texture != previous_batch.texture && batch->texture != sb_TEXTURE_INVALID) {
-            glUniform1i(SC_U_USE_TEXTURE_LOC, su_TRUE);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, batch->texture);
+            sb_gl_funcs.uniform1i(SC_U_USE_TEXTURE_LOC, su_TRUE);
+            sb_gl_funcs.active_texture(GL_TEXTURE0);
+            sb_gl_funcs.bind_texture(GL_TEXTURE_2D, batch->texture);
             previous_batch.texture = batch->texture;
         }
 
-        glDrawElementsInstanced(GL_TRIANGLES,
-                                su_SCAST_TO_M(int)(su_darray_length(batch->index_array)),
-                                GL_UNSIGNED_INT,
-                                0,
-                                su_SCAST_TO_M(int)(su_darray_length(batch->model_matrix_array))); // instance count
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        sb_gl_funcs.draw_elements_instanced(GL_TRIANGLES,
+                                            su_SCAST_TO_M(int)(su_darray_length(batch->index_array)),
+                                            GL_UNSIGNED_INT,
+                                            0,
+                                            su_SCAST_TO_M(int)(su_darray_length(batch->model_matrix_array))); // instance count
+        sb_gl_funcs.bind_buffer(GL_UNIFORM_BUFFER, 0);
     }
 }
 

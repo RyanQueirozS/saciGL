@@ -1,14 +1,32 @@
 #include "saci-backend/sb-texture.h"
 
-#include <glad/glad.h>
-#include <stdio.h>
 #include "saci-utils/su-debug.h"
 #include "saci-utils/su-general.h"
+#include "saci-backend/sb-config-manager.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stbi/stb_image.h"
 
+#include <stdio.h>
+
+enum TextureFormat {
+    TEX_FORMAT_NONE = 0,
+    TEX_FORMAT_RGB = 0x1907,  // GL_RGB
+    TEX_FORMAT_RGBA = 0x1908, // GL_RGBA
+};
+
+enum su_GL_Enums {
+    SU_GL_TEXTURE_2D = 0x0DE1,
+    SU_GL_RGB = 0x1907,
+    SU_GL_RGBA = 0x1908,
+    SU_GL_UNSIGNED_BYTE = 0x1401,
+    SU_GL_TEXTURE_WIDTH = 0x1000,
+    SU_GL_TEXTURE_HEIGHT = 0x1001,
+};
+
 /* === Helper Func declarations === */
+
+SA_INTERNAL struct sb_RenderApiFuncs gl_funcs;
 
 SA_INTERNAL su_U32 sb__texture_determine_format(int nr_channels);
 
@@ -25,6 +43,9 @@ void sb_texture_load_data(const char* path, su_Bool flip_img, int* width_out, in
 }
 
 su_TextureId sb_texture_load(const char* path, su_Bool flip_img) {
+    if (!gl_funcs.draw_elements_instanced) {
+        gl_funcs = sb_cfg_manager_get_render_funcs();
+    }
     int width = 0;
     int height = 0;
     int nr_channels = 0;
@@ -46,16 +67,16 @@ su_TextureId sb_texture_load(const char* path, su_Bool flip_img) {
     }
 
     su_TextureId id;
-    glGenTextures(1, &id);
+    gl_funcs.gen_textures(1, &id);
 
-    glBindTexture(GL_TEXTURE_2D, id);
+    gl_funcs.bind_texture(SU_GL_TEXTURE_2D, id);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, su_SCAST_TO_M(int)(format), width, height, 0, format,
-                 GL_UNSIGNED_BYTE, data);
+    gl_funcs.tex_image_2d(SU_GL_TEXTURE_2D, 0, su_SCAST_TO_M(int)(format), width, height, 0, format,
+                          SU_GL_UNSIGNED_BYTE, data);
 
     int gl_width = 0, gl_height = 0;
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &gl_width);
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &gl_height);
+    gl_funcs.get_texlevel_parameter_iv(SU_GL_TEXTURE_2D, 0, SU_GL_TEXTURE_WIDTH, &gl_width);
+    gl_funcs.get_texlevel_parameter_iv(SU_GL_TEXTURE_2D, 0, SU_GL_TEXTURE_HEIGHT, &gl_height);
 
     if (gl_width <= 0 || gl_height <= 0) {
         su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
@@ -64,7 +85,7 @@ su_TextureId sb_texture_load(const char* path, su_Bool flip_img) {
         return 0;
     }
 
-    glGenerateMipmap(GL_TEXTURE_2D);
+    gl_funcs.generate_mipmap(SU_GL_TEXTURE_2D);
 
     su_FREE_M(data);
     su_LOG_DEBUG_PRINT_M(su_LOG_DEBUG_TYPE_TEXTURE, su_LOG_CONTEXT_OPENGL, "Loaded texture");
@@ -73,17 +94,17 @@ su_TextureId sb_texture_load(const char* path, su_Bool flip_img) {
 
 void sb_texture_free(su_TextureId texture_id) {
     su_LOG_DEBUG_PRINT_M(su_LOG_DEBUG_TYPE_TEXTURE, su_LOG_CONTEXT_OPENGL, "Freed texture");
-    glDeleteTextures(1, &texture_id);
+    gl_funcs.delete_textures(1, &texture_id);
 }
 
 /* === Helper Func impl === */
 
 su_U32 sb__texture_determine_format(int nr_channels) {
     if (nr_channels == 3) {
-        return GL_RGB;
+        return SU_GL_RGB;
     }
     if (nr_channels == 4) {
-        return GL_RGBA;
+        return SU_GL_RGBA;
     }
     return 0;
 }

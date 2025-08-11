@@ -9,11 +9,16 @@
 #include "saci-utils/su-types.h"
 #include "saci-utils/su-debug.h"
 
+#include <saci-backend/sb-gl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define SACI_RENDERER_AMOUNT 3
+
+#ifndef SACI_DEFAULT_CONFIG_PATH
+#  define SACI_DEFAULT_CONFIG_PATH "saci-config.lua"
+#endif // SACI_DEFAULT_CONFIG_PATH
 
 // Helper
 
@@ -32,7 +37,7 @@ SA_INTERNAL_INLINE su_Bool saci__has_flag(su_U64 flag_var, su_U64 flag_to_check)
 SA_INTERNAL double saci__get_delta(void);
 
 SA_INTERNAL void saci__init_windowing(
-    sb_Window** window_out,
+    su_Window* window_out,
     su_S32 x,
     su_S32 y,
     const char* name);
@@ -71,7 +76,7 @@ SA_INTERNAL struct saci_Context {
 
     struct saci_Windowing {
         su_Color bg_color;
-        sb_Window* window;
+        su_Window window;
     } windowing;
 
     struct saci_RendererInfo {
@@ -87,7 +92,10 @@ SA_INTERNAL struct saci_Context {
 } saci_context = {0};
 
 void saci_init(void) {
-    sb_cfg_manager_load_default();
+    if (!sb_cfg_manager_fetch(SACI_DEFAULT_CONFIG_PATH)) {
+        sb_cfg_manager_load_default();
+    }
+    sb_cfg_manager_load_dependencies();
     su_Vec3 cube_vertices[] = {
         {-1, -1, -1},
         {-1, -1, 1},
@@ -213,11 +221,11 @@ void saci_free(void) {}
 // Helper
 
 SA_INTERNAL void saci__init_windowing(
-    sb_Window** window_out,
+    su_Window* window_out,
     su_S32 x,
     su_S32 y,
     const char* name) {
-    su_LOG_ASSERT_MESSAGE_M(sb_glfw_init(), "Could not load GLFW");
+    su_LOG_ASSERT_MESSAGE_M(sb_load_windowing(), "Could not load window");
 
     *window_out = sb_window_create(
         x,
@@ -227,7 +235,8 @@ SA_INTERNAL void saci__init_windowing(
         NULL);
     sb_window_make_context(*window_out);
 
-    su_LOG_ASSERT_MESSAGE_M(sb_glad_init(), "Could not load GLAD");
+    su_LOG_ASSERT_MESSAGE_M(sb_proc_load(), "Could not load proc");
+    sb_gl_load();
 }
 
 SA_INTERNAL void saci__init_memory(void) {

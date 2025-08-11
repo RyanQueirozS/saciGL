@@ -2,11 +2,8 @@
 CFLAGS = -Wall -Wextra -O0 -g \
 	-I../saci/src \
 	-I../saci/include \
-	-I../saci/deps/glad/include \
-	-I../saci/deps/glfw/include \
 	-I../saci/deps/stb \
 	-I../saci/deps/model-loading \
-	-I./deps \
 	-DSACI_DEBUG_MODE_ALL \
 	-DSC_RENDERER_STRUCT_EXPOSE \
 	-DSACI_TEST_BUILD \

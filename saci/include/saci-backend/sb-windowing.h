@@ -7,8 +7,7 @@
 #include "saci-utils/su-types.h"
 
 su_Bool sb_load_windowing(void);
-su_Bool sb_glfw_init(void);
-su_Bool sb_glad_init(void);
+su_Bool sb_proc_load(void);
 su_Window sb_window_create(int width, int height, const char* title,
                            su_Monitor monitor, su_Window share);
 void sb_window_free(su_Window window);
