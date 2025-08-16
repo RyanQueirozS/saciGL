@@ -157,6 +157,10 @@ SA_API void sb_gl_set_vertex_attrib_pointer(su_U32 index, int size, su_U32 type,
     gl_funcs.vertex_attrib_pointer(index, size, type, normalized, su_SCAST_TO_M(int)(stride), ptr);
 }
 
+void sb_gl_vertex_attrib_divisor(su_U32 id, su_U32 div) {
+    gl_funcs.vertex_attrib_divisor(id, div);
+}
+
 void sb_gl_enable_vertex_attrib_array(su_U32 id) {
     gl_funcs.enable_vertex_attrib_array(id);
 }

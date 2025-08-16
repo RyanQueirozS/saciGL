@@ -19,6 +19,7 @@ SA_API void sb_gl_bind_vertex_array(su_U32 array);
 SA_API void sb_gl_bind_vertex_buffer(su_U32 vbo);
 SA_API void sb_gl_set_vertex_attrib_pointer(su_U32 index, int size, su_U32 type, su_Bool normalized, su_U64 stride, void* ptr);
 SA_API void sb_gl_enable_vertex_attrib_array(su_U32 id);
+SA_API void sb_gl_vertex_attrib_divisor(su_U32 id, su_U32 div);
 SA_API su_S32 sb_gl_uniform_location(su_ShaderId program_id, const char* const name);
 // TODO bind program
 

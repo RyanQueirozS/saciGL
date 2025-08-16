@@ -204,4 +204,10 @@
 #  define su_MAX_M(x, y) ((x) > (y) ? (x) : (y))
 #endif // su_MAX_M
 
+#ifndef SACI_MAX_TEXTURES
+#  define SACI_MAX_TEXTURES 16
+#endif // SACI_MAX_TEXTURES
+
+#define sb_TEXTURE_INVALID (UINT32_MAX)
+
 #endif // SACI_UTILS_SU_GENERAL_H

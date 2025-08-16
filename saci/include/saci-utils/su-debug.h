@@ -320,11 +320,9 @@ void su_log_debug(enum su_LogDebugType type, enum su_LogContext context,
 #else
 #  define su_DUMMY_CHECK_M(condition, message) \
       do {                                     \
-          (void)(condition);                   \
       } while (0)
 #  define su_DUMMY_CHECKF_M(condition, fmt, ...) \
       do {                                       \
-          (void)(condition);                     \
       } while (0)
 #endif
 

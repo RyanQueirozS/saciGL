@@ -73,7 +73,7 @@ struct sb_ConfigManager {
         void (*buffer_subdata)(int, su_U64, su_U32, const void*);
         void (*gen_buffers)(su_U64, su_U32*);
         void (*gen_vertex_arrays)(su_U64, su_U32*);
-        void (*vertex_attrib_pointer)(su_U32, int, int, su_Bool, su_U64, const void*);
+        void (*vertex_attrib_pointer)(su_U32, int, su_U32, su_Bool, su_U64, const void*);
         void (*vertex_attrib_divisor)(su_U32, su_U32);
         void (*enable_vertex_attrib_array)(su_U32);
 

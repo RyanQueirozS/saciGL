@@ -205,6 +205,8 @@ SA_API void su_darray_get(const su_DArray* array, su_U64 index, void* out_value)
 
 SA_API void* su_darray_get_ptr(const su_DArray* array, su_U64 index);
 
+SA_API su_U64 su_darray_get_elem_size(const su_DArray* array);
+
 SA_API void su_darray_set(su_DArray* array, su_U64 index, const void* value);
 
 SA_API su_U64 su_darray_length(const su_DArray* array);

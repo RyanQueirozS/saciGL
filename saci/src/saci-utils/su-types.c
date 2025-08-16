@@ -131,6 +131,10 @@ void* su_darray_get_ptr(const su_DArray* array, su_U64 index) {
     return (char*)array->data + index * array->elem_size;
 }
 
+SA_API su_U64 su_darray_get_elem_size(const su_DArray* array) {
+    return array->elem_size;
+}
+
 void su_darray_set(su_DArray* array, su_U64 index, const void* value) {
     su_LOG_ASSERT_MESSAGE_M(array, "Array is NULL");
     su_LOG_ASSERT_MESSAGE_M(array->data, "Array data is NULL");
