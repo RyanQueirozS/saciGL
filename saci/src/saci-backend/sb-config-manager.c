@@ -1,4 +1,5 @@
 #include <saci-backend/sb-config.h>
+#include <saci-utils/su-types.h>
 #include <stdio.h>
 #include <string.h>
 #define DYLILO_IMPL
@@ -47,93 +48,95 @@ SA_INTERNAL su_Bool sb__cfg_manager_load_render_loader(sb_ConfigState* lua_state
 
 SA_INTERNAL su_Bool sb__cfg_manager_load_window_api(sb_ConfigState* lua_state);
 
+SA_INTERNAL su_DataType sb__parse_type(su_S64 val);
+
 /* === Header impl === */
 
 SA_INTERNAL struct sb_ConfigManager sb_cfg_manager = sb_CFG_MANAGER_DEFAULT;
 
 SA_INTERNAL struct sb_SymbolTable sb_gl_symbols[] = {
-    {"glClearColor", (void**)&sb_cfg_manager.render_api_funcs.clear_color},
-    {"glClear", (void**)&sb_cfg_manager.render_api_funcs.clear},
-    {"glEnable", (void**)&sb_cfg_manager.render_api_funcs.enable},
-    {"glDebugMessageCallback", (void**)&sb_cfg_manager.render_api_funcs.debug_message_callback},
-    {"glGetString", (void**)&sb_cfg_manager.render_api_funcs.get_version_string},
+    {"glClearColor", (void**)&sb_cfg_manager.render_api_funcs.gl.clear_color},
+    {"glClear", (void**)&sb_cfg_manager.render_api_funcs.gl.clear},
+    {"glEnable", (void**)&sb_cfg_manager.render_api_funcs.gl.enable},
+    {"glDebugMessageCallback", (void**)&sb_cfg_manager.render_api_funcs.gl.debug_message_callback},
+    {"glGetString", (void**)&sb_cfg_manager.render_api_funcs.gl.get_version_string},
 
-    {"glUniform1ui", (void**)&sb_cfg_manager.render_api_funcs.uniform1ui},
-    {"glUniform1i", (void**)&sb_cfg_manager.render_api_funcs.uniform1i},
-    {"glUniform2f", (void**)&sb_cfg_manager.render_api_funcs.uniform2f},
-    {"glUniform3f", (void**)&sb_cfg_manager.render_api_funcs.uniform3f},
-    {"glUniform4f", (void**)&sb_cfg_manager.render_api_funcs.uniform4f},
-    {"glUniformMatrix2fv", (void**)&sb_cfg_manager.render_api_funcs.uniform_matrix_2fv},
-    {"glUniformMatrix3fv", (void**)&sb_cfg_manager.render_api_funcs.uniform_matrix_3fv},
-    {"glUniformMatrix4fv", (void**)&sb_cfg_manager.render_api_funcs.uniform_matrix_4fv},
-    {"glUniformMatrix2x3fv", (void**)&sb_cfg_manager.render_api_funcs.uniform_matrix_2x3fv},
-    {"glUniformMatrix2x4fv", (void**)&sb_cfg_manager.render_api_funcs.uniform_matrix_2x4fv},
-    {"glUniformMatrix3x2fv", (void**)&sb_cfg_manager.render_api_funcs.uniform_matrix_3x2fv},
-    {"glUniformMatrix3x4fv", (void**)&sb_cfg_manager.render_api_funcs.uniform_matrix_3x4fv},
-    {"glUniformMatrix4x2fv", (void**)&sb_cfg_manager.render_api_funcs.uniform_matrix_4x2fv},
-    {"glUniformMatrix4x3fv", (void**)&sb_cfg_manager.render_api_funcs.uniform_matrix_4x3fv},
+    {"glUniform1ui", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform1ui},
+    {"glUniform1i", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform1i},
+    {"glUniform2f", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform2f},
+    {"glUniform3f", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform3f},
+    {"glUniform4f", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform4f},
+    {"glUniformMatrix2fv", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform_matrix_2fv},
+    {"glUniformMatrix3fv", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform_matrix_3fv},
+    {"glUniformMatrix4fv", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform_matrix_4fv},
+    {"glUniformMatrix2x3fv", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform_matrix_2x3fv},
+    {"glUniformMatrix2x4fv", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform_matrix_2x4fv},
+    {"glUniformMatrix3x2fv", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform_matrix_3x2fv},
+    {"glUniformMatrix3x4fv", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform_matrix_3x4fv},
+    {"glUniformMatrix4x2fv", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform_matrix_4x2fv},
+    {"glUniformMatrix4x3fv", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform_matrix_4x3fv},
 
-    {"glBindVertexArray", (void**)&sb_cfg_manager.render_api_funcs.bind_vertex_array},
-    {"glBindBuffer", (void**)&sb_cfg_manager.render_api_funcs.bind_buffer},
-    {"glBufferData", (void**)&sb_cfg_manager.render_api_funcs.buffer_data},
-    {"glBufferSubData", (void**)&sb_cfg_manager.render_api_funcs.buffer_subdata},
-    {"glGenBuffers", (void**)&sb_cfg_manager.render_api_funcs.gen_buffers},
-    {"glGenVertexArrays", (void**)&sb_cfg_manager.render_api_funcs.gen_vertex_arrays},
-    {"glVertexAttribPointer", (void**)&sb_cfg_manager.render_api_funcs.vertex_attrib_pointer},
-    {"glVertexAttribDivisor", (void**)&sb_cfg_manager.render_api_funcs.vertex_attrib_divisor},
-    {"glEnableVertexAttribArray", (void**)&sb_cfg_manager.render_api_funcs.enable_vertex_attrib_array},
+    {"glBindVertexArray", (void**)&sb_cfg_manager.render_api_funcs.gl.bind_vertex_array},
+    {"glBindBuffer", (void**)&sb_cfg_manager.render_api_funcs.gl.bind_buffer},
+    {"glBufferData", (void**)&sb_cfg_manager.render_api_funcs.gl.buffer_data},
+    {"glBufferSubData", (void**)&sb_cfg_manager.render_api_funcs.gl.buffer_subdata},
+    {"glGenBuffers", (void**)&sb_cfg_manager.render_api_funcs.gl.gen_buffers},
+    {"glGenVertexArrays", (void**)&sb_cfg_manager.render_api_funcs.gl.gen_vertex_arrays},
+    {"glVertexAttribPointer", (void**)&sb_cfg_manager.render_api_funcs.gl.vertex_attrib_pointer},
+    {"glVertexAttribDivisor", (void**)&sb_cfg_manager.render_api_funcs.gl.vertex_attrib_divisor},
+    {"glEnableVertexAttribArray", (void**)&sb_cfg_manager.render_api_funcs.gl.enable_vertex_attrib_array},
 
-    {"glCreateShader", (void**)&sb_cfg_manager.render_api_funcs.create_shader},
-    {"glShaderSource", (void**)&sb_cfg_manager.render_api_funcs.shader_source},
-    {"glCompileShader", (void**)&sb_cfg_manager.render_api_funcs.compile_shader},
-    {"glGetShaderiv", (void**)&sb_cfg_manager.render_api_funcs.get_shaderiv},
-    {"glGetShaderInfoLog", (void**)&sb_cfg_manager.render_api_funcs.get_shader_info_log},
-    {"glDeleteShader", (void**)&sb_cfg_manager.render_api_funcs.delete_shader},
+    {"glCreateShader", (void**)&sb_cfg_manager.render_api_funcs.gl.create_shader},
+    {"glShaderSource", (void**)&sb_cfg_manager.render_api_funcs.gl.shader_source},
+    {"glCompileShader", (void**)&sb_cfg_manager.render_api_funcs.gl.compile_shader},
+    {"glGetShaderiv", (void**)&sb_cfg_manager.render_api_funcs.gl.get_shaderiv},
+    {"glGetShaderInfoLog", (void**)&sb_cfg_manager.render_api_funcs.gl.get_shader_info_log},
+    {"glDeleteShader", (void**)&sb_cfg_manager.render_api_funcs.gl.delete_shader},
 
-    {"glCreateProgram", (void**)&sb_cfg_manager.render_api_funcs.create_program},
-    {"glUseProgram", (void**)&sb_cfg_manager.render_api_funcs.use_program},
-    {"glAttachShader", (void**)&sb_cfg_manager.render_api_funcs.attach_shader},
-    {"glLinkProgram", (void**)&sb_cfg_manager.render_api_funcs.link_program},
-    {"glGetProgramiv", (void**)&sb_cfg_manager.render_api_funcs.get_programiv},
-    {"glGetProgramInfoLog", (void**)&sb_cfg_manager.render_api_funcs.get_program_info_log},
-    {"glDetachShader", (void**)&sb_cfg_manager.render_api_funcs.detach_shader},
+    {"glCreateProgram", (void**)&sb_cfg_manager.render_api_funcs.gl.create_program},
+    {"glUseProgram", (void**)&sb_cfg_manager.render_api_funcs.gl.use_program},
+    {"glAttachShader", (void**)&sb_cfg_manager.render_api_funcs.gl.attach_shader},
+    {"glLinkProgram", (void**)&sb_cfg_manager.render_api_funcs.gl.link_program},
+    {"glGetProgramiv", (void**)&sb_cfg_manager.render_api_funcs.gl.get_programiv},
+    {"glGetProgramInfoLog", (void**)&sb_cfg_manager.render_api_funcs.gl.get_program_info_log},
+    {"glDetachShader", (void**)&sb_cfg_manager.render_api_funcs.gl.detach_shader},
 
-    {"glDrawElementsInstanced", (void**)&sb_cfg_manager.render_api_funcs.draw_elements_instanced},
-    {"glDrawElements", (void**)&sb_cfg_manager.render_api_funcs.draw_elements},
+    {"glDrawElementsInstanced", (void**)&sb_cfg_manager.render_api_funcs.gl.draw_elements_instanced},
+    {"glDrawElements", (void**)&sb_cfg_manager.render_api_funcs.gl.draw_elements},
 
-    {"glGetUniformLocation", (void**)&sb_cfg_manager.render_api_funcs.get_uniform_location},
+    {"glGetUniformLocation", (void**)&sb_cfg_manager.render_api_funcs.gl.get_uniform_location},
 
-    {"glGenTextures", (void**)&sb_cfg_manager.render_api_funcs.gen_textures},
-    {"glBindTexture", (void**)&sb_cfg_manager.render_api_funcs.bind_texture},
-    {"glActiveTexture", (void**)&sb_cfg_manager.render_api_funcs.active_texture},
-    {"glTexImage2D", (void**)&sb_cfg_manager.render_api_funcs.tex_image_2d},
-    {"glGetTexLevelParameteriv", (void**)&sb_cfg_manager.render_api_funcs.get_texlevel_parameter_iv},
-    {"glGenerateMipmap", (void**)&sb_cfg_manager.render_api_funcs.generate_mipmap},
-    {"glDeleteTextures", (void**)&sb_cfg_manager.render_api_funcs.delete_textures},
+    {"glGenTextures", (void**)&sb_cfg_manager.render_api_funcs.gl.gen_textures},
+    {"glBindTexture", (void**)&sb_cfg_manager.render_api_funcs.gl.bind_texture},
+    {"glActiveTexture", (void**)&sb_cfg_manager.render_api_funcs.gl.active_texture},
+    {"glTexImage2D", (void**)&sb_cfg_manager.render_api_funcs.gl.tex_image_2d},
+    {"glGetTexLevelParameteriv", (void**)&sb_cfg_manager.render_api_funcs.gl.get_texlevel_parameter_iv},
+    {"glGenerateMipmap", (void**)&sb_cfg_manager.render_api_funcs.gl.generate_mipmap},
+    {"glDeleteTextures", (void**)&sb_cfg_manager.render_api_funcs.gl.delete_textures},
 };
 
 SA_INTERNAL struct sb_SymbolTable sb_glad_symbols[] = {
-    {"gladLoadGL", (void**)&sb_cfg_manager.render_api_loader_funcs.load_opengl},
+    {"gladLoadGL", (void**)&sb_cfg_manager.render_api_loader_funcs.gl.load_opengl},
 };
 
 SA_INTERNAL struct sb_SymbolTable sb_glfw_symbols[] = {
-    {"glfwInit", (void**)&sb_cfg_manager.window_funcs.init},
-    {"glfwWindowHint", (void**)&sb_cfg_manager.window_funcs.set_hint},
-    {"glfwCreateWindow", (void**)&sb_cfg_manager.window_funcs.create_window},
-    {"glfwGetProcAddress", (void**)&sb_cfg_manager.window_funcs.get_proc},
-    {"glfwDestroyWindow", (void**)&sb_cfg_manager.window_funcs.destroy_window},
-    {"glfwMakeContextCurrent", (void**)&sb_cfg_manager.window_funcs.make_context_current},
-    {"glfwWindowShouldClose", (void**)&sb_cfg_manager.window_funcs.should_close},
-    {"glfwSetWindowPosCallback", (void**)&sb_cfg_manager.window_funcs.set_pos_handler},
-    {"glfwSetWindowSizeCallback", (void**)&sb_cfg_manager.window_funcs.set_size_handler},
-    {"glfwTerminate", (void**)&sb_cfg_manager.window_funcs.terminate},
-    {"glfwSwapBuffers", (void**)&sb_cfg_manager.window_funcs.swap_buffers},
-    {"glfwPollEvents", (void**)&sb_cfg_manager.window_funcs.poll_events},
-    {"glfwWaitEvents", (void**)&sb_cfg_manager.window_funcs.wait_events},
-    {"glfwWaitEventsTimeout", (void**)&sb_cfg_manager.window_funcs.wait_events_timeout},
-    {"glfwPostEmptyEvent", (void**)&sb_cfg_manager.window_funcs.post_empty_event},
-    {"glfwSetCursorPosCallback", (void**)&sb_cfg_manager.window_funcs.set_mouse_pos_handler},
-    {"glfwGetKey", (void**)&sb_cfg_manager.window_funcs.is_key_pressed},
+    {"glfwInit", (void**)&sb_cfg_manager.window_funcs.glfw.init},
+    {"glfwWindowHint", (void**)&sb_cfg_manager.window_funcs.glfw.set_hint},
+    {"glfwCreateWindow", (void**)&sb_cfg_manager.window_funcs.glfw.create_window},
+    {"glfwGetProcAddress", (void**)&sb_cfg_manager.window_funcs.glfw.get_proc},
+    {"glfwDestroyWindow", (void**)&sb_cfg_manager.window_funcs.glfw.destroy_window},
+    {"glfwMakeContextCurrent", (void**)&sb_cfg_manager.window_funcs.glfw.make_context_current},
+    {"glfwWindowShouldClose", (void**)&sb_cfg_manager.window_funcs.glfw.should_close},
+    {"glfwSetWindowPosCallback", (void**)&sb_cfg_manager.window_funcs.glfw.set_pos_handler},
+    {"glfwSetWindowSizeCallback", (void**)&sb_cfg_manager.window_funcs.glfw.set_size_handler},
+    {"glfwTerminate", (void**)&sb_cfg_manager.window_funcs.glfw.terminate},
+    {"glfwSwapBuffers", (void**)&sb_cfg_manager.window_funcs.glfw.swap_buffers},
+    {"glfwPollEvents", (void**)&sb_cfg_manager.window_funcs.glfw.poll_events},
+    {"glfwWaitEvents", (void**)&sb_cfg_manager.window_funcs.glfw.wait_events},
+    {"glfwWaitEventsTimeout", (void**)&sb_cfg_manager.window_funcs.glfw.wait_events_timeout},
+    {"glfwPostEmptyEvent", (void**)&sb_cfg_manager.window_funcs.glfw.post_empty_event},
+    {"glfwSetCursorPosCallback", (void**)&sb_cfg_manager.window_funcs.glfw.set_mouse_pos_handler},
+    {"glfwGetKey", (void**)&sb_cfg_manager.window_funcs.glfw.is_key_pressed},
 };
 
 void sb_cfg_manager_load_default(void) {
@@ -194,12 +197,137 @@ struct sb_WindowingApiFuncs sb_cfg_manager_get_window_funcs(void) {
     return sb_cfg_manager.window_funcs;
 }
 
-SA_API struct sb_RenderApiLoaderFuncs sb_cfg_manager_get_loader_funcs(void) {
+struct sb_RenderApiLoaderFuncs sb_cfg_manager_get_loader_funcs(void) {
     return sb_cfg_manager.render_api_loader_funcs;
 }
 
-SA_API struct sb_RenderApiFuncs sb_cfg_manager_get_render_funcs(void) {
+struct sb_RenderApiFuncs sb_cfg_manager_get_render_funcs(void) {
     return sb_cfg_manager.render_api_funcs;
+}
+
+struct sb_RendererConfig sb_cfg_manager_get_renderer(su_String* name, const char* cfg_path) {
+    struct sb_RendererConfig cfg = {0};
+    cfg.name = su_string_create(su_string_data(name), su_REALLOCATION_KIND_FIXED_SIZE);
+    sb_ConfigState* lua_state = sb_config_load(cfg_path);
+    if (!lua_state) {
+        su_LOG_WARN_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_CONFIG, "Could not load config");
+        return cfg;
+    }
+    if (!sb_config_push_global_table(lua_state, "Saci_Backend")) {
+        sb_config_close(lua_state);
+        return cfg;
+    }
+    if (!sb_config_push_field_table(lua_state, "renderers")) {
+        sb_config_close(lua_state);
+        return cfg;
+    }
+    if (!sb_config_push_field_table(lua_state, su_string_data(name))) {
+        sb_config_close(lua_state);
+        return cfg;
+    }
+
+    {
+        if (sb_config_push_field_table(lua_state, "shaders")) {
+            cfg.shaders.frag = su_string_create(sb_config_get_str(lua_state, "frag"), su_REALLOCATION_KIND_FIXED_SIZE);
+            cfg.shaders.vert = su_string_create(sb_config_get_str(lua_state, "vert"), su_REALLOCATION_KIND_FIXED_SIZE);
+            const char* geom = sb_config_get_str(lua_state, "geom");
+            if (geom)
+                cfg.shaders.geom = su_string_create(geom, su_REALLOCATION_KIND_FIXED_SIZE);
+            sb_config_pop(lua_state, 1);
+        }
+    }
+
+    {
+        if (sb_config_push_field_array(lua_state, "uniforms")) {
+            su_U64 count = sb_config_get_array_length(lua_state);
+            cfg.uniform_array = su_darray_create(count, sizeof(struct sb_RendererCfgUniform), su_TRUE);
+
+            for (su_U64 i = 0; i < count; i++) {
+                if (sb_config_push_array_entry(lua_state, i)) {
+                    struct sb_RendererCfgUniform uniform = {
+                        .name = su_string_create(sb_config_get_str(lua_state, "name"), su_REALLOCATION_KIND_FIXED_SIZE),
+                        .type = sb__parse_type(sb_config_get_enum(lua_state, "type")),
+                        .location = sb_config_get_uint64(lua_state, "location"),
+                    };
+                    su_darray_push(cfg.uniform_array, &uniform);
+                    sb_config_pop(lua_state, 1);
+                }
+            }
+            sb_config_pop(lua_state, 1);
+        }
+    }
+
+    {
+        if (sb_config_push_field_array(lua_state, "samplers")) {
+            su_U64 count = sb_config_get_array_length(lua_state);
+            cfg.sampler_array = su_darray_create(count, sizeof(struct sb_RendererCfgSampler), su_TRUE);
+
+            for (su_U64 i = 0; i < count; ++i) {
+                if (sb_config_push_array_entry(lua_state, i)) {
+                    struct sb_RendererCfgSampler sampler = {
+                        .name = su_string_create(sb_config_get_str(lua_state, "name"), su_REALLOCATION_KIND_FIXED_SIZE),
+                        .type = sb__parse_type(sb_config_get_enum(lua_state, "type")),
+                        .binding = sb_config_get_uint64(lua_state, "binding"),
+                    };
+                    su_darray_push(cfg.sampler_array, &sampler);
+                    sb_config_pop(lua_state, 1);
+                }
+            }
+            sb_config_pop(lua_state, 1);
+        }
+    }
+
+    {
+        if (sb_config_push_field_table(lua_state, "batch")) {
+            cfg.batch.capacity = sb_config_get_uint64(lua_state, "capacity");
+            cfg.batch.fixed_capacity = sb_config_get_bool(lua_state, "fixed_capacity");
+            if (sb_config_push_field_table(lua_state, "index")) {
+                cfg.batch.index_cfg.capacity = sb_config_get_uint64(lua_state, "capacity");
+                cfg.batch.index_cfg.fixed_size = sb_config_get_bool(lua_state, "fixed_capacity");
+                cfg.batch.index_cfg.element_size = sb_config_get_uint64(lua_state, "element_byte_size");
+                sb_config_pop(lua_state, 1);
+            }
+            if (sb_config_push_field_table(lua_state, "vertex")) {
+                cfg.batch.index_cfg.capacity = sb_config_get_uint64(lua_state, "capacity");
+                cfg.batch.index_cfg.fixed_size = sb_config_get_bool(lua_state, "fixed_capacity");
+                cfg.batch.index_cfg.element_size = sb_config_get_uint64(lua_state, "element_byte_size");
+                if (sb_config_push_field_array(lua_state, "layout")) {
+                    su_U64 count = sb_config_get_array_length(lua_state);
+                    for (su_U64 i = 0; i < count; ++i) {
+                        if (sb_config_push_array_entry(lua_state, i)) {
+                            struct sb_RendererCfgVertexLayout layout = {
+                                .name = su_string_create(sb_config_get_str(lua_state, "name"), su_REALLOCATION_KIND_FIXED_SIZE),
+                                .type = sb__parse_type(sb_config_get_enum(lua_state, "type")),
+                                .offset = sb__parse_type(sb_config_get_enum(lua_state, "offset")),
+                                .location = sb_config_get_uint64(lua_state, "location"),
+                            };
+                            su_darray_push(cfg.batch.vertex_cfg.vertex_layout_array, &layout);
+                            sb_config_pop(lua_state, 1);
+                        }
+                    }
+                    sb_config_pop(lua_state, 1);
+                }
+            }
+            if (sb_config_push_field_table(lua_state, "draw")) {
+                cfg.draw = (struct sb_RendererCfgDraw){
+                    .cull_mode = su_SCAST_TO_M(enum sb_RendererPrimitives)(sb_config_get_enum(lua_state, "primitives")),
+                    .cull_mode = su_SCAST_TO_M(enum sb_RendererCullMode)(sb_config_get_enum(lua_state, "cull_mode")),
+                    .front_face = su_SCAST_TO_M(enum sb_RendererFrontFace)(sb_config_get_enum(lua_state, "front_face")),
+                };
+                sb_config_pop(lua_state, 1);
+            }
+            if (sb_config_push_field_table(lua_state, "pipeline")) {
+                cfg.pipeline.depth_test = sb_config_get_bool(lua_state, "depth_test");
+                if (sb_config_push_field_table(lua_state, "blend")) {
+                    cfg.pipeline.blend.enabled = sb_config_get_bool(lua_state, "enabled");
+                    sb_config_pop(lua_state, 1);
+                }
+                sb_config_pop(lua_state, 1);
+            }
+        }
+    }
+
+    return cfg;
 }
 
 /* === Internal Impl === */
@@ -284,6 +412,10 @@ SA_INTERNAL su_Bool sb__cfg_manager_load_window_api(sb_ConfigState* lua_state) {
 
     sb_config_pop(lua_state, 1); // pop window_api table
     return true;
+}
+
+SA_INTERNAL su_DataType sb__parse_type(su_S64 val) {
+    return su_SCAST_TO_M(su_DataType)(val);
 }
 
 SA_INTERNAL void sb__cfg_manager_load_handles(void) {
