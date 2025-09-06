@@ -126,6 +126,8 @@ typedef enum {
     su_TYPE_MAT3X4 = 24, // 3 columns, 4 rows
     su_TYPE_MAT4X2 = 25, // 4 columns, 2 rows
     su_TYPE_MAT4X3 = 26, // 4 columns, 3 rows
+
+    su_TYPE_SAMPLER2D = 27,
 } su_DataType;
 
 #define su_TYPE_MAX 26
@@ -258,5 +260,7 @@ int su_string_compare_str(const su_String* a, const su_String* b);
 su_Bool su_string_format(su_String* str, const char* fmt, ...);
 
 su_Bool su_string_append_format(su_String* str, const char* fmt, ...);
+
+su_Bool su_string_is_empty(su_String* str);
 
 #endif // SACI_UTILS_SU_TYPES_H

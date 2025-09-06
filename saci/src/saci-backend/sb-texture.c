@@ -3,6 +3,7 @@
 #include "saci-utils/su-debug.h"
 #include "saci-utils/su-general.h"
 #include "saci-backend/sb-config-manager.h"
+#include <saci-backend/sb-gfx.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stbi/stb_image.h"
@@ -26,8 +27,6 @@ enum su_GL_Enums {
 
 /* === Helper Func declarations === */
 
-SA_INTERNAL struct sb_RenderApiFuncs gl_funcs;
-
 SA_INTERNAL su_U32 sb__texture_determine_format(int nr_channels);
 
 /* === Header impl === */
@@ -42,10 +41,7 @@ void sb_texture_load_data(const char* path, su_Bool flip_img, int* width_out, in
     }
 }
 
-su_TextureId sb_texture_load(const char* path, su_Bool flip_img) {
-    if (!gl_funcs.draw_elements_instanced) {
-        gl_funcs = sb_cfg_manager_get_render_funcs();
-    }
+union sb_GFXTexture sb_texture_load(const char* path, su_Bool flip_img) {
     int width = 0;
     int height = 0;
     int nr_channels = 0;
@@ -55,7 +51,7 @@ su_TextureId sb_texture_load(const char* path, su_Bool flip_img) {
     if (!data) {
         su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Image could not be loaded");
-        return 0;
+        return (union sb_GFXTexture){0};
     }
 
     su_U32 format = sb__texture_determine_format(nr_channels);
@@ -63,38 +59,33 @@ su_TextureId sb_texture_load(const char* path, su_Bool flip_img) {
         su_FREE_M(data);
         su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Unsupported number of channels");
-        return 0;
+        return (union sb_GFXTexture){0};
     }
 
-    su_TextureId id;
-    gl_funcs.gen_textures(1, &id);
+    union sb_GFXTexture tex;
+    tex = sb_gfx_gen_texture();
 
-    gl_funcs.bind_texture(SU_GL_TEXTURE_2D, id);
+    sb_gfx_upload_texture_2d(tex, su_SCAST_TO_M(int)(format), width, height, data);
 
-    gl_funcs.tex_image_2d(SU_GL_TEXTURE_2D, 0, su_SCAST_TO_M(int)(format), width, height, 0, format,
-                          SU_GL_UNSIGNED_BYTE, data);
+    sb_gfx_get_texture_size(tex, &width, &height);
 
-    int gl_width = 0, gl_height = 0;
-    gl_funcs.get_texlevel_parameter_iv(SU_GL_TEXTURE_2D, 0, SU_GL_TEXTURE_WIDTH, &gl_width);
-    gl_funcs.get_texlevel_parameter_iv(SU_GL_TEXTURE_2D, 0, SU_GL_TEXTURE_HEIGHT, &gl_height);
-
-    if (gl_width <= 0 || gl_height <= 0) {
+    if (width <= 0 || height <= 0) {
         su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
                              "Texture coudn't be loaded: Texture Width or Height is equal to 0");
         su_FREE_M(data);
-        return 0;
+        return tex;
     }
 
-    gl_funcs.generate_mipmap(SU_GL_TEXTURE_2D);
+    sb_gfx_generate_mipmap(tex);
 
     su_FREE_M(data);
     su_LOG_DEBUG_PRINT_M(su_LOG_DEBUG_TYPE_TEXTURE, su_LOG_CONTEXT_OPENGL, "Loaded texture");
-    return id;
+    return tex;
 }
 
-void sb_texture_free(su_TextureId texture_id) {
+void sb_texture_free(union sb_GFXTexture texture) {
     su_LOG_DEBUG_PRINT_M(su_LOG_DEBUG_TYPE_TEXTURE, su_LOG_CONTEXT_OPENGL, "Freed texture");
-    gl_funcs.delete_textures(1, &texture_id);
+    sb_gfx_delete_texture(texture);
 }
 
 /* === Helper Func impl === */

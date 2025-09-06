@@ -94,6 +94,19 @@ su_U64 sb_config_get_uint64(sb_ConfigState* state, const char* i_name) {
     return 0;
 }
 
+su_U64 sb_config_get_array_length(sb_ConfigState* state) {
+    if (!state) {
+        return 0;
+    }
+    if (!lua_istable(state, -1)) {
+        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_CONFIG,
+                              "Expected array table on stack for length");
+        return 0;
+    }
+    su_U64 len = (su_U64)lua_rawlen(state, -1);
+    return len;
+}
+
 const char* sb_config_get_str(sb_ConfigState* state, const char* s_name) {
     if (!state) {
         return NULL;
@@ -108,6 +121,22 @@ const char* sb_config_get_str(sb_ConfigState* state, const char* s_name) {
                           "Missing or invalid string: %s", s_name);
     lua_pop(state, 1);
     return NULL;
+}
+
+su_S64 sb_config_get_enum(sb_ConfigState* state, const char* e_name) {
+    if (!state) {
+        return -1;
+    }
+    lua_getfield(state, -1, e_name);
+    if (lua_isinteger(state, -1)) {
+        su_S64 val = (su_S64)lua_tointeger(state, -1);
+        lua_pop(state, 1);
+        return val;
+    }
+    su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_CONFIG,
+                          "Missing or invalid enum: %s", e_name);
+    lua_pop(state, 1);
+    return -1;
 }
 
 su_Bool sb_config_push_global_table(sb_ConfigState* state, const char* table_name) {
@@ -130,6 +159,40 @@ su_Bool sb_config_push_field_table(sb_ConfigState* state, const char* field_name
         return false;
     }
     return true;
+}
+
+su_U64 sb_config_push_field_array(sb_ConfigState* state, const char* array_name) {
+    if (!state) {
+        return 0;
+    }
+    lua_getfield(state, -1, array_name);
+    if (!lua_istable(state, -1)) {
+        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_CONFIG,
+                              "Missing or invalid array: %s", array_name);
+        lua_pop(state, 1);
+        return 0;
+    }
+    su_U64 len = (su_U64)lua_rawlen(state, -1);
+    return len;
+}
+
+su_U64 sb_config_push_array_entry(sb_ConfigState* state, const su_U64 index) {
+    if (!state) {
+        return 0;
+    }
+    if (!lua_istable(state, -1)) {
+        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_CONFIG,
+                              "Expected array table on stack for entry index %lu", index);
+        return 0;
+    }
+    lua_rawgeti(state, -1, (int)index); // pushes entry onto stack
+    if (lua_isnil(state, -1)) {
+        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_CONFIG,
+                              "Array entry at index %lu is missing or nil", index);
+        lua_pop(state, 1);
+        return 0;
+    }
+    return 1; // success (entry is now on stack)
 }
 
 void sb_config_pop(sb_ConfigState* state, int count) {

@@ -161,8 +161,8 @@
 #  endif // SACI_DEBUG_MODE
 #endif   // su_FREE_M
 
-#ifndef su_ARRLEN
-#  define su_ARRLEN(ar) sizeof(ar) / sizeof((ar)[0])
+#ifndef su_ARRLEN_m
+#  define su_ARRLEN_M(ar) sizeof(ar) / sizeof((ar)[0])
 #endif // ifndef
 
 /**

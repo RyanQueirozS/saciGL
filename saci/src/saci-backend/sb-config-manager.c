@@ -153,6 +153,7 @@ su_Bool sb_cfg_manager_fetch(const char* path) {
         su_LOG_WARN_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_CONFIG, "Could not load config");
         return false;
     }
+    sb_cfg_manager.cfg_file_path = su_string_create(path, su_REALLOCATION_KIND_FIXED_SIZE);
 
     if (!sb_config_push_global_table(lua_state, "Saci_base")) {
         sb_config_close(lua_state);
@@ -205,34 +206,33 @@ struct sb_RenderApiFuncs sb_cfg_manager_get_render_funcs(void) {
     return sb_cfg_manager.render_api_funcs;
 }
 
-struct sb_RendererConfig sb_cfg_manager_get_renderer(su_String* name, const char* cfg_path) {
-    struct sb_RendererConfig cfg = {0};
-    cfg.name = su_string_create(su_string_data(name), su_REALLOCATION_KIND_FIXED_SIZE);
-    sb_ConfigState* lua_state = sb_config_load(cfg_path);
+void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_out) {
+    cfg_out->name = su_string_create(su_string_data(name), su_REALLOCATION_KIND_FIXED_SIZE);
+    sb_ConfigState* lua_state = sb_config_load(su_string_data(sb_cfg_manager.cfg_file_path));
     if (!lua_state) {
         su_LOG_WARN_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_CONFIG, "Could not load config");
-        return cfg;
+        return;
     }
     if (!sb_config_push_global_table(lua_state, "Saci_Backend")) {
         sb_config_close(lua_state);
-        return cfg;
+        return;
     }
     if (!sb_config_push_field_table(lua_state, "renderers")) {
         sb_config_close(lua_state);
-        return cfg;
+        return;
     }
     if (!sb_config_push_field_table(lua_state, su_string_data(name))) {
         sb_config_close(lua_state);
-        return cfg;
+        return;
     }
 
     {
         if (sb_config_push_field_table(lua_state, "shaders")) {
-            cfg.shaders.frag = su_string_create(sb_config_get_str(lua_state, "frag"), su_REALLOCATION_KIND_FIXED_SIZE);
-            cfg.shaders.vert = su_string_create(sb_config_get_str(lua_state, "vert"), su_REALLOCATION_KIND_FIXED_SIZE);
+            cfg_out->shaders.frag = su_string_create(sb_config_get_str(lua_state, "frag"), su_REALLOCATION_KIND_FIXED_SIZE);
+            cfg_out->shaders.vert = su_string_create(sb_config_get_str(lua_state, "vert"), su_REALLOCATION_KIND_FIXED_SIZE);
             const char* geom = sb_config_get_str(lua_state, "geom");
             if (geom)
-                cfg.shaders.geom = su_string_create(geom, su_REALLOCATION_KIND_FIXED_SIZE);
+                cfg_out->shaders.geom = su_string_create(geom, su_REALLOCATION_KIND_FIXED_SIZE);
             sb_config_pop(lua_state, 1);
         }
     }
@@ -240,7 +240,7 @@ struct sb_RendererConfig sb_cfg_manager_get_renderer(su_String* name, const char
     {
         if (sb_config_push_field_array(lua_state, "uniforms")) {
             su_U64 count = sb_config_get_array_length(lua_state);
-            cfg.uniform_array = su_darray_create(count, sizeof(struct sb_RendererCfgUniform), su_TRUE);
+            cfg_out->uniform_array = su_darray_create(count, sizeof(struct sb_RendererCfgUniform), su_TRUE);
 
             for (su_U64 i = 0; i < count; i++) {
                 if (sb_config_push_array_entry(lua_state, i)) {
@@ -249,7 +249,7 @@ struct sb_RendererConfig sb_cfg_manager_get_renderer(su_String* name, const char
                         .type = sb__parse_type(sb_config_get_enum(lua_state, "type")),
                         .location = sb_config_get_uint64(lua_state, "location"),
                     };
-                    su_darray_push(cfg.uniform_array, &uniform);
+                    su_darray_push(cfg_out->uniform_array, &uniform);
                     sb_config_pop(lua_state, 1);
                 }
             }
@@ -260,7 +260,7 @@ struct sb_RendererConfig sb_cfg_manager_get_renderer(su_String* name, const char
     {
         if (sb_config_push_field_array(lua_state, "samplers")) {
             su_U64 count = sb_config_get_array_length(lua_state);
-            cfg.sampler_array = su_darray_create(count, sizeof(struct sb_RendererCfgSampler), su_TRUE);
+            cfg_out->sampler_array = su_darray_create(count, sizeof(struct sb_RendererCfgSampler), su_TRUE);
 
             for (su_U64 i = 0; i < count; ++i) {
                 if (sb_config_push_array_entry(lua_state, i)) {
@@ -269,7 +269,7 @@ struct sb_RendererConfig sb_cfg_manager_get_renderer(su_String* name, const char
                         .type = sb__parse_type(sb_config_get_enum(lua_state, "type")),
                         .binding = sb_config_get_uint64(lua_state, "binding"),
                     };
-                    su_darray_push(cfg.sampler_array, &sampler);
+                    su_darray_push(cfg_out->sampler_array, &sampler);
                     sb_config_pop(lua_state, 1);
                 }
             }
@@ -279,18 +279,18 @@ struct sb_RendererConfig sb_cfg_manager_get_renderer(su_String* name, const char
 
     {
         if (sb_config_push_field_table(lua_state, "batch")) {
-            cfg.batch.capacity = sb_config_get_uint64(lua_state, "capacity");
-            cfg.batch.fixed_capacity = sb_config_get_bool(lua_state, "fixed_capacity");
+            cfg_out->batch.capacity = sb_config_get_uint64(lua_state, "capacity");
+            cfg_out->batch.fixed_capacity = sb_config_get_bool(lua_state, "fixed_capacity");
             if (sb_config_push_field_table(lua_state, "index")) {
-                cfg.batch.index_cfg.capacity = sb_config_get_uint64(lua_state, "capacity");
-                cfg.batch.index_cfg.fixed_size = sb_config_get_bool(lua_state, "fixed_capacity");
-                cfg.batch.index_cfg.element_size = sb_config_get_uint64(lua_state, "element_byte_size");
+                cfg_out->batch.index_cfg.capacity = sb_config_get_uint64(lua_state, "capacity");
+                cfg_out->batch.index_cfg.fixed_size = sb_config_get_bool(lua_state, "fixed_capacity");
+                cfg_out->batch.index_cfg.element_size = sb_config_get_uint64(lua_state, "element_byte_size");
                 sb_config_pop(lua_state, 1);
             }
             if (sb_config_push_field_table(lua_state, "vertex")) {
-                cfg.batch.index_cfg.capacity = sb_config_get_uint64(lua_state, "capacity");
-                cfg.batch.index_cfg.fixed_size = sb_config_get_bool(lua_state, "fixed_capacity");
-                cfg.batch.index_cfg.element_size = sb_config_get_uint64(lua_state, "element_byte_size");
+                cfg_out->batch.index_cfg.capacity = sb_config_get_uint64(lua_state, "capacity");
+                cfg_out->batch.index_cfg.fixed_size = sb_config_get_bool(lua_state, "fixed_capacity");
+                cfg_out->batch.index_cfg.element_size = sb_config_get_uint64(lua_state, "element_byte_size");
                 if (sb_config_push_field_array(lua_state, "layout")) {
                     su_U64 count = sb_config_get_array_length(lua_state);
                     for (su_U64 i = 0; i < count; ++i) {
@@ -301,7 +301,7 @@ struct sb_RendererConfig sb_cfg_manager_get_renderer(su_String* name, const char
                                 .offset = sb__parse_type(sb_config_get_enum(lua_state, "offset")),
                                 .location = sb_config_get_uint64(lua_state, "location"),
                             };
-                            su_darray_push(cfg.batch.vertex_cfg.vertex_layout_array, &layout);
+                            su_darray_push(cfg_out->batch.vertex_cfg.vertex_layout_array, &layout);
                             sb_config_pop(lua_state, 1);
                         }
                     }
@@ -309,7 +309,7 @@ struct sb_RendererConfig sb_cfg_manager_get_renderer(su_String* name, const char
                 }
             }
             if (sb_config_push_field_table(lua_state, "draw")) {
-                cfg.draw = (struct sb_RendererCfgDraw){
+                cfg_out->draw = (struct sb_RendererCfgDraw){
                     .cull_mode = su_SCAST_TO_M(enum sb_RendererPrimitives)(sb_config_get_enum(lua_state, "primitives")),
                     .cull_mode = su_SCAST_TO_M(enum sb_RendererCullMode)(sb_config_get_enum(lua_state, "cull_mode")),
                     .front_face = su_SCAST_TO_M(enum sb_RendererFrontFace)(sb_config_get_enum(lua_state, "front_face")),
@@ -317,9 +317,9 @@ struct sb_RendererConfig sb_cfg_manager_get_renderer(su_String* name, const char
                 sb_config_pop(lua_state, 1);
             }
             if (sb_config_push_field_table(lua_state, "pipeline")) {
-                cfg.pipeline.depth_test = sb_config_get_bool(lua_state, "depth_test");
+                cfg_out->pipeline.depth_test = sb_config_get_bool(lua_state, "depth_test");
                 if (sb_config_push_field_table(lua_state, "blend")) {
-                    cfg.pipeline.blend.enabled = sb_config_get_bool(lua_state, "enabled");
+                    cfg_out->pipeline.blend.enabled = sb_config_get_bool(lua_state, "enabled");
                     sb_config_pop(lua_state, 1);
                 }
                 sb_config_pop(lua_state, 1);
@@ -327,7 +327,7 @@ struct sb_RendererConfig sb_cfg_manager_get_renderer(su_String* name, const char
         }
     }
 
-    return cfg;
+    return;
 }
 
 /* === Internal Impl === */
@@ -470,7 +470,7 @@ SA_INTERNAL void sb__cfg_manager_load_symbols(void) {
     case sb_RENDERER_API_OPENGL:
         sb__load_symbols(sb_cfg_manager.render_api_data.handle,
                          sb_gl_symbols,
-                         su_ARRLEN(sb_gl_symbols));
+                         su_ARRLEN_M(sb_gl_symbols));
         break;
     default:
         su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_CONFIG,
@@ -482,7 +482,7 @@ SA_INTERNAL void sb__cfg_manager_load_symbols(void) {
     case sb_RENDERER_LOADER_GLAD:
         sb__load_symbols(sb_cfg_manager.render_api_loader_data.handle,
                          sb_glad_symbols,
-                         su_ARRLEN(sb_glad_symbols));
+                         su_ARRLEN_M(sb_glad_symbols));
         break;
     default:
         su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_CONFIG,
@@ -494,7 +494,7 @@ SA_INTERNAL void sb__cfg_manager_load_symbols(void) {
     case sb_WINDOW_API_GLFW:
         sb__load_symbols(sb_cfg_manager.windowing_api_data.handle,
                          sb_glfw_symbols,
-                         su_ARRLEN(sb_glfw_symbols));
+                         su_ARRLEN_M(sb_glfw_symbols));
         break;
     default:
         su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_CONFIG,

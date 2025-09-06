@@ -22,6 +22,8 @@ enum sb_WindowApi {
 };
 
 struct sb_ConfigManager {
+    su_String* cfg_file_path;
+
     struct {
         enum sb_RendererApi api;
         char* path_to_api;
@@ -168,6 +170,7 @@ struct sb_RendererCfgSampler {
     su_String* name; // Debug
     su_DataType type;
     su_U64 binding;
+    su_U64 unit;
 };
 
 struct sb_RendererCfgIndex {
@@ -186,7 +189,7 @@ struct sb_RendererCfgVertexLayout {
 struct sb_RendererCfgVertex {
     su_U64 capacity;
     su_Bool fixed_size;
-    su_U64 element_size;
+    su_U64 struct_size;
     su_DArray* vertex_layout_array;
 };
 
@@ -271,6 +274,6 @@ SA_API struct sb_RenderApiLoaderFuncs sb_cfg_manager_get_loader_funcs(void);
 
 SA_API struct sb_RenderApiFuncs sb_cfg_manager_get_render_funcs(void);
 
-SA_API struct sb_RendererConfig sb_cfg_manager_get_renderer(su_String* str, const char* cfg_path);
+SA_API void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_out);
 
 #endif // SACI_BACKEND_SB_PLATFORM_H

@@ -10,9 +10,10 @@
 
 SA_API void sb_gl_load(void);
 SA_API void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, const void* value);
-SA_API su_U32 sb_gl_create_index_buffer_dynamic(su_U32* indices, su_U64 indice_amount);
-SA_API su_U32 sb_gl_create_index_buffer_static(su_U32* indices, su_U64 indice_amount);
-SA_API su_U32 sb_gl_create_vertex_buffer(su_U64 size, const void* data, su_U32 usage);
+SA_API su_U32 sb_gl_create_index_buffer_dynamic(su_U64 indice_amount, su_U32* indices);
+SA_API su_U32 sb_gl_create_index_buffer_static(su_U64 indice_amount, su_U32* indices);
+SA_API su_U32 sb_gl_create_vertex_buffer_dynamic(su_U64 size, const void* data);
+SA_API su_U32 sb_gl_create_vertex_buffer_static(su_U64 size, const void* data);
 SA_API void sb_gl_create_vertex_array(su_U64 amount, su_U32* arrays);
 SA_API void sb_gl_resize_vertex_buffer(su_U32 vao_id, su_U32 vbo_id, su_U64 new_size);
 SA_API void sb_gl_bind_vertex_array(su_U32 array);

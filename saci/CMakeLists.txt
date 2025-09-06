@@ -40,7 +40,6 @@ target_include_directories(saci
     SYSTEM PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/deps/stb"
         "${CMAKE_CURRENT_SOURCE_DIR}/deps/memory"
-        "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/deps/model-loading"
         "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/deps/ryanqueirozs/"
@@ -52,9 +51,6 @@ target_include_directories(saci
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
-
-target_sources(saci PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/src/glad.c")
-set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/deps/glad/src/glad.c" PROPERTIES COMPILE_OPTIONS "-w")
 
 # --- Link Libraries ---
 if(IS_EMSCRIPTEN)

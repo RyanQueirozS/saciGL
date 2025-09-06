@@ -482,6 +482,13 @@ su_Bool su_string_append_format(su_String* str, const char* fmt, ...) {
     return su_TRUE;
 }
 
+su_Bool su_string_is_empty(su_String* str) {
+    if (!str->data || !str->length) {
+        return su_TRUE;
+    }
+    return su_FALSE;
+}
+
 // Helper
 SA_INTERNAL su_String* su__string_alloc_init(
     const char* data,

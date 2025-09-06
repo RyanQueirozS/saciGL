@@ -1,6 +1,8 @@
 #ifndef SACI_BACKEND_SB_GFX_H
 #define SACI_BACKEND_SB_GFX_H
 
+#include "saci-backend/sb-config-manager.h"
+
 #include "saci-utils/su-types.h"
 
 union sb_GFXUniformValue {
@@ -36,12 +38,6 @@ union sb_GFXUniformValue {
     // float mat4x3[4][3];
 };
 
-struct sb_GFXUniformData {
-    su_DataType type;
-    su_S32 location;
-    union sb_GFXUniformValue value;
-};
-
 union sb_GFXInfo {
     struct {
         su_ShaderId shader_program;
@@ -51,34 +47,55 @@ union sb_GFXInfo {
     // struct {} vk_data;
 };
 
-union sb_GFXProperties {
+union sb_GFXTexture {
     struct {
-        su_String* shader_code;
-    } gl_data;
+        su_TextureId texture;
+    } gl_texture;
+};
+
+struct sb_GFXUniformData {
+    su_DataType type;
+    su_S32 location;
+    union sb_GFXUniformValue value;
 };
 
 struct sb_GFXDrawData {
-    const su_DArray* vertex_array;
+    su_DArray* vertex_array;
     su_U64 vertex_struct_size;
 
-    const su_DArray* index_array;
+    su_DArray* index_array; // DArray
     su_U64 index_struct_size;
 
-    const su_DArray* instance_array_array;
-    const su_DArray* instance_location_array;
+    su_DArray* instance_array_array;    // DArray<DArray>
+    su_DArray* instance_location_array; // DArray
     su_U64 instance_struct_size;
 
-    const su_DArray* uniform_array_array;
-    const su_DArray* uniform_location_array;
+    su_DArray* uniform_array_array;    // DArray<DArray>
+    su_DArray* uniform_location_array; // DArray
 
-    su_TextureId texture_array_array[SACI_MAX_TEXTURES];
+    union sb_GFXTexture texture_array[SACI_MAX_TEXTURES];
     su_U32 texture_array_loc[SACI_MAX_TEXTURES];
 };
 
 void sb_gfx_load(void);
 
-void sb_gfx_create(union sb_GFXInfo* info_out, const union sb_GFXProperties props);
+void sb_gfx_init_shader(union sb_GFXInfo* info_out, const struct sb_RendererConfig cfg);
 
-void sb_gfx_draw(union sb_GFXInfo gfx_info, const struct sb_GFXDrawData* data);
+void sb_gfx_create(union sb_GFXInfo* info_out, const struct sb_RendererConfig cfg);
+
+void sb_gfx_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* data);
+
+su_S32 sb_gfx_get_uniform_loc(const union sb_GFXInfo* info, const su_String* name);
+
+su_S32 sb_gfx_get_uniform_loc_cstr(const union sb_GFXInfo* info, const char* name);
+
+union sb_GFXTexture sb_gfx_gen_texture(void);
+void sb_gfx_upload_texture_2d(union sb_GFXTexture texture_id,
+                              su_U32 format,
+                              int width, int height,
+                              const void* data);
+void sb_gfx_get_texture_size(union sb_GFXTexture texture_id, int* width_out, int* height_out);
+void sb_gfx_generate_mipmap(union sb_GFXTexture texture_id);
+void sb_gfx_delete_texture(union sb_GFXTexture texture_id);
 
 #endif // SACI_BACKEND_SB_GFX_H

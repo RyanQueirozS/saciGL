@@ -108,9 +108,7 @@ SA_API void sb_renderer_free_opts(struct sb_Renderer* rendr, int free_opts);
 
 /* --- Renderer specific --- */
 
-SA_API void sb_renderer_set_instance_colors(struct sb_Renderer* rendr, su_DArray* color_array);
-
 // This needs to be used with a instanced renderer, else it should crash
-SA_API void sb_renderer_set_instance_transforms(struct sb_Renderer* rendr, su_DArray* transform_array);
+SA_API void sb_renderer_set_instance_data(struct sb_Renderer* rendr, su_DArray* transform_array, su_DArray* color_array);
 
 #endif // SACI_BACKEND_SB_RENDERER_H

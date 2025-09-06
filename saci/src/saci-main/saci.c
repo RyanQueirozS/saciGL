@@ -201,12 +201,10 @@ void saci_present(void) {
     sb_renderer_bind_index_buffer(
         saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
         saci_cube_index);
-    sb_renderer_set_instance_colors(
+    sb_renderer_set_instance_data(
         saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
+        saci_context.shape_draw_call_array[saci_SHAPE_CUBE].transforms,
         saci_context.shape_draw_call_array[saci_SHAPE_CUBE].colors);
-    sb_renderer_set_instance_transforms(
-        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
-        saci_context.shape_draw_call_array[saci_SHAPE_CUBE].transforms);
     sb_renderer_push_mesh(
         saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
         saci_cube_pos,

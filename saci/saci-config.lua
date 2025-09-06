@@ -140,7 +140,7 @@ Saci_Backend = {
 				},
 			},
 			samplers = {
-				{ name = "", type = Saci_Types.SAMPLER_2D, binding = 0 },
+				{ name = "", type = Saci_Types.SAMPLER_2D, binding = 0, unit = 0 },
 			},
 			batch = {
 				capacity = 10,
