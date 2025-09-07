@@ -163,13 +163,13 @@ struct sb_RendererCfgShaderCode {
 struct sb_RendererCfgUniform {
     su_String* name; // Debug
     su_DataType type;
-    su_U64 location;
+    su_S32 location;
 };
 
 struct sb_RendererCfgSampler {
     su_String* name; // Debug
     su_DataType type;
-    su_U64 binding;
+    su_S32 binding;
     su_U64 unit;
 };
 
