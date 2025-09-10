@@ -4,6 +4,7 @@
 #include "saci-backend/sb-config-manager.h"
 #include "saci-utils/su-debug.h"
 #include <saci-backend/sb-gl.h>
+#include <stdio.h>
 
 /* === Internal helper Declarations === */
 
@@ -14,13 +15,14 @@ enum sb_GLConstants {
     sb_GL_TEXTURE0 = 0x84C0,
     sb_GL_TEXTURE_2D = 0x0DE1,
     sb_GL_TEXTURE_WIDTH = 0,
-    SU_GL_TEXTURE_HEIGHT = 0,
+    sb_GL_TEXTURE_HEIGHT = 0,
     sb_GL_TRIANGLES = 0x0004,
     sb_GL_UNSIGNED_INT = 0x1405,
-    su_GL_UNSIGNED_BYTE = 0,
+    sb_GL_UNSIGNED_BYTE = 0,
     sb_GL_UNIFORM_BUFFER = 0x8A11,
     sb_GL_STATIC_DRAW = 0,
     sb_GL_DYNAMIC_DRAW = 0,
+    sb_GL_TEXTURE_BINDING_2D = 0,
 };
 
 SA_INTERNAL struct sb_RenderApiFuncs render_funcs;
@@ -42,6 +44,26 @@ void sb_gfx_load(void) {
 }
 
 void sb_gfx_init_shader(union sb_GFXInfo* info_out, const struct sb_RendererConfig cfg) {
+    su_LOG_ASSERT_MESSAGE_M(cfg.shaders.vert, "Vertex shader is empty or NULL");
+    su_LOG_ASSERT_MESSAGE_M(cfg.shaders.frag, "Frag shader is empty or NULL");
+    switch (render_api) {
+    case sb_RENDERER_API_OPENGL:
+        {
+            su_ShaderId v_shader = sb_gl_shader_compile_shader_vert(su_string_data(cfg.shaders.vert));
+            su_ShaderId f_shader = sb_gl_shader_compile_shader_frag(su_string_data(cfg.shaders.frag));
+            if (cfg.shaders.geom) {
+                su_ShaderId g_shader = sb_gl_shader_compile_shader_geom(su_string_data(cfg.shaders.geom));
+                info_out->gl_data.shader_program = sb_gl_shader_create_shader_program_geom(v_shader,
+                                                                                           f_shader,
+                                                                                           g_shader);
+                break;
+            }
+            info_out->gl_data.shader_program = sb_gl_shader_create_shader_program(v_shader, f_shader);
+            break;
+        }
+    case sb_RENDERER_API_VULKAN:
+        break;
+    }
 }
 
 void sb_gfx_create(union sb_GFXInfo* info_out, const struct sb_RendererConfig cfg) {
@@ -55,6 +77,7 @@ void sb_gfx_create(union sb_GFXInfo* info_out, const struct sb_RendererConfig cf
 }
 
 void sb_gfx_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* data) {
+    printf("reached\n");
     switch (render_api) {
     case sb_RENDERER_API_OPENGL:
         sb__gfx_gl_draw(gfx_info, data);
@@ -65,9 +88,20 @@ void sb_gfx_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* 
 }
 
 su_S32 sb_gfx_get_uniform_loc(const union sb_GFXInfo* info, const su_String* name) {
+    return sb_gfx_get_uniform_loc_cstr(info, su_string_data(name));
 }
 
-su_S32 sb_gfx_get_uniform_loc_cstr(const union sb_GFXInfo* info, const char* name) {}
+su_S32 sb_gfx_get_uniform_loc_cstr(const union sb_GFXInfo* info, const char* name) {
+    su_S32 location = 0;
+    switch (render_api) {
+    case sb_RENDERER_API_OPENGL:
+        location = sb_gl_uniform_location(info->gl_data.shader_program, name);
+        break;
+    case sb_RENDERER_API_VULKAN:
+        break;
+    }
+    return location;
+}
 
 union sb_GFXTexture sb_gfx_gen_texture(void) {
     union sb_GFXTexture id;
@@ -82,16 +116,30 @@ void sb_gfx_upload_texture_2d(union sb_GFXTexture texture,
     render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, texture.gl_texture.texture);
     render_funcs.gl.tex_image_2d(sb_GL_TEXTURE_2D, 0,
                                  (int)format, width, height, 0,
-                                 format, su_GL_UNSIGNED_BYTE, data);
+                                 format, sb_GL_UNSIGNED_BYTE, data);
 }
 
 void sb_gfx_get_texture_size(union sb_GFXTexture texture, int* width_out, int* height_out) {
+    su_U32 prev_tex;
+    render_funcs.gl.get_integer_v(sb_GL_TEXTURE_BINDING_2D, &prev_tex);
+
+    render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, texture.gl_texture.texture);
+
     render_funcs.gl.get_texlevel_parameter_iv(sb_GL_TEXTURE_2D, 0, sb_GL_TEXTURE_WIDTH, width_out);
-    render_funcs.gl.get_texlevel_parameter_iv(sb_GL_TEXTURE_2D, 0, SU_GL_TEXTURE_HEIGHT, height_out);
+    render_funcs.gl.get_texlevel_parameter_iv(sb_GL_TEXTURE_2D, 0, sb_GL_TEXTURE_HEIGHT, height_out);
+
+    render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, prev_tex);
 }
 
 void sb_gfx_generate_mipmap(union sb_GFXTexture texture) {
+    su_U32 prev_tex;
+    render_funcs.gl.get_integer_v(sb_GL_TEXTURE_BINDING_2D, &prev_tex);
+
+    render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, texture.gl_texture.texture);
+
     render_funcs.gl.generate_mipmap(sb_GL_TEXTURE_2D);
+
+    render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, prev_tex);
 }
 
 void sb_gfx_delete_texture(union sb_GFXTexture texture) {
@@ -103,7 +151,6 @@ void sb_gfx_delete_texture(union sb_GFXTexture texture) {
 SA_INTERNAL void sb__gfx_gl_init_info(union sb_GFXInfo* info_out, const struct sb_RendererConfig cfg) {
     su_LOG_ASSERT_MESSAGE_M(cfg.shaders.vert, "GL vert shader is empty");
     su_LOG_ASSERT_MESSAGE_M(cfg.shaders.frag, "GL frag shader is empty");
-    su_LOG_ASSERT_MESSAGE_M(cfg.shaders.geom, "GL geom shader is empty");
     su_LOG_ASSERT_MESSAGE_M(cfg.batch.index_cfg.capacity, "Index capacity is not set");
     su_LOG_ASSERT_MESSAGE_M(cfg.batch.vertex_cfg.capacity, "Vertex capacity is not set");
 
@@ -116,24 +163,6 @@ SA_INTERNAL void sb__gfx_gl_init_info(union sb_GFXInfo* info_out, const struct s
         NULL);
 
     sb_gl_create_vertex_array(1, &info_out->gl_data.vao);
-
-    su_ShaderId v_shader = sb_shader_compile_shader_vert(
-        su_string_data(cfg.shaders.vert));
-    su_ShaderId f_shader = sb_shader_compile_shader_vert(
-        su_string_data(cfg.shaders.frag));
-    su_ShaderId g_shader = 0;
-    su_LOG_ASSERT_MESSAGE_M(v_shader && f_shader, "Shaders could not be initialized");
-    if (cfg.shaders.geom) {
-        g_shader = sb_shader_compile_shader_vert(su_string_data(cfg.shaders.geom));
-        su_LOG_ASSERT_MESSAGE_M(g_shader, "Shaders could not be initialized");
-        info_out->gl_data.shader_program = sb_shader_create_shader_program_geom(v_shader, f_shader, g_shader);
-        su_LOG_ASSERT_MESSAGE_M(info_out->gl_data.shader_program,
-                                "Shader program could not be initialized");
-    } else {
-        info_out->gl_data.shader_program = sb_shader_create_shader_program(v_shader, f_shader);
-        su_LOG_ASSERT_MESSAGE_M(info_out->gl_data.shader_program,
-                                "Shader program could not be initialized");
-    }
 
     {
         sb_gl_bind_vertex_array(info_out->gl_data.vao);
@@ -170,7 +199,6 @@ SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct 
                                    su_SCAST_TO_M(long int)(sizeof(su_U32) * su_darray_length(data->index_array)),
                                    su_darray_get_ptr(data->index_array, 0));
 
-    // TODO this should be checked before, since if it is empty there is no reason to drawing
     if (!su_darray_is_empty(data->instance_array_array)) {
         for (su_U64 i = 0; i < su_darray_length(data->instance_array_array); ++i) {
             su_DArray* instance_array = su_darray_get_ptr(data->instance_array_array, i);

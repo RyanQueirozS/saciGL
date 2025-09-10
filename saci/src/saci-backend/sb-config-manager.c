@@ -93,6 +93,8 @@ SA_INTERNAL struct sb_SymbolTable sb_gl_symbols[] = {
     {"glGetShaderInfoLog", (void**)&sb_cfg_manager.render_api_funcs.gl.get_shader_info_log},
     {"glDeleteShader", (void**)&sb_cfg_manager.render_api_funcs.gl.delete_shader},
 
+    {"glGetIntegerv", (void**)&sb_cfg_manager.render_api_funcs.gl.get_integer_v},
+
     {"glCreateProgram", (void**)&sb_cfg_manager.render_api_funcs.gl.create_program},
     {"glUseProgram", (void**)&sb_cfg_manager.render_api_funcs.gl.use_program},
     {"glAttachShader", (void**)&sb_cfg_manager.render_api_funcs.gl.attach_shader},
@@ -247,7 +249,7 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
                     struct sb_RendererCfgUniform uniform = {
                         .name = su_string_create(sb_config_get_str(lua_state, "name"), su_REALLOCATION_KIND_FIXED_SIZE),
                         .type = sb__parse_type(sb_config_get_enum(lua_state, "type")),
-                        .location = sb_config_get_uint64(lua_state, "location"),
+                        .location = su_SCAST_TO_M(su_S32)(sb_config_get_uint32(lua_state, "location")),
                     };
                     su_darray_push(cfg_out->uniform_array, &uniform);
                     sb_config_pop(lua_state, 1);
@@ -267,7 +269,7 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
                     struct sb_RendererCfgSampler sampler = {
                         .name = su_string_create(sb_config_get_str(lua_state, "name"), su_REALLOCATION_KIND_FIXED_SIZE),
                         .type = sb__parse_type(sb_config_get_enum(lua_state, "type")),
-                        .binding = sb_config_get_uint64(lua_state, "binding"),
+                        .binding = su_SCAST_TO_M(su_S32)(sb_config_get_uint64(lua_state, "binding")),
                     };
                     su_darray_push(cfg_out->sampler_array, &sampler);
                     sb_config_pop(lua_state, 1);
@@ -293,6 +295,7 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
                 cfg_out->batch.index_cfg.element_size = sb_config_get_uint64(lua_state, "element_byte_size");
                 if (sb_config_push_field_array(lua_state, "layout")) {
                     su_U64 count = sb_config_get_array_length(lua_state);
+                    cfg_out->batch.vertex_cfg.vertex_layout_array = su_darray_create(count, sizeof(struct sb_RendererCfgVertexLayout), su_TRUE);
                     for (su_U64 i = 0; i < count; ++i) {
                         if (sb_config_push_array_entry(lua_state, i)) {
                             struct sb_RendererCfgVertexLayout layout = {
@@ -310,7 +313,7 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
             }
             if (sb_config_push_field_table(lua_state, "draw")) {
                 cfg_out->draw = (struct sb_RendererCfgDraw){
-                    .cull_mode = su_SCAST_TO_M(enum sb_RendererPrimitives)(sb_config_get_enum(lua_state, "primitives")),
+                    .primitive = su_SCAST_TO_M(enum sb_RendererPrimitives)(sb_config_get_enum(lua_state, "primitives")),
                     .cull_mode = su_SCAST_TO_M(enum sb_RendererCullMode)(sb_config_get_enum(lua_state, "cull_mode")),
                     .front_face = su_SCAST_TO_M(enum sb_RendererFrontFace)(sb_config_get_enum(lua_state, "front_face")),
                 };

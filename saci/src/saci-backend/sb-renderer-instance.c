@@ -1,6 +1,8 @@
 #include "./sb-renderer-common.h"
 
 #include "saci-utils/su-debug.h"
+#include <saci-utils/su-types.h>
+#include <stdio.h>
 
 /* --- LOCAL --- */
 
@@ -46,6 +48,8 @@ SA_INTERNAL void sb__renderer_instance_fill_default(struct sb_RendererConfig* cf
 
 SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* rendr);
 
+SA_INTERNAL void sb__renderer_init_bound_extra(struct sb_InstanceBoundExtra* bound_extra, const struct sb_RendererConfig cfg);
+
 /* --- PUBLIC FUNCS --- */
 
 void sb_renderer_instanced_new(sb_Renderer* self) {
@@ -56,9 +60,11 @@ void sb_renderer_instanced_new(sb_Renderer* self) {
     sb_cfg_manager_get_renderer(su_string_create("instance", su_REALLOCATION_KIND_FIXED_SIZE), &cfg);
     sb_gfx_init_shader(&rendr->gfx, cfg);
     sb__renderer_instance_fill_default(&cfg, &rendr->gfx);
-    sb_gfx_create(&rendr->gfx, cfg);
+    rendr->cfg = cfg;
     sb__renderer_init_instance_batch(rendr);
+    sb_gfx_create(&rendr->gfx, cfg);
     sb_renderer_init_bound(&rendr->bound, &rendr->bound_info, cfg);
+    sb__renderer_init_bound_extra(&rendr->bound_extra, cfg);
 }
 
 void sb_renderer_set_instance_data(struct sb_Renderer* rendr, su_DArray* transform_array, su_DArray* color_array) {
@@ -78,15 +84,24 @@ void sb_renderer_set_instance_data(struct sb_Renderer* rendr, su_DArray* transfo
         su_darray_push(data_array, &data);
     }
 
-    su_darray_clear(rendr->rendr.instance_renderer->bound_extra.bound_instance_array);
+    su_LOG_DEBUG_CONDITION_PRINT_M(
+        !su_darray_clear(rendr->rendr.instance_renderer->bound_extra.bound_instance_array),
+        su_LOG_DEBUG_TYPE_RENDERER, su_LOG_CONTEXT_INIT,
+        "Could not clear instance array");
     su_darray_append(rendr->rendr.instance_renderer->bound_extra.bound_instance_array, data_array);
 }
 
 /* --- LOCAL FUNCS --- */
 
 SA_INTERNAL void sb__renderer_instance_begin(const struct sb_Renderer* self) {
-    su_darray_clear(self->rendr.instance_renderer->bound.index_array);
-    su_darray_clear(self->rendr.instance_renderer->bound.uniform_data_array);
+    su_LOG_DEBUG_CONDITION_PRINT_M(
+        !su_darray_clear(self->rendr.instance_renderer->bound.index_array),
+        su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
+        "Could not clear bound index array");
+    su_LOG_DEBUG_CONDITION_PRINT_M(
+        !su_darray_clear(self->rendr.instance_renderer->bound.uniform_data_array),
+        su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
+        "Could not clear bound uniform array");
     self->rendr.instance_renderer->bound.texture = sb_TEXTURE_INVALID;
 
     self->rendr.instance_renderer->batch_info.in_use = 0;
@@ -96,12 +111,30 @@ SA_INTERNAL void sb__renderer_instance_begin(const struct sb_Renderer* self) {
             batch->texture_array[j].gl_texture.texture = sb_TEXTURE_INVALID;
             batch->texture_array_loc[j] = 0;
         }
-        su_darray_clear(batch->vertex_array);
-        su_darray_clear(batch->index_array);
-        su_darray_clear(batch->instance_array_array);
-        su_darray_clear(batch->instance_location_array);
-        su_darray_clear(batch->uniform_array_array);
-        su_darray_clear(batch->uniform_location_array);
+        su_LOG_DEBUG_CONDITION_PRINT_M(
+            !su_darray_clear(batch->vertex_array),
+            su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
+            "Could not clear batch vertex array");
+        su_LOG_DEBUG_CONDITION_PRINT_M(
+            !su_darray_clear(batch->index_array),
+            su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
+            "Could not clear batch index array");
+        su_LOG_DEBUG_CONDITION_PRINT_M(
+            !su_darray_clear(batch->instance_array_array),
+            su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
+            "Could not clear batch instance array array");
+        su_LOG_DEBUG_CONDITION_PRINT_M(
+            !su_darray_clear(batch->instance_location_array),
+            su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
+            "Could not clear batch instance location array");
+        su_LOG_DEBUG_CONDITION_PRINT_M(
+            !su_darray_clear(batch->uniform_array_array),
+            su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
+            "Could not clear batch uniform array array");
+        su_LOG_DEBUG_CONDITION_PRINT_M(
+            !su_darray_clear(batch->uniform_location_array),
+            su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
+            "Could not clear batch uniform location array");
     }
 }
 
@@ -185,7 +218,7 @@ SA_INTERNAL void sb__renderer_instance_push_mesh(struct sb_Renderer* self,
     su_LOG_DEBUGF_PRINT_M(su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
                           su_LOG_CONTEXT_RENDERER,
                           "Attempting to push %lu indices to instance batch",
-                          su_darray_length(rendr->common.bound.index_array));
+                          su_darray_length(rendr->bound.index_array));
     struct sb_GFXDrawData* batch = rendr->batch_ptr_array[rendr->batch_info.in_use];
     su_Color default_color = {0, 0, 0, 0};
     su_Uv default_uv = {0, 0};
@@ -193,21 +226,40 @@ SA_INTERNAL void sb__renderer_instance_push_mesh(struct sb_Renderer* self,
         su_Vec3 pos;
         su_Color color = default_color;
         su_Uv uv = default_uv;
-        su_darray_get(pos_array, i, &pos);
+        su_LOG_DEBUG_CONDITION_PRINT_M(
+            !su_darray_get(pos_array, i, &pos),
+            su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
+            "Could not get position");
+
         if (uv_array) {
-            su_darray_get(uv_array, i, &uv);
+            su_LOG_DEBUG_CONDITION_PRINT_M(
+                !su_darray_get(uv_array, i, &uv),
+                su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
+                "Could not get uv");
         }
         if (color_array) {
-            su_darray_get(color_array, i, &color);
+            su_LOG_DEBUG_CONDITION_PRINT_M(
+                !su_darray_get(color_array, i, &color),
+                su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
+                "Could not get uv");
         }
         struct sb_Vertex vertex = (struct sb_Vertex){pos, color, uv};
         if (!su_darray_push(batch->vertex_array, &vertex)) {
             su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER, "Could not push vertex to instance batch");
         }
     }
-    su_darray_append(batch->index_array, rendr->bound.index_array);
-    su_darray_append(batch->uniform_array_array, rendr->bound.uniform_data_array);
-    su_darray_append(batch->instance_array_array, rendr->bound_extra.bound_instance_array);
+    if (!su_darray_append(batch->index_array, rendr->bound.index_array)) {
+        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER,
+                             "Could not push index to batch");
+    }
+    if (!su_darray_append(batch->uniform_array_array, rendr->bound.uniform_data_array)) {
+        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER,
+                             "Could not push uniform to batch");
+    }
+    if (!su_darray_append(batch->instance_array_array, rendr->bound_extra.bound_instance_array)) {
+        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER,
+                             "Could not push instances to batch");
+    }
     rendr->batch_info.in_use++;
 }
 
@@ -337,4 +389,9 @@ SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* re
 
         rendr->batch_ptr_array[i] = drawdata;
     }
+}
+
+SA_INTERNAL void sb__renderer_init_bound_extra(struct sb_InstanceBoundExtra* bound_extra, const struct sb_RendererConfig cfg) {
+    // TODO remove magic number use a cfg member
+    bound_extra->bound_instance_array = su_darray_create(1024, sizeof(struct sb_InstanceData), su_TRUE);
 }

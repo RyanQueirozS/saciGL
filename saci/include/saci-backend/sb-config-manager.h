@@ -87,6 +87,8 @@ struct sb_ConfigManager {
             void (*get_shader_info_log)(su_U32, su_U64, int*, char*);
             void (*delete_shader)(su_U32);
 
+            void (*get_integer_v)(su_U32 pname, su_U32* params);
+
             su_U32 (*create_program)(void);
             void (*use_program)(su_U32);
             void (*attach_shader)(su_U32, su_U32);

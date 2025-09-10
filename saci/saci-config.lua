@@ -128,8 +128,49 @@ Saci_Backend = {
 
 		instance = {
 			shaders = {
-				frag = "",
-				vert = "",
+				frag = [[
+                #version 330 core
+
+                in vec4 v_color;
+                in vec2 v_texcoord;
+
+                uniform sampler2D u_texture;
+                uniform bool u_use_texture;
+
+                out vec4 frag_color;
+
+                void main()
+                {
+                    if (u_use_texture) {
+                        vec4 texcolor = texture(u_texture, v_texcoord);
+                        frag_color = texcolor * v_color;
+                    } else {
+                        frag_color = v_color;
+                    }
+                }]],
+				vert = [[
+                #version 330 core
+
+                layout (location = 0) in vec3 a_pos;
+                layout (location = 1) in vec4 a_color;
+                layout (location = 2) in vec2 a_texcoord;
+                layout (location = 3) in mat4 i_model_matrix;
+                layout (location = 7) in vec4 i_color;
+
+                uniform mat4 u_model_matrix;
+                uniform mat4 u_view_matrix;
+                uniform mat4 u_projection_matrix;
+                uniform int u_flags;
+                uniform vec4 u_lighting;
+
+                out vec4 v_color;
+                out vec2 v_texcoord;\
+                void main()
+                {
+                    gl_Position = u_projection_matrix * u_view_matrix * u_model_matrix * i_model_matrix * vec4(a_pos, 1.0);
+                    v_color = a_color + i_color;
+                    v_texcoord = a_texcoord;
+                }]],
 				geom = nil,
 			},
 			uniforms = {

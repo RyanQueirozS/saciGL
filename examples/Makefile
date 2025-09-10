@@ -13,6 +13,7 @@ CFLAGS = -Wall -Wextra -O0 -g \
 	-I../saci/deps/memory \
 	-I../saci/deps/model-loading \
 	-I../saci/deps/ryanqueirozs \
+	-DSACI_DEBUG_MODE_ALL \
 	-DSACI_LIB_PATH=\"./\" \
 	-DSACI_DEFAULT_CONFIG_PATH=\"../saci/saci-config.lua\"
 

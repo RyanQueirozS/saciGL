@@ -64,7 +64,6 @@ enum saci_ShapeType {
     saci_SHAPE_CUBE = 1,
 };
 
-// Each index is a shape so there is no need to store the shape type directly
 struct saci_ShapeDrawCall {
     su_DArray* transforms;
     su_DArray* colors;
@@ -72,6 +71,7 @@ struct saci_ShapeDrawCall {
 
 SA_INTERNAL struct saci_Context {
 
+    // Each index is a shape
     struct saci_ShapeDrawCall* shape_draw_call_array;
 
     struct saci_Windowing {
@@ -235,6 +235,7 @@ SA_INTERNAL void saci__init_windowing(
 
     su_LOG_ASSERT_MESSAGE_M(sb_proc_load(), "Could not load proc");
     sb_gl_load();
+    printf("windowing\n");
 }
 
 SA_INTERNAL void saci__init_memory(void) {
@@ -256,7 +257,7 @@ SA_INTERNAL void saci__init_memory(void) {
     const su_S32 saci_shape_amount = 10; /// TODO
     saci_context.shape_draw_call_array = su_CALLOC_M(
         saci_shape_amount,
-        sizeof(struct saci_ShapeDrawCall*));
+        sizeof(struct saci_ShapeDrawCall));
     for (su_S32 i = 0; i < saci_shape_amount; ++i) {
         saci_context.shape_draw_call_array[i] = (struct saci_ShapeDrawCall){
             .transforms = su_darray_create(1024, sizeof(su_Mat4), su_TRUE),
@@ -268,8 +269,15 @@ SA_INTERNAL void saci__init_memory(void) {
 SA_INTERNAL void saci__reset_memory(void) {
     const su_S32 saci_shape_amount = 10; /// TODO
     for (su_S32 i = 0; i < saci_shape_amount; ++i) {
-        su_darray_clear(saci_context.shape_draw_call_array[i].transforms);
-        su_darray_clear(saci_context.shape_draw_call_array[i].colors);
+        su_LOG_DEBUG_CONDITION_PRINT_M(
+            !su_darray_clear(saci_context.shape_draw_call_array[i].transforms),
+            su_LOG_DEBUG_TYPE_SACI_MAIN_MEM, su_LOG_CONTEXT_SACI_MAIN_SHAPES,
+            "Could not reset shape transform");
+
+        su_LOG_DEBUG_CONDITION_PRINT_M(
+            !su_darray_clear(saci_context.shape_draw_call_array[i].colors),
+            su_LOG_DEBUG_TYPE_SACI_MAIN_MEM, su_LOG_CONTEXT_SACI_MAIN_SHAPES,
+            "Could not reset shape color");
     }
 }
 

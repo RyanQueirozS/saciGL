@@ -4,6 +4,7 @@
 #include "saci-utils/su-debug.h"
 
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 
 /* === DArray === */
@@ -67,10 +68,15 @@ void su_darray_free(su_DArray* array) {
     array->elem_size = 0;
 }
 
-void su_darray_clear(su_DArray* array) {
-    su_LOG_ASSERT_MESSAGE_M(array, "Array is NULL");
-    su_LOG_ASSERT_MESSAGE_M(array->data, "Array data is NULL");
+su_Bool su_darray_clear(su_DArray* array) {
+    if (!array) {
+        return su_FALSE;
+    }
+    if (!array->data) {
+        return su_FALSE;
+    }
     array->length = 0;
+    return su_TRUE;
 }
 
 su_Bool su_darray_resize(su_DArray* array, su_U64 new_cap) {
@@ -116,13 +122,19 @@ void su_darray_pop(su_DArray* array) {
     array->length--;
 }
 
-void su_darray_get(const su_DArray* array, su_U64 index, void* out_value) {
-    su_LOG_ASSERT_MESSAGE_M(array, "Array is NULL");
-    su_LOG_ASSERT_MESSAGE_M(array->data, "Array data is NULL");
-    su_LOG_ASSERTF_MESSAGE_M(index < array->length,
-                             "su_DArray accessed at %lu while length is %lu", index, array->length);
+su_Bool su_darray_get(const su_DArray* array, su_U64 index, void* out_value) {
+    if (!array) {
+        return su_FALSE;
+    }
+    if (!array->data) {
+        return su_FALSE;
+    }
+    if (index >= array->length) {
+        return su_FALSE;
+    }
     const void* src = (const char*)array->data + index * array->elem_size;
     memcpy(out_value, src, array->elem_size);
+    return su_TRUE;
 }
 
 void* su_darray_get_ptr(const su_DArray* array, su_U64 index) {
@@ -153,14 +165,14 @@ su_U64 su_darray_capacity(const su_DArray* array) {
     return array->capacity;
 }
 
-void su_darray_append(su_DArray* dest, const su_DArray* src) {
+su_Bool su_darray_append(su_DArray* dest, const su_DArray* src) {
     if (!su__darray_can_append(dest, src)) {
-        return;
+        return su_FALSE;
     }
 
     su_U64 required_capacity = dest->length + src->length;
     if (!su__darray_ensure_capacity(dest, required_capacity)) {
-        return;
+        return su_FALSE;
     }
 
     void* dest_ptr = (char*)dest->data + (dest->length * dest->elem_size);
@@ -168,6 +180,7 @@ void su_darray_append(su_DArray* dest, const su_DArray* src) {
     memcpy(dest_ptr, src_ptr, src->length * src->elem_size);
 
     dest->length += src->length;
+    return su_TRUE;
 }
 
 void su_darray_debug_print(const su_DArray* arr) {

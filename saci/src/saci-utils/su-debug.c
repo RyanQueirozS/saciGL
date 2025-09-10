@@ -205,9 +205,25 @@ void su_log_debug(enum su_LogDebugType type, enum su_LogContext context,
 #endif
             break;
         }
+    case su_LOG_DEBUG_TYPE_SACI_MAIN_MEM:
+        {
+#if defined(SACI_DEBUG_MODE_ALL) || defined(SACI_DEBUG_MODE_SACI_MEM)
+            strcpy(type_str, "SACI MEM");
+            if (su_should_log_source_s) {
+                printf("DEBUG %s: [%s] %s: [FILE:%s][LINE:%d]\n",
+                       type_str, su__log_context_to_string_s(context),
+                       message, file, line);
+                return;
+            }
+            printf("DEBUG %s: [%s] %s\n",
+                   type_str, su__log_context_to_string_s(context),
+                   message);
+#endif
+            break;
+        }
     default:
         {
-            printf("INVALID DEBUG MESSAGE AT: %s : %d", __FILE__, __LINE__);
+            printf("INVALID DEBUG MESSAGE AT: %s : %d", file, line);
             exit(1);
         }
     }

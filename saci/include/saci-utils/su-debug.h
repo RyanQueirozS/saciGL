@@ -56,6 +56,7 @@ enum su_LogDebugType {
     su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
     su_LOG_DEBUG_TYPE_RENDERER_BATCH,
     su_LOG_DEBUG_TYPE_RENDERER_CALL,
+    su_LOG_DEBUG_TYPE_SACI_MAIN_MEM,
 };
 
 /**
@@ -181,7 +182,8 @@ void su_log_debug(enum su_LogDebugType type, enum su_LogContext context,
       } while (0)
 
 #else
-#  define su_LOG_DEBUG_CONDITION_PRINT_M(condition, debug_type, context, message)
+#  define su_LOG_DEBUG_CONDITION_PRINT_M(condition, debug_type, context, message) \
+      (void)(condition)
 #endif
 
 /**

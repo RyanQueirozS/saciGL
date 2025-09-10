@@ -178,19 +178,19 @@ void sb_gl_enable_vertex_attrib_array(su_U32 id) {
 
 SA_INTERNAL su_U32 sb__shader_compile(const char* shader_source, su_U32 shader_type);
 
-su_U32 sb_shader_compile_shader_vert(const char* source) {
+su_U32 sb_gl_shader_compile_shader_vert(const char* source) {
     return sb__shader_compile(source, GL_VERTEX_SHADER);
 }
 
-su_U32 sb_shader_compile_shader_frag(const char* source) {
+su_U32 sb_gl_shader_compile_shader_frag(const char* source) {
     return sb__shader_compile(source, GL_FRAGMENT_SHADER);
 }
 
-su_U32 sb_shader_compile_shader_geom(const char* source) {
+su_U32 sb_gl_shader_compile_shader_geom(const char* source) {
     return sb__shader_compile(source, GL_GEOMETRY_SHADER);
 }
 
-su_U32 sb_shader_create_shader_program(su_U32 vshader, su_U32 fshader) {
+su_U32 sb_gl_shader_create_shader_program(su_U32 vshader, su_U32 fshader) {
     su_U32 program_id = gl_funcs.gl.create_program();
     gl_funcs.gl.attach_shader(program_id, vshader);
     gl_funcs.gl.attach_shader(program_id, fshader);
@@ -215,7 +215,7 @@ su_U32 sb_shader_create_shader_program(su_U32 vshader, su_U32 fshader) {
     return program_id;
 }
 
-su_U32 sb_shader_create_shader_program_geom(su_U32 vshader, su_U32 fshader, su_U32 gshader) {
+su_U32 sb_gl_shader_create_shader_program_geom(su_U32 vshader, su_U32 fshader, su_U32 gshader) {
     su_U32 program_id = gl_funcs.gl.create_program();
     gl_funcs.gl.attach_shader(program_id, vshader);
     gl_funcs.gl.attach_shader(program_id, fshader);

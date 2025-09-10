@@ -131,6 +131,7 @@ struct sb_InstanceBoundExtra {
 
 struct sb_InstanceRenderer {
     union sb_GFXInfo gfx;
+    struct sb_RendererConfig cfg;
     struct sb_InstanceBoundExtra bound_extra;
     su_BufferId instance_transform_vbo;
     su_BufferId instance_color_vbo;
