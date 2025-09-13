@@ -58,12 +58,12 @@ void sb_renderer_instanced_new(sb_Renderer* self) {
     self->interface = &sc_INSTANCE_RENDERER_DEFAULT_INTERFACE;
     struct sb_RendererConfig cfg = sb_CFG_DEFAULT_INSTANCE;
     sb_cfg_manager_get_renderer(su_string_create("instance", su_REALLOCATION_KIND_FIXED_SIZE), &cfg);
-    sb_gfx_init_shader(&rendr->gfx, cfg);
+    sb_init_shaders(&cfg, &rendr->gfx);
     sb__renderer_instance_fill_default(&cfg, &rendr->gfx);
     rendr->cfg = cfg;
     sb__renderer_init_instance_batch(rendr);
     sb_gfx_create(&rendr->gfx, cfg);
-    sb_renderer_init_bound(&rendr->bound, &rendr->bound_info, cfg);
+    sb_renderer_init_bound(&rendr->bound, cfg);
     sb__renderer_init_bound_extra(&rendr->bound_extra, cfg);
 }
 
@@ -105,7 +105,7 @@ SA_INTERNAL void sb__renderer_instance_begin(const struct sb_Renderer* self) {
     self->rendr.instance_renderer->bound.texture = sb_TEXTURE_INVALID;
 
     self->rendr.instance_renderer->batch_info.in_use = 0;
-    for (su_U8 i = 0; i < self->rendr.instance_renderer->batch_info.batch_capacity; ++i) {
+    for (su_U8 i = 0; i < self->rendr.instance_renderer->cfg.batch.capacity; ++i) {
         struct sb_GFXDrawData* batch = self->rendr.instance_renderer->batch_ptr_array[i];
         for (int j = 0; j < SACI_MAX_TEXTURES; ++j) {
             batch->texture_array[j].gl_texture.texture = sb_TEXTURE_INVALID;
@@ -282,8 +282,8 @@ SA_INTERNAL void sb__renderer_draw_instance_batch(const struct sb_Renderer* self
 }
 
 SA_INTERNAL void sb__init_instance_buffers(struct sb_RendererConfig* cfg_out) {
-    if (!cfg_out->batch.instance_cfg.buffer_array) {
-        cfg_out->batch.instance_cfg.buffer_array =
+    if (!cfg_out->instance_data.buffer_array) {
+        cfg_out->instance_data.buffer_array =
             su_darray_create(1, sizeof(struct sb_RendererCfgInstanceBuffer), su_TRUE);
 
         struct sb_RendererCfgInstanceBufferLayout model_mat = {
@@ -306,7 +306,7 @@ SA_INTERNAL void sb__init_instance_buffers(struct sb_RendererConfig* cfg_out) {
 
         su_darray_push(buffer.layout_array, &model_mat);
         su_darray_push(buffer.layout_array, &color);
-        su_darray_push(cfg_out->batch.instance_cfg.buffer_array, &buffer);
+        su_darray_push(cfg_out->instance_data.buffer_array, &buffer);
     }
 }
 
@@ -314,32 +314,28 @@ SA_INTERNAL void sb__renderer_instance_fill_default(struct sb_RendererConfig* cf
     sb_init_uniforms(cfg_out, gfx_info);
     sb_init_samplers(cfg_out, gfx_info);
     sb_init_vertex_layout(cfg_out);
-    sb_init_shaders(cfg_out);
     sb__init_instance_buffers(cfg_out);
 }
 
 SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* rendr) {
-    struct sb_InstanceBatchInfo instance_info = rendr->batch_info;
-    struct sb_RendererBoundInfo bound_info = rendr->bound_info;
+    struct sb_RendererConfig cfg = rendr->cfg;
 
-    su_U64 index_size = instance_info.index_array_capacity * sizeof(su_U32);
-    su_U64 vertex_size = instance_info.vertex_array_capacity * sizeof(struct sb_Vertex);
-    su_U64 instance_size = instance_info.transform_array_capacity * sizeof(struct sb_InstanceData);
-    su_U64 uniform_size = bound_info.uniform_array_capacity * sizeof(struct sb_GFXUniformData);
+    su_U64 index_size = cfg.index_data.element_size_internal * sizeof(su_U32);
+    su_U64 vertex_size = cfg.vertex_data.element_size_internal * sizeof(struct sb_Vertex);
+    su_U64 instance_size = 96 * sizeof(struct sb_InstanceData); // TODO
+    su_U64 uniform_size = cfg.bound.uniform_cfg.capacity * sizeof(struct sb_GFXUniformData);
 
     su_U64 batch_arena_element_size =
         index_size + vertex_size + instance_size + uniform_size +
         sizeof(struct sb_GFXDrawData);
 
-    rendr->batch_info.batch_struct_allocation_size = batch_arena_element_size;
-
-    rendr->batch_ptr_array = su_CALLOC_M(instance_info.batch_capacity, sizeof(struct sb_GFXDrawData*));
+    rendr->batch_ptr_array = su_CALLOC_M(cfg.batch.capacity, sizeof(struct sb_GFXDrawData*));
 
     ArenaInit(
         &rendr->batch_arena,
-        batch_arena_element_size * instance_info.batch_capacity + 1024);
+        batch_arena_element_size * cfg.batch.capacity + 1024);
 
-    for (su_U8 i = 0; i < instance_info.batch_capacity; ++i) {
+    for (su_U8 i = 0; i < cfg.batch.capacity; ++i) {
         void* drawdata_mem = ArenaPush(&rendr->batch_arena, sizeof(struct sb_GFXDrawData));
         void* index_mem = ArenaPush(&rendr->batch_arena, index_size);
         void* vertex_mem = ArenaPush(&rendr->batch_arena, vertex_size);
@@ -351,35 +347,60 @@ SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* re
         drawdata->vertex_array = su_darray_create_ctx(
             vertex_mem,
             vertex_size + su_SIZE_OF_DARRAY,
-            instance_info.vertex_array_capacity,
+            cfg.batch.vertex_cfg.capacity,
             sizeof(struct sb_Vertex),
-            su_TRUE);
+            cfg.batch.vertex_cfg.fixed_size);
         drawdata->vertex_struct_size = sizeof(struct sb_Vertex);
+        if (!drawdata->vertex_array) {
+            su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH,
+                                 su_LOG_CONTEXT_RENDERER,
+                                 "Could not create a batch's vertex array");
+            su_FORCE_CRASH("Could not allocate for darray", su_CRASH_RESOURCE_LOAD);
+        }
 
         drawdata->index_array = su_darray_create_ctx(
             index_mem,
             index_size + su_SIZE_OF_DARRAY,
-            instance_info.index_array_capacity,
+            cfg.batch.index_cfg.capacity,
             sizeof(su_U32),
-            su_TRUE);
+            cfg.batch.index_cfg.fixed_size);
         drawdata->index_struct_size = sizeof(su_U32);
+        if (!drawdata->index_array) {
+            su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH,
+                                 su_LOG_CONTEXT_RENDERER,
+                                 "Could not create a batch's index array");
+            su_FORCE_CRASH("Could not allocate for darray", su_CRASH_RESOURCE_LOAD);
+        }
 
         drawdata->instance_array_array = su_darray_create_ctx(
             instance_mem,
             instance_size + su_SIZE_OF_DARRAY,
-            instance_info.transform_array_capacity,
+            cfg.batch.instance_cfg.capacity,
             sizeof(struct sb_InstanceData),
-            su_TRUE);
-        drawdata->instance_location_array = NULL; // optional
+            cfg.batch.instance_cfg.fixed_size);
+        drawdata->instance_location_array = NULL; // TODO
         drawdata->instance_struct_size = sizeof(struct sb_InstanceData);
+        if (!drawdata->instance_array_array) {
+            su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH,
+                                 su_LOG_CONTEXT_RENDERER,
+                                 "Could not create a batch's instance array");
+            su_FORCE_CRASH("Could not allocate for darray", su_CRASH_RESOURCE_LOAD);
+        }
 
         drawdata->uniform_array_array = su_darray_create_ctx(
             uniform_mem,
             uniform_size + su_SIZE_OF_DARRAY,
-            bound_info.uniform_array_capacity,
+            cfg.bound.uniform_cfg.capacity,
             sizeof(struct sb_GFXUniformData),
             su_TRUE);
         drawdata->uniform_location_array = NULL;
+        printf("%lu\n", cfg.bound.uniform_cfg.capacity);
+        if (!drawdata->uniform_array_array) {
+            su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH,
+                                 su_LOG_CONTEXT_RENDERER,
+                                 "Could not create a batch's uniform array");
+            su_FORCE_CRASH("Could not allocate for darray", su_CRASH_RESOURCE_LOAD);
+        }
 
         for (su_U32 t = 0; t < SACI_MAX_TEXTURES; ++t) {
             // TODO when changing renderer api

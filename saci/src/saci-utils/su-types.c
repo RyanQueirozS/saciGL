@@ -43,10 +43,14 @@ su_DArray* su_darray_create_ctx(void* memctx, su_U64 memctx_size, su_U64 capacit
     su_U64 data_size = capacity * elem_size;
     su_U64 total_size = struct_size + data_size;
 
-    su_LOG_ASSERTF_MESSAGE_M(memctx && memctx_size >= total_size,
-                             "Memory context is too small for su_DArray and its "
-                             "data. Passed: (%lu) expected min: (%lu)",
-                             memctx_size, total_size);
+    if (memctx && memctx_size >= total_size) {
+        su_LOG_ERRORF_PRINT_M(
+            su_LOG_SEVERITY_MEDIUM,
+            su_LOG_CONTEXT_MEMORY,
+            "Memory context is too small for su_DArray and its data. Passed: (%lu) expected min: (%lu)",
+            memctx_size, total_size);
+        return NULL;
+    }
 
     su_DArray* array = (su_DArray*)memctx;
 

@@ -48,8 +48,6 @@ SA_INTERNAL su_Bool sb__cfg_manager_load_render_loader(sb_ConfigState* lua_state
 
 SA_INTERNAL su_Bool sb__cfg_manager_load_window_api(sb_ConfigState* lua_state);
 
-SA_INTERNAL su_DataType sb__parse_type(su_S64 val);
-
 /* === Header impl === */
 
 SA_INTERNAL struct sb_ConfigManager sb_cfg_manager = sb_CFG_MANAGER_DEFAULT;
@@ -229,6 +227,36 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
     }
 
     {
+        if (sb_config_push_field_table(lua_state, "vertex")) {
+
+            if (sb_config_push_field_array(lua_state, "layout")) {
+                su_U64 count = sb_config_get_array_length(lua_state);
+                cfg_out->vertex_data.layout_array = su_darray_create(count, sizeof(struct sb_RendererCfgVertexLayout), su_TRUE);
+                for (su_U64 i = 0; i < count; ++i) {
+                    if (sb_config_push_array_entry(lua_state, i)) {
+                        struct sb_RendererCfgVertexLayout layout = {
+                            .name = su_string_create(sb_config_get_str(lua_state, "name"), su_REALLOCATION_KIND_FIXED_SIZE),
+                            .type = su_SCAST_TO_M(su_DataType)(sb_config_get_enum(lua_state, "type")),
+                            .offset = sb_config_get_uint64(lua_state, "offset"),
+                            .location = sb_config_get_uint64(lua_state, "location"),
+                        };
+                        cfg_out->vertex_data.element_size_internal += su_SIZE_OF_TYPE[sb_config_get_enum(lua_state, "type")];
+                        su_darray_push(cfg_out->vertex_data.layout_array, &layout);
+                        sb_config_pop(lua_state, 1);
+                    }
+                }
+                sb_config_pop(lua_state, 1);
+            }
+            sb_config_pop(lua_state, 1);
+        }
+    }
+    {
+        if (sb_config_push_field_table(lua_state, "index")) {
+            cfg_out->index_data.element_size_internal = su_SCAST_TO_M(su_DataType)(sb_config_get_enum(lua_state, "element_type"));
+            sb_config_pop(lua_state, 1);
+        }
+    }
+    {
         if (sb_config_push_field_table(lua_state, "shaders")) {
             cfg_out->shaders.frag = su_string_create(sb_config_get_str(lua_state, "frag"), su_REALLOCATION_KIND_FIXED_SIZE);
             cfg_out->shaders.vert = su_string_create(sb_config_get_str(lua_state, "vert"), su_REALLOCATION_KIND_FIXED_SIZE);
@@ -248,7 +276,7 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
                 if (sb_config_push_array_entry(lua_state, i)) {
                     struct sb_RendererCfgUniform uniform = {
                         .name = su_string_create(sb_config_get_str(lua_state, "name"), su_REALLOCATION_KIND_FIXED_SIZE),
-                        .type = sb__parse_type(sb_config_get_enum(lua_state, "type")),
+                        .type = su_SCAST_TO_M(su_DataType)(sb_config_get_enum(lua_state, "type")),
                         .location = su_SCAST_TO_M(su_S32)(sb_config_get_uint32(lua_state, "location")),
                     };
                     su_darray_push(cfg_out->uniform_array, &uniform);
@@ -268,8 +296,8 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
                 if (sb_config_push_array_entry(lua_state, i)) {
                     struct sb_RendererCfgSampler sampler = {
                         .name = su_string_create(sb_config_get_str(lua_state, "name"), su_REALLOCATION_KIND_FIXED_SIZE),
-                        .type = sb__parse_type(sb_config_get_enum(lua_state, "type")),
-                        .binding = su_SCAST_TO_M(su_S32)(sb_config_get_uint64(lua_state, "binding")),
+                        .type = su_SCAST_TO_M(su_DataType)(sb_config_get_enum(lua_state, "type")),
+                        .binding = su_SCAST_TO_M(su_S32)(sb_config_get_uint32(lua_state, "binding")),
                     };
                     su_darray_push(cfg_out->sampler_array, &sampler);
                     sb_config_pop(lua_state, 1);
@@ -286,30 +314,11 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
             if (sb_config_push_field_table(lua_state, "index")) {
                 cfg_out->batch.index_cfg.capacity = sb_config_get_uint64(lua_state, "capacity");
                 cfg_out->batch.index_cfg.fixed_size = sb_config_get_bool(lua_state, "fixed_capacity");
-                cfg_out->batch.index_cfg.element_size = sb_config_get_uint64(lua_state, "element_byte_size");
                 sb_config_pop(lua_state, 1);
             }
             if (sb_config_push_field_table(lua_state, "vertex")) {
                 cfg_out->batch.index_cfg.capacity = sb_config_get_uint64(lua_state, "capacity");
                 cfg_out->batch.index_cfg.fixed_size = sb_config_get_bool(lua_state, "fixed_capacity");
-                cfg_out->batch.index_cfg.element_size = sb_config_get_uint64(lua_state, "element_byte_size");
-                if (sb_config_push_field_array(lua_state, "layout")) {
-                    su_U64 count = sb_config_get_array_length(lua_state);
-                    cfg_out->batch.vertex_cfg.vertex_layout_array = su_darray_create(count, sizeof(struct sb_RendererCfgVertexLayout), su_TRUE);
-                    for (su_U64 i = 0; i < count; ++i) {
-                        if (sb_config_push_array_entry(lua_state, i)) {
-                            struct sb_RendererCfgVertexLayout layout = {
-                                .name = su_string_create(sb_config_get_str(lua_state, "name"), su_REALLOCATION_KIND_FIXED_SIZE),
-                                .type = sb__parse_type(sb_config_get_enum(lua_state, "type")),
-                                .offset = sb__parse_type(sb_config_get_enum(lua_state, "offset")),
-                                .location = sb_config_get_uint64(lua_state, "location"),
-                            };
-                            su_darray_push(cfg_out->batch.vertex_cfg.vertex_layout_array, &layout);
-                            sb_config_pop(lua_state, 1);
-                        }
-                    }
-                    sb_config_pop(lua_state, 1);
-                }
             }
             if (sb_config_push_field_table(lua_state, "draw")) {
                 cfg_out->draw = (struct sb_RendererCfgDraw){
@@ -415,10 +424,6 @@ SA_INTERNAL su_Bool sb__cfg_manager_load_window_api(sb_ConfigState* lua_state) {
 
     sb_config_pop(lua_state, 1); // pop window_api table
     return true;
-}
-
-SA_INTERNAL su_DataType sb__parse_type(su_S64 val) {
-    return su_SCAST_TO_M(su_DataType)(val);
 }
 
 SA_INTERNAL void sb__cfg_manager_load_handles(void) {

@@ -59,6 +59,24 @@ enum su_LogDebugType {
     su_LOG_DEBUG_TYPE_SACI_MAIN_MEM,
 };
 
+typedef enum {
+    su_CRASH_UNKNOWN = 1,
+    su_CRASH_INIT_FAILURE = 2,
+    su_CRASH_RESOURCE_LOAD = 3,
+    su_CRASH_OUT_OF_MEMORY = 4,
+    su_CRASH_INVALID_POINTER = 5,
+    su_CRASH_FILE_IO = 6,
+    su_CRASH_RENDERING = 7,
+    su_CRASH_PHYSICS = 8,
+    su_CRASH_NETWORK = 9,
+    su_CRASH_SCRIPT = 10,
+    su_CRASH_THREADING = 11,
+    su_CRASH_ASSERTION = 12,
+    su_CRASH_CONFIGURATION = 13,
+    su_CRASH_PLATFORM_API = 14,
+    su_CRASH_PLUGIN = 15
+} su_CrashCode;
+
 /**
  * @brief su_log_should_print_origin Enables or disables origin printing,
  * default is false, unless in debug mode
@@ -327,6 +345,14 @@ void su_log_debug(enum su_LogDebugType type, enum su_LogContext context,
       do {                                       \
       } while (0)
 #endif
+
+#define su_FORCE_CRASH(message, crash_code)                        \
+    do {                                                           \
+        fprintf(stderr, "CRASH: [%d] %s at %d:%s\n",               \
+                (int)(crash_code), (message), __LINE__, __FILE__); \
+        fflush(stderr);                                            \
+        abort();                                                   \
+    } while (0)
 
 // TODO doc
 void su_log_opengl_debug_message_callback(su_U32 source, su_U32 type, su_U32 id, su_U32 severity, int length, const char* msg, const void* data);

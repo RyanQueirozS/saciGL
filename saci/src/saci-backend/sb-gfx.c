@@ -77,7 +77,6 @@ void sb_gfx_create(union sb_GFXInfo* info_out, const struct sb_RendererConfig cf
 }
 
 void sb_gfx_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* data) {
-    printf("reached\n");
     switch (render_api) {
     case sb_RENDERER_API_OPENGL:
         sb__gfx_gl_draw(gfx_info, data);
@@ -155,11 +154,11 @@ SA_INTERNAL void sb__gfx_gl_init_info(union sb_GFXInfo* info_out, const struct s
     su_LOG_ASSERT_MESSAGE_M(cfg.batch.vertex_cfg.capacity, "Vertex capacity is not set");
 
     info_out->gl_data.vbo = sb_gl_create_vertex_buffer_dynamic(
-        cfg.batch.vertex_cfg.capacity * cfg.batch.vertex_cfg.struct_size,
+        cfg.batch.vertex_cfg.capacity * cfg.vertex_data.element_size_internal,
         NULL);
 
     info_out->gl_data.ibo = sb_gl_create_index_buffer_dynamic(
-        cfg.batch.index_cfg.capacity * cfg.batch.index_cfg.element_size,
+        cfg.batch.index_cfg.capacity * cfg.index_data.element_size_internal,
         NULL);
 
     sb_gl_create_vertex_array(1, &info_out->gl_data.vao);
@@ -168,10 +167,10 @@ SA_INTERNAL void sb__gfx_gl_init_info(union sb_GFXInfo* info_out, const struct s
         sb_gl_bind_vertex_array(info_out->gl_data.vao);
         sb_gl_bind_vertex_buffer(info_out->gl_data.vbo);
 
-        for (su_U64 i = 0; i < su_darray_length(cfg.batch.vertex_cfg.vertex_layout_array); ++i) {
+        for (su_U64 i = 0; i < su_darray_length(cfg.vertex_data.layout_array); ++i) {
             struct sb_RendererCfgVertexLayout layout;
-            su_darray_get(cfg.batch.vertex_cfg.vertex_layout_array, 0, &layout);
-            sb_gl_set_vertex_attrib_pointer(0, 3, GL_FLOAT, GL_FALSE, cfg.batch.vertex_cfg.struct_size,
+            su_darray_get(cfg.vertex_data.layout_array, 0, &layout);
+            sb_gl_set_vertex_attrib_pointer(0, 3, GL_FLOAT, GL_FALSE, cfg.vertex_data.element_size_internal,
                                             su_SCAST_TO_M(void*)(layout.offset));
             sb_gl_enable_vertex_attrib_array(su_SCAST_TO_M(su_U32)(i));
         }
@@ -206,10 +205,10 @@ SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct 
                 continue;
             }
             instance_count = su_darray_length(instance_array);
-            su_U32 loc = su_SCAST_TO_M(su_U32)(su_darray_get_ptr(data->instance_location_array, i));
+            su_U32* loc = su_SCAST_TO_M(su_U32*)(su_darray_get_ptr(data->instance_location_array, i));
             su_U64 elm_size = su_darray_get_elem_size(instance_array);
 
-            render_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, loc);
+            render_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, *loc);
             render_funcs.gl.buffer_subdata(sb_GL_ARRAY_BUFFER, 0,
                                            su_SCAST_TO_M(long int)(elm_size * su_darray_length(instance_array)),
                                            su_darray_get_ptr(instance_array, 0));

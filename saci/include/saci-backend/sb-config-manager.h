@@ -156,12 +156,6 @@ SA_INTERNAL_CONST struct sb_ConfigManager sb_CFG_MANAGER_DEFAULT = {
     },
 };
 
-struct sb_RendererCfgShaderCode {
-    su_String* frag;
-    su_String* vert;
-    su_String* geom;
-};
-
 struct sb_RendererCfgUniform {
     su_String* name; // Debug
     su_DataType type;
@@ -175,24 +169,11 @@ struct sb_RendererCfgSampler {
     su_U64 unit;
 };
 
-struct sb_RendererCfgIndex {
-    su_U64 capacity;
-    su_Bool fixed_size;
-    su_U64 element_size;
-};
-
 struct sb_RendererCfgVertexLayout {
     su_String* name;
     su_DataType type;
     su_U64 offset;
     su_U64 location;
-};
-
-struct sb_RendererCfgVertex {
-    su_U64 capacity;
-    su_Bool fixed_size;
-    su_U64 struct_size;
-    su_DArray* vertex_layout_array;
 };
 
 struct sb_RendererCfgInstanceBufferLayout {
@@ -204,22 +185,41 @@ struct sb_RendererCfgInstanceBufferLayout {
 
 struct sb_RendererCfgInstanceBuffer {
     su_String* name;
-    su_DArray* layout_array;
-};
-
-struct sb_RendererCfgInstance {
-    su_U64 capacity;
-    su_Bool fixed_size;
-    su_DArray* buffer_array;
+    su_U64 size_byte_internal;
+    su_DArray* layout_array; // sb_RendererCfgInstanceBufferLayout
 };
 
 struct sb_RendererCfgBatch {
     su_U64 capacity;
     su_Bool fixed_capacity;
 
-    struct sb_RendererCfgIndex index_cfg;
-    struct sb_RendererCfgVertex vertex_cfg;
-    struct sb_RendererCfgInstance instance_cfg;
+    struct {
+        su_U64 capacity;
+        su_Bool fixed_size;
+    } index_cfg;
+    struct {
+        su_U64 capacity;
+        su_Bool fixed_size;
+    } vertex_cfg;
+    struct {
+        su_U64 capacity;
+        su_Bool fixed_size;
+    } instance_cfg;
+};
+
+struct sb_RendererCfgBound {
+    struct {
+        su_U64 capacity;
+        su_Bool fixed_size;
+    } index_cfg;
+    struct {
+        su_U64 capacity;
+        su_Bool fixed_size;
+    } instance_cfg;
+    struct {
+        su_U64 capacity;
+        su_Bool fixed_size;
+    } uniform_cfg;
 };
 
 enum sb_RendererPrimitives {
@@ -252,10 +252,29 @@ struct sb_RendererCfgPipeline {
 
 struct sb_RendererConfig {
     su_String* name; // Debug
-    struct sb_RendererCfgShaderCode shaders;
+    struct {
+        su_String* frag;
+        su_String* vert;
+        su_String* geom;
+    } shaders;
     su_DArray* uniform_array;
     su_DArray* sampler_array;
+
+    struct {
+        su_U64 element_size_internal;
+        su_DArray* layout_array;
+    } vertex_data;
+
+    struct {
+        su_U64 element_size_internal;
+    } index_data;
+
+    struct {
+        su_DArray* buffer_array; // sb_RendererCfgInstanceBuffer
+    } instance_data;
+
     struct sb_RendererCfgBatch batch;
+    struct sb_RendererCfgBound bound;
     struct sb_RendererCfgDraw draw;
     struct sb_RendererCfgPipeline pipeline;
 };

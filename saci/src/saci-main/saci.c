@@ -235,7 +235,6 @@ SA_INTERNAL void saci__init_windowing(
 
     su_LOG_ASSERT_MESSAGE_M(sb_proc_load(), "Could not load proc");
     sb_gl_load();
-    printf("windowing\n");
 }
 
 SA_INTERNAL void saci__init_memory(void) {

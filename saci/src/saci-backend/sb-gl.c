@@ -279,7 +279,6 @@ SA_INTERNAL su_U32 sb__shader_compile(const char* shader_source, su_U32 shader_t
         }
         return 0;
     }
-    printf("4\n");
     {
         // TODO redo
         char* log_message = "";

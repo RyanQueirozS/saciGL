@@ -96,37 +96,18 @@ Saci_base = {
 
 Saci_Backend = {
 	renderers = {
-		static = {
-			shaders = {
-				frag = "",
-				vert = "",
-				geom = nil,
-			},
-			uniforms = {
-				{
-					name = "name",
-					type = Saci_Types.VEC3,
-					location = 0,
-				},
-			},
-			batch = {
-				capacity = 10,
-				fixed_capacity = true,
-
-				index = {
-					capacity = 1000,
-					fixed_capacity = true,
-					element_byte_size = 4,
-				},
-				vertex = {
-					capacity = 1000,
-					fixed_capacity = true,
-					element_byte_size = 32,
-				},
-			},
-		},
-
 		instance = {
+			vertex = {
+				layout = {
+					{ name = "position", type = Saci_Types.VEC3, offset = 0, location = 0 },
+					{ name = "normal", type = Saci_Types.VEC3, offset = 12, location = 1 },
+					{ name = "uv", type = Saci_Types.VEC2, offset = 24, location = 2 },
+				},
+			},
+			index = {
+				element_type = Saci_Types.U32,
+			},
+
 			shaders = {
 				frag = [[
                 #version 330 core
@@ -190,22 +171,14 @@ Saci_Backend = {
 				index = {
 					capacity = 1000,
 					fixed_capacity = true,
-					element_byte_size = 4,
 				},
 				vertex = {
 					capacity = 1000,
 					fixed_capacity = true,
-					element_byte_size = 32,
-					layout = {
-						{ name = "position", type = Saci_Types.VEC3, offset = 0, location = 0 },
-						{ name = "normal", type = Saci_Types.VEC3, offset = 12, location = 1 },
-						{ name = "uv", type = Saci_Types.VEC2, offset = 24, location = 2 },
-					},
 				},
 				instances = {
 					capacity = 10,
 					fixed_capacity = true,
-					element_byte_size = 123123,
 					buffers = {
 						{
 							name = "buffer 1",

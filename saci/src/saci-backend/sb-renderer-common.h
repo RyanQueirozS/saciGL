@@ -46,23 +46,6 @@ struct sb_UniformArrayInfo {
     su_Bool is_fixed_size;
 };
 
-struct sb_RendererBoundInfo {
-    su_U64 index_array_capacity;
-
-    su_U64 uniform_array_capacity;
-};
-
-struct sb_InstanceBatchInfo {
-    su_U64 vertex_array_capacity;
-    su_U64 index_array_capacity;
-    su_U64 uniform_array_capacity;
-    su_U64 transform_array_capacity;
-
-    su_U64 batch_struct_allocation_size;
-    su_U8 batch_capacity;
-    su_U8 in_use;
-};
-
 struct sb_InstanceBatchConfig {
     struct sb_IndexArrayInfo index_info;
 
@@ -114,7 +97,6 @@ struct sb_StaticRenderer {
 
     struct sb_StaticBatchInfo batch_info;
     struct sb_StaticBatch** batch_ptr_array;
-    struct sb_RendererBoundInfo bound_info;
 
     struct sb_RendererBound bound;
     Arena batch_arena;
@@ -136,11 +118,14 @@ struct sb_InstanceRenderer {
     su_BufferId instance_transform_vbo;
     su_BufferId instance_color_vbo;
 
-    struct sb_InstanceBatchInfo batch_info;
     struct sb_GFXDrawData** batch_ptr_array;
-    struct sb_RendererBoundInfo bound_info;
 
     struct sb_RendererBound bound;
+
+    struct {
+        su_U8 in_use;
+    } batch_info;
+
     Arena batch_arena;
 };
 
@@ -176,11 +161,7 @@ struct sb_Renderer {
 
 #define sb_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY su_SCAST_TO_M(su_U64)(sb_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY * 6 / 4)
 
-#define sb_RENDERER_DEFAULT_BATCH_INDEX_IS_FIXED_SIZE su_TRUE
-
 #define sb_RENDERER_DEFAULT_BATCH_INDEX_ELEMENT_SIZE sizeof(su_U32)
-
-#define sb_RENDERER_DEFAULT_BATCH_VERTEX_IS_FIXED_SIZE su_TRUE
 
 #define sb_RENDERER_DEFAULT_BATCH_VERTEX_STRUCT_SIZE sizeof(struct sb_Vertex)
 
@@ -188,15 +169,9 @@ struct sb_Renderer {
 
 #define sb_RENDERER_DEFAULT_UNIFORM_CAPACITY 1024
 
+#define sb_RENDERER_DEFAULT_BOUND_UNIFORM_CAPACITY sb_RENDERER_DEFAULT_UNIFORM_CAPACITY
+
 #define sb_RENDERER_DEFAULT_BATCH_CAPACITY (10)
-
-#define sb_RENDERER_DEFAULT_BATCH_IS_FIXED_SIZE su_TRUE
-
-#define sb_RENDERER_DEFAULT_INDEX_IS_FIXED_SIZE su_TRUE
-
-#define sb_RENDERER_DEFAULT_VERTEX_IS_FIXED_SIZE su_TRUE
-
-#define sb_RENDERER_DEFAULT_UNIFORM_IS_FIXED_SIZE su_TRUE
 
 #define sb_RENDERER_DEFAULT_DEPTH_TEST su_TRUE
 
@@ -206,12 +181,7 @@ struct sb_Renderer {
 
 #define sb_RENDERER_DEFAULT_INSTANCE_CAPACITY 1024
 
-#define SB_RENDERER_DEFAULT_INSTANCE_IS_FIXED_SIZE su_TRUE
-
-// TODO needs to be evaluated
-#define sb_RENDERER_DEFAULT_INSTANCE_TRANSFORM_ARRAY_SIZE 1024
-
-#define sb_RENDERER_DEFAULT_INSTANCE_TRANSFORM_IS_FIXED_SIZE su_TRUE
+#define sb_RENDERER_DEFAULT_BOUND_INSTANCE_CAPACITY sb_RENDERER_DEFAULT_INSTANCE_CAPACITY
 
 #define sb_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH (300)
 
@@ -222,21 +192,28 @@ SA_INTERNAL const struct sb_RendererConfig sb_CFG_DEFAULT = {
         .geom = NULL,
         .vert = NULL,
     },
+    .vertex_data = {
+        .element_size_internal = sb_RENDERER_DEFAULT_BATCH_VERTEX_STRUCT_SIZE,
+        .layout_array = NULL,
+    },
+    .index_data = {
+        .element_size_internal = sb_RENDERER_DEFAULT_BATCH_INDEX_ELEMENT_SIZE,
+    },
+    .instance_data = {
+        .buffer_array = NULL,
+    },
     .uniform_array = NULL,
     .sampler_array = NULL,
     .batch = {
         .capacity = sb_RENDERER_DEFAULT_BATCH_CAPACITY,
-        .fixed_capacity = sb_RENDERER_DEFAULT_BATCH_IS_FIXED_SIZE,
+        .fixed_capacity = su_TRUE,
         .index_cfg = {
             .capacity = sb_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY,
-            .fixed_size = sb_RENDERER_DEFAULT_BATCH_INDEX_IS_FIXED_SIZE,
-            .element_size = sb_RENDERER_DEFAULT_BATCH_INDEX_ELEMENT_SIZE,
+            .fixed_size = su_TRUE,
         },
         .vertex_cfg = {
             .capacity = sb_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY,
-            .fixed_size = sb_RENDERER_DEFAULT_BATCH_VERTEX_IS_FIXED_SIZE,
-            .struct_size = sb_RENDERER_DEFAULT_BATCH_VERTEX_STRUCT_SIZE,
-            .vertex_layout_array = NULL,
+            .fixed_size = su_TRUE,
         },
     },
     .draw = {
@@ -262,24 +239,41 @@ SA_INTERNAL const struct sb_RendererConfig sb_CFG_DEFAULT_INSTANCE = {
     },
     .uniform_array = NULL,
     .sampler_array = NULL,
+    .vertex_data = {
+        .element_size_internal = sb_RENDERER_DEFAULT_BATCH_VERTEX_STRUCT_SIZE,
+        .layout_array = NULL,
+    },
+    .index_data = {
+        .element_size_internal = sb_RENDERER_DEFAULT_BATCH_INDEX_ELEMENT_SIZE,
+    },
+    .bound = {
+        .index_cfg = {
+            .capacity = sb_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY,
+            .fixed_size = su_TRUE,
+        },
+        .uniform_cfg = {
+            .capacity = sb_RENDERER_DEFAULT_BOUND_UNIFORM_CAPACITY,
+            .fixed_size = su_TRUE,
+        },
+        .instance_cfg = {
+            .capacity = sb_RENDERER_DEFAULT_BOUND_INSTANCE_CAPACITY,
+            .fixed_size = su_TRUE,
+        },
+    },
     .batch = {
         .capacity = sb_RENDERER_DEFAULT_BATCH_CAPACITY,
-        .fixed_capacity = sb_RENDERER_DEFAULT_BATCH_IS_FIXED_SIZE,
+        .fixed_capacity = su_TRUE,
         .index_cfg = {
             .capacity = sb_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY,
-            .fixed_size = sb_RENDERER_DEFAULT_BATCH_INDEX_IS_FIXED_SIZE,
-            .element_size = sb_RENDERER_DEFAULT_BATCH_INDEX_ELEMENT_SIZE,
+            .fixed_size = su_TRUE,
         },
         .vertex_cfg = {
             .capacity = sb_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY,
-            .fixed_size = sb_RENDERER_DEFAULT_BATCH_VERTEX_IS_FIXED_SIZE,
-            .struct_size = sb_RENDERER_DEFAULT_BATCH_VERTEX_STRUCT_SIZE,
-            .vertex_layout_array = NULL,
+            .fixed_size = su_TRUE,
         },
         .instance_cfg = {
             .capacity = sb_RENDERER_DEFAULT_INSTANCE_CAPACITY,
-            .fixed_size = SB_RENDERER_DEFAULT_INSTANCE_IS_FIXED_SIZE,
-            .buffer_array = NULL,
+            .fixed_size = su_TRUE,
         },
     },
     .draw = {
@@ -366,22 +360,15 @@ void sb_renderer_free_opts(struct sb_Renderer* rendr, int free_opts) {
 
 /* --- FUNCS USED IN OTHER RENDERER FILES --- */
 
-void sb_renderer_init_bound(struct sb_RendererBound* bound_out, struct sb_RendererBoundInfo* bound_cfg_out, const struct sb_RendererConfig cfg) {
-    bound_cfg_out->index_array_capacity = cfg.batch.index_cfg.capacity
-                                              ? cfg.batch.index_cfg.capacity
-                                              : sb_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY;
-    bound_cfg_out->uniform_array_capacity = !su_darray_is_empty(cfg.uniform_array)
-                                                ? su_darray_length(cfg.uniform_array)
-                                                : sb_RENDERER_DEFAULT_UNIFORM_CAPACITY;
-
+void sb_renderer_init_bound(struct sb_RendererBound* bound_out, const struct sb_RendererConfig cfg) {
     bound_out->index_array = su_darray_create(
-        bound_cfg_out->index_array_capacity,
+        cfg.bound.index_cfg.capacity,
         sizeof(su_U32),
         cfg.batch.index_cfg.fixed_size);
 
     // TODO
     bound_out->uniform_data_array = su_darray_create(
-        bound_cfg_out->uniform_array_capacity,
+        cfg.bound.uniform_cfg.capacity,
         sizeof(struct sb_GFXUniformData),
         cfg.batch.index_cfg.fixed_size);
 }
@@ -454,22 +441,17 @@ void sb_init_vertex_layout(struct sb_RendererConfig* cfg_out) {
         v_layout[2].name = su_string_create("uv", su_REALLOCATION_KIND_FIXED_SIZE);
     }
 
-    if (!cfg_out->batch.vertex_cfg.vertex_layout_array) {
-        cfg_out->batch.vertex_cfg.vertex_layout_array =
+    if (!cfg_out->vertex_data.layout_array) {
+        cfg_out->vertex_data.layout_array =
             su_darray_create(3, sizeof(struct sb_RendererCfgVertexLayout), su_TRUE);
         for (su_U64 i = 0; i < su_ARRLEN_M(v_layout); ++i) {
-            su_darray_push(cfg_out->batch.vertex_cfg.vertex_layout_array, &v_layout[i]);
+            su_darray_push(cfg_out->vertex_data.layout_array, &v_layout[i]);
         }
     }
 }
 
-void sb_init_shaders(struct sb_RendererConfig* cfg_out) {
-    // if (!cfg_out->shaders.vert) {
-    //     cfg_out->shaders.vert = su_string_create(sb_INSTANCE_VERT_SHADER, su_REALLOCATION_KIND_FIXED_SIZE);
-    // }
-    // if (!cfg_out->shaders.frag) {
-    //     cfg_out->shaders.frag = su_string_create(sb_FRAG_SHADER, su_REALLOCATION_KIND_FIXED_SIZE);
-    // }
+void sb_init_shaders(struct sb_RendererConfig* cfg, union sb_GFXInfo* info_out) {
+    sb_gfx_init_shader(info_out, *cfg);
 }
 
 union sb_GFXUniformValue sb_renderer_uniform_value_from_type(su_DataType type, const void* value) {

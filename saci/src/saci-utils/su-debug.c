@@ -42,6 +42,10 @@ static const char* su__log_context_to_string_s(enum su_LogContext context) {
         return "MEMORY_ALLOC";
     case su_LOG_CONTEXT_CONFIG:
         return "CONFIG";
+    case su_LOG_CONTEXT_INIT:
+        return "INIT";
+    case su_LOG_CONTEXT_SACI_MAIN_SHAPES:
+        break;
     }
     // There isn't a "default" case because clang sees that
     // and doesn't recomend adding 'new' cases, where as that
@@ -241,18 +245,12 @@ void su_log_warn(enum su_LogSeverity severity,
                su__log_context_to_string_s(context),
                su__log_severity_to_string_s(severity),
                message, file, line);
-        if (severity >= su_LOG_SEVERITY_HIGH) {
-            exit(EXIT_FAILURE);
-        }
         return;
     }
     printf("ERROR: [%s] of %s severity: %s\n",
            su__log_context_to_string_s(context),
            su__log_severity_to_string_s(severity),
            message);
-    if (severity >= su_LOG_SEVERITY_HIGH) {
-        exit(EXIT_FAILURE);
-    }
 }
 
 void su_log_error(enum su_LogSeverity severity,
@@ -267,18 +265,12 @@ void su_log_error(enum su_LogSeverity severity,
                su__log_context_to_string_s(context),
                su__log_severity_to_string_s(severity),
                message, file, line);
-        if (severity >= su_LOG_SEVERITY_HIGH) {
-            exit(EXIT_FAILURE);
-        }
         return;
     }
     printf("ERROR: [%s] of %s severity: %s\n",
            su__log_context_to_string_s(context),
            su__log_severity_to_string_s(severity),
            message);
-    if (severity >= su_LOG_SEVERITY_HIGH) {
-        exit(EXIT_FAILURE);
-    }
 }
 
 void su_log_opengl_debug_message_callback(su_U32 source, su_U32 type, su_U32 id, su_U32 severity,
