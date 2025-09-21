@@ -115,12 +115,12 @@ void sb_gfx_upload_texture_2d(union sb_GFXTexture texture,
                               const void* data) {
     render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, texture.gl_texture.texture);
     render_funcs.gl.tex_image_2d(sb_GL_TEXTURE_2D, 0,
-                                 (int)format, width, height, 0,
+                                 format, width, height, 0,
                                  format, sb_GL_UNSIGNED_BYTE, data);
 }
 
 void sb_gfx_get_texture_size(union sb_GFXTexture texture, int* width_out, int* height_out) {
-    su_U32 prev_tex;
+    su_S32 prev_tex;
     render_funcs.gl.get_integer_v(sb_GL_TEXTURE_BINDING_2D, &prev_tex);
 
     render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, texture.gl_texture.texture);
@@ -128,18 +128,18 @@ void sb_gfx_get_texture_size(union sb_GFXTexture texture, int* width_out, int* h
     render_funcs.gl.get_texlevel_parameter_iv(sb_GL_TEXTURE_2D, 0, sb_GL_TEXTURE_WIDTH, width_out);
     render_funcs.gl.get_texlevel_parameter_iv(sb_GL_TEXTURE_2D, 0, sb_GL_TEXTURE_HEIGHT, height_out);
 
-    render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, prev_tex);
+    render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, (su_U32)prev_tex);
 }
 
 void sb_gfx_generate_mipmap(union sb_GFXTexture texture) {
-    su_U32 prev_tex;
+    su_S32 prev_tex;
     render_funcs.gl.get_integer_v(sb_GL_TEXTURE_BINDING_2D, &prev_tex);
 
     render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, texture.gl_texture.texture);
 
     render_funcs.gl.generate_mipmap(sb_GL_TEXTURE_2D);
 
-    render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, prev_tex);
+    render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, (su_U32)prev_tex);
 }
 
 void sb_gfx_delete_texture(union sb_GFXTexture texture) {
@@ -148,12 +148,9 @@ void sb_gfx_delete_texture(union sb_GFXTexture texture) {
 
 /* === Internal helper Implementation === */
 
-SA_INTERNAL void sb__gfx_gl_init_info(union sb_GFXInfo* info_out, const struct sb_RendererConfig cfg) {
-    su_LOG_ASSERT_MESSAGE_M(cfg.shaders.vert, "GL vert shader is empty");
-    su_LOG_ASSERT_MESSAGE_M(cfg.shaders.frag, "GL frag shader is empty");
-    su_LOG_ASSERT_MESSAGE_M(cfg.batch.index_cfg.capacity, "Index capacity is not set");
-    su_LOG_ASSERT_MESSAGE_M(cfg.batch.vertex_cfg.capacity, "Vertex capacity is not set");
-
+SA_INTERNAL void sb__gfx_gl_create_main_buffers(
+    union sb_GFXInfo* info_out,
+    const struct sb_RendererConfig cfg) {
     info_out->gl_data.vbo = sb_gl_create_vertex_buffer_dynamic(
         cfg.batch.vertex_cfg.capacity * cfg.vertex_data.element_size_internal,
         NULL);
@@ -163,68 +160,91 @@ SA_INTERNAL void sb__gfx_gl_init_info(union sb_GFXInfo* info_out, const struct s
         NULL);
 
     sb_gl_create_vertex_array(1, &info_out->gl_data.vao);
+}
 
-    {
-        sb_gl_bind_vertex_array(info_out->gl_data.vao);
-        sb_gl_bind_vertex_buffer(info_out->gl_data.vbo);
+SA_INTERNAL void sb__gfx_gl_setup_vertex_attributes(
+    const struct sb_RendererConfig cfg,
+    su_BufferId vao,
+    su_BufferId vbo) {
+    sb_gl_bind_vertex_array(vao);
+    sb_gl_bind_vertex_buffer(vbo);
 
-        for (su_U64 i = 0; i < su_darray_length(cfg.vertex_data.layout_array); ++i) {
-            struct sb_RendererCfgVertexLayout layout;
-            su_darray_get(cfg.vertex_data.layout_array, i, &layout);
-            sb_gl_set_vertex_attrib_pointer(
-                layout.location,
-                su_SCAST_TO_M(su_U64)(su_SIZE_OF_TYPE[layout.type]),
-                sb_gl_type_to_gl(layout.type),
-                GL_FALSE,
-                cfg.vertex_data.element_size_internal,
-                su_SCAST_TO_M(void*)(layout.offset));
-            sb_gl_enable_vertex_attrib_array(su_SCAST_TO_M(su_U64)(layout.location));
-        }
+    for (su_U64 i = 0; i < su_darray_length(cfg.vertex_data.layout_array); ++i) {
+        struct sb_RendererCfgVertexLayout layout;
+        su_darray_get(cfg.vertex_data.layout_array, i, &layout);
+
+        sb_gl_set_vertex_attrib_pointer(
+            layout.location,
+            su_SCAST_TO_M(su_U64)(su_SIZE_OF_TYPE[layout.type]),
+            sb_gl_type_to_gl(layout.type),
+            GL_FALSE,
+            cfg.vertex_data.element_size_internal,
+            su_SCAST_TO_M(void*)(layout.offset));
+        sb_gl_enable_vertex_attrib_array(
+            su_SCAST_TO_M(su_U64)(layout.location));
     }
-    {
-        if (!su_darray_is_empty(cfg.instance_data.buffer_array)) {
-            for (su_U64 buf_i = 0; buf_i < su_darray_length(cfg.instance_data.buffer_array); ++buf_i) {
-                struct sb_RendererCfgInstanceBuffer buffer_cfg = {0};
-                su_darray_get(cfg.instance_data.buffer_array, buf_i, &buffer_cfg);
+}
 
-                su_BufferId vbo = 0;
-                render_funcs.gl.gen_buffers(1, &vbo);
-                render_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo);
-                render_funcs.gl.buffer_data(sb_GL_ARRAY_BUFFER,
-                                            buffer_cfg.size_byte_internal,
-                                            NULL,
-                                            GL_DYNAMIC_DRAW);
-                for (su_U64 attrib_i = 0; attrib_i < su_darray_length(buffer_cfg.layout_array); ++attrib_i) {
-                    struct sb_RendererCfgInstanceBufferLayout attrib = {0};
-                    su_darray_get(buffer_cfg.layout_array, attrib_i, &attrib);
+SA_INTERNAL void sb__gfx_gl_setup_instance_buffers(
+    const struct sb_RendererConfig cfg) {
+    if (su_darray_is_empty(cfg.instance_data.buffer_array))
+        return;
 
-                    if (attrib.type == su_TYPE_MAT4) {
-                        for (su_U32 col = 0; col < 4; ++col) {
-                            render_funcs.gl.vertex_attrib_pointer(
-                                attrib.location + col,
-                                4,
-                                GL_FLOAT,
-                                GL_FALSE,
-                                buffer_cfg.size_byte_internal,
-                                (void*)(attrib.offset + sizeof(float) * 4 * col));
-                            render_funcs.gl.enable_vertex_attrib_array(attrib.location + col);
-                            render_funcs.gl.vertex_attrib_divisor(attrib.location + col, 1);
-                        }
-                    } else {
-                        render_funcs.gl.vertex_attrib_pointer(
-                            attrib.location,
-                            su_SCAST_TO_M(su_U64)(su_SIZE_OF_TYPE[attrib.type]),
-                            sb_gl_type_to_gl(attrib.type),
-                            GL_FALSE,
-                            buffer_cfg.size_byte_internal,
-                            (void*)(attrib.offset));
-                        render_funcs.gl.enable_vertex_attrib_array(attrib.location);
-                        render_funcs.gl.vertex_attrib_divisor(attrib.location, 1);
-                    }
+    for (su_U64 buf_i = 0; buf_i < su_darray_length(cfg.instance_data.buffer_array); ++buf_i) {
+        struct sb_RendererCfgInstanceBuffer buffer_cfg = {0};
+        su_darray_get(cfg.instance_data.buffer_array, buf_i, &buffer_cfg);
+
+        su_BufferId vbo = 0;
+        render_funcs.gl.gen_buffers(1, &vbo);
+        render_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo);
+        render_funcs.gl.buffer_data(
+            sb_GL_ARRAY_BUFFER,
+            buffer_cfg.size_byte_internal,
+            NULL,
+            GL_DYNAMIC_DRAW);
+
+        for (su_U64 attrib_i = 0; attrib_i < su_darray_length(buffer_cfg.layout_array); ++attrib_i) {
+            struct sb_RendererCfgInstanceBufferLayout attrib = {0};
+            su_darray_get(buffer_cfg.layout_array, attrib_i, &attrib);
+
+            if (attrib.type == su_TYPE_MAT4) {
+                for (su_U32 col = 0; col < 4; ++col) {
+                    render_funcs.gl.vertex_attrib_pointer(
+                        attrib.location + col,
+                        4,
+                        GL_FLOAT,
+                        GL_FALSE,
+                        (su_S32)buffer_cfg.size_byte_internal,
+                        (void*)(attrib.offset + sizeof(float) * 4 * col));
+                    render_funcs.gl.enable_vertex_attrib_array(attrib.location + col);
+                    render_funcs.gl.vertex_attrib_divisor(attrib.location + col, 1);
                 }
+            } else {
+                render_funcs.gl.vertex_attrib_pointer(
+                    attrib.location,
+                    su_SCAST_TO_M(su_U64)(su_SIZE_OF_TYPE[attrib.type]),
+                    sb_gl_type_to_gl(attrib.type),
+                    GL_FALSE,
+                    (su_S32)buffer_cfg.size_byte_internal,
+                    (void*)(attrib.offset));
+                render_funcs.gl.enable_vertex_attrib_array(attrib.location);
+                render_funcs.gl.vertex_attrib_divisor(attrib.location, 1);
             }
         }
     }
+}
+
+SA_INTERNAL void sb__gfx_gl_init_info(
+    union sb_GFXInfo* info_out,
+    const struct sb_RendererConfig cfg) {
+    su_LOG_ASSERT_MESSAGE_M(cfg.shaders.vert, "GL vert shader is empty");
+    su_LOG_ASSERT_MESSAGE_M(cfg.shaders.frag, "GL frag shader is empty");
+    su_LOG_ASSERT_MESSAGE_M(cfg.batch.index_cfg.capacity, "Index capacity is not set");
+    su_LOG_ASSERT_MESSAGE_M(cfg.batch.vertex_cfg.capacity, "Vertex capacity is not set");
+
+    sb__gfx_gl_create_main_buffers(info_out, cfg);
+    sb__gfx_gl_setup_vertex_attributes(cfg, info_out->gl_data.vao, info_out->gl_data.vbo);
+    sb__gfx_gl_setup_instance_buffers(cfg);
 }
 
 SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* data) {

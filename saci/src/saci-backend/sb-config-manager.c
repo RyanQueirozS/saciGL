@@ -57,7 +57,7 @@ SA_INTERNAL struct sb_SymbolTable sb_gl_symbols[] = {
     {"glClear", (void**)&sb_cfg_manager.render_api_funcs.gl.clear},
     {"glEnable", (void**)&sb_cfg_manager.render_api_funcs.gl.enable},
     {"glDebugMessageCallback", (void**)&sb_cfg_manager.render_api_funcs.gl.debug_message_callback},
-    {"glGetString", (void**)&sb_cfg_manager.render_api_funcs.gl.get_version_string},
+    {"glGetString", (void**)&sb_cfg_manager.render_api_funcs.gl.get_string},
 
     {"glUniform1ui", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform1ui},
     {"glUniform1i", (void**)&sb_cfg_manager.render_api_funcs.gl.uniform1i},
@@ -239,7 +239,7 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
                             .name = su_string_create(sb_config_get_str(lua_state, "name"), su_REALLOCATION_KIND_FIXED_SIZE),
                             .type = su_SCAST_TO_M(su_DataType)(sb_config_get_enum(lua_state, "type")),
                             .offset = sb_config_get_uint64(lua_state, "offset"),
-                            .location = sb_config_get_uint64(lua_state, "location"),
+                            .location = sb_config_get_uint32(lua_state, "location"),
                         };
                         cfg_out->vertex_data.element_size_internal += su_SIZE_OF_TYPE[layout.type];
                         su_darray_push(cfg_out->vertex_data.layout_array, &layout);
