@@ -102,13 +102,8 @@ struct sb_StaticRenderer {
     Arena batch_arena;
 };
 
-struct sb_InstanceData {
-    su_Mat4 model;
-    su_Color color;
-};
-
 struct sb_InstanceBoundExtra {
-    su_DArray* bound_instance_array;
+    su_DArray* bound_instance_data_array;
 };
 
 struct sb_InstanceRenderer {
@@ -125,8 +120,6 @@ struct sb_InstanceRenderer {
     struct {
         su_U8 in_use;
     } batch_info;
-
-    Arena batch_arena;
 };
 
 typedef void (*sb_RendererDrawFunction)(sb_Renderer*);
@@ -251,10 +244,6 @@ SA_INTERNAL const struct sb_RendererConfig sb_CFG_DEFAULT_INSTANCE = {
             .capacity = sb_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY,
             .fixed_size = su_TRUE,
         },
-        .uniform_cfg = {
-            .capacity = sb_RENDERER_DEFAULT_BOUND_UNIFORM_CAPACITY,
-            .fixed_size = su_TRUE,
-        },
         .instance_cfg = {
             .capacity = sb_RENDERER_DEFAULT_BOUND_INSTANCE_CAPACITY,
             .fixed_size = su_TRUE,
@@ -368,7 +357,7 @@ void sb_renderer_init_bound(struct sb_RendererBound* bound_out, const struct sb_
 
     // TODO
     bound_out->uniform_data_array = su_darray_create(
-        cfg.bound.uniform_cfg.capacity,
+        su_darray_length(cfg.uniform_array),
         sizeof(struct sb_GFXUniformData),
         cfg.batch.index_cfg.fixed_size);
 }

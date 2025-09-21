@@ -1,15 +1,17 @@
 #include "saci-main/saci.h"
 
+#include "saci-backend/sb-config-manager.h"
+#include "saci-backend/sb-gfx.h"
+#include "saci-backend/sb-gl.h"
+#include "saci-backend/sb-memmanager.h"
 #include "saci-backend/sb-renderer.h"
 #include "saci-backend/sb-windowing.h"
-#include "saci-backend/sb-config-manager.h"
 
+#include "saci-utils/su-debug.h"
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-math.h"
 #include "saci-utils/su-types.h"
-#include "saci-utils/su-debug.h"
 
-#include <saci-backend/sb-gl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,15 +66,20 @@ enum saci_ShapeType {
     saci_SHAPE_CUBE = 1,
 };
 
+typedef struct sb_GFXInstanceData saci_InstanceData;
+typedef struct {
+    su_Mat4 transform;
+    su_Color color;
+} saci_ShapeInstance;
+
 struct saci_ShapeDrawCall {
-    su_DArray* transforms;
-    su_DArray* colors;
+    su_DArray* instance_data_array; // saci_InstanceData
 };
 
 SA_INTERNAL struct saci_Context {
 
     // Each index is a shape
-    struct saci_ShapeDrawCall* shape_draw_call_array;
+    struct saci_ShapeDrawCall* shape_instance_data_array;
 
     struct saci_Windowing {
         su_Color bg_color;
@@ -96,6 +103,7 @@ void saci_init(void) {
         sb_cfg_manager_load_default();
     }
     sb_cfg_manager_load_dependencies();
+    sb_gfx_load();
     su_Vec3 cube_vertices[] = {
         {-1, -1, -1},
         {-1, -1, 1},
@@ -168,13 +176,19 @@ void saci_draw_cube(const saci_Cube cube) {
             cube.dimentions,
         },
         saci_context.enable_flags);
-    if (!su_darray_push(saci_context.shape_draw_call_array[saci_SHAPE_CUBE].transforms,
-                        &transform)) {
+    saci_ShapeInstance instance = {
+        .color = cube.color,
+        .transform = transform,
+    };
+    saci_InstanceData instance_data = {
+        .data_size = sizeof(saci_ShapeInstance),
+        .location = 3,
+        .instance_data_structure = su_MALLOC_M(sizeof(saci_ShapeInstance)), // TODO, this needs to be prefilled, perhaps be stored as a static var
+    };
+    memcpy(instance_data.instance_data_structure, &instance, sizeof(saci_ShapeInstance));
+    if (!su_darray_push(saci_context.shape_instance_data_array[saci_SHAPE_CUBE].instance_data_array,
+                        &instance_data)) {
         su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_SACI_MAIN_SHAPES, "Could not push cube transform");
-    }
-    if (!su_darray_push(saci_context.shape_draw_call_array[saci_SHAPE_CUBE].colors,
-                        &cube.color)) {
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_SACI_MAIN_SHAPES, "Could not push cube color");
     }
 }
 
@@ -201,10 +215,9 @@ void saci_present(void) {
     sb_renderer_bind_index_buffer(
         saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
         saci_cube_index);
-    sb_renderer_set_instance_data(
+    sb_renderer_set_instance_data_array(
         saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
-        saci_context.shape_draw_call_array[saci_SHAPE_CUBE].transforms,
-        saci_context.shape_draw_call_array[saci_SHAPE_CUBE].colors);
+        saci_context.shape_instance_data_array[saci_SHAPE_CUBE].instance_data_array);
     sb_renderer_push_mesh(
         saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
         saci_cube_pos,
@@ -214,7 +227,9 @@ void saci_present(void) {
     sb_window_swap_buffer(saci_context.windowing.window);
 }
 
-void saci_free(void) {}
+void saci_free(void) {
+    sb_mem_print_info();
+}
 
 // Helper
 
@@ -254,14 +269,11 @@ SA_INTERNAL void saci__init_memory(void) {
         sb_renderer_get_uniform_id(instance_rendr, "u_flags");
 
     const su_S32 saci_shape_amount = 10; /// TODO
-    saci_context.shape_draw_call_array = su_CALLOC_M(
+    saci_context.shape_instance_data_array = su_CALLOC_M(
         saci_shape_amount,
         sizeof(struct saci_ShapeDrawCall));
     for (su_S32 i = 0; i < saci_shape_amount; ++i) {
-        saci_context.shape_draw_call_array[i] = (struct saci_ShapeDrawCall){
-            .transforms = su_darray_create(1024, sizeof(su_Mat4), su_TRUE),
-            .colors = su_darray_create(1024, sizeof(su_Color), su_TRUE),
-        };
+        saci_context.shape_instance_data_array[i].instance_data_array = su_darray_create(1024, sizeof(saci_InstanceData), su_TRUE);
     }
 }
 
@@ -269,14 +281,9 @@ SA_INTERNAL void saci__reset_memory(void) {
     const su_S32 saci_shape_amount = 10; /// TODO
     for (su_S32 i = 0; i < saci_shape_amount; ++i) {
         su_LOG_DEBUG_CONDITION_PRINT_M(
-            !su_darray_clear(saci_context.shape_draw_call_array[i].transforms),
+            !su_darray_clear(saci_context.shape_instance_data_array[i].instance_data_array),
             su_LOG_DEBUG_TYPE_SACI_MAIN_MEM, su_LOG_CONTEXT_SACI_MAIN_SHAPES,
-            "Could not reset shape transform");
-
-        su_LOG_DEBUG_CONDITION_PRINT_M(
-            !su_darray_clear(saci_context.shape_draw_call_array[i].colors),
-            su_LOG_DEBUG_TYPE_SACI_MAIN_MEM, su_LOG_CONTEXT_SACI_MAIN_SHAPES,
-            "Could not reset shape color");
+            "Could not reset shape instance");
     }
 }
 

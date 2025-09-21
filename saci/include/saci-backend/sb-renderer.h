@@ -1,9 +1,9 @@
 #ifndef SACI_BACKEND_SB_RENDERER_H
 #define SACI_BACKEND_SB_RENDERER_H
 
-#include "saci-backend/sb-model.h"
 #include "saci-utils/su-types.h"
 #include "saci-utils/su-general.h"
+#include "saci-backend/sb-gfx.h"
 
 typedef struct sb_Renderer sb_Renderer;
 
@@ -109,6 +109,8 @@ SA_API void sb_renderer_free_opts(struct sb_Renderer* rendr, int free_opts);
 /* --- Renderer specific --- */
 
 // This needs to be used with a instanced renderer, else it should crash
-SA_API void sb_renderer_set_instance_data(struct sb_Renderer* rendr, su_DArray* transform_array, su_DArray* color_array);
+SA_API void sb_renderer_push_instance_data(struct sb_Renderer* rendr, const struct sb_GFXInstanceData* instance_data);
+
+SA_API void sb_renderer_set_instance_data_array(struct sb_Renderer* rendr, const su_DArray* instance_data_array);
 
 #endif // SACI_BACKEND_SB_RENDERER_H

@@ -97,7 +97,7 @@ struct sb_ConfigManager {
             void (*get_program_info_log)(su_U32, su_U64, int*, char*);
             void (*detach_shader)(su_U32, su_U32);
 
-            void (*draw_elements_instanced)(int, int, int, int, int);
+            void (*draw_elements_instanced)(int, int, int, const void*, int);
             void (*draw_elements)(su_U32 mode, su_U32 count, su_U32 type, const void* indices);
 
             int (*get_uniform_location)(su_U32, const char*);
@@ -173,14 +173,14 @@ struct sb_RendererCfgVertexLayout {
     su_String* name;
     su_DataType type;
     su_U64 offset;
-    su_U64 location;
+    su_U32 location;
 };
 
 struct sb_RendererCfgInstanceBufferLayout {
     su_String* name;
     su_DataType type;
     su_U64 offset;
-    su_U64 location;
+    su_U32 location;
 };
 
 struct sb_RendererCfgInstanceBuffer {
@@ -216,10 +216,6 @@ struct sb_RendererCfgBound {
         su_U64 capacity;
         su_Bool fixed_size;
     } instance_cfg;
-    struct {
-        su_U64 capacity;
-        su_Bool fixed_size;
-    } uniform_cfg;
 };
 
 enum sb_RendererPrimitives {

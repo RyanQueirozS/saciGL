@@ -225,10 +225,21 @@ void su_log_debug(enum su_LogDebugType type, enum su_LogContext context,
 #endif
             break;
         }
-    default:
+    case su_LOG_DEBUG_TYPE_MEMORY:
         {
-            printf("INVALID DEBUG MESSAGE AT: %s : %d", file, line);
-            exit(1);
+#if defined(SACI_DEBUG_MODE_ALL) || defined(SACI_DEBUG_MODE_MEMORY)
+            strcpy(type_str, "MEMORY");
+            if (su_should_log_source_s) {
+                printf("DEBUG %s: [%s] %s: [FILE:%s][LINE:%d]\n",
+                       type_str, su__log_context_to_string_s(context),
+                       message, file, line);
+                return;
+            }
+            printf("DEBUG %s: [%s] %s\n",
+                   type_str, su__log_context_to_string_s(context),
+                   message);
+#endif
+            break;
         }
     }
 }

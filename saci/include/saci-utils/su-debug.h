@@ -57,6 +57,7 @@ enum su_LogDebugType {
     su_LOG_DEBUG_TYPE_RENDERER_BATCH,
     su_LOG_DEBUG_TYPE_RENDERER_CALL,
     su_LOG_DEBUG_TYPE_SACI_MAIN_MEM,
+    su_LOG_DEBUG_TYPE_MEMORY,
 };
 
 typedef enum {

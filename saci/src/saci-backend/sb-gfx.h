@@ -42,6 +42,7 @@ union sb_GFXInfo {
     struct {
         su_ShaderId shader_program;
         su_BufferId ibo, vbo, vao;
+        su_BufferId instance_buffer; // needs to be a darray of buffers each named with a su_String
     } gl_data;
     // struct {} dx_data;
     // struct {} vk_data;
@@ -59,6 +60,12 @@ struct sb_GFXUniformData {
     union sb_GFXUniformValue value;
 };
 
+struct sb_GFXInstanceData {
+    su_U32 location;
+    su_U32 data_size;
+    void* instance_data_structure;
+};
+
 struct sb_GFXDrawData {
     su_DArray* vertex_array;
     su_U64 vertex_struct_size;
@@ -66,12 +73,9 @@ struct sb_GFXDrawData {
     su_DArray* index_array; // DArray
     su_U64 index_struct_size;
 
-    su_DArray* instance_array_array;    // DArray<DArray>
-    su_DArray* instance_location_array; // DArray
-    su_U64 instance_struct_size;
+    su_DArray* instance_buffer_array; // DArray<GFXInstanceDataBuffer>
 
-    su_DArray* uniform_array_array;    // DArray<DArray>
-    su_DArray* uniform_location_array; // DArray
+    su_DArray* uniform_data_array; // DArray<GFXUniformData>
 
     union sb_GFXTexture texture_array[SACI_MAX_TEXTURES];
     su_U32 texture_array_loc[SACI_MAX_TEXTURES];

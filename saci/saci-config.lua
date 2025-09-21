@@ -100,8 +100,8 @@ Saci_Backend = {
 			vertex = {
 				layout = {
 					{ name = "position", type = Saci_Types.VEC3, offset = 0, location = 0 },
-					{ name = "normal", type = Saci_Types.VEC3, offset = 12, location = 1 },
-					{ name = "uv", type = Saci_Types.VEC2, offset = 24, location = 2 },
+					{ name = "color", type = Saci_Types.COLOR, offset = 12, location = 1 },
+					{ name = "uv", type = Saci_Types.VEC2, offset = 28, location = 2 },
 				},
 			},
 			index = {
@@ -156,9 +156,39 @@ Saci_Backend = {
 			},
 			uniforms = {
 				{
-					name = "name",
-					type = Saci_Types.VEC3, -- Should have a Type enum
+					name = "u_texture",
+					type = Saci_Types.SAMPLER2D,
 					location = 0,
+				},
+				{
+					name = "u_use_texture",
+					type = Saci_Types.BOOL,
+					location = 1,
+				},
+				{
+					name = "u_model_matrix",
+					type = Saci_Types.MAT4,
+					location = 2,
+				},
+				{
+					name = "u_view_matrix",
+					type = Saci_Types.MAT4,
+					location = 3,
+				},
+				{
+					name = "u_projection_matrix",
+					type = Saci_Types.MAT4,
+					location = 4,
+				},
+				{
+					name = "u_flags",
+					type = Saci_Types.S32,
+					location = 5,
+				},
+				{
+					name = "u_lighting",
+					type = Saci_Types.VEC4,
+					location = 6,
 				},
 			},
 			samplers = {

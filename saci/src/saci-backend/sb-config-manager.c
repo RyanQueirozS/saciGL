@@ -232,6 +232,7 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
             if (sb_config_push_field_array(lua_state, "layout")) {
                 su_U64 count = sb_config_get_array_length(lua_state);
                 cfg_out->vertex_data.layout_array = su_darray_create(count, sizeof(struct sb_RendererCfgVertexLayout), su_TRUE);
+                cfg_out->vertex_data.element_size_internal = 0;
                 for (su_U64 i = 0; i < count; ++i) {
                     if (sb_config_push_array_entry(lua_state, i)) {
                         struct sb_RendererCfgVertexLayout layout = {
@@ -240,7 +241,7 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
                             .offset = sb_config_get_uint64(lua_state, "offset"),
                             .location = sb_config_get_uint64(lua_state, "location"),
                         };
-                        cfg_out->vertex_data.element_size_internal += su_SIZE_OF_TYPE[sb_config_get_enum(lua_state, "type")];
+                        cfg_out->vertex_data.element_size_internal += su_SIZE_OF_TYPE[layout.type];
                         su_darray_push(cfg_out->vertex_data.layout_array, &layout);
                         sb_config_pop(lua_state, 1);
                     }
@@ -317,8 +318,8 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
                 sb_config_pop(lua_state, 1);
             }
             if (sb_config_push_field_table(lua_state, "vertex")) {
-                cfg_out->batch.index_cfg.capacity = sb_config_get_uint64(lua_state, "capacity");
-                cfg_out->batch.index_cfg.fixed_size = sb_config_get_bool(lua_state, "fixed_capacity");
+                cfg_out->batch.vertex_cfg.capacity = sb_config_get_uint64(lua_state, "capacity");
+                cfg_out->batch.vertex_cfg.fixed_size = sb_config_get_bool(lua_state, "fixed_capacity");
             }
             if (sb_config_push_field_table(lua_state, "draw")) {
                 cfg_out->draw = (struct sb_RendererCfgDraw){

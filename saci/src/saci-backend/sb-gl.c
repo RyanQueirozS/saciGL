@@ -10,9 +10,61 @@
 #include "saci-utils/su-debug.h"
 #include "saci-utils/su-types.h"
 
+#define GL_LINK_STATUS 0x8B82
+
 /* === OpenGL === */
 
 SA_INTERNAL struct sb_RenderApiFuncs gl_funcs;
+
+SA_API su_U32 sb_gl_type_to_gl(const su_DataType data_type) {
+    switch (data_type) {
+    case su_TYPE_U8:
+        return GL_UNSIGNED_BYTE;
+    case su_TYPE_U16:
+        return GL_UNSIGNED_SHORT;
+    case su_TYPE_U32:
+    case su_TYPE_U64:
+        return GL_UNSIGNED_INT;
+
+    case su_TYPE_S8:
+        return GL_BYTE;
+    case su_TYPE_S16:
+        return GL_SHORT;
+    case su_TYPE_S32:
+    case su_TYPE_S64:
+        return GL_INT;
+
+    case su_TYPE_BOOL:
+        return GL_BOOL;
+
+    case su_TYPE_SHADERID:
+    case su_TYPE_TEXTUREID:
+    case su_TYPE_BUFFERID:
+        return GL_UNSIGNED_INT;
+
+    case su_TYPE_UV:
+    case su_TYPE_VEC2:
+    case su_TYPE_VEC3:
+    case su_TYPE_VEC4:
+    case su_TYPE_COLOR:
+    case su_TYPE_MAT2:
+    case su_TYPE_MAT3:
+    case su_TYPE_MAT4:
+    case su_TYPE_MAT2X3:
+    case su_TYPE_MAT2X4:
+    case su_TYPE_MAT3X2:
+    case su_TYPE_MAT3X4:
+    case su_TYPE_MAT4X2:
+    case su_TYPE_MAT4X3:
+        return GL_FLOAT;
+
+    case su_TYPE_SAMPLER2D:
+        return GL_SAMPLER_2D;
+
+    default:
+        return 0;
+    }
+}
 
 void sb_gl_load(void) {
     gl_funcs = sb_cfg_manager_get_render_funcs();
