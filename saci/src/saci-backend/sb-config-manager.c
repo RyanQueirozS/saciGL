@@ -253,7 +253,7 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
     }
     {
         if (sb_config_push_field_table(lua_state, "index")) {
-            cfg_out->index_data.element_size_internal = su_SCAST_TO_M(su_DataType)(sb_config_get_enum(lua_state, "element_type"));
+            cfg_out->index_data.element_size_internal = su_SIZE_OF_TYPE[sb_config_get_enum(lua_state, "element_type")];
             sb_config_pop(lua_state, 1);
         }
     }
@@ -320,6 +320,52 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
             if (sb_config_push_field_table(lua_state, "vertex")) {
                 cfg_out->batch.vertex_cfg.capacity = sb_config_get_uint64(lua_state, "capacity");
                 cfg_out->batch.vertex_cfg.fixed_size = sb_config_get_bool(lua_state, "fixed_capacity");
+                sb_config_pop(lua_state, 1);
+            }
+            if (sb_config_push_field_table(lua_state, "instances")) {
+                cfg_out->batch.instance_cfg.capacity = sb_config_get_uint64(lua_state, "capacity");
+                cfg_out->batch.instance_cfg.fixed_size = sb_config_get_bool(lua_state, "fixed_capacity");
+
+                if (sb_config_push_field_table(lua_state, "buffers")) {
+                    su_U64 buffer_count = sb_config_get_array_length(lua_state);
+                    cfg_out->instance_data.buffer_array = su_darray_create(buffer_count, sizeof(struct sb_RendererCfgInstanceBuffer), su_TRUE);
+
+                    for (su_U64 b = 0; b < buffer_count; ++b) {
+                        if (sb_config_push_array_entry(lua_state, b)) {
+                            struct sb_RendererCfgInstanceBuffer buffer = {0};
+                            buffer.name = su_string_create(sb_config_get_str(lua_state, "name"), su_REALLOCATION_KIND_FIXED_SIZE);
+
+                            if (sb_config_push_field_array(lua_state, "layout")) {
+                                su_U64 layout_count = sb_config_get_array_length(lua_state);
+                                buffer.layout_array = su_darray_create(layout_count, sizeof(struct sb_RendererCfgInstanceBufferLayout), su_TRUE);
+                                buffer.size_byte_internal = 0;
+
+                                for (su_U64 l = 0; l < layout_count; ++l) {
+                                    if (sb_config_push_array_entry(lua_state, l)) {
+                                        struct sb_RendererCfgInstanceBufferLayout layout = {
+                                            .name = su_string_create(sb_config_get_str(lua_state, "name"), su_REALLOCATION_KIND_FIXED_SIZE),
+                                            .type = su_SCAST_TO_M(su_DataType)(sb_config_get_enum(lua_state, "type")),
+                                            .offset = sb_config_get_uint64(lua_state, "offset"),
+                                            .location = sb_config_get_uint32(lua_state, "location"),
+                                        };
+                                        buffer.size_byte_internal += su_SIZE_OF_TYPE[layout.type];
+                                        su_darray_push(buffer.layout_array, &layout);
+                                        sb_config_pop(lua_state, 1);
+                                    }
+                                }
+
+                                sb_config_pop(lua_state, 1); // pop layout array
+                            }
+
+                            su_darray_push(cfg_out->instance_data.buffer_array, &buffer);
+                            sb_config_pop(lua_state, 1); // pop buffer entry
+                        }
+                    }
+
+                    sb_config_pop(lua_state, 1); // pop buffers array
+                }
+
+                sb_config_pop(lua_state, 1); // pop instances
             }
             if (sb_config_push_field_table(lua_state, "draw")) {
                 cfg_out->draw = (struct sb_RendererCfgDraw){
