@@ -45,7 +45,7 @@ typedef bool su_Bool;
 
 /* === Identifiers === */
 
-typedef su_U32 su_ShaderId;
+typedef su_S32 su_ShaderId;
 
 typedef su_U32 su_TextureId;
 

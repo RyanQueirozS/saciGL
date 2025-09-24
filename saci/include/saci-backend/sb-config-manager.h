@@ -81,27 +81,32 @@ struct sb_ConfigManager {
             void (*vertex_attrib_divisor)(su_U32 index, su_U32 divisor);
             void (*enable_vertex_attrib_array)(su_U32 index);
 
-            su_U32 (*create_shader)(su_U32 type);
-            void (*shader_source)(su_U32 shader, su_S32 count, const char* const* string, const su_S32* length);
-            void (*compile_shader)(su_U32 shader);
-            void (*get_shaderiv)(su_U32 shader, su_U32 pname, su_S32* params);
-            void (*get_shader_info_log)(su_U32 shader, su_S32 max_length, su_S32* length, char* info_log);
-            void (*delete_shader)(su_U32 shader);
+            su_S32 (*create_shader)(su_U32 type);
+            void (*shader_source)(su_S32 shader, su_S32 count, const char* const* string, const su_S32* length);
+            void (*compile_shader)(su_S32 shader);
+            void (*get_shaderiv)(su_S32 shader, su_U32 pname, su_S32* params);
+            void (*get_shader_info_log)(su_S32 shader, su_S32 max_length, su_S32* length, char* info_log);
+            void (*delete_shader)(su_S32 shader);
 
             void (*get_integer_v)(su_U32 pname, su_S32* params);
+            void (*get_boolean_v)(su_U32 pname, unsigned char* data);
 
-            su_U32 (*create_program)(void);
-            void (*use_program)(su_U32 program);
-            void (*attach_shader)(su_U32 program, su_U32 shader);
-            void (*link_program)(su_U32 program);
-            void (*get_programiv)(su_U32 program, su_U32 pname, su_S32* params);
-            void (*get_program_info_log)(su_U32 program, su_S32 max_length, su_S32* length, char* info_log);
-            void (*detach_shader)(su_U32 program, su_U32 shader);
+            void (*blend_func)(su_U32, su_U32);
+
+            su_U32 (*get_error)(void);
+
+            su_S32 (*create_program)(void);
+            void (*use_program)(su_S32 program);
+            void (*attach_shader)(su_S32 program, su_S32 shader);
+            void (*link_program)(su_S32 program);
+            void (*get_program_iv)(su_S32 program, su_U32 pname, su_S32* params);
+            void (*get_program_info_log)(su_S32 program, su_S32 max_length, su_S32* length, char* info_log);
+            void (*detach_shader)(su_S32 program, su_S32 shader);
 
             void (*draw_elements_instanced)(su_U32 mode, su_S32 count, su_U32 type, const void* indices, su_S32 instancecount);
             void (*draw_elements)(su_U32 mode, su_S32 count, su_U32 type, const void* indices);
 
-            su_S32 (*get_uniform_location)(su_U32 program, const char* name);
+            su_S32 (*get_uniform_location)(su_S32 program, const char* name);
 
             void (*gen_textures)(su_S32 n, su_U32* textures);
             void (*bind_texture)(su_U32 target, su_U32 texture);

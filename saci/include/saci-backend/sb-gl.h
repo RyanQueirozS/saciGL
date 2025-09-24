@@ -28,11 +28,11 @@ SA_API su_S32 sb_gl_uniform_location(su_ShaderId program_id, const char* const n
 
 /* === Shader === */
 
-SA_API su_U32 sb_gl_shader_compile_shader_vert(const char* source);
-SA_API su_U32 sb_gl_shader_compile_shader_frag(const char* source);
-SA_API su_U32 sb_gl_shader_compile_shader_geom(const char* source);
-SA_API su_U32 sb_gl_shader_create_shader_program(su_ShaderId vshader, su_ShaderId fshader);
-SA_API su_U32 sb_gl_shader_create_shader_program_geom(su_ShaderId vshader, su_ShaderId fshader,
-                                                      su_ShaderId gshader);
+SA_API su_ShaderId sb_gl_shader_compile_shader_vert(const char* source);
+SA_API su_ShaderId sb_gl_shader_compile_shader_frag(const char* source);
+SA_API su_ShaderId sb_gl_shader_compile_shader_geom(const char* source);
+SA_API su_ShaderId sb_gl_shader_create_shader_program(su_ShaderId vshader, su_ShaderId fshader);
+SA_API su_ShaderId sb_gl_shader_create_shader_program_geom(su_ShaderId vshader, su_ShaderId fshader,
+                                                           su_ShaderId gshader);
 
 #endif // SACI_BACKEND_SB_GL_H

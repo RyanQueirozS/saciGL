@@ -93,11 +93,15 @@ SA_INTERNAL struct sb_SymbolTable sb_gl_symbols[] = {
 
     {"glGetIntegerv", (void**)&sb_cfg_manager.render_api_funcs.gl.get_integer_v},
 
+    {"glGetBooleanv", (void**)&sb_cfg_manager.render_api_funcs.gl.get_boolean_v},
+    {"glBlendFunc", (void**)&sb_cfg_manager.render_api_funcs.gl.blend_func},
+    {"glGetError", (void**)&sb_cfg_manager.render_api_funcs.gl.get_error},
+
     {"glCreateProgram", (void**)&sb_cfg_manager.render_api_funcs.gl.create_program},
     {"glUseProgram", (void**)&sb_cfg_manager.render_api_funcs.gl.use_program},
     {"glAttachShader", (void**)&sb_cfg_manager.render_api_funcs.gl.attach_shader},
     {"glLinkProgram", (void**)&sb_cfg_manager.render_api_funcs.gl.link_program},
-    {"glGetProgramiv", (void**)&sb_cfg_manager.render_api_funcs.gl.get_programiv},
+    {"glGetProgramiv", (void**)&sb_cfg_manager.render_api_funcs.gl.get_program_iv},
     {"glGetProgramInfoLog", (void**)&sb_cfg_manager.render_api_funcs.gl.get_program_info_log},
     {"glDetachShader", (void**)&sb_cfg_manager.render_api_funcs.gl.detach_shader},
 

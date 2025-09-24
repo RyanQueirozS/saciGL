@@ -157,7 +157,7 @@ Saci_Backend = {
 			uniforms = {
 				{
 					name = "u_texture",
-					type = Saci_Types.SAMPLER2D,
+					type = Saci_Types.SAMPLER_2D,
 					location = 0,
 				},
 				{

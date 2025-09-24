@@ -228,28 +228,28 @@ void sb_gl_enable_vertex_attrib_array(su_U32 id) {
 
 /* === GL Implementation === */
 
-SA_INTERNAL su_U32 sb__shader_compile(const char* shader_source, su_U32 shader_type);
+SA_INTERNAL su_ShaderId sb__shader_compile(const char* shader_source, su_U32 shader_type);
 
-su_U32 sb_gl_shader_compile_shader_vert(const char* source) {
+su_ShaderId sb_gl_shader_compile_shader_vert(const char* source) {
     return sb__shader_compile(source, GL_VERTEX_SHADER);
 }
 
-su_U32 sb_gl_shader_compile_shader_frag(const char* source) {
+su_ShaderId sb_gl_shader_compile_shader_frag(const char* source) {
     return sb__shader_compile(source, GL_FRAGMENT_SHADER);
 }
 
-su_U32 sb_gl_shader_compile_shader_geom(const char* source) {
+su_ShaderId sb_gl_shader_compile_shader_geom(const char* source) {
     return sb__shader_compile(source, GL_GEOMETRY_SHADER);
 }
 
-su_U32 sb_gl_shader_create_shader_program(su_U32 vshader, su_U32 fshader) {
-    su_U32 program_id = gl_funcs.gl.create_program();
+su_ShaderId sb_gl_shader_create_shader_program(su_ShaderId vshader, su_ShaderId fshader) {
+    su_ShaderId program_id = gl_funcs.gl.create_program();
     gl_funcs.gl.attach_shader(program_id, vshader);
     gl_funcs.gl.attach_shader(program_id, fshader);
     gl_funcs.gl.link_program(program_id);
 
     su_S32 success = GL_FALSE;
-    gl_funcs.gl.get_programiv(program_id, GL_LINK_STATUS, &success);
+    gl_funcs.gl.get_program_iv(program_id, GL_LINK_STATUS, &success);
     if (!success) {
         char gl_err_message[1024];
         int size_returned = 0;
@@ -267,15 +267,15 @@ su_U32 sb_gl_shader_create_shader_program(su_U32 vshader, su_U32 fshader) {
     return program_id;
 }
 
-su_U32 sb_gl_shader_create_shader_program_geom(su_U32 vshader, su_U32 fshader, su_U32 gshader) {
-    su_U32 program_id = gl_funcs.gl.create_program();
+su_ShaderId sb_gl_shader_create_shader_program_geom(su_ShaderId vshader, su_ShaderId fshader, su_ShaderId gshader) {
+    su_ShaderId program_id = gl_funcs.gl.create_program();
     gl_funcs.gl.attach_shader(program_id, vshader);
     gl_funcs.gl.attach_shader(program_id, fshader);
     gl_funcs.gl.attach_shader(program_id, gshader);
     gl_funcs.gl.link_program(program_id);
 
     su_S32 success = GL_FALSE;
-    gl_funcs.gl.get_programiv(program_id, GL_LINK_STATUS, &success);
+    gl_funcs.gl.get_program_iv(program_id, GL_LINK_STATUS, &success);
     if (!success) {
         char gl_err_message[1024];
         int size_returned = 0;
@@ -301,8 +301,8 @@ SA_API su_S32 sb_gl_uniform_location(su_ShaderId program_id, const char* const n
 
 /* === GL Helper ===  */
 
-SA_INTERNAL su_U32 sb__shader_compile(const char* shader_source, su_U32 shader_type) {
-    su_U32 shader_id = gl_funcs.gl.create_shader(shader_type);
+SA_INTERNAL su_ShaderId sb__shader_compile(const char* shader_source, su_U32 shader_type) {
+    su_ShaderId shader_id = gl_funcs.gl.create_shader(shader_type);
 
     gl_funcs.gl.shader_source(shader_id, 1, &shader_source, NULL);
     gl_funcs.gl.compile_shader(shader_id);
