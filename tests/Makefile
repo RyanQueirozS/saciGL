@@ -7,6 +7,7 @@ CFLAGS = -Wall -Wextra -O0 -g \
 	-I../saci/deps/ryanqueirozs/ \
 	-I../saci/deps/memory/ \
 	-I./deps/ \
+	-I./mocks/ \
 	-DSACI_DEBUG_MODE_ALL \
 	-DSC_RENDERER_STRUCT_EXPOSE \
 	-DSACI_TEST_BUILD \
