@@ -26,8 +26,8 @@ enum sb_GLConstants {
     sb_GL_TEXTURE_BINDING_2D = 0x8069,
 };
 
-SA_INTERNAL struct sb_RenderApiFuncs render_funcs;
-SA_INTERNAL enum sb_RendererApi render_api;
+SA_STATIC struct sb_RenderApiFuncs render_funcs;
+SA_STATIC enum sb_RendererApi render_api;
 
 // Init
 SA_INTERNAL void sb__gfx_gl_init_info(union sb_GFXInfo* info_out, const struct sb_RendererConfig cfg);

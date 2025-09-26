@@ -40,6 +40,8 @@
 #  endif // SA_TEST_BUILD
 #endif   // SA_INTERNAL
 
+#define SA_STATIC static
+
 #ifndef SA_INTERNAL_CONST
 #  define SA_INTERNAL_CONST static const
 #endif // SA_INTERNAL

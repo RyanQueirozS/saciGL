@@ -22,7 +22,7 @@ SA_INTERNAL struct sb_WindowingApiFuncs windowing_dependent_funcs;
 SA_INTERNAL struct sb_RenderApiLoaderFuncs loader_dependent_funcs;
 SA_INTERNAL struct sb_RenderApiFuncs render_dependent_funcs;
 
-SA_INTERNAL enum sb_RendererApi render_api;
+SA_STATIC enum sb_RendererApi render_api;
 
 su_Bool sb_load_windowing(void) {
     windowing_dependent_funcs = sb_cfg_manager_get_window_funcs();

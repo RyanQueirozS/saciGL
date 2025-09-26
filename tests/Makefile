@@ -4,10 +4,14 @@ CFLAGS = -Wall -Wextra -O0 -g \
 	-I../saci/include \
 	-I../saci/deps/stb \
 	-I../saci/deps/model-loading \
+	-I../saci/deps/ryanqueirozs/ \
+	-I../saci/deps/memory/ \
+	-I./deps/ \
 	-DSACI_DEBUG_MODE_ALL \
 	-DSC_RENDERER_STRUCT_EXPOSE \
 	-DSACI_TEST_BUILD \
-	-DSACI_RENDERING_DISABLED
+	-DSACI_RENDERING_DISABLED \
+	-DSACI_LIB_PATH=$(pwd)
 
 COMPILER ?= gcc
 CC = $(COMPILER)
@@ -19,42 +23,41 @@ endif
 SACI_SRC = \
 	../saci/src/saci-backend/**.c \
 	../saci/src/saci-utils/**.c \
-	../saci/src/saci-main/**.c \
-	../saci/deps/glad/src/glad.c
+	../saci/src/saci-main/**.c 
 
-SRC_DIR = saci-core
-# Sources for the current project
-SOURCES = $(wildcard $(SRC_DIR)/*.c)
+# Sources for the current project - FIXED
+SOURCES = \
+	tests_main.c \
+	$(wildcard unit/*.c) \
+	$(wildcard unit/**/*.c) \
+	$(wildcard integration/*.c) \
+	$(wildcard integration/**/*.c)
 
-TARGETS= $(SOURCES:%=build/%)
+TARGET = build/test_runner
 
 .PHONY: all clean run
 
-all: $(TARGETS)
+all: $(TARGET)
 
 # Libraries to link against
 LIBS = -L../saci/deps/glfw/lib/GLFW/ -lglfw -llua5.4 -lm \
     -Wl,-rpath,$(PWD)/../saci/deps/glfw/lib/GLFW
 
-
-# Rule to compile each example
-build/%: % $(SACI_SRC)
-	@echo "\nBuilding $< with $(CC)"
+# Rule to compile all sources into one binary
+$(TARGET): $(SOURCES) $(SACI_SRC)
+	@echo "\nBuilding test runner with $(CC)"
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $< $(SACI_SRC) -o $@ $(LIBS)
-	@echo "Build succeeded for $<\n"
+	$(CC) $(CFLAGS) $(SOURCES) $(SACI_SRC) -o $@ $(LIBS)
+	@echo "Build succeeded for test runner\n"
 
-# Run a specific example
-run: all
-	@echo "\nAvailable tests to run:"
-	@$(foreach ex, $(EXAMPLES), echo $(ex);)
-	@read -p "Enter test path to run: " ex && \
-		export LD_LIBRARY_PATH=../saci/deps/glfw/lib/GLFW:$$LD_LIBRARY_PATH && \
-		./build/$$ex/main
+# Run the test runner
+run: $(TARGET)
+	export LD_LIBRARY_PATH=../saci/deps/glfw/lib/GLFW:$$LD_LIBRARY_PATH && \
+	./$(TARGET)
 
 list:
 	@echo "Sources: $(SOURCES)"
-	@echo "Targets: $(TARGET)"
+	@echo "Target: $(TARGET)"
 
 # Clean build files
 clean:
