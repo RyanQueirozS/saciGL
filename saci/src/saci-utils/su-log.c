@@ -7,41 +7,44 @@ SA_INTERNAL enum su_LogType su__type = su_LOG_TYPE_PROD;
 const char* su__log_severity_as_str(const enum su_LogErrorSeverity severity);
 const char* su__log_context_as_str(const enum su_LogContext severity);
 
-void su_log_error(const enum su_LogType type, const enum su_LogErrorSeverity severity, const enum su_LogContext context, const su_String* message, const char* file, const int line) {
+void su_log_error(const enum su_LogType type, const enum su_LogErrorSeverity severity, const enum su_LogContext context, const char* message, const char* file, const int line) {
+    if (severity == su_LOG_ERROR_SEVERITY_CRASH) {
+        abort();
+    }
     if ((int)su__type < type) {
         return;
     }
     const char* severity_str = su__log_severity_as_str(severity);
     const char* context_str = su__log_context_as_str(context);
-    printf("ERROR of [%s] severity: [%s] (%s) at %s:%d\n", severity_str, context_str, su_string_data(message), file, line);
+    printf("ERROR of [%s] severity: [%s] (%s) at %s:%d\n", severity_str, context_str, message, file, line);
 }
 
-void su_log_warn(const enum su_LogType type, const enum su_LogErrorSeverity severity, const enum su_LogContext context, const su_String* message, const char* file, const int line) {
+void su_log_warn(const enum su_LogType type, const enum su_LogErrorSeverity severity, const enum su_LogContext context, const char* message, const char* file, const int line) {
     if ((int)su__type < type) {
         return;
     }
     const char* severity_str = su__log_severity_as_str(severity);
     const char* context_str = su__log_context_as_str(context);
-    printf("WARNING of [%s] severity: [%s] (%s) at %s:%d\n", severity_str, context_str, su_string_data(message), file, line);
+    printf("WARNING of [%s] severity: [%s] (%s) at %s:%d\n", severity_str, context_str, message, file, line);
 }
 
-void su_log_info(const enum su_LogType type, const enum su_LogContext context, const su_String* message, const char* file, const int line) {
+void su_log_info(const enum su_LogType type, const enum su_LogContext context, const char* message, const char* file, const int line) {
     if (su__type < type) {
         return;
     }
     const char* context_str = su__log_context_as_str(context);
-    printf("INFO: [%s] (%s) at %s:%d\n", context_str, su_string_data(message), file, line);
+    printf("INFO: [%s] (%s) at %s:%d\n", context_str, message, file, line);
 }
 
-void su_log_assert(const su_Bool condition, const enum su_LogContext context, const su_String* message, const char* file, const int line) {
+void su_log_assert(const su_Bool condition, const enum su_LogContext context, const char* message, const char* file, const int line) {
     if (!condition) {
         const char* context_str = su__log_context_as_str(context);
-        printf("ASSERTION FAILED: [%s] (%s) at %s:%d\n", context_str, su_string_data(message), file, line);
+        printf("ASSERTION FAILED: [%s] (%s) at %s:%d\n", context_str, message, file, line);
         abort();
     }
 }
 
-void su_log_dummy_check(const su_Bool condition, const enum su_LogContext context, const su_String* message, const char* file, const int line) {
+void su_log_dummy_check(const su_Bool condition, const enum su_LogContext context, const char* message, const char* file, const int line) {
     if (su__type != su_LOG_TYPE_DEV && su__type != su_LOG_TYPE_USER) {
         printf("CRITICAL ERROR: A development safety check failed in production environment\n"
                "Please contact the development team immediately\n");
@@ -50,20 +53,20 @@ void su_log_dummy_check(const su_Bool condition, const enum su_LogContext contex
 
     if (!condition) {
         const char* context_str = su__log_context_as_str(context);
-        printf("DUMMY CHECK FAILED: [%s] (%s) at %s:%d\n", context_str, su_string_data(message), file, line);
+        printf("DUMMY CHECK FAILED: [%s] (%s) at %s:%d\n", context_str, message, file, line);
         abort();
     }
 }
 
 const char* su__log_severity_as_str(const enum su_LogErrorSeverity severity) {
     switch (severity) {
-    case su_LOG_ERROR_SEVERIY_LOW:
+    case su_LOG_ERROR_SEVERITY_LOW:
         return "LOW";
-    case su_LOG_ERROR_SEVERIY_MEDIUM:
+    case su_LOG_ERROR_SEVERITY_MEDIUM:
         return "MEDIUM";
-    case su_LOG_ERROR_SEVERIY_HIGH:
+    case su_LOG_ERROR_SEVERITY_HIGH:
         return "HIGH";
-    case su_LOG_ERROR_SEVERIY_CRASH:
+    case su_LOG_ERROR_SEVERITY_CRASH:
         return "CRASH";
     }
     return "UNKOWN";
@@ -83,6 +86,10 @@ const char* su__log_context_as_str(const enum su_LogContext severity) {
         return "CORE_CONFIG";
     case su_LOG_CONTEXT_CORE_MEMORY:
         return "CORE_MEMORY";
+    case su_LOG_CONTEXT_CORE_DARRAY:
+        return "CORE_DARRAY";
+    case su_LOG_CONTEXT_CORE_MEMORY_MANAGER:
+        return "CORE_MEMORY_MANAGER";
     case su_LOG_CONTEXT_RENDERER:
         return "RENDERER";
     case su_LOG_CONTEXT_RENDERER_STATIC:
@@ -125,10 +132,8 @@ const char* su__log_context_as_str(const enum su_LogContext severity) {
         return "LIB_STBI";
     case su_LOG_CONTEXT_LIB_GLFW:
         return "LIB_GLFW";
-    case su_LOG_CONTEXT_BAD_PARAMS:
-        return "BAD_PARAMS";
-    case su_LOG_CONTEXT_UNCATEGORIZED:
-        return "UNCATEGORIZED";
+    case su_LOG_CONTEXT_GFX:
+        return "GFX";
     }
 
     // Fallback for unknown values

@@ -5,7 +5,7 @@
 #include "saci-backend/sb-model.h"
 #include "saci-utils/su-types.h"
 #include "saci-utils/su-general.h"
-#include "saci-utils/su-debug.h"
+#include "saci-utils/su-log.h"
 
 // #define TINYOBJ_FREE
 #define TINYOBJ_LOADER_C_IMPLEMENTATION
@@ -54,7 +54,7 @@ SA_API struct sb_ModelMesh* sb_model_mesh_load(const char* path) {
                                       &mesh->index_array,
                                       &mesh->index_count);
     if (!success) {
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_MODEL_LOADING, "Couldn't load model");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_MODEL_LOADING, "Couldn't load model");
         su_FREE_M(mesh);
         return NULL;
     }
@@ -80,9 +80,9 @@ SA_API void sb_model_get_vertex_index_array(const struct sb_ModelMesh* model_mes
     *index_array_out = su_MALLOC_M(sizeof(struct sb_VertexIndex) *
                                    model_mesh->index_count);
     if (!*index_array_out) {
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_MEDIUM,
-                             su_LOG_CONTEXT_MEMORY,
-                             "Could not allocate memory for index_array_out");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM,
+                       su_LOG_CONTEXT_MODEL_LOADING,
+                       "Could not allocate memory for index_array_out");
         return;
     }
     memcpy(*index_array_out, model_mesh->index_array,
@@ -183,20 +183,20 @@ SA_INTERNAL su_Bool sb__model_parse(const char* file_path,
             strncpy(error_reason, "Error reading file", 255);
             break;
         }
-        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_MODEL_LOADING, "Could not load model: %s", error_reason);
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_MODEL_LOADING, "Could not load model: %s", error_reason);
     };
 
     *positions_count_out = attribute.num_vertices;
     if (!(*positions_count_out)) {
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_MEDIUM,
-                             su_LOG_CONTEXT_MODEL_LOADING,
-                             "Could not load position array");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM,
+                       su_LOG_CONTEXT_MODEL_LOADING,
+                       "Could not load position array");
         return false;
     }
     *position_array_out = su_SCAST_TO_M(su_Vec3*)(su_MALLOC_M(sizeof(su_Vec3) * (*positions_count_out)));
     if (!(*position_array_out)) {
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_MEDIUM,
-                             su_LOG_CONTEXT_MODEL_LOADING, "Couldn't malloc positions");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM,
+                       su_LOG_CONTEXT_MODEL_LOADING, "Couldn't malloc positions");
         return false;
     }
     for (su_U64 i = 0; i < (*positions_count_out); ++i) {

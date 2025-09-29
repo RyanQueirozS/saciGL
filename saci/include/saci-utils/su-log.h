@@ -11,10 +11,10 @@ enum su_LogType {
 };
 
 enum su_LogErrorSeverity {
-    su_LOG_ERROR_SEVERIY_LOW = 1,
-    su_LOG_ERROR_SEVERIY_MEDIUM = 2,
-    su_LOG_ERROR_SEVERIY_HIGH = 3,
-    su_LOG_ERROR_SEVERIY_CRASH = 4,
+    su_LOG_ERROR_SEVERITY_LOW = 1,
+    su_LOG_ERROR_SEVERITY_MEDIUM = 2,
+    su_LOG_ERROR_SEVERITY_HIGH = 3,
+    su_LOG_ERROR_SEVERITY_CRASH = 4,
 };
 
 enum su_LogContext {
@@ -24,8 +24,9 @@ enum su_LogContext {
     su_LOG_CONTEXT_CORE_MAINLOOP = 0x02,
     su_LOG_CONTEXT_CORE_EVENTS = 0x03,
     su_LOG_CONTEXT_CORE_CONFIG = 0x04,
-    su_LOG_CONTEXT_CORE_MEMORY = 0x05,
-    su_LOG_CONTEXT_CORE_MEMORY_MANAGER = 0x05,
+    su_LOG_CONTEXT_CORE_DARRAY = 0x06,
+    su_LOG_CONTEXT_CORE_MEMORY = 0x07,
+    su_LOG_CONTEXT_CORE_MEMORY_MANAGER = 0x08,
 
     // Rendering System (0x20-0x3F)
     su_LOG_CONTEXT_RENDERER = 0x20,
@@ -62,21 +63,25 @@ enum su_LogContext {
     su_LOG_CONTEXT_LIB_STBI = 0xE1,
     su_LOG_CONTEXT_LIB_GLFW = 0xE2,
 
-    // Error/Utility contexts
-    su_LOG_CONTEXT_BAD_PARAMS = 0xFE,
-    su_LOG_CONTEXT_UNCATEGORIZED = 0xFF
+    // GFX (0x100-0x11F)
+    su_LOG_CONTEXT_GFX = 0x100,
+
+    // Main (0x120-13F)
+    su_LOG_CONTEXT_MAIN_SHAPE_INIT = 0x120,
+    su_LOG_CONTEXT_MAIN_SHAPE_DRAW = 0x121,
 };
 
-SA_API void su_log_error(const enum su_LogType type, const enum su_LogErrorSeverity severity, const enum su_LogContext context, const su_String* message, const char* file, const int line);
+SA_API void su_log_error(const enum su_LogType type, const enum su_LogErrorSeverity severity, const enum su_LogContext context, const char* message, const char* file, const int line);
 
-SA_API void su_log_warn(const enum su_LogType type, const enum su_LogErrorSeverity severity, const enum su_LogContext context, const su_String* message, const char* file, const int line);
+SA_API void su_log_warn(const enum su_LogType type, const enum su_LogErrorSeverity severity, const enum su_LogContext context, const char* message, const char* file, const int line);
 
-SA_API void su_log_info(const enum su_LogType type, const enum su_LogContext context, const su_String* message, const char* file, const int line);
+SA_API void su_log_info(const enum su_LogType type, const enum su_LogContext context, const char* message, const char* file, const int line);
 
-SA_API void su_log_assert(const su_Bool condition, const enum su_LogContext context, const su_String* message, const char* file, const int line);
+SA_API void su_log_assert(const su_Bool condition, const enum su_LogContext context, const char* message, const char* file, const int line);
 
-SA_API void su_log_dummy_check(const su_Bool condition, const enum su_LogContext context, const su_String* message, const char* file, const int line);
+SA_API void su_log_dummy_check(const su_Bool condition, const enum su_LogContext context, const char* message, const char* file, const int line);
 
+// use when a condition fails or something that should happen happend
 #define su_LOG_ERROR_M(type, severity, context, message) \
     su_log_error(type, severity, context, message, __FILE__, __LINE__)
 
@@ -86,10 +91,46 @@ SA_API void su_log_dummy_check(const su_Bool condition, const enum su_LogContext
 #define su_LOG_INFO_M(type, context, message) \
     su_log_info(type, context, message, __FILE__, __LINE__)
 
-#define su_LOG_ASSERT_M(condition, type, context, message) \
-    su_log_assert(condition, type, context, message, __FILE__, __LINE__)
+// use to make sure simple stuff make sense (index < length etc). Think of it as asserting that the logic is working not that there is a expecific value and what not, that is done through checks and su_LOG_ERROR_M
+#define su_LOG_ASSERT_M(condition, context, message) \
+    su_log_assert(condition, context, message, __FILE__, __LINE__)
 
-#define su_LOG_DUMMY_CHECK_M(condition, type, context, message) \
-    su_log_dummy_check(condition, type, context, message, __FILE__, __LINE__)
+#define su_LOG_DUMMY_CHECK_M(condition, context, message) \
+    su_log_dummy_check(condition, context, message, __FILE__, __LINE__)
+
+#define su_LOG_ERRORF_M(type, severity, context, ...)                              \
+    do {                                                                           \
+        char su_log_message[2048];                                                 \
+        snprintf(su_log_message, sizeof(su_log_message), __VA_ARGS__);             \
+        su_log_error(type, severity, context, su_log_message, __FILE__, __LINE__); \
+    } while (0)
+
+#define su_LOG_WARNF_M(type, severity, context, ...)                              \
+    do {                                                                          \
+        char su_log_message[2048];                                                \
+        snprintf(su_log_message, sizeof(su_log_message), __VA_ARGS__);            \
+        su_log_warn(type, severity, context, su_log_message, __FILE__, __LINE__); \
+    } while (0)
+
+#define su_LOG_INFOF_M(type, context, ...)                              \
+    do {                                                                \
+        char su_log_message[2048];                                      \
+        snprintf(su_log_message, sizeof(su_log_message), __VA_ARGS__);  \
+        su_log_info(type, context, su_log_message, __FILE__, __LINE__); \
+    } while (0)
+
+#define su_LOG_ASSERTF_M(condition, context, ...)                              \
+    do {                                                                       \
+        char su_log_message[2048];                                             \
+        snprintf(su_log_message, sizeof(su_log_message), __VA_ARGS__);         \
+        su_log_assert(condition, context, su_log_message, __FILE__, __LINE__); \
+    } while (0)
+
+#define su_LOG_DUMMY_CHECKF_M(condition, context, ...)                              \
+    do {                                                                            \
+        char su_log_message[2048];                                                  \
+        snprintf(su_log_message, sizeof(su_log_message), __VA_ARGS__);              \
+        su_log_dummy_check(condition, context, su_log_message, __FILE__, __LINE__); \
+    } while (0)
 
 #endif // SACI_UTILS_SU_LOG_H

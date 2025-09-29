@@ -95,7 +95,7 @@ su_S32 sb_gfx_get_uniform_loc_cstr(const union sb_GFXInfo* info, const char* nam
 
 union sb_GFXTexture sb_gfx_gen_texture(void);
 void sb_gfx_upload_texture_2d(union sb_GFXTexture texture_id,
-                              su_U32 format,
+                              su_S32 format,
                               int width, int height,
                               const void* data);
 void sb_gfx_get_texture_size(union sb_GFXTexture texture_id, int* width_out, int* height_out);

@@ -1,6 +1,6 @@
 #include "./sb-renderer-common.h"
 
-#include "saci-utils/su-debug.h"
+#include "saci-utils/su-log.h"
 #include "./sb-memmanager.h"
 
 #include "saci-utils/su-types.h"
@@ -71,51 +71,66 @@ void sb_renderer_instanced_new(sb_Renderer* self) {
 }
 
 void sb_renderer_push_instance_data(struct sb_Renderer* rendr, const struct sb_GFXInstanceData* instance_data) {
-    su_LOG_ASSERT_MESSAGE_M(rendr->type == sb_RENDERER_INSTANCE, "Trying to set instance transforms in non instance renderer");
-    su_LOG_ASSERT_MESSAGE_M(instance_data, "Seting instances with different sizes");
-    su_LOG_ASSERT_MESSAGE_M(instance_data->instance_data_structure && instance_data->data_size, "Seting instances with different sizes");
+    // TODO change to if (condition) error clauses
+    su_LOG_ASSERT_M(rendr->type == sb_RENDERER_INSTANCE, su_LOG_CONTEXT_RENDERER_INSTANCE, "Trying to set instance transforms in non instance renderer");
+    su_LOG_ASSERT_M(instance_data, su_LOG_CONTEXT_RENDERER_INSTANCE, "instances with different sizes");
+    su_LOG_ASSERT_M(instance_data->instance_data_structure && instance_data->data_size, su_LOG_CONTEXT_RENDERER_INSTANCE, "Seting instances with different sizes");
 
-    su_LOG_DEBUGF_PRINT_M(
-        su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
-        su_LOG_CONTEXT_RENDERER,
+    su_LOG_INFOF_M(
+        su_LOG_TYPE_USER,
+        su_LOG_CONTEXT_RENDERER_INSTANCE,
         "Binding instance data at %u location",
         instance_data->location);
 
-    su_LOG_DEBUG_CONDITION_PRINT_M(
-        !su_darray_clear(rendr->rendr.instance_renderer->bound_extra.bound_instance_data_array),
-        su_LOG_DEBUG_TYPE_RENDERER, su_LOG_CONTEXT_INIT,
-        "Could not clear instance array");
-    su_darray_push(rendr->rendr.instance_renderer->bound_extra.bound_instance_data_array, instance_data);
+    if (!su_darray_clear(rendr->rendr.instance_renderer->bound_extra.bound_instance_data_array)) {
+        su_LOG_ERROR_M(
+            su_LOG_TYPE_USER,
+            su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_CONTEXT_RENDERER_INSTANCE,
+            "Could not clear instance array");
+    }
+    if (!su_darray_push(rendr->rendr.instance_renderer->bound_extra.bound_instance_data_array, instance_data)) {
+        su_LOG_ERROR_M(
+            su_LOG_TYPE_USER,
+            su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_CONTEXT_RENDERER_INSTANCE,
+            "Could not push to instance array");
+    }
 }
 
 SA_API void sb_renderer_set_instance_data_array(struct sb_Renderer* rendr, const su_DArray* instance_data_array) {
-    su_LOG_ASSERT_MESSAGE_M(rendr->type == sb_RENDERER_INSTANCE, "Trying to set instance transforms in non instance renderer");
-    su_LOG_ASSERT_MESSAGE_M(instance_data_array, "Seting instances with different sizes");
-    su_LOG_ASSERT_MESSAGE_M(su_darray_get_elem_size(instance_data_array) == sizeof(struct sb_GFXInstanceData), "Pushing instances without the struct sb_GFXInstanceData size");
+    // TODO change to if error
+    su_LOG_ASSERT_M(rendr->type == sb_RENDERER_INSTANCE, su_LOG_CONTEXT_RENDERER_INSTANCE, "Trying to set instance transforms in non instance renderer");
+    su_LOG_ASSERT_M(instance_data_array, su_LOG_CONTEXT_RENDERER_INSTANCE, "Seting instances with different sizes");
+    su_LOG_ASSERT_M(su_darray_get_elem_size(instance_data_array) == sizeof(struct sb_GFXInstanceData), su_LOG_CONTEXT_RENDERER_INSTANCE, "Pushing instances without the struct sb_GFXInstanceData size");
 
-    su_LOG_DEBUGF_PRINT_M(
-        su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
-        su_LOG_CONTEXT_RENDERER,
+    su_LOG_INFOF_M(
+        su_LOG_TYPE_USER,
+        su_LOG_CONTEXT_RENDERER_INSTANCE,
         "Binding %lu instances",
         su_darray_length(instance_data_array));
-    su_LOG_DEBUG_CONDITION_PRINT_M(
-        !su_darray_clear(rendr->rendr.instance_renderer->bound_extra.bound_instance_data_array),
-        su_LOG_DEBUG_TYPE_RENDERER, su_LOG_CONTEXT_INIT,
-        "Could not clear instance array");
-    su_darray_append(rendr->rendr.instance_renderer->bound_extra.bound_instance_data_array, instance_data_array);
+    if (!su_darray_clear(rendr->rendr.instance_renderer->bound_extra.bound_instance_data_array)) {
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER_INSTANCE, "Could not clear instance data array");
+    }
+    if (su_darray_append(rendr->rendr.instance_renderer->bound_extra.bound_instance_data_array, instance_data_array)) {
+        su_LOG_ERROR_M(
+            su_LOG_TYPE_USER,
+            su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_CONTEXT_RENDERER_INSTANCE,
+            "Could not push to instance array");
+    }
 }
 
 /* --- LOCAL FUNCS --- */
 
 SA_INTERNAL void sb__renderer_instance_begin(const struct sb_Renderer* self) {
-    su_LOG_DEBUG_CONDITION_PRINT_M(
-        !su_darray_clear(self->rendr.instance_renderer->bound.index_array),
-        su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
-        "Could not clear bound index array");
-    su_LOG_DEBUG_CONDITION_PRINT_M(
-        !su_darray_clear(self->rendr.instance_renderer->bound.uniform_data_array),
-        su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
-        "Could not clear bound uniform array");
+    if (!su_darray_clear(self->rendr.instance_renderer->bound.index_array)) {
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER,
+                       "Could not clear bound index array");
+    }
+    if (!su_darray_clear(self->rendr.instance_renderer->bound.uniform_data_array)) {
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER_INSTANCE, "Could not clear bound uniform data array");
+    }
     self->rendr.instance_renderer->bound.texture = sb_TEXTURE_INVALID;
 
     self->rendr.instance_renderer->batch_info.in_use = 0;
@@ -125,22 +140,30 @@ SA_INTERNAL void sb__renderer_instance_begin(const struct sb_Renderer* self) {
             batch->texture_array[j].gl_texture.texture = sb_TEXTURE_INVALID;
             batch->texture_array_loc[j] = 0;
         }
-        su_LOG_DEBUG_CONDITION_PRINT_M(
-            !su_darray_clear(batch->vertex_array),
-            su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
-            "Could not clear batch vertex array");
-        su_LOG_DEBUG_CONDITION_PRINT_M(
-            !su_darray_clear(batch->index_array),
-            su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
-            "Could not clear batch index array");
-        su_LOG_DEBUG_CONDITION_PRINT_M(
-            !su_darray_clear(batch->instance_buffer_array),
-            su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
-            "Could not clear batch instance array array");
-        su_LOG_DEBUG_CONDITION_PRINT_M(
-            !su_darray_clear(batch->uniform_data_array),
-            su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
-            "Could not clear batch uniform array array");
+        if (!su_darray_clear(batch->vertex_array)) {
+            su_LOG_ERRORF_M(
+                su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+                su_LOG_CONTEXT_RENDERER_INSTANCE,
+                "Could not clear %dith batch's vertex array", i);
+        }
+        if (!su_darray_clear(batch->index_array)) {
+            su_LOG_ERRORF_M(
+                su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+                su_LOG_CONTEXT_RENDERER_INSTANCE,
+                "Could not clear %dith batch's index array", i);
+        }
+        if (!su_darray_clear(batch->instance_buffer_array)) {
+            su_LOG_ERRORF_M(
+                su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+                su_LOG_CONTEXT_RENDERER_INSTANCE,
+                "Could not clear %dith batch's instance buffer array", i);
+        }
+        if (!su_darray_clear(batch->uniform_data_array)) {
+            su_LOG_ERRORF_M(
+                su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+                su_LOG_CONTEXT_RENDERER_INSTANCE,
+                "Could not clear %dith batch's uniform array array", i);
+        }
     }
 }
 
@@ -165,13 +188,13 @@ SA_INTERNAL void sb__renderer_instance_set_uniform(struct sb_Renderer* self,
     if (uniform_id < 0 || uniform_id >= su_TYPE_MAX ||
         uniform_id == su_TYPE_BUFFERID || uniform_id == su_TYPE_SHADERID ||
         uniform_id == su_TYPE_TEXTUREID) {
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_RENDERER,
-                             "Trying to bind uniform with invalid ID");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_RENDERER,
+                       "Trying to bind uniform with invalid ID");
         return;
     }
     if (su_SCAST_TO_M(int)(type) == 0 || su_SCAST_TO_M(int)(type) > 26) {
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_RENDERER,
-                             "Trying to bind uniform with invalid type");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_RENDERER,
+                       "Trying to bind uniform with invalid type");
         return;
     }
     struct sb_GFXUniformData new_uniform = {0};
@@ -179,31 +202,28 @@ SA_INTERNAL void sb__renderer_instance_set_uniform(struct sb_Renderer* self,
     new_uniform.value = sb_renderer_uniform_value_from_type(type, value);
     new_uniform.location = uniform_id;
 
-    struct sb_GFXUniformData* uniform_data = su_MALLOC_M(sizeof(struct sb_GFXUniformData));
     for (su_U64 i = 0; i < su_darray_length(*uniform_data_array); ++i) {
-        su_darray_get(*uniform_data_array, i, uniform_data);
-        if (uniform_data->location == uniform_id) {
-            su_FREE_M(uniform_data);
+        struct sb_GFXUniformData uniform_data = *(struct sb_GFXUniformData*)su_darray_get(*uniform_data_array, i);
+        if (uniform_data.location == uniform_id) {
             su_darray_set(*uniform_data_array, i, &new_uniform);
             return;
         }
     }
     if (!su_darray_push(*uniform_data_array, &new_uniform)) {
-        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER,
-                              "Could not set uniform in renderer");
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER,
+                        "Could not set uniform in renderer");
     }
-    su_FREE_M(uniform_data);
 }
 
 SA_INTERNAL void sb__renderer_instance_bind_index_buffer(struct sb_Renderer* self, const su_DArray* new_indices) {
     if (!new_indices) {
-        su_LOG_WARN_PRINT_M(su_LOG_SEVERITY_MEDIUM,
-                            su_LOG_CONTEXT_RENDERER,
-                            "Indices are NULL and cannot be bound");
+        su_LOG_WARN_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM,
+                      su_LOG_CONTEXT_RENDERER,
+                      "Indices are NULL and cannot be bound");
         return;
     }
-    su_LOG_DEBUGF_PRINT_M(su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
-                          "Bound %lu indices", su_darray_length(new_indices));
+    su_LOG_INFOF_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_RENDERER_INSTANCE,
+                   "Bound %lu indices", su_darray_length(new_indices));
 
     su_darray_clear(self->rendr.instance_renderer->bound.index_array);
     su_darray_append(self->rendr.instance_renderer->bound.index_array, new_indices);
@@ -217,69 +237,59 @@ SA_INTERNAL void sb__renderer_instance_push_mesh(struct sb_Renderer* self,
     // s_Renderer_Validate_Before_Push(rendr, pos_array, uv_array, color_array);
     // TODO validate instance_transform
 
-    su_LOG_DEBUGF_PRINT_M(su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
-                          su_LOG_CONTEXT_RENDERER,
-                          "Attempting to push %lu vertices to instance batch",
-                          su_darray_length(pos_array));
-    su_LOG_DEBUGF_PRINT_M(su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
-                          su_LOG_CONTEXT_RENDERER,
-                          "Attempting to push %lu indices to instance batch",
-                          su_darray_length(rendr->bound.index_array));
+    su_LOG_INFOF_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_RENDERER_INSTANCE,
+                   "Attempting to push %lu vertices to instance batch",
+                   su_darray_length(pos_array));
+    su_LOG_INFOF_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_RENDERER_INSTANCE,
+                   "Attempting to push %lu indices to instance batch",
+                   su_darray_length(rendr->bound.index_array));
     struct sb_GFXDrawData* batch = rendr->batch_ptr_array[rendr->batch_info.in_use];
     su_Color default_color = {0, 0, 0, 0};
     su_Uv default_uv = {0, 0};
     for (su_U64 i = 0; i < su_darray_length(pos_array); ++i) {
-        su_Vec3 pos;
+        su_Vec3 pos = *(su_Vec3*)su_darray_get(pos_array, i);
         su_Color color = default_color;
         su_Uv uv = default_uv;
-        su_LOG_DEBUG_CONDITION_PRINT_M(
-            !su_darray_get(pos_array, i, &pos),
-            su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
-            "Could not get position");
 
         if (uv_array) {
-            su_LOG_DEBUG_CONDITION_PRINT_M(
-                !su_darray_get(uv_array, i, &uv),
-                su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
-                "Could not get uv");
+            uv = *(su_Uv*)su_darray_get(uv_array, i);
         }
         if (color_array) {
-            su_LOG_DEBUG_CONDITION_PRINT_M(
-                !su_darray_get(color_array, i, &color),
-                su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS, su_LOG_CONTEXT_RENDERER,
-                "Could not get uv");
+            color = *(su_Color*)su_darray_get(color_array, i);
         }
         struct sb_Vertex vertex = (struct sb_Vertex){pos, color, uv};
         if (!su_darray_push(batch->vertex_array, &vertex)) {
-            su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER, "Could not push vertex to instance batch");
+            su_LOG_ERROR_M(
+                su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+                su_LOG_CONTEXT_RENDERER,
+                "Could not push vertex to instance batch");
         }
     }
     if (!su_darray_append(batch->index_array, rendr->bound.index_array)) {
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER,
-                             "Could not push index to batch");
+        su_LOG_ERROR_M(
+            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_CONTEXT_RENDERER, "Could not push index to batch");
     }
     if (!su_darray_append(batch->uniform_data_array, rendr->bound.uniform_data_array)) {
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER,
-                             "Could not push uniform to batch");
+        su_LOG_ERROR_M(
+            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_CONTEXT_RENDERER, "Could not push uniform to batch");
     }
     if (!su_darray_append(batch->instance_buffer_array, rendr->bound_extra.bound_instance_data_array)) {
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER,
-                             "Could not push instances to batch");
+        su_LOG_ERROR_M(
+            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_CONTEXT_RENDERER, "Could not push instances to batch");
     }
     rendr->batch_info.in_use++;
 }
 
 SA_INTERNAL void sb__renderer_draw_instance_batch(const struct sb_Renderer* self) {
     const struct sb_InstanceRenderer* rendr = self->rendr.instance_renderer;
-    su_LOG_DEBUGF_PRINT_M(
-        su_LOG_DEBUG_TYPE_RENDERER_FUNCTIONS,
-        su_LOG_CONTEXT_RENDERER,
+    su_LOG_INFOF_M(
+        su_LOG_TYPE_USER,
+        su_LOG_CONTEXT_RENDERER_INSTANCE,
         "Flushing %d instance batches",
         rendr->batch_info.in_use);
-
-    static struct {
-        su_TextureId texture;
-    } previous_instance_batch = {0};
 
     for (su_U8 i = 0; i < rendr->batch_info.in_use; ++i) {
         struct sb_GFXDrawData* batch = rendr->batch_ptr_array[i];
@@ -350,8 +360,9 @@ SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* re
         sb_mem_alloc(sb_MEM_CONTEXT_RENDERER, 1,
                      uniform_size, &uniform_mem);
         if (!drawdata_mem || !index_mem || !vertex_mem || !instance_mem || !uniform_mem) {
-            su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, sb_MEM_CONTEXT_RENDERER, "Could not initialize memory for renderer");
-            su_FORCE_CRASH("Data for batch is NULL", su_CRASH_RESOURCE_LOAD);
+            su_LOG_ERROR_M(
+                su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
+                su_LOG_CONTEXT_RENDERER_INSTANCE, "Could not initialize memory for renderer");
         }
 
         struct sb_GFXDrawData* drawdata = su_SCAST_TO_M(struct sb_GFXDrawData*)(drawdata_mem);
@@ -364,10 +375,10 @@ SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* re
             cfg.batch.vertex_cfg.fixed_size);
         drawdata->vertex_struct_size = sizeof(struct sb_Vertex);
         if (!drawdata->vertex_array) {
-            su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH,
-                                 su_LOG_CONTEXT_RENDERER,
-                                 "Could not create a batch's vertex array");
-            su_FORCE_CRASH("Could not allocate for darray", su_CRASH_RESOURCE_LOAD);
+            su_LOG_ERROR_M(
+                su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
+                su_LOG_CONTEXT_RENDERER_INSTANCE,
+                "Could not create a batch's vertex array");
         }
 
         drawdata->index_array = su_darray_create_ctx(
@@ -378,10 +389,10 @@ SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* re
             cfg.batch.index_cfg.fixed_size);
         drawdata->index_struct_size = sizeof(su_U32);
         if (!drawdata->index_array) {
-            su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH,
-                                 su_LOG_CONTEXT_RENDERER,
-                                 "Could not create a batch's index array");
-            su_FORCE_CRASH("Could not allocate for darray", su_CRASH_RESOURCE_LOAD);
+            su_LOG_ERROR_M(
+                su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
+                su_LOG_CONTEXT_RENDERER_INSTANCE,
+                "Could not create a batch's index array");
         }
 
         // TODO not well made, needs to contain the data for the arrays inside itself
@@ -392,10 +403,10 @@ SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* re
             sizeof(struct sb_GFXInstanceData),
             cfg.batch.instance_cfg.fixed_size);
         if (!drawdata->instance_buffer_array) {
-            su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH,
-                                 su_LOG_CONTEXT_RENDERER,
-                                 "Could not create a batch's instance array");
-            su_FORCE_CRASH("Could not allocate for darray", su_CRASH_RESOURCE_LOAD);
+            su_LOG_ERROR_M(
+                su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
+                su_LOG_CONTEXT_RENDERER_INSTANCE,
+                "Could not create a batch's instance array");
         }
 
         drawdata->uniform_data_array = su_darray_create_ctx(
@@ -405,10 +416,10 @@ SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* re
             sizeof(struct sb_GFXUniformData),
             su_TRUE);
         if (!drawdata->uniform_data_array) {
-            su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH,
-                                 su_LOG_CONTEXT_RENDERER,
-                                 "Could not create a batch's uniform array");
-            su_FORCE_CRASH("Could not allocate for darray", su_CRASH_RESOURCE_LOAD);
+            su_LOG_ERROR_M(su_LOG_TYPE_USER,
+                           su_LOG_ERROR_SEVERITY_CRASH,
+                           su_LOG_CONTEXT_RENDERER_INSTANCE,
+                           "Could not create a batch's uniform array");
         }
 
         for (su_U32 t = 0; t < SACI_MAX_TEXTURES; ++t) {

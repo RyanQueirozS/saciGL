@@ -1,9 +1,9 @@
 #include "saci-backend/sb-texture.h"
 
-#include "saci-utils/su-debug.h"
+#include "saci-utils/su-log.h"
 #include "saci-utils/su-general.h"
 #include "saci-backend/sb-config-manager.h"
-#include <saci-backend/sb-gfx.h>
+#include "saci-backend/sb-gfx.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stbi/stb_image.h"
@@ -36,8 +36,8 @@ void sb_texture_load_data(const char* path, su_Bool flip_img, int* width_out, in
     stbi_set_flip_vertically_on_load(!flip_img);
     *data_out = stbi_load(path, width_out, height_out, nr_channels_out, 0);
     if ((*width_out) <= 0 || (*height_out) <= 0) {
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
-                             "Texture coudn't be loaded: Texture Width or Height is equal to 0");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_TEXTURE_LOADING,
+                       "Texture coudn't be loaded: Texture Width or Height is equal to 0");
     }
 }
 
@@ -49,16 +49,16 @@ union sb_GFXTexture sb_texture_load(const char* path, su_Bool flip_img) {
     sb_texture_load_data(path, flip_img, &width, &height, &nr_channels, &data);
 
     if (!data) {
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
-                             "Texture coudn't be loaded: Image could not be loaded");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_TEXTURE_LOADING,
+                       "Texture coudn't be loaded: Image could not be loaded");
         return (union sb_GFXTexture){0};
     }
 
     su_U32 format = sb__texture_determine_format(nr_channels);
     if (format == 0) {
         su_FREE_M(data);
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
-                             "Texture coudn't be loaded: Unsupported number of channels");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_TEXTURE_LOADING,
+                       "Texture coudn't be loaded: Unsupported number of channels");
         return (union sb_GFXTexture){0};
     }
 
@@ -70,8 +70,8 @@ union sb_GFXTexture sb_texture_load(const char* path, su_Bool flip_img) {
     sb_gfx_get_texture_size(tex, &width, &height);
 
     if (width <= 0 || height <= 0) {
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
-                             "Texture coudn't be loaded: Texture Width or Height is equal to 0");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_TEXTURE_LOADING,
+                       "Texture coudn't be loaded: Texture Width or Height is equal to 0");
         su_FREE_M(data);
         return tex;
     }
@@ -79,12 +79,12 @@ union sb_GFXTexture sb_texture_load(const char* path, su_Bool flip_img) {
     sb_gfx_generate_mipmap(tex);
 
     su_FREE_M(data);
-    su_LOG_DEBUG_PRINT_M(su_LOG_DEBUG_TYPE_TEXTURE, su_LOG_CONTEXT_OPENGL, "Loaded texture");
+    su_LOG_INFO_M(su_LOG_TYPE_PROD, su_LOG_CONTEXT_TEXTURE_LOADING, "Loaded texture");
     return tex;
 }
 
 void sb_texture_free(union sb_GFXTexture texture) {
-    su_LOG_DEBUG_PRINT_M(su_LOG_DEBUG_TYPE_TEXTURE, su_LOG_CONTEXT_OPENGL, "Freed texture");
+    su_LOG_INFO_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_TEXTURE_LOADING, "Freed texture");
     sb_gfx_delete_texture(texture);
 }
 

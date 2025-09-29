@@ -45,7 +45,7 @@ typedef bool su_Bool;
 
 /* === Identifiers === */
 
-typedef su_S32 su_ShaderId;
+typedef su_U32 su_ShaderId;
 
 typedef su_U32 su_TextureId;
 
@@ -203,7 +203,7 @@ SA_API su_Bool su_darray_push(su_DArray* array, const void* value);
 
 SA_API void su_darray_pop(su_DArray* array);
 
-SA_API su_Bool su_darray_get(const su_DArray* array, su_U64 index, void* out_value);
+SA_API const void* su_darray_get(const su_DArray* array, su_U64 index);
 
 SA_API void* su_darray_get_ptr(const su_DArray* array, su_U64 index);
 

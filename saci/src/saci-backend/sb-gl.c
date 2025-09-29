@@ -7,7 +7,7 @@
 #include "saci-backend/sb-gl.h"
 
 #include "saci-utils/su-general.h"
-#include "saci-utils/su-debug.h"
+#include "saci-utils/su-log.h"
 #include "saci-utils/su-types.h"
 
 #define GL_LINK_STATUS 0x8B82
@@ -148,8 +148,8 @@ SA_API void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, con
         break;
 
     default:
-        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
-                              "Invalid type %d for uniform", type);
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_LIB_OPENGL,
+                        "Invalid type %d for uniform", type);
         break;
     }
 }
@@ -254,7 +254,7 @@ su_ShaderId sb_gl_shader_create_shader_program(su_ShaderId vshader, su_ShaderId 
         char gl_err_message[1024];
         int size_returned = 0;
         gl_funcs.gl.get_program_info_log(program_id, 2048, &size_returned, gl_err_message);
-        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_OPENGL, "Shader program couldn't be loaded: %s", gl_err_message);
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH, su_LOG_CONTEXT_LIB_OPENGL, "Shader program couldn't be loaded: %s", gl_err_message);
         return 0;
     }
     gl_funcs.gl.detach_shader(program_id, vshader);
@@ -262,8 +262,8 @@ su_ShaderId sb_gl_shader_create_shader_program(su_ShaderId vshader, su_ShaderId 
     gl_funcs.gl.delete_shader(vshader);
     gl_funcs.gl.delete_shader(fshader);
 
-    su_LOG_INFOF_PRINT_M(su_LOG_CONTEXT_OPENGL,
-                         "Shader program %d loaded successfully", program_id);
+    su_LOG_INFOF_M(su_LOG_TYPE_PROD, su_LOG_CONTEXT_LIB_OPENGL,
+                   "Shader program %d loaded successfully", program_id);
     return program_id;
 }
 
@@ -280,7 +280,7 @@ su_ShaderId sb_gl_shader_create_shader_program_geom(su_ShaderId vshader, su_Shad
         char gl_err_message[1024];
         int size_returned = 0;
         gl_funcs.gl.get_program_info_log(program_id, 2048, &size_returned, gl_err_message);
-        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_OPENGL, "Shader program couldn't be loaded: %s", gl_err_message);
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH, su_LOG_CONTEXT_LIB_OPENGL, "Shader program couldn't be loaded: %s", gl_err_message);
         return 0;
     }
     gl_funcs.gl.detach_shader(program_id, vshader);
@@ -289,8 +289,8 @@ su_ShaderId sb_gl_shader_create_shader_program_geom(su_ShaderId vshader, su_Shad
     gl_funcs.gl.delete_shader(vshader);
     gl_funcs.gl.delete_shader(fshader);
     gl_funcs.gl.delete_shader(gshader);
-    su_LOG_INFOF_PRINT_M(su_LOG_CONTEXT_OPENGL,
-                         "Shader program %d loaded successfully", program_id);
+    su_LOG_INFOF_M(su_LOG_TYPE_PROD, su_LOG_CONTEXT_LIB_OPENGL,
+                   "Shader program %d loaded successfully", program_id);
 
     return program_id;
 }
@@ -327,7 +327,7 @@ SA_INTERNAL su_ShaderId sb__shader_compile(const char* shader_source, su_U32 sha
             if (shader_type == GL_GEOMETRY_SHADER) {
                 log_message = "Geometry shader couldn't be loaded";
             }
-            su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_OPENGL, log_message);
+            su_LOG_ERROR_M(su_LOG_TYPE_PROD, su_LOG_ERROR_SEVERITY_CRASH, su_LOG_CONTEXT_LIB_OPENGL, log_message);
         }
         return 0;
     }
@@ -343,7 +343,7 @@ SA_INTERNAL su_ShaderId sb__shader_compile(const char* shader_source, su_U32 sha
         if (shader_type == GL_GEOMETRY_SHADER) {
             log_message = "Geometry shader loaded succesfully";
         }
-        su_LOG_INFO_PRINT_M(su_LOG_CONTEXT_OPENGL, log_message);
+        su_LOG_INFO_M(su_LOG_TYPE_PROD, su_LOG_CONTEXT_LIB_OPENGL, log_message);
     }
 
     return shader_id;

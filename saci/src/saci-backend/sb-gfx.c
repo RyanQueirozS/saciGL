@@ -2,7 +2,7 @@
 
 #include "saci-utils/su-general.h"
 #include "saci-backend/sb-config-manager.h"
-#include "saci-utils/su-debug.h"
+#include "saci-utils/su-log.h"
 #include <saci-backend/sb-gl.h>
 #include <saci-utils/su-types.h>
 #include <stdio.h>
@@ -45,8 +45,8 @@ void sb_gfx_load(void) {
 }
 
 void sb_gfx_init_shader(union sb_GFXInfo* info_out, const struct sb_RendererConfig cfg) {
-    su_LOG_ASSERT_MESSAGE_M(cfg.shaders.vert, "Vertex shader is empty or NULL");
-    su_LOG_ASSERT_MESSAGE_M(cfg.shaders.frag, "Frag shader is empty or NULL");
+    su_LOG_ASSERT_M(cfg.shaders.vert, su_LOG_CONTEXT_GFX, "Vertex shader is empty or NULL");
+    su_LOG_ASSERT_M(cfg.shaders.frag, su_LOG_CONTEXT_GFX, "Frag shader is empty or NULL");
     switch (render_api) {
     case sb_RENDERER_API_OPENGL:
         {
@@ -110,13 +110,13 @@ union sb_GFXTexture sb_gfx_gen_texture(void) {
 }
 
 void sb_gfx_upload_texture_2d(union sb_GFXTexture texture,
-                              su_U32 format,
+                              su_S32 format,
                               int width, int height,
                               const void* data) {
     render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, texture.gl_texture.texture);
     render_funcs.gl.tex_image_2d(sb_GL_TEXTURE_2D, 0,
                                  format, width, height, 0,
-                                 format, sb_GL_UNSIGNED_BYTE, data);
+                                 (su_U32)format, sb_GL_UNSIGNED_BYTE, data);
 }
 
 void sb_gfx_get_texture_size(union sb_GFXTexture texture, int* width_out, int* height_out) {
@@ -170,8 +170,7 @@ SA_INTERNAL void sb__gfx_gl_setup_vertex_attributes(
     sb_gl_bind_vertex_buffer(vbo);
 
     for (su_U64 i = 0; i < su_darray_length(cfg.vertex_data.layout_array); ++i) {
-        struct sb_RendererCfgVertexLayout layout;
-        su_darray_get(cfg.vertex_data.layout_array, i, &layout);
+        struct sb_RendererCfgVertexLayout layout = *(struct sb_RendererCfgVertexLayout*)su_darray_get(cfg.vertex_data.layout_array, i);
 
         sb_gl_set_vertex_attrib_pointer(
             layout.location,
@@ -191,8 +190,7 @@ SA_INTERNAL void sb__gfx_gl_setup_instance_buffers(
         return;
 
     for (su_U64 buf_i = 0; buf_i < su_darray_length(cfg.instance_data.buffer_array); ++buf_i) {
-        struct sb_RendererCfgInstanceBuffer buffer_cfg = {0};
-        su_darray_get(cfg.instance_data.buffer_array, buf_i, &buffer_cfg);
+        struct sb_RendererCfgInstanceBuffer buffer_cfg = *(struct sb_RendererCfgInstanceBuffer*)su_darray_get(cfg.instance_data.buffer_array, buf_i);
 
         su_BufferId vbo = 0;
         render_funcs.gl.gen_buffers(1, &vbo);
@@ -204,8 +202,7 @@ SA_INTERNAL void sb__gfx_gl_setup_instance_buffers(
             GL_DYNAMIC_DRAW);
 
         for (su_U64 attrib_i = 0; attrib_i < su_darray_length(buffer_cfg.layout_array); ++attrib_i) {
-            struct sb_RendererCfgInstanceBufferLayout attrib = {0};
-            su_darray_get(buffer_cfg.layout_array, attrib_i, &attrib);
+            struct sb_RendererCfgInstanceBufferLayout attrib = *(struct sb_RendererCfgInstanceBufferLayout*)su_darray_get(buffer_cfg.layout_array, attrib_i);
 
             if (attrib.type == su_TYPE_MAT4) {
                 for (su_U32 col = 0; col < 4; ++col) {
@@ -237,10 +234,10 @@ SA_INTERNAL void sb__gfx_gl_setup_instance_buffers(
 SA_INTERNAL void sb__gfx_gl_init_info(
     union sb_GFXInfo* info_out,
     const struct sb_RendererConfig cfg) {
-    su_LOG_ASSERT_MESSAGE_M(cfg.shaders.vert, "GL vert shader is empty");
-    su_LOG_ASSERT_MESSAGE_M(cfg.shaders.frag, "GL frag shader is empty");
-    su_LOG_ASSERT_MESSAGE_M(cfg.batch.index_cfg.capacity, "Index capacity is not set");
-    su_LOG_ASSERT_MESSAGE_M(cfg.batch.vertex_cfg.capacity, "Vertex capacity is not set");
+    su_LOG_ASSERT_M(cfg.shaders.vert, su_LOG_CONTEXT_GFX, "GL vert shader is empty");
+    su_LOG_ASSERT_M(cfg.shaders.frag, su_LOG_CONTEXT_GFX, "GL frag shader is empty");
+    su_LOG_ASSERT_M(cfg.batch.index_cfg.capacity, su_LOG_CONTEXT_GFX, "Index capacity is not set");
+    su_LOG_ASSERT_M(cfg.batch.vertex_cfg.capacity, su_LOG_CONTEXT_GFX, "Vertex capacity is not set");
 
     sb__gfx_gl_create_main_buffers(info_out, cfg);
     sb__gfx_gl_setup_vertex_attributes(cfg, info_out->gl_data.vao, info_out->gl_data.vbo);
@@ -271,8 +268,7 @@ SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct 
     if (!su_darray_is_empty(data->instance_buffer_array)) {
         instance_count = su_darray_length(data->instance_buffer_array);
         for (su_U64 i = 0; i < instance_count; ++i) {
-            struct sb_GFXInstanceData instance_buffer = {0};
-            su_darray_get(data->instance_buffer_array, i, &instance_buffer);
+            struct sb_GFXInstanceData instance_buffer = *(struct sb_GFXInstanceData*)su_darray_get(data->instance_buffer_array, i);
             render_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, instance_buffer.location);
             render_funcs.gl.buffer_subdata(sb_GL_ARRAY_BUFFER, 0,
                                            instance_buffer.data_size,
@@ -283,8 +279,7 @@ SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct 
     { // Uniforms
         if (!su_darray_is_empty(data->uniform_data_array)) {
             for (su_U64 i = 0; i < su_darray_length(data->uniform_data_array); ++i) {
-                struct sb_GFXUniformData uniform_data = {0};
-                su_darray_get(data->uniform_data_array, i, &uniform_data);
+                struct sb_GFXUniformData uniform_data = *(struct sb_GFXUniformData*)su_darray_get(data->uniform_data_array, i);
                 sb__gfx_gl_set_uniform_from_uniform_data(uniform_data);
             }
         }
@@ -394,8 +389,8 @@ SA_INTERNAL void sb__gfx_gl_set_uniform_from_uniform_data(const struct sb_GFXUni
         break;
 
     default:
-        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
-                              "Invalid type %d for uniform", uniform_data.type);
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_GFX,
+                        "Invalid type %d for uniform", uniform_data.type);
         return;
     }
 

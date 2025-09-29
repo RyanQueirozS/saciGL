@@ -1,7 +1,7 @@
 #include "saci-utils/su-types.h"
 
 #include "saci-utils/su-general.h"
-#include "saci-utils/su-debug.h"
+#include "saci-utils/su-log.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -22,11 +22,11 @@ typedef struct su_DArray {
 } su_DArray;
 
 su_DArray* su_darray_create(su_U64 capacity, su_U64 elem_size, su_Bool fixed_size) {
-    su_LOG_ASSERT_MESSAGE_M(capacity > 0, "Capacity must be greater than zero");
-    su_LOG_ASSERT_MESSAGE_M(elem_size > 0, "Element size must be greater than zero");
+    su_LOG_DUMMY_CHECK_M(capacity > 0, su_LOG_CONTEXT_CORE_DARRAY, "Capacity must be greater than zero");
+    su_LOG_DUMMY_CHECK_M(elem_size > 0, su_LOG_CONTEXT_CORE_DARRAY, "Element size must be greater than zero");
 
     su_DArray* array = su_CALLOC_M(1, sizeof(su_DArray));
-    su_LOG_ASSERT_MESSAGE_M(array, "dArray couldn't be created");
+    su_LOG_ASSERT_M(array, su_LOG_CONTEXT_CORE_DARRAY, "Could not create dynamic array");
 
     array->length = 0;
     array->capacity = capacity;
@@ -34,7 +34,7 @@ su_DArray* su_darray_create(su_U64 capacity, su_U64 elem_size, su_Bool fixed_siz
     array->is_fixed_size = fixed_size;
 
     array->data = su_CALLOC_M(capacity, elem_size);
-    su_LOG_ASSERT_MESSAGE_M(array->data, "Could not allocate memory for su_DArray");
+    su_LOG_ASSERT_M(array->data, su_LOG_CONTEXT_CORE_DARRAY, "Could not allocate memory for su_DArray");
     return array;
 }
 
@@ -43,17 +43,12 @@ su_DArray* su_darray_create_ctx(void* memctx, su_U64 memctx_size, su_U64 capacit
     su_U64 data_size = capacity * elem_size;
     su_U64 total_size = struct_size + data_size;
 
-    if (!memctx) {
-        su_LOG_ERROR_PRINT_M(
-            su_LOG_SEVERITY_HIGH,
-            su_LOG_CONTEXT_MEMORY,
-            "Memory context is NULL");
-        return NULL;
-    }
-    if (memctx && memctx_size < total_size) {
-        su_LOG_ERRORF_PRINT_M(
-            su_LOG_SEVERITY_MEDIUM,
-            su_LOG_CONTEXT_MEMORY,
+    su_LOG_DUMMY_CHECK_M(memctx, su_LOG_CONTEXT_CORE_DARRAY, "Creating darray with context while context is NULL");
+    if (memctx_size < total_size) {
+        su_LOG_ERRORF_M(
+            su_LOG_TYPE_USER,
+            su_LOG_ERROR_SEVERITY_MEDIUM,
+            su_LOG_CONTEXT_CORE_DARRAY,
             "Memory context is too small for su_DArray and its data. Passed: (%lu) expected min: (%lu)",
             memctx_size, total_size);
         return NULL;
@@ -91,16 +86,16 @@ su_Bool su_darray_clear(su_DArray* array) {
 }
 
 su_Bool su_darray_resize(su_DArray* array, su_U64 new_cap) {
-    su_LOG_ASSERT_MESSAGE_M(new_cap > array->capacity, "New capacity must be greater than current capacity");
+    su_LOG_ASSERT_M(new_cap > array->capacity, su_LOG_CONTEXT_CORE_DARRAY, "New capacity must be greater than current capacity");
 
     if (array->is_fixed_size) {
-        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_MEMORY,
-                              "Cannot resize fixed-size su_DArray");
+        su_LOG_ERRORF_M(su_LOG_TYPE_PROD, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_CORE_DARRAY,
+                        "Cannot resize fixed-size su_DArray");
         return su_FALSE;
     }
 
     void* new_data = realloc(array->data, new_cap * array->elem_size);
-    su_LOG_ASSERT_MESSAGE_M(new_data, "Memory allocation failed during resizing");
+    su_LOG_ASSERT_M(new_data, su_LOG_CONTEXT_CORE_DARRAY, "Memory allocation failed during resizing");
 
     array->data = new_data;
     array->capacity = new_cap;
@@ -108,13 +103,13 @@ su_Bool su_darray_resize(su_DArray* array, su_U64 new_cap) {
 }
 
 su_Bool su_darray_push(su_DArray* array, const void* value) {
-    su_LOG_ASSERT_MESSAGE_M(array, "Array is NULL");
-    su_LOG_ASSERT_MESSAGE_M(value, "Value to push is NULL");
+    su_LOG_ASSERT_M(array, su_LOG_CONTEXT_CORE_DARRAY, "Array is NULL");
+    su_LOG_ASSERT_M(value, su_LOG_CONTEXT_CORE_DARRAY, "Value to push is NULL");
 
     if (array->length == array->capacity) {
         if (array->is_fixed_size) {
-            su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_MEMORY,
-                                  "Cannot push to full fixed-size su_DArray");
+            su_LOG_ERRORF_M(su_LOG_TYPE_PROD, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_CORE_DARRAY,
+                            "Cannot push to full fixed-size su_DArray");
             return su_FALSE;
         }
         su_U64 new_cap = array->capacity ? array->capacity * 2 : 4;
@@ -129,28 +124,23 @@ su_Bool su_darray_push(su_DArray* array, const void* value) {
 }
 
 void su_darray_pop(su_DArray* array) {
-    su_LOG_ASSERT_MESSAGE_M(array->length > 0, "Length is zero cannot pop su_DArray");
+    if (array->length == 0) {
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_CORE_DARRAY, "Cannot pop dynamic array, length is 0");
+    }
     array->length--;
 }
 
-su_Bool su_darray_get(const su_DArray* array, su_U64 index, void* out_value) {
-    if (!array) {
-        return su_FALSE;
-    }
-    if (!array->data) {
-        return su_FALSE;
-    }
-    if (index >= array->length) {
-        return su_FALSE;
-    }
-    const void* src = (const char*)array->data + index * array->elem_size;
-    memcpy(out_value, src, array->elem_size);
-    return su_TRUE;
+const void* su_darray_get(const su_DArray* array, su_U64 index) {
+    su_LOG_DUMMY_CHECK_M(array, su_LOG_CONTEXT_CORE_DARRAY, "DArray is NULL");
+    su_LOG_DUMMY_CHECK_M(array->data, su_LOG_CONTEXT_CORE_DARRAY, "DArray data is NULL");
+    su_LOG_ASSERTF_M(index < array->length, su_LOG_CONTEXT_CORE_DARRAY, "DArray has length %lu cannot get at index %lu", array->length, index);
+    return (char*)array->data + index * array->elem_size;
 }
 
 void* su_darray_get_ptr(const su_DArray* array, su_U64 index) {
-    su_LOG_ASSERTF_MESSAGE_M(index < array->length,
-                             "su_DArray accessed at %lu while length is %lu", index, array->length);
+    su_LOG_DUMMY_CHECK_M(array, su_LOG_CONTEXT_CORE_DARRAY, "DArray is NULL");
+    su_LOG_DUMMY_CHECK_M(array->data, su_LOG_CONTEXT_CORE_DARRAY, "DArray data is NULL");
+    su_LOG_ASSERTF_M(index < array->length, su_LOG_CONTEXT_CORE_DARRAY, "DArray has length %lu cannot get at index %lu", array->length, index);
     return (char*)array->data + index * array->elem_size;
 }
 
@@ -159,11 +149,10 @@ SA_API su_U64 su_darray_get_elem_size(const su_DArray* array) {
 }
 
 void su_darray_set(su_DArray* array, su_U64 index, const void* value) {
-    su_LOG_ASSERT_MESSAGE_M(array, "Array is NULL");
-    su_LOG_ASSERT_MESSAGE_M(array->data, "Array data is NULL");
-    su_LOG_ASSERT_MESSAGE_M(value, "Value is NULL");
-    su_LOG_ASSERTF_MESSAGE_M(index < array->length,
-                             "su_DArray accessed at %lu while length is %lu", index, array->length);
+    su_LOG_DUMMY_CHECK_M(array, su_LOG_CONTEXT_CORE_DARRAY, "DArray is NULL");
+    su_LOG_DUMMY_CHECK_M(array->data, su_LOG_CONTEXT_CORE_DARRAY, "DArray data is NULL");
+    su_LOG_ASSERTF_M(value, su_LOG_CONTEXT_CORE_DARRAY, "DArray has length %lu cannot get at index %lu", array->length, index);
+    su_LOG_ASSERTF_M(index < array->length, su_LOG_CONTEXT_CORE_DARRAY, "DArray has length %lu cannot get at index %lu", array->length, index);
     void* dest = (char*)array->data + index * array->elem_size;
     memcpy(dest, value, array->elem_size);
 }
@@ -210,13 +199,13 @@ su_Bool su_darray_is_empty(const su_DArray* arr) {
 /* === DArray impl === */
 
 SA_INTERNAL su_Bool su__darray_can_append(const su_DArray* dest, const su_DArray* src) {
-    su_LOG_ASSERT_MESSAGE_M(dest, "dest is NULL");
-    su_LOG_ASSERT_MESSAGE_M(src, "src is NULL");
-    su_LOG_ASSERT_MESSAGE_M(dest->data, "dest->data is NULL");
-    su_LOG_ASSERT_MESSAGE_M(src->data, "src->data is NULL");
-    su_LOG_ASSERT_MESSAGE_M(dest->elem_size == src->elem_size, "dest->elem_size is not src->elem_size");
-    su_LOG_ASSERT_MESSAGE_M(dest->elem_size > 0, "dest->elem_size is less than or equal to 0");
-    su_LOG_ASSERT_MESSAGE_M(src->elem_size > 0, "dest->elem_size is less than or equal to 0");
+    su_LOG_ASSERT_M(dest, su_LOG_CONTEXT_CORE_DARRAY, "dest is NULL");
+    su_LOG_ASSERT_M(src, su_LOG_CONTEXT_CORE_DARRAY, "src is NULL");
+    su_LOG_ASSERT_M(dest->data, su_LOG_CONTEXT_CORE_DARRAY, "dest->data is NULL");
+    su_LOG_ASSERT_M(src->data, su_LOG_CONTEXT_CORE_DARRAY, "src->data is NULL");
+    su_LOG_ASSERT_M(dest->elem_size == src->elem_size, su_LOG_CONTEXT_CORE_DARRAY, "dest->elem_size is not src->elem_size");
+    su_LOG_ASSERT_M(dest->elem_size > 0, su_LOG_CONTEXT_CORE_DARRAY, "dest->elem_size is less than or equal to 0");
+    su_LOG_ASSERT_M(src->elem_size > 0, su_LOG_CONTEXT_CORE_DARRAY, "dest->elem_size is less than or equal to 0");
     if (src->length == 0) {
         return false;
     }
@@ -230,8 +219,8 @@ SA_INTERNAL su_Bool su__darray_ensure_capacity(su_DArray* dest, su_U64 required_
     }
 
     if (dest->is_fixed_size) {
-        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_MEMORY,
-                              "Cannot append to fixed-size su_DArray");
+        su_LOG_ERROR_M(su_LOG_TYPE_PROD, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_CORE_DARRAY,
+                       "Cannot append to fixed-size su_DArray");
         return su_FALSE;
     }
 

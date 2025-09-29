@@ -2,9 +2,9 @@
 #define SACI_BACKEND_SB_RENDERER_COMMON_H
 
 #include "saci-backend/sb-renderer.h"
-#include <saci-utils/su-debug.h>
+#include "saci-utils/su-log.h"
 
-#define ARENA_ASSERT(x) su_LOG_ASSERT_MESSAGE_M(x, "Error in arena function")
+#define ARENA_ASSERT(x) su_LOG_ASSERT_M(x, su_LOG_CONTEXT_CORE_MEMORY, "Error in arena function")
 #define ARENA_FREE(x) su_FREE_M(x)
 #define ARENA_MALLOC(x) su_MALLOC_M(x)
 #define ARENA_ALLOCATOR_IMPL
@@ -510,8 +510,8 @@ union sb_GFXUniformValue sb_renderer_uniform_value_from_type(su_DataType type, c
         break;
 
     default:
-        su_LOG_ERRORF_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_OPENGL,
-                              "Invalid type %d for uniform", type);
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_RENDERER,
+                        "Invalid type %d for uniform", type);
         break;
     }
 

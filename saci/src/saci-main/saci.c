@@ -7,7 +7,7 @@
 #include "saci-backend/sb-renderer.h"
 #include "saci-backend/sb-windowing.h"
 
-#include "saci-utils/su-debug.h"
+#include "saci-utils/su-log.h"
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-math.h"
 #include "saci-utils/su-types.h"
@@ -124,10 +124,10 @@ void saci_init(void) {
     saci_cube_pos = su_darray_create(8, sizeof(su_Vec3), su_TRUE);
     saci_cube_index = su_darray_create(36, sizeof(su_U32), su_TRUE);
     for (int i = 0; i < 8; ++i) {
-        su_LOG_ASSERT_MESSAGE_M(su_darray_push(saci_cube_pos, &cube_vertices[i]), "Could not push to cube_pos DArray");
+        su_LOG_ASSERT_M(su_darray_push(saci_cube_pos, &cube_vertices[i]), su_LOG_CONTEXT_MAIN_SHAPE_INIT, "Could not initialize cube model mesh vertices");
     }
     for (int i = 0; i < 36; ++i) {
-        su_LOG_ASSERT_MESSAGE_M(su_darray_push(saci_cube_index, &indices[i]), "Could not push to cube_index DArray");
+        su_LOG_ASSERT_M(su_darray_push(saci_cube_index, &indices[i]), su_LOG_CONTEXT_CORE_INIT, "Could not initialize cube model mesh indices");
     }
 
     saci__init_windowing(&saci_context.windowing.window, 1600, 900, "test");
@@ -153,7 +153,7 @@ void saci_set_background_color(const su_Color color) {
 }
 
 void saci_set_loop_func(saci_LoopFunc loop_func) {
-    su_LOG_ASSERT_MESSAGE_M(loop_func, "Loop function is NULL");
+    su_LOG_ASSERT_M(loop_func, su_LOG_CONTEXT_CORE_MAINLOOP, "Loop function is NULL");
     saci_context.loop_func = loop_func;
 }
 
@@ -188,7 +188,9 @@ void saci_draw_cube(const saci_Cube cube) {
     memcpy(instance_data.instance_data_structure, &instance, sizeof(saci_ShapeInstance));
     if (!su_darray_push(saci_context.shape_instance_data_array[saci_SHAPE_CUBE].instance_data_array,
                         &instance_data)) {
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_SACI_MAIN_SHAPES, "Could not push cube transform");
+        su_LOG_ERROR_M(
+            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_CONTEXT_MAIN_SHAPE_DRAW, "Could not push cube transform");
     }
 }
 
@@ -238,7 +240,7 @@ SA_INTERNAL void saci__init_windowing(
     su_S32 x,
     su_S32 y,
     const char* name) {
-    su_LOG_ASSERT_MESSAGE_M(sb_load_windowing(), "Could not load window");
+    su_LOG_ASSERT_M(sb_load_windowing(), su_LOG_TYPE_PROD, "Could not load window");
 
     *window_out = sb_window_create(
         x,
@@ -248,7 +250,7 @@ SA_INTERNAL void saci__init_windowing(
         NULL);
     sb_window_make_context(*window_out);
 
-    su_LOG_ASSERT_MESSAGE_M(sb_proc_load(), "Could not load proc");
+    su_LOG_ASSERT_M(sb_proc_load(), su_LOG_TYPE_PROD, "Could not load proc");
     sb_gl_load();
 }
 
@@ -280,10 +282,11 @@ SA_INTERNAL void saci__init_memory(void) {
 SA_INTERNAL void saci__reset_memory(void) {
     const su_S32 saci_shape_amount = 10; /// TODO
     for (su_S32 i = 0; i < saci_shape_amount; ++i) {
-        su_LOG_DEBUG_CONDITION_PRINT_M(
-            !su_darray_clear(saci_context.shape_instance_data_array[i].instance_data_array),
-            su_LOG_DEBUG_TYPE_SACI_MAIN_MEM, su_LOG_CONTEXT_SACI_MAIN_SHAPES,
-            "Could not reset shape instance");
+        if (!su_darray_clear(saci_context.shape_instance_data_array[i].instance_data_array)) {
+        }
+        su_LOG_ERROR_M(
+            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_CONTEXT_MAIN_SHAPE_DRAW, "Could not reset shape instance");
     }
 }
 

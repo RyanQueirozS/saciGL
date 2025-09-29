@@ -8,7 +8,7 @@
 #include "saci-backend/sb-config-manager.h"
 
 #include "saci-utils/su-general.h"
-#include "saci-utils/su-debug.h"
+#include "saci-utils/su-log.h"
 
 // Platform-specific default library paths
 #ifdef _WIN32 // Windows
@@ -154,7 +154,7 @@ void sb_cfg_manager_set(const struct sb_ConfigManager cfg_manager) {
 su_Bool sb_cfg_manager_fetch(const char* path) {
     sb_ConfigState* lua_state = sb_config_load(path);
     if (!lua_state) {
-        su_LOG_WARN_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_CONFIG, "Could not load config");
+        su_LOG_WARN_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_CORE_CONFIG, "Could not load config");
         return false;
     }
     sb_cfg_manager.cfg_file_path = su_string_create(path, su_REALLOCATION_KIND_FIXED_SIZE);
@@ -214,7 +214,7 @@ void sb_cfg_manager_get_renderer(su_String* name, struct sb_RendererConfig* cfg_
     cfg_out->name = su_string_create(su_string_data(name), su_REALLOCATION_KIND_FIXED_SIZE);
     sb_ConfigState* lua_state = sb_config_load(su_string_data(sb_cfg_manager.cfg_file_path));
     if (!lua_state) {
-        su_LOG_WARN_PRINT_M(su_LOG_SEVERITY_MEDIUM, su_LOG_CONTEXT_CONFIG, "Could not load config");
+        su_LOG_WARN_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_CORE_CONFIG, "Could not load config");
         return;
     }
     if (!sb_config_push_global_table(lua_state, "Saci_Backend")) {
@@ -488,8 +488,7 @@ SA_INTERNAL void sb__cfg_manager_load_handles(void) {
             DYLILO_FLAGS_DEFAULT);
         break;
     default:
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_CONFIG,
-                             "Invalid renderer API");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_CORE_CONFIG, "Invalid renderer api");
         exit(1);
     }
 
@@ -503,8 +502,7 @@ SA_INTERNAL void sb__cfg_manager_load_handles(void) {
             DYLILO_FLAGS_DEFAULT);
         break;
     default:
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_CONFIG,
-                             "Invalid render API loader");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_CORE_CONFIG, "Invalid api loader");
         exit(1);
     }
 
@@ -518,8 +516,7 @@ SA_INTERNAL void sb__cfg_manager_load_handles(void) {
             DYLILO_FLAGS_DEFAULT);
         break;
     default:
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_CONFIG,
-                             "Invalid windowing API");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_CORE_CONFIG, "Invalid windowing api");
         exit(1);
     }
 }
@@ -532,8 +529,7 @@ SA_INTERNAL void sb__cfg_manager_load_symbols(void) {
                          su_ARRLEN_M(sb_gl_symbols));
         break;
     default:
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_CONFIG,
-                             "Unsupported Render API");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_CORE_CONFIG, "Symbol table is not prepared for this rendering api");
         exit(1);
     }
 
@@ -544,8 +540,7 @@ SA_INTERNAL void sb__cfg_manager_load_symbols(void) {
                          su_ARRLEN_M(sb_glad_symbols));
         break;
     default:
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_CONFIG,
-                             "Unsupported Render API");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_CORE_CONFIG, "Symbol table is not prepared for this rendering api loader");
         exit(1);
     }
 
@@ -556,19 +551,18 @@ SA_INTERNAL void sb__cfg_manager_load_symbols(void) {
                          su_ARRLEN_M(sb_glfw_symbols));
         break;
     default:
-        su_LOG_ERROR_PRINT_M(su_LOG_SEVERITY_HIGH, su_LOG_CONTEXT_CONFIG,
-                             "Unsupported Render API");
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_CORE_CONFIG, "Symbol table is not prepared for this windowing api");
         exit(1);
     }
 }
 
 SA_INTERNAL void sb__cfg_manager_validate(void) {
-    su_LOG_ASSERT_MESSAGE_M(sb_cfg_manager.render_api_data.handle,
-                            "Could not load Render API handle");
-    su_LOG_ASSERT_MESSAGE_M(sb_cfg_manager.render_api_loader_data.handle,
-                            "Could not load Render API Loader handle");
-    su_LOG_ASSERT_MESSAGE_M(sb_cfg_manager.windowing_api_data.handle,
-                            "Could not load Windowing API handle");
+    su_LOG_ASSERT_M(sb_cfg_manager.render_api_data.handle, su_LOG_CONTEXT_CORE_CONFIG,
+                    "Could not load Render API handle");
+    su_LOG_ASSERT_M(sb_cfg_manager.render_api_loader_data.handle, su_LOG_CONTEXT_CORE_CONFIG,
+                    "Could not load Render API Loader handle");
+    su_LOG_ASSERT_M(sb_cfg_manager.windowing_api_data.handle, su_LOG_CONTEXT_CORE_CONFIG,
+                    "Could not load Windowing API handle");
 }
 
 SA_INTERNAL void sb__load_symbols(DyliloHandle handle,
@@ -576,7 +570,7 @@ SA_INTERNAL void sb__load_symbols(DyliloHandle handle,
                                   size_t count) {
     for (size_t i = 0; i < count; i++) {
         *symbols[i].func_out = dylilo_get_symbol(handle, symbols[i].name);
-        su_LOG_ASSERTF_MESSAGE_M(*symbols[i].func_out,
-                                 "Failed to load symbol: %s", symbols[i].name);
+        su_LOG_ASSERTF_M(*symbols[i].func_out, su_LOG_CONTEXT_CORE_CONFIG,
+                         "Failed to load symbol: %s", symbols[i].name);
     }
 }
