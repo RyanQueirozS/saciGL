@@ -6,9 +6,6 @@
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-types.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-
 /* === Helper === */
 
 /**
@@ -45,7 +42,7 @@ su_Bool sb_load_windowing(void) {
 }
 
 su_Bool sb_proc_load(void) {
-    if (loader_dependent_funcs.gl.load_opengl(windowing_dependent_funcs.glfw.get_proc()) != su_TRUE) {
+    if (loader_dependent_funcs.gl.load_opengl(windowing_dependent_funcs.glfw.get_proc) != su_TRUE) {
         su_LOG_ERROR_M(su_LOG_TYPE_PROD, su_LOG_ERROR_SEVERITY_CRASH, su_LOG_CONTEXT_LIB_GLFW, "Couldn't load proc");
         return su_FALSE;
     }

@@ -120,7 +120,7 @@ struct sb_ConfigManager {
 
     struct sb_RenderApiLoaderFuncs {
         struct {
-            su_S32 (*load_opengl)(void*);
+            su_S32 (*load_opengl)(void* (*)(const char*));
         } gl;
     } render_api_loader_funcs;
 
@@ -129,7 +129,7 @@ struct sb_ConfigManager {
             int (*init)(void);
             void (*set_hint)(int, int);
             su_Window (*create_window)(int, int, const char*, su_Monitor, su_Window);
-            void* (*get_proc)(void);
+            void* (*get_proc)(const char*);
             void (*destroy_window)(su_Window);
             void (*make_context_current)(su_Window);
             su_S32 (*should_close)(su_Window);
