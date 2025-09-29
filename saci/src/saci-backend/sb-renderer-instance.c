@@ -112,7 +112,7 @@ SA_API void sb_renderer_set_instance_data_array(struct sb_Renderer* rendr, const
     if (!su_darray_clear(rendr->rendr.instance_renderer->bound_extra.bound_instance_data_array)) {
         su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_RENDERER_INSTANCE, "Could not clear instance data array");
     }
-    if (su_darray_append(rendr->rendr.instance_renderer->bound_extra.bound_instance_data_array, instance_data_array)) {
+    if (!su_darray_append(rendr->rendr.instance_renderer->bound_extra.bound_instance_data_array, instance_data_array)) {
         su_LOG_ERROR_M(
             su_LOG_TYPE_USER,
             su_LOG_ERROR_SEVERITY_HIGH,

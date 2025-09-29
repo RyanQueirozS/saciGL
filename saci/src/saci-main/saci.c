@@ -124,7 +124,7 @@ void saci_init(void) {
     saci_cube_pos = su_darray_create(8, sizeof(su_Vec3), su_TRUE);
     saci_cube_index = su_darray_create(36, sizeof(su_U32), su_TRUE);
     for (int i = 0; i < 8; ++i) {
-        su_LOG_ASSERT_M(su_darray_push(saci_cube_pos, &cube_vertices[i]), su_LOG_CONTEXT_MAIN_SHAPE_INIT, "Could not initialize cube model mesh vertices");
+        su_LOG_ASSERT_M(su_darray_push(saci_cube_pos, &cube_vertices[i]), su_LOG_CONTEXT_MAIN_SHAPES_INIT, "Could not initialize cube model mesh vertices");
     }
     for (int i = 0; i < 36; ++i) {
         su_LOG_ASSERT_M(su_darray_push(saci_cube_index, &indices[i]), su_LOG_CONTEXT_CORE_INIT, "Could not initialize cube model mesh indices");
@@ -190,7 +190,7 @@ void saci_draw_cube(const saci_Cube cube) {
                         &instance_data)) {
         su_LOG_ERROR_M(
             su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
-            su_LOG_CONTEXT_MAIN_SHAPE_DRAW, "Could not push cube transform");
+            su_LOG_CONTEXT_MAIN_SHAPES_DRAW, "Could not push cube transform");
     }
 }
 
@@ -240,7 +240,7 @@ SA_INTERNAL void saci__init_windowing(
     su_S32 x,
     su_S32 y,
     const char* name) {
-    su_LOG_ASSERT_M(sb_load_windowing(), su_LOG_TYPE_PROD, "Could not load window");
+    su_LOG_ASSERT_M(sb_load_windowing(), su_LOG_CONTEXT_CORE_INIT, "Could not load window");
 
     *window_out = sb_window_create(
         x,
@@ -250,7 +250,7 @@ SA_INTERNAL void saci__init_windowing(
         NULL);
     sb_window_make_context(*window_out);
 
-    su_LOG_ASSERT_M(sb_proc_load(), su_LOG_TYPE_PROD, "Could not load proc");
+    su_LOG_ASSERT_M(sb_proc_load(), su_LOG_CONTEXT_CORE_INIT, "Could not load proc");
     sb_gl_load();
 }
 
@@ -283,10 +283,10 @@ SA_INTERNAL void saci__reset_memory(void) {
     const su_S32 saci_shape_amount = 10; /// TODO
     for (su_S32 i = 0; i < saci_shape_amount; ++i) {
         if (!su_darray_clear(saci_context.shape_instance_data_array[i].instance_data_array)) {
+            su_LOG_ERROR_M(
+                su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+                su_LOG_CONTEXT_MAIN_SHAPES_DRAW, "Could not reset shape instance");
         }
-        su_LOG_ERROR_M(
-            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
-            su_LOG_CONTEXT_MAIN_SHAPE_DRAW, "Could not reset shape instance");
     }
 }
 
