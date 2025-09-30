@@ -3,8 +3,9 @@
 #include "saci-utils/su-general.h"
 #include "saci-backend/sb-config-manager.h"
 #include "saci-utils/su-log.h"
+#include "saci-utils/su-types.h"
 #include <saci-backend/sb-gl.h>
-#include <saci-utils/su-types.h>
+#include <saci-utils/su-math.h>
 #include <stdio.h>
 
 /* === Internal helper Declarations === */
@@ -31,6 +32,7 @@ SA_STATIC enum sb_RendererApi render_api;
 
 // Init
 SA_INTERNAL void sb__gfx_gl_init_info(union sb_GFXInfo* info_out, const struct sb_RendererConfig cfg);
+SA_INTERNAL void sb__gl_initialize_debugger(void);
 
 // Draw
 SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* data);
@@ -148,6 +150,108 @@ void sb_gfx_delete_texture(union sb_GFXTexture texture) {
 
 /* === Internal helper Implementation === */
 
+void su_log_opengl_debug_message_callback(su_U32 source, su_U32 type, su_U32 id, su_U32 severity,
+                                          int length, const char* msg, const void* data) {
+    (void)length, (void)data;
+    char* _source;
+    char* _type;
+    char* _severity;
+
+    switch (source) {
+    case GL_DEBUG_SOURCE_API:
+        _source = "API";
+        break;
+
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+        _source = "WINDOW SYSTEM";
+        break;
+
+    case GL_DEBUG_SOURCE_SHADER_COMPILER:
+        _source = "SHADER COMPILER";
+        break;
+
+    case GL_DEBUG_SOURCE_THIRD_PARTY:
+        _source = "THIRD PARTY";
+        break;
+
+    case GL_DEBUG_SOURCE_APPLICATION:
+        _source = "APPLICATION";
+        break;
+
+    case GL_DEBUG_SOURCE_OTHER:
+    default:
+        _source = "UNKNOWN";
+        break;
+    }
+
+    switch (type) {
+    case GL_DEBUG_TYPE_ERROR:
+        _type = "ERROR";
+        break;
+
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+        _type = "DEPRECATED BEHAVIOR";
+        break;
+
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+        _type = "UDEFINED BEHAVIOR";
+        break;
+
+    case GL_DEBUG_TYPE_PORTABILITY:
+        _type = "PORTABILITY";
+        break;
+
+    case GL_DEBUG_TYPE_PERFORMANCE:
+        _type = "PERFORMANCE";
+        break;
+
+    case GL_DEBUG_TYPE_OTHER:
+        _type = "OTHER";
+        break;
+
+    case GL_DEBUG_TYPE_MARKER:
+        _type = "MARKER";
+        break;
+
+    default:
+        _type = "UNKNOWN";
+        break;
+    }
+
+    switch (severity) {
+    case GL_DEBUG_SEVERITY_HIGH:
+        _severity = "HIGH";
+        break;
+
+    case GL_DEBUG_SEVERITY_MEDIUM:
+        _severity = "MEDIUM";
+        break;
+
+    case GL_DEBUG_SEVERITY_LOW:
+        _severity = "LOW";
+        break;
+
+    case GL_DEBUG_SEVERITY_NOTIFICATION:
+        _severity = "NOTIFICATION";
+        break;
+
+    default:
+        _severity = "UNKNOWN";
+        break;
+    }
+
+    printf("%d: %s of %s severity, raised from %s: %s\n", id, _type, _severity, _source, msg);
+}
+
+// this should be in sb-gl.c
+SA_INTERNAL void sb__gl_initialize_debugger(void) {
+    render_funcs.gl.enable(GL_DEBUG_OUTPUT);
+    render_funcs.gl.enable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    render_funcs.gl.enable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    render_funcs.gl.debug_message_callback((void*)su_log_opengl_debug_message_callback, NULL);
+    su_LOG_INFO_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_LIB_OPENGL, "Loaded opengl debug message callback");
+}
+
 SA_INTERNAL void sb__gfx_gl_create_main_buffers(
     union sb_GFXInfo* info_out,
     const struct sb_RendererConfig cfg) {
@@ -170,17 +274,17 @@ SA_INTERNAL void sb__gfx_gl_setup_vertex_attributes(
     sb_gl_bind_vertex_buffer(vbo);
 
     for (su_U64 i = 0; i < su_darray_length(cfg.vertex_data.layout_array); ++i) {
-        struct sb_RendererCfgVertexLayout layout = *(struct sb_RendererCfgVertexLayout*)su_darray_get(cfg.vertex_data.layout_array, i);
+        const struct sb_RendererCfgVertexLayout* layout = su_darray_get(cfg.vertex_data.layout_array, i);
 
         sb_gl_set_vertex_attrib_pointer(
-            layout.location,
-            su_SCAST_TO_M(su_U64)(su_SIZE_OF_TYPE[layout.type]),
-            sb_gl_type_to_gl(layout.type),
+            layout->location,
+            su_SCAST_TO_M(su_U64)(su_SIZE_OF_TYPE[layout->type] / sizeof(float)),
+            sb_gl_type_to_gl(layout->type),
             GL_FALSE,
             cfg.vertex_data.element_size_internal,
-            su_SCAST_TO_M(void*)(layout.offset));
+            su_SCAST_TO_M(void*)(layout->offset));
         sb_gl_enable_vertex_attrib_array(
-            su_SCAST_TO_M(su_U64)(layout.location));
+            su_SCAST_TO_M(su_U64)(layout->location));
     }
 }
 
@@ -190,19 +294,19 @@ SA_INTERNAL void sb__gfx_gl_setup_instance_buffers(
         return;
 
     for (su_U64 buf_i = 0; buf_i < su_darray_length(cfg.instance_data.buffer_array); ++buf_i) {
-        struct sb_RendererCfgInstanceBuffer buffer_cfg = *(struct sb_RendererCfgInstanceBuffer*)su_darray_get(cfg.instance_data.buffer_array, buf_i);
+        const struct sb_RendererCfgInstanceBuffer* buffer_cfg = su_darray_get(cfg.instance_data.buffer_array, buf_i);
 
         su_BufferId vbo = 0;
         render_funcs.gl.gen_buffers(1, &vbo);
         render_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo);
         render_funcs.gl.buffer_data(
             sb_GL_ARRAY_BUFFER,
-            buffer_cfg.size_byte_internal,
+            80,
             NULL,
             GL_DYNAMIC_DRAW);
 
-        for (su_U64 attrib_i = 0; attrib_i < su_darray_length(buffer_cfg.layout_array); ++attrib_i) {
-            struct sb_RendererCfgInstanceBufferLayout attrib = *(struct sb_RendererCfgInstanceBufferLayout*)su_darray_get(buffer_cfg.layout_array, attrib_i);
+        for (su_U64 attrib_i = 0; attrib_i < su_darray_length(buffer_cfg->layout_array); ++attrib_i) {
+            struct sb_RendererCfgInstanceBufferLayout attrib = *(struct sb_RendererCfgInstanceBufferLayout*)su_darray_get(buffer_cfg->layout_array, attrib_i);
 
             if (attrib.type == su_TYPE_MAT4) {
                 for (su_U32 col = 0; col < 4; ++col) {
@@ -211,18 +315,18 @@ SA_INTERNAL void sb__gfx_gl_setup_instance_buffers(
                         4,
                         GL_FLOAT,
                         GL_FALSE,
-                        (su_S32)buffer_cfg.size_byte_internal,
-                        (void*)(attrib.offset + sizeof(float) * 4 * col));
+                        (su_S32)buffer_cfg->size_byte_internal,
+                        (void*)(attrib.offset + sizeof(su_Vec4) * col));
                     render_funcs.gl.enable_vertex_attrib_array(attrib.location + col);
                     render_funcs.gl.vertex_attrib_divisor(attrib.location + col, 1);
                 }
             } else {
                 render_funcs.gl.vertex_attrib_pointer(
                     attrib.location,
-                    su_SCAST_TO_M(su_U64)(su_SIZE_OF_TYPE[attrib.type]),
+                    su_SCAST_TO_M(su_U64)(su_SIZE_OF_TYPE[attrib.type] / sizeof(float)),
                     sb_gl_type_to_gl(attrib.type),
                     GL_FALSE,
-                    (su_S32)buffer_cfg.size_byte_internal,
+                    (su_S32)buffer_cfg->size_byte_internal,
                     (void*)(attrib.offset));
                 render_funcs.gl.enable_vertex_attrib_array(attrib.location);
                 render_funcs.gl.vertex_attrib_divisor(attrib.location, 1);
@@ -245,6 +349,7 @@ SA_INTERNAL void sb__gfx_gl_init_info(
 }
 
 SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* data) {
+    render_funcs.gl.enable(GL_DEPTH_TEST);
     // su_DUMMY_CHECK_M(su_darray_length(data->instance_array_array) ==
     //                      su_darray_length(data->instance_location_array),
     //                  "There needs to be the same amount of instance and instance locations per draw call");
@@ -258,29 +363,29 @@ SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct 
     render_funcs.gl.bind_vertex_array(gfx_info->gl_data.vao);
     render_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, gfx_info->gl_data.vbo);
     render_funcs.gl.buffer_subdata(sb_GL_ARRAY_BUFFER, 0,
-                                   su_SCAST_TO_M(long int)(data->vertex_struct_size * su_darray_length(data->vertex_array)),
+                                   su_SCAST_TO_M(unsigned int)(data->vertex_struct_size * su_darray_length(data->vertex_array)),
                                    su_darray_get_ptr(data->vertex_array, 0));
     render_funcs.gl.bind_buffer(sb_GL_ELEMENT_ARRAY_BUFFER, gfx_info->gl_data.ibo);
     render_funcs.gl.buffer_subdata(sb_GL_ELEMENT_ARRAY_BUFFER, 0,
                                    su_SCAST_TO_M(unsigned int)(data->index_struct_size * su_darray_length(data->index_array)),
                                    su_darray_get_ptr(data->index_array, 0));
 
-    if (!su_darray_is_empty(data->instance_buffer_array)) {
-        instance_count = su_darray_length(data->instance_buffer_array);
+    if (!su_darray_is_empty(data->instance_data_array)) {
+        instance_count = su_darray_length(data->instance_data_array);
         for (su_U64 i = 0; i < instance_count; ++i) {
-            struct sb_GFXInstanceData instance_buffer = *(struct sb_GFXInstanceData*)su_darray_get(data->instance_buffer_array, i);
-            render_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, instance_buffer.location);
+            const struct sb_GFXInstanceData* instance_buffer = su_darray_get(data->instance_data_array, i);
+            render_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, gfx_info->gl_data.instance_buffer);
             render_funcs.gl.buffer_subdata(sb_GL_ARRAY_BUFFER, 0,
-                                           instance_buffer.data_size,
-                                           instance_buffer.instance_data_structure);
+                                           instance_buffer->data_size,
+                                           instance_buffer->instance_data_structure);
         }
     }
 
     { // Uniforms
         if (!su_darray_is_empty(data->uniform_data_array)) {
             for (su_U64 i = 0; i < su_darray_length(data->uniform_data_array); ++i) {
-                struct sb_GFXUniformData uniform_data = *(struct sb_GFXUniformData*)su_darray_get(data->uniform_data_array, i);
-                sb__gfx_gl_set_uniform_from_uniform_data(uniform_data);
+                const struct sb_GFXUniformData* uniform_data = su_darray_get(data->uniform_data_array, i);
+                sb__gfx_gl_set_uniform_from_uniform_data(*uniform_data);
             }
         }
     }
@@ -299,8 +404,8 @@ SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct 
         render_funcs.gl.draw_elements_instanced(sb_GL_TRIANGLES,
                                                 su_SCAST_TO_M(int)(su_darray_length(data->index_array)),
                                                 sb_GL_UNSIGNED_INT,
-                                                su_darray_get_ptr(data->index_array, 0),
-                                                0);
+                                                0,
+                                                (su_S32)instance_count);
     } else {
         render_funcs.gl.draw_elements(sb_GL_TRIANGLES,
                                       su_SCAST_TO_M(int)(su_darray_length(data->index_array)),

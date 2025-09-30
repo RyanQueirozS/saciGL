@@ -73,7 +73,7 @@ struct sb_GFXDrawData {
     su_DArray* index_array; // DArray
     su_U64 index_struct_size;
 
-    su_DArray* instance_buffer_array; // DArray<GFXInstanceDataBuffer>
+    su_DArray* instance_data_array; // DArray<GFXInstanceData>
 
     su_DArray* uniform_data_array; // DArray<GFXUniformData>
 

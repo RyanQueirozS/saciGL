@@ -60,7 +60,11 @@ void su_log_set_type(enum su_LogType type) {
 }
 
 const su_LogError* su_log_get_last_error(void) {
-    return &su__log_buffer.error_array[su__log_config.error_count];
+    su_LogError* err = &su__log_buffer.error_array[su__log_config.error_count];
+    if (su__log_config.error_count != 0) {
+        --su__log_config.error_count;
+    }
+    return err;
 }
 
 void su_log_error(const enum su_LogType type, const enum su_LogErrorSeverity severity, const enum su_LogContext context, const char* message, const char* file, const int line) {
