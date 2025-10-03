@@ -10,6 +10,10 @@
 
 /* === Internal === */
 
+su_Bool sb__mem_safe_copy(void* dest_ptr, size_t dest_capacity, size_t dest_offset,
+                          const void* src_ptr, size_t src_size, size_t src_offset,
+                          size_t copy_length);
+
 su_Bool sb__mem_alloc_arena(void* pool, const su_U64 capacity, const su_U64 size, void** mem_out);
 
 su_Bool sb__mem_malloc(su_U64* capacity_out, const su_U64 size, void** mem_out);
@@ -95,6 +99,14 @@ struct sb_MemChunk* sb_mem_alloc(const enum sb_MemContext ctx,
     return chunk;
 }
 
+su_Bool sb_mem_chunk_push(struct sb_MemChunk* dest, const struct sb_MemChunk* src) {
+    return sb__mem_safe_copy(dest->data, dest->capacity_bytes, dest->used_bytes, src->data, src->capacity_bytes, 0, src->used_bytes);
+}
+
+su_Bool sb_mem_chunk_push_data(struct sb_MemChunk* dest, const void* src, const su_U64 src_size) {
+    return sb__mem_safe_copy(dest->data, dest->capacity_bytes, dest->used_bytes, src, src_size, 0, src_size);
+}
+
 void sb_mem_print_info(void) {
     su_U64 capacity_total = 0, size_total = 0;
     for (su_U64 i = 0; i < sb_MEM_CONTEXT_COUNT; ++i) {
@@ -112,6 +124,106 @@ void sb_mem_print_info(void) {
 }
 
 /* === Internal Implementation === */
+
+su_Bool sb__mem_safe_copy(void* dest_ptr, size_t dest_capacity, size_t dest_offset,
+                          const void* src_ptr, size_t src_size, size_t src_offset,
+                          size_t copy_length) {
+    if (dest_ptr == NULL) {
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+                        su_LOG_CONTEXT_CORE_MEMORY,
+                        "Destination pointer is NULL in safe memcpy");
+        return su_FALSE;
+    }
+
+    if (src_ptr == NULL) {
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+                        su_LOG_CONTEXT_CORE_MEMORY,
+                        "Source pointer is NULL in safe memcpy");
+        return su_FALSE;
+    }
+
+    if (copy_length == 0) {
+        su_LOG_WARNF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_LOW,
+                       su_LOG_CONTEXT_CORE_MEMORY,
+                       "Zero-length copy operation requested");
+        return su_TRUE; // Zero-length copy is technically valid
+    }
+
+    if (dest_offset > dest_capacity) {
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+                        su_LOG_CONTEXT_CORE_MEMORY,
+                        "Destination offset exceeds capacity (offset: %zu, capacity: %zu)",
+                        dest_offset, dest_capacity);
+        return su_FALSE;
+    }
+
+    if (dest_offset + copy_length > dest_capacity) {
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+                        su_LOG_CONTEXT_CORE_MEMORY,
+                        "Copy would exceed destination capacity (offset: %zu, length: %zu, capacity: %zu)",
+                        dest_offset, copy_length, dest_capacity);
+        return su_FALSE;
+    }
+
+    if (src_offset > src_size) {
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+                        su_LOG_CONTEXT_CORE_MEMORY,
+                        "Source offset exceeds source size (offset: %zu, size: %zu)",
+                        src_offset, src_size);
+        return su_FALSE;
+    }
+
+    if (src_offset + copy_length > src_size) {
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+                        su_LOG_CONTEXT_CORE_MEMORY,
+                        "Copy would exceed source bounds (offset: %zu, length: %zu, size: %zu)",
+                        src_offset, copy_length, src_size);
+        return su_FALSE;
+    }
+
+    uint8_t* dest_start = (uint8_t*)dest_ptr + dest_offset;
+    const uint8_t* src_start = (const uint8_t*)src_ptr + src_offset;
+
+    if ((src_start < dest_start && src_start + copy_length > dest_start) ||
+        (dest_start < src_start && dest_start + copy_length > src_start)) {
+        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+                        su_LOG_CONTEXT_CORE_MEMORY,
+                        "Overlapping memory regions in safe memcpy (src: %p, dest: %p, length: %zu)",
+                        (void*)src_start, (void*)dest_start, copy_length);
+        return su_FALSE;
+    }
+
+    su_LOG_ASSERTF_M(dest_ptr != NULL, su_LOG_CONTEXT_CORE_MEMORY,
+                     "Destination pointer assertion failed");
+    su_LOG_ASSERTF_M(src_ptr != NULL, su_LOG_CONTEXT_CORE_MEMORY,
+                     "Source pointer assertion failed");
+    su_LOG_ASSERTF_M(dest_offset + copy_length <= dest_capacity,
+                     su_LOG_CONTEXT_CORE_MEMORY,
+                     "Destination bounds assertion failed");
+    su_LOG_ASSERTF_M(src_offset + copy_length <= src_size,
+                     su_LOG_CONTEXT_CORE_MEMORY,
+                     "Source bounds assertion failed");
+
+    memcpy(dest_start, src_start, copy_length);
+
+    if (copy_length > 0) {
+        su_LOG_DUMMY_CHECKF_M(*src_start == *dest_start,
+                              su_LOG_CONTEXT_CORE_MEMORY,
+                              "First byte verification in safe memcpy");
+
+        if (copy_length > 1) {
+            su_LOG_DUMMY_CHECKF_M(*(src_start + copy_length - 1) == *(dest_start + copy_length - 1),
+                                  su_LOG_CONTEXT_CORE_MEMORY,
+                                  "Last byte verification in safe memcpy");
+        }
+    }
+
+    su_LOG_INFOF_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_CORE_MEMORY,
+                   "Safe memcpy completed successfully (dest: %p+%zu, src: %p+%zu, length: %zu)",
+                   dest_ptr, dest_offset, src_ptr, src_offset, copy_length);
+
+    return su_TRUE;
+}
 
 // This function expects pool and mem_out to be initialized,
 // it is not it's responsability to check it.

@@ -17,10 +17,10 @@ struct sb_MemChunk* sb_mem_alloc(const enum sb_MemContext ctx,
                                  const su_U64 count,
                                  const su_U64 element_type);
 
+su_Bool sb_mem_chunk_push(struct sb_MemChunk* dest, const struct sb_MemChunk* src);
+
+su_Bool sb_mem_chunk_push_data(struct sb_MemChunk* dest, const void* src, const su_U64 src_size);
+
 void sb_mem_print_info(void);
-
-su_Bool sb_mem_chunk_alloc(struct sb_MemChunk* dest, const struct sb_MemChunk* src);
-
-su_Bool sb_mem_chunk_alloc_data(struct sb_MemChunk* dest, const void* src, const su_U64 src_size);
 
 #endif
