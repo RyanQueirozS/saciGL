@@ -6,6 +6,7 @@
 #include <arena/arena.h>
 #include <saci-utils/su-types.h>
 #include <stdio.h>
+#include <string.h>
 
 /* === Internal === */
 
@@ -14,6 +15,13 @@ su_Bool sb__mem_alloc_arena(void* pool, const su_U64 capacity, const su_U64 size
 su_Bool sb__mem_malloc(su_U64* capacity_out, const su_U64 size, void** mem_out);
 
 /* === Header impl === */
+
+struct sb_MemChunk {
+    enum sb_MemContext ctx;
+    su_U64 capacity_bytes;
+    su_U64 used_bytes;
+    void* data;
+};
 
 struct {
     su_U64 size_now;
@@ -42,26 +50,49 @@ void sb_mem_init(const su_Bool use_arenas) {
     sb__mem_manager_cfg.is_arena_based = use_arenas;
 }
 
-su_Bool sb_mem_alloc(const enum sb_MemContext ctx,
-                     const su_U64 count,
-                     const su_U64 element_size,
-                     void** mem_out) {
-    if (element_size != 0 && count > UINT64_MAX / element_size) {
+struct sb_MemChunk* sb_mem_alloc(const enum sb_MemContext ctx,
+                                 const su_U64 count,
+                                 const su_U64 element_size) {
+    void* memctx = NULL;
+    if (element_size <= sizeof(struct sb_MemChunk)) {
         su_LOG_ERRORF_M(
             su_LOG_TYPE_USER,
             su_LOG_ERROR_SEVERITY_CRASH,
             su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+            "Allocating less then %lu bytes (size of MemChunk)", sizeof(struct sb_MemChunk));
+        return NULL;
+    }
+    if (element_size != 0 && count > UINT64_MAX / element_size) {
+        su_LOG_ERROR_M(
+            su_LOG_TYPE_USER,
+            su_LOG_ERROR_SEVERITY_CRASH,
+            su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
             "Overflow in allocation size");
+        return NULL;
     }
     su_U64 total_size = count * element_size;
     if (sb__mem_manager_cfg.is_arena_based) {
-        return sb__mem_alloc_arena(
+        sb__mem_alloc_arena(
             sb__mem_manager[ctx].pool,
             sb__mem_manager[ctx].capacity,
-            total_size, mem_out);
+            total_size, &memctx);
+    } else {
+        sb__mem_malloc(&sb__mem_manager[ctx].capacity, total_size, &memctx);
     }
-
-    return sb__mem_malloc(&sb__mem_manager[ctx].capacity, total_size, mem_out);
+    if (!memctx) {
+        su_LOG_ERROR_M(
+            su_LOG_TYPE_USER,
+            su_LOG_ERROR_SEVERITY_CRASH,
+            su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+            "Memory context could not be created");
+        return NULL;
+    }
+    struct sb_MemChunk* chunk = (struct sb_MemChunk*)(memctx);
+    chunk->ctx = ctx;
+    chunk->capacity_bytes = total_size;
+    chunk->used_bytes = 0;
+    chunk->data = (void*)((char*)memctx + sizeof(struct sb_MemChunk));
+    return chunk;
 }
 
 void sb_mem_print_info(void) {
