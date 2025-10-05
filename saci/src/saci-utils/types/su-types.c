@@ -7,8 +7,6 @@
 #include <stdio.h>
 #include <string.h>
 
-/* === DArray === */
-
 SA_INTERNAL su_Bool su__darray_can_append(const su_DArray* dest, const su_DArray* src);
 
 SA_INTERNAL su_Bool su__darray_ensure_capacity(su_DArray* dest, su_U64 required_capacity);

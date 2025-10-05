@@ -10,13 +10,6 @@ enum su_LogType {
     su_LOG_TYPE_PROD = 1,  // used for products using saci
 };
 
-enum su_LogErrorSeverity {
-    su_LOG_ERROR_SEVERITY_LOW = 1,
-    su_LOG_ERROR_SEVERITY_MEDIUM = 2,
-    su_LOG_ERROR_SEVERITY_HIGH = 3,
-    su_LOG_ERROR_SEVERITY_CRASH = 4,
-};
-
 enum su_LogContext {
     // Core Systems (0x00-0x1F)
     su_LOG_CONTEXT_CORE_INIT = 0x00,
@@ -70,16 +63,6 @@ enum su_LogContext {
     su_LOG_CONTEXT_MAIN_SHAPES_INIT = 0x120,
     su_LOG_CONTEXT_MAIN_SHAPES_DRAW = 0x121,
 };
-
-SA_API void su_log_error(const enum su_LogType type, const enum su_LogErrorSeverity severity, const enum su_LogContext context, const char* message, const char* file, const int line);
-
-SA_API void su_log_warn(const enum su_LogType type, const enum su_LogErrorSeverity severity, const enum su_LogContext context, const char* message, const char* file, const int line);
-
-SA_API void su_log_info(const enum su_LogType type, const enum su_LogContext context, const char* message, const char* file, const int line);
-
-SA_API void su_log_assert(const su_Bool condition, const enum su_LogContext context, const char* message, const char* file, const int line);
-
-SA_API void su_log_dummy_check(const su_Bool condition, const enum su_LogContext context, const char* message, const char* file, const int line);
 
 #define su_LOG_MESSAGE_CHAR_COUNT 2048
 #define su_LOG_FILE_CHAR_COUNT 256
