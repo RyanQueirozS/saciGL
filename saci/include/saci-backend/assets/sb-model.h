@@ -1,5 +1,5 @@
-#ifndef SACI_BACKEND_SB_MODEL_H
-#define SACI_BACKEND_SB_MODEL_H
+#ifndef SACI_BACKEND_ASSETS_SB_MODEL_H
+#define SACI_BACKEND_ASSETS_SB_MODEL_H
 
 #include "saci-utils/su-types-common.h"
 #include "saci-utils/math/su-math-types.h"
@@ -59,4 +59,4 @@ void sb_model_vertex_index_get_data(const struct sb_VertexIndex* vertex_indice,
                                     su_U32** uv_index_out,
                                     su_U32** normal_index_out);
 
-#endif // SACI_BACKEND_SB_MODEL_H
+#endif // SACI_BACKEND_ASSETS_SB_MODEL_H

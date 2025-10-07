@@ -1,5 +1,5 @@
-#ifndef SACI_UTILS_MATH_SU_MATH_VEC3_H
-#define SACI_UTILS_MATH_SU_MATH_VEC3_H
+#ifndef SACI_UTILS_MATH_SU_MATH_VEC_H
+#define SACI_UTILS_MATH_SU_MATH_VEC_H
 
 #include "./su-math-general.h"
 #include "../su-general.h"
@@ -71,4 +71,4 @@ su_Vec3 su_vec3_cross(su_Vec3 a, su_Vec3 b);
  */
 float su_vec3_dot(su_Vec3 a, su_Vec3 b);
 
-#endif // SACI_UTILS_MATH_SU_MATH_VEC3_H
+#endif // SACI_UTILS_MATH_SU_MATH_VEC_H

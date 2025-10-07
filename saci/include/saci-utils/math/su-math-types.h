@@ -1,5 +1,5 @@
-#ifndef SACI_UTILS_MATH_SU_MATH_MAT4_h
-#define SACI_UTILS_MATH_SU_MATH_MAT4_h
+#ifndef SACI_UTILS_MATH_SU_MATH_TYPES_h
+#define SACI_UTILS_MATH_SU_MATH_TYPES_h
 
 typedef struct {
     float x; /**< X compoonent */
@@ -18,4 +18,4 @@ typedef struct {
     float a; /**< Alpha (transparency) compoonent */
 } su_Color;
 
-#endif // SACI_UTILS_MATH_SU_MATH_MAT4_h
+#endif // SACI_UTILS_MATH_SU_MATH_TYPES_h

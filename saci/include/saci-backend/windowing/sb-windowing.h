@@ -1,5 +1,5 @@
-#ifndef SACI_BACKEND_SC_WINDOWING_H
-#define SACI_BACKEND_SC_WINDOWING_H
+#ifndef SACI_BACKEND_WINDOWING_SC_WINDOWING_H
+#define SACI_BACKEND_WINDOWING_SC_WINDOWING_H
 
 #include "saci-utils/math/su-math-types.h"
 #include "saci-utils/su-general.h"
@@ -182,4 +182,4 @@ SA_API void sb_event_post_empty(void);
 SA_API void sb_event_set_mouse_pos_handler(su_Window window, su_EventMousePosHandler mouse_pos_handler);
 SA_API su_Bool sb_event_is_key_pressed(su_Window window, int keycode);
 
-#endif // SACI_BACKEND_SC_WINDOWING_H
+#endif // SACI_BACKEND_WINDOWING_SC_WINDOWING_H

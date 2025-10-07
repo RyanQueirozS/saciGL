@@ -1,5 +1,5 @@
-#ifndef SACI_UTILS_SU_MATH_H
-#define SACI_UTILS_SU_MATH_H
+#ifndef SACI_UTILS_MATH_SU_MATH_H
+#define SACI_UTILS_MATH_SU_MATH_H
 
 /* === Constants === */
 
@@ -44,4 +44,4 @@ double su_math_sqrt(double val);
 
 double su_math_tan(double val);
 
-#endif // SACI_UTILS_SU_MATH_H
+#endif // SACI_UTILS_MATH_SU_MATH_H

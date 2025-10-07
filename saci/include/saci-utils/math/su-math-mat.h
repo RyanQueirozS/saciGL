@@ -1,3 +1,6 @@
+#ifndef SACI_UTILS_MATH_SU_MATH_MAT_H
+#define SACI_UTILS_MATH_SU_MATH_MAT_H
+
 #include "./su-math-types.h"
 #include "./su-math-vec.h"
 
@@ -144,3 +147,5 @@ su_Mat4 su_mat4_scale(float sx, float sy, float sz);
  * @return su_Mat4 A matrix representing the translation transformation
  */
 su_Mat4 su_mat4_translate(float tx, float ty, float tz);
+
+#endif // SACI_UTILS_MATH_SU_MATH_MAT_H

@@ -1,5 +1,5 @@
-#ifndef SACI_UTILS_SU_DARRAY_H
-#define SACI_UTILS_SU_DARRAY_H
+#ifndef SACI_UTILS_MEMORY_SU_DARRAY_H
+#define SACI_UTILS_MEMORY_SU_DARRAY_H
 
 #include "../su-general.h"
 #include "../su-types-common.h"
@@ -45,4 +45,4 @@ SA_API su_Bool su_darray_is_null(const su_DArray* arr);
 
 SA_API su_Bool su_darray_is_empty(const su_DArray* arr);
 
-#endif // SACI_UTILS_SU_DARRAY_H
+#endif // SACI_UTILS_MEMORY_SU_DARRAY_H

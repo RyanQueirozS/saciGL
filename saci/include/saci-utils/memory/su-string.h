@@ -1,5 +1,5 @@
-#ifndef SACI_UTILS_SU_STRING_H
-#define SACI_UTILS_SU_STRING_H
+#ifndef SACI_UTILS_MEMORY_SU_STRING_H
+#define SACI_UTILS_MEMORY_SU_STRING_H
 
 #include "../su-general.h"
 #include "../su-types-common.h"
@@ -44,4 +44,4 @@ su_Bool su_string_append_format(su_String* str, const char* fmt, ...);
 
 su_Bool su_string_is_empty(su_String* str);
 
-#endif // SACI_UTILS_SU_STRING_H
+#endif // SACI_UTILS_MEMORY_SU_STRING_H

@@ -1,5 +1,5 @@
-#ifndef SACI_BACKEND_SB_RENDERER_H
-#define SACI_BACKEND_SB_RENDERER_H
+#ifndef SACI_BACKEND_RENDERER_SB_RENDERER_H
+#define SACI_BACKEND_RENDERER_SB_RENDERER_H
 
 #include "../sb-backend-common.h"
 #include "saci-utils/su-types-common.h"
@@ -114,4 +114,4 @@ SA_API void sb_renderer_push_instance_data(struct sb_Renderer* rendr, const stru
 
 SA_API void sb_renderer_set_instance_data_array(struct sb_Renderer* rendr, const su_DArray* instance_data_array);
 
-#endif // SACI_BACKEND_SB_RENDERER_H
+#endif // SACI_BACKEND_RENDERER_SB_RENDERER_H

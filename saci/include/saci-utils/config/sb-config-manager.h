@@ -1,5 +1,5 @@
-#ifndef SACI_BACKEND_SB_PLATFORM_H
-#define SACI_BACKEND_SB_PLATFORM_H
+#ifndef SACI_UTILS_CONFIG_SU_CONFIG_MANAGER_H
+#define SACI_UTILS_CONFIG_SU_CONFIG_MANAGER_H
 
 #include <dylilo/dylilo.h>
 
@@ -201,4 +201,4 @@ SA_API struct su_RenderApiLoaderFuncs su_cfg_manager_get_loader_funcs(void);
 
 SA_API void su_cfg_manager_get_renderer(char* name, struct su_RendererConfig* cfg_out);
 
-#endif // SACI_BACKEND_SB_PLATFORM_H
+#endif // SACI_UTILS_CONFIG_SU_CONFIG_MANAGER_H

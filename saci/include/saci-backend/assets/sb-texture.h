@@ -1,5 +1,5 @@
-#ifndef SACI_BACKEND_SB_TEXTURE_H
-#define SACI_BACKEND_SB_TEXTURE_H
+#ifndef SACI_BACKEND_ASSETS_SB_TEXTURE_H
+#define SACI_BACKEND_ASSETS_SB_TEXTURE_H
 
 #include "../sb-backend-common.h"
 
@@ -16,4 +16,4 @@ void sb_texture_load_data(const char* path, su_Bool flip_img, int* width_out, in
 
 void sb_texture_free(union sb_Texture texture_id);
 
-#endif // SACI_BACKEND_SC_TEXTURE_H
+#endif // SACI_BACKEND_ASSETS_SB_TEXTURE_H
