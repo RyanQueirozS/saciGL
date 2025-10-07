@@ -30,29 +30,23 @@
 
 #endif // SA_API
 
-#ifndef SA_INTERNAL
-#  ifdef SACI_TEST_BUILD
+#ifdef SACI_TEST_BUILD
 
-#    define SA_INTERNAL
-#  else
-#    define SA_INTERNAL static
+#  define SA_INTERNAL
+#else
+#  define SA_INTERNAL static
 
-#  endif // SA_TEST_BUILD
-#endif   // SA_INTERNAL
+#endif // SA_TEST_BUILD
 
 #define SA_STATIC static
 
-#ifndef SA_INTERNAL_CONST
-#  define SA_INTERNAL_CONST static const
-#endif // SA_INTERNAL
+#define SA_INTERNAL_CONST static const
 
-#ifndef SA_INTERNAL_INLINE
-#  ifndef SA_INTERNAL
-#    define SA_INTERNAL_INLINE SA_INTERNAL inline
-#  else
-#    define SA_INTERNAL_INLINE SA_INTERNAL
-#  endif
-#endif // SA_INTERNAL_INLINE
+#ifndef SA_INTERNAL
+#  define SA_INTERNAL_INLINE SA_INTERNAL inline
+#else
+#  define SA_INTERNAL_INLINE SA_INTERNAL
+#endif
 
 /**
  * @define su_Scast_To_m
@@ -67,105 +61,13 @@
  * @return The expression with the applied cast. In C++, uses `static_cast<type>`,
  *         and in C, uses `(type)`.
  */
-#ifndef su_SCAST_TO_M
-#  ifdef __cplusplus
-#    define su_SCAST_TO_M(type) static_cast<type>
-#  else
-#    define su_SCAST_TO_M(type) (type)
-#  endif // __cplusplus
-#endif   // su_SCAST_TO_M
+#ifdef __cplusplus
+#  define su_SCAST_TO_M(type) static_cast<type>
+#else
+#  define su_CAST_M(type) (type)
+#endif // __cplusplus
 
-/**
- * @define su_MALLOC_M
- * @brief `malloc` version of saciGL
- *
- * Feel free to overwrite it with your own! When in SACI_DEBUG_MODE will print
- * the origin of the allocated buffer
- *
- * @param[in] x The size of the buffer to be alloced
- *
- * @return The allocated buffer
- */
-#ifndef su_MALLOC_M
-#  include <stdlib.h>
-#  include <stdio.h>
-
-#  ifdef SACI_DEBUG_MODE
-#    define su_MALLOC_M(x)                                       \
-        ({                                                       \
-        size_t _size = (x);                                      \
-        void* _ptr = malloc(_size);                              \
-        printf("allocating %lu bytes in func: %s at line: %d\n", \
-               (unsigned long)_size, __func__, __LINE__);        \
-        _ptr;                                                    \
-        })
-#  else
-#    define su_MALLOC_M(x) malloc(x)
-#  endif
-
-#endif // su_MALLOC_M
-
-/**
- * @define su_CALLOC_M
- * @brief `calloc` version of saciGL
- *
- * Feel free to overwrite it with your own! When in SACI_DEBUG_MODE will print
- * the origin of the allocated buffer
- *
- * @param[in] n The number of elements to be alloced
- * @param[in] x The size of the elements to be alloced
- *
- * @return The allocated buffer
- */
-#ifndef su_CALLOC_M
-#  include <stdlib.h>
-#  include <stdio.h>
-
-#  ifdef SACI_DEBUG_MODE
-#    define su_CALLOC_M(n, x)                                    \
-        ({                                                       \
-        size_t _size = ((n) * (x));                              \
-        void* _ptr = calloc(n, x);                               \
-        printf("allocating %lu bytes in func: %s at line: %d\n", \
-               (unsigned long)_size, __func__, __LINE__);        \
-        _ptr;                                                    \
-        })
-#  else
-#    define su_CALLOC_M(n, x) calloc(n, x)
-#  endif
-
-#endif // su_CALLOC_M
-
-/**
- * @define su_FREE_M
- * @brief `free` version of saciGL
- *
- * Feel free to overwrite it with your own! When in SACI_DEBUG_MODE will print
- * the origin of the freed buffer
- *
- * @param[in] x The buffer to be freed
- */
-#ifndef su_FREE_M
-#  include <stdlib.h>
-#  ifdef SACI_DEBUG_MODE
-#    define su_FREE_M(x)                                                                  \
-        ({                                                                                \
-        if (x) {                                                                          \
-            printf("freeing %p in func: %s at line: %d\n", (void*)x, __func__, __LINE__); \
-            free(x);                                                                      \
-            x = NULL;                                                                     \
-        } else {                                                                          \
-            printf("trying to free invalid pointer at: %s, %d", __func__, __LINE__);      \
-        }                                                                                 \
-        })
-#  else
-#    define su_FREE_M(x) free(x)
-#  endif // SACI_DEBUG_MODE
-#endif   // su_FREE_M
-
-#ifndef su_ARRLEN_m
-#  define su_ARRLEN_M(ar) sizeof(ar) / sizeof((ar)[0])
-#endif // ifndef
+#define su_ARRLEN_M(ar) sizeof(ar) / sizeof((ar)[0])
 
 /**
  * @define su_NOT_USED_M
@@ -175,16 +77,14 @@
  * remove before release!"
  * @param[in] x The variable to have it's not used warning suppresed
  */
-#ifndef su_NOT_USED_M
-#  ifdef SACI_DEBUG_MODE
+#ifdef SACI_DEBUG_MODE
 
-#    define su_NOT_USED_M(x) (void)(x) // Or leave it undefined to cause a build error
-#  else
-#    define su_NOT_USED_M(x) \
-        _Pragma("message(\"Warning: su_NOT_USED_M is used — remove before release!\")")(void)(x)
+#  define su_NOT_USED_M(x) (void)(x)
+#else
+#  define su_NOT_USED_M(x) \
+      _Pragma("message(\"Warning: su_NOT_USED_M is used — remove before release!\")")(void)(x)
 
-#  endif // SACI_DEBUG_MODE
-#endif   // su_NOT_USED_M
+#endif // SACI_DEBUG_MODE
 
 /**
  * @define su_MIN_M
@@ -192,9 +92,7 @@
  *
  * @param[in] x The smallest value
  */
-#ifndef su_MIN_M
-#  define su_MIN_M(x, y) ((x) < (y) ? (x) : (y))
-#endif // su_MIN_M
+#define su_MIN_M(x, y) ((x) < (y) ? (x) : (y))
 
 /**
  * @define su_MAX_M
@@ -202,9 +100,7 @@
  *
  * @param[in] x The biggest value
  */
-#ifndef su_MAX_M
-#  define su_MAX_M(x, y) ((x) > (y) ? (x) : (y))
-#endif // su_MAX_M
+#define su_MAX_M(x, y) ((x) > (y) ? (x) : (y))
 
 #ifndef SACI_MAX_TEXTURES
 #  define SACI_MAX_TEXTURES 16

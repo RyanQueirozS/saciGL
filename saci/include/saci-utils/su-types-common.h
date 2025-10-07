@@ -158,8 +158,8 @@ typedef enum su_ReallocationKind {
 typedef void* (*su_GLProc)(const char* name);
 typedef void* su_Window;
 typedef void* su_Monitor;
-typedef void (*su_WindowPosHandler)(su_Window* window, int pos_x, int pos_y);
-typedef void (*su_WindowSizeHandler)(su_Window* window, int width, int height);
-typedef void (*su_EventMousePosHandler)(su_Window window, double posx, double posy);
+typedef void* su_WindowPosHandler;
+typedef void* su_WindowSizeHandler;
+typedef void* su_EventMousePosHandler;
 
 #endif // SACI_UTILS_SU_TYPES_H

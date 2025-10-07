@@ -24,9 +24,6 @@ if(NOT IS_EMSCRIPTEN)
     set(GLFW_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/lib/GLFW/libglfw.so.3.4")
 endif()
 
-# --- Add Lua ---
-add_subdirectory(deps/lua)
-
 # --- Gather sources ---
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.c")
 file(GLOB_RECURSE HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.h")
@@ -43,7 +40,6 @@ target_include_directories(saci
         "${CMAKE_CURRENT_SOURCE_DIR}/deps/model-loading"
         "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/deps/ryanqueirozs/"
-        "${CMAKE_CURRENT_SOURCE_DIR}/deps/lua/lua5.4"  # Headers only
 
     PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/src"

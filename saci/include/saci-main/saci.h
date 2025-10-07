@@ -1,7 +1,8 @@
 #ifndef SACI_MAIN_SACI_H
 #define SACI_MAIN_SACI_H
 
-#include "saci-backend/sb-windowing.h"
+#include "saci-backend/windowing/sb-windowing.h"
+#include "saci-backend/renderer/sb-renderer.h"
 
 #include "saci-utils/su-general.h"
 

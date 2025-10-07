@@ -1,16 +1,12 @@
 #include "saci-main/saci.h"
 
-#include "saci-backend/sb-config-manager.h"
-#include "saci-backend/sb-gfx.h"
-#include "saci-backend/sb-gl.h"
-#include "saci-backend/sb-memmanager.h"
-#include "saci-backend/sb-renderer.h"
-#include "saci-backend/sb-windowing.h"
-
+#include "saci-utils/config/sb-config-manager.h"
+#include "saci-backend/graphics/sb-gfx.h"
 #include "saci-utils/su-log.h"
+#include "saci-utils/memory/su-memory.h"
 #include "saci-utils/su-general.h"
-#include "saci-utils/su-math.h"
-#include "saci-utils/su-types.h"
+#include "saci-utils/math/su-math-general.h"
+#include "saci-utils/su-types-common.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,7 +62,7 @@ enum saci_ShapeType {
     saci_SHAPE_CUBE = 1,
 };
 
-typedef struct sb_GFXInstanceData saci_InstanceData;
+typedef struct sb_DrawInstanceData saci_InstanceData;
 typedef struct {
     su_Mat4 transform;
     su_Color color;
@@ -99,10 +95,10 @@ SA_INTERNAL struct saci_Context {
 } saci_context = {0};
 
 void saci_init(void) {
-    if (!sb_cfg_manager_fetch(SACI_DEFAULT_CONFIG_PATH)) {
-        sb_cfg_manager_load_default();
+    if (!su_cfg_manager_fetch(SACI_DEFAULT_CONFIG_PATH)) {
+        su_cfg_manager_load_default();
     }
-    sb_cfg_manager_load_dependencies();
+    su_cfg_manager_load_dependencies();
     sb_gfx_load();
     su_Vec3 cube_vertices[] = {
         {-1, -1, -1},
@@ -183,7 +179,7 @@ void saci_draw_cube(const saci_Cube cube) {
     saci_InstanceData instance_data = {
         .data_size = sizeof(saci_ShapeInstance),
         .location = 3,
-        .instance_data_structure = su_MALLOC_M(sizeof(saci_ShapeInstance)), // TODO, this needs to be prefilled, perhaps be stored as a static var
+        .instance_data_structure = malloc(sizeof(saci_ShapeInstance)), // TODO, this needs to be prefilled, perhaps be stored as a static var
     };
     memcpy(instance_data.instance_data_structure, &instance, sizeof(saci_ShapeInstance));
     if (!su_darray_push(saci_context.shape_instance_data_array[saci_SHAPE_CUBE].instance_data_array,
@@ -230,7 +226,7 @@ void saci_present(void) {
 }
 
 void saci_free(void) {
-    sb_mem_print_info();
+    su_mem_print_info();
 }
 
 // Helper
@@ -255,12 +251,12 @@ SA_INTERNAL void saci__init_windowing(
 }
 
 SA_INTERNAL void saci__init_memory(void) {
-    saci_context.renderer_info_array = su_CALLOC_M(
+    saci_context.renderer_info_array = calloc(
         SACI_RENDERER_AMOUNT,
         sizeof(struct saci_RendererInfo*));
     struct sb_Renderer* instance_rendr = sb_renderer_new(sb_RENDERER_STATIC);
     saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer = instance_rendr;
-    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array = su_MALLOC_M(sizeof(su_S32) * 5);
+    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array = malloc(sizeof(su_S32) * 5);
     saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[0] =
         sb_renderer_get_uniform_id(instance_rendr, "u_model_matrix");
     saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[1] =
@@ -271,8 +267,8 @@ SA_INTERNAL void saci__init_memory(void) {
         sb_renderer_get_uniform_id(instance_rendr, "u_flags");
 
     const su_S32 saci_shape_amount = 10; /// TODO
-    saci_context.shape_instance_data_array = su_CALLOC_M(
-        saci_shape_amount,
+    saci_context.shape_instance_data_array = calloc(
+        su_CAST_M(su_U64)(saci_shape_amount),
         sizeof(struct saci_ShapeDrawCall));
     for (su_S32 i = 0; i < saci_shape_amount; ++i) {
         saci_context.shape_instance_data_array[i].instance_data_array = su_darray_create(1024, sizeof(saci_InstanceData), su_TRUE);

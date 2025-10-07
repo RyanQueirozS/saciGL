@@ -1,9 +1,9 @@
 #include "./sb-renderer-common.h"
 
 #include "saci-utils/su-log.h"
-#include "./sb-memmanager.h"
+#include "saci-utils/memory/su-memory.h"
 
-#include "saci-utils/su-types.h"
+#include "saci-utils/su-types-common.h"
 
 #include <stdio.h>
 
@@ -45,22 +45,22 @@ SA_INTERNAL const struct sb_RendererInterface sc_INSTANCE_RENDERER_DEFAULT_INTER
 
 /* --- Helper --- */
 
-SA_INTERNAL void sb__init_instance_buffers(struct sb_RendererConfig* cfg_out);
+SA_INTERNAL void sb__init_instance_buffers(struct su_RendererConfig* cfg_out);
 
-SA_INTERNAL void sb__renderer_instance_fill_default(struct sb_RendererConfig* cfg_out, const union sb_GFXInfo* gfx_info);
+SA_INTERNAL void sb__renderer_instance_fill_default(struct su_RendererConfig* cfg_out, const union sb_GFXInfo* gfx_info);
 
 SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* rendr);
 
-SA_INTERNAL void sb__renderer_init_bound_extra(struct sb_InstanceBoundExtra* bound_extra, const struct sb_RendererConfig cfg);
+SA_INTERNAL void sb__renderer_init_bound_extra(struct sb_InstanceBoundExtra* bound_extra, const struct su_RendererConfig cfg);
 
 /* --- PUBLIC FUNCS --- */
 
 void sb_renderer_instanced_new(sb_Renderer* self) {
-    struct sb_InstanceRenderer* rendr = su_MALLOC_M(sizeof(struct sb_InstanceRenderer));
+    struct sb_InstanceRenderer* rendr = malloc(sizeof(struct sb_InstanceRenderer));
     self->rendr.instance_renderer = rendr;
     self->interface = &sc_INSTANCE_RENDERER_DEFAULT_INTERFACE;
-    struct sb_RendererConfig cfg = sb_CFG_DEFAULT_INSTANCE;
-    sb_cfg_manager_get_renderer(su_string_create("instance", su_REALLOCATION_KIND_FIXED_SIZE), &cfg);
+    struct su_RendererConfig cfg = sb_CFG_DEFAULT_INSTANCE;
+    su_cfg_manager_get_renderer("instance", &cfg);
     sb_init_shaders(&cfg, &rendr->gfx);
     sb__renderer_instance_fill_default(&cfg, &rendr->gfx);
     rendr->cfg = cfg;
@@ -70,7 +70,7 @@ void sb_renderer_instanced_new(sb_Renderer* self) {
     sb__renderer_init_bound_extra(&rendr->bound_extra, cfg);
 }
 
-void sb_renderer_push_instance_data(struct sb_Renderer* rendr, const struct sb_GFXInstanceData* instance_data) {
+void sb_renderer_push_instance_data(struct sb_Renderer* rendr, const struct sb_DrawInstanceData* instance_data) {
     // TODO change to if (condition) error clauses
     su_LOG_ASSERT_M(rendr->type == sb_RENDERER_INSTANCE, su_LOG_CONTEXT_RENDERER_INSTANCE, "Trying to set instance transforms in non instance renderer");
     su_LOG_ASSERT_M(instance_data, su_LOG_CONTEXT_RENDERER_INSTANCE, "instances with different sizes");
@@ -102,7 +102,7 @@ SA_API void sb_renderer_set_instance_data_array(struct sb_Renderer* rendr, const
     // TODO change to if error
     su_LOG_ASSERT_M(rendr->type == sb_RENDERER_INSTANCE, su_LOG_CONTEXT_RENDERER_INSTANCE, "Trying to set instance transforms in non instance renderer");
     su_LOG_ASSERT_M(instance_data_array, su_LOG_CONTEXT_RENDERER_INSTANCE, "Seting instances with different sizes");
-    su_LOG_ASSERT_M(su_darray_get_elem_size(instance_data_array) == sizeof(struct sb_GFXInstanceData), su_LOG_CONTEXT_RENDERER_INSTANCE, "Pushing instances without the struct sb_GFXInstanceData size");
+    su_LOG_ASSERT_M(su_darray_get_elem_size(instance_data_array) == sizeof(struct sb_DrawInstanceData), su_LOG_CONTEXT_RENDERER_INSTANCE, "Pushing instances without the struct sb_GFXInstanceData size");
 
     su_LOG_INFOF_M(
         su_LOG_TYPE_USER,
@@ -152,7 +152,7 @@ SA_INTERNAL void sb__renderer_instance_begin(const struct sb_Renderer* self) {
                 su_LOG_CONTEXT_RENDERER_INSTANCE,
                 "Could not clear %dith batch's index array", i);
         }
-        if (!su_darray_clear(batch->instance_buffer_array)) {
+        if (!su_darray_clear(batch->instance_data_array)) {
             su_LOG_ERRORF_M(
                 su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
                 su_LOG_CONTEXT_RENDERER_INSTANCE,
@@ -192,7 +192,7 @@ SA_INTERNAL void sb__renderer_instance_set_uniform(struct sb_Renderer* self,
                        "Trying to bind uniform with invalid ID");
         return;
     }
-    if (su_SCAST_TO_M(int)(type) == 0 || su_SCAST_TO_M(int)(type) > 26) {
+    if (su_CAST_M(int)(type) == 0 || su_CAST_M(int)(type) > 26) {
         su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_RENDERER,
                        "Trying to bind uniform with invalid type");
         return;
@@ -205,7 +205,7 @@ SA_INTERNAL void sb__renderer_instance_set_uniform(struct sb_Renderer* self,
     for (su_U64 i = 0; i < su_darray_length(*uniform_data_array); ++i) {
         struct sb_GFXUniformData uniform_data = *(struct sb_GFXUniformData*)su_darray_get(*uniform_data_array, i);
         if (uniform_data.location == uniform_id) {
-            su_darray_set(*uniform_data_array, i, &new_uniform);
+            su_darray_set(*uniform_data_array, i, &new_uniform, sizeof(new_uniform));
             return;
         }
     }
@@ -275,7 +275,7 @@ SA_INTERNAL void sb__renderer_instance_push_mesh(struct sb_Renderer* self,
             su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
             su_LOG_CONTEXT_RENDERER, "Could not push uniform to batch");
     }
-    if (!su_darray_append(batch->instance_buffer_array, rendr->bound_extra.bound_instance_data_array)) {
+    if (!su_darray_append(batch->instance_data_array, rendr->bound_extra.bound_instance_data_array)) {
         su_LOG_ERROR_M(
             su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
             su_LOG_CONTEXT_RENDERER, "Could not push instances to batch");
@@ -297,27 +297,27 @@ SA_INTERNAL void sb__renderer_draw_instance_batch(const struct sb_Renderer* self
     }
 }
 
-SA_INTERNAL void sb__init_instance_buffers(struct sb_RendererConfig* cfg_out) {
+SA_INTERNAL void sb__init_instance_buffers(struct su_RendererConfig* cfg_out) {
     if (!cfg_out->instance_data.buffer_array) {
         cfg_out->instance_data.buffer_array =
-            su_darray_create(1, sizeof(struct sb_RendererCfgInstanceBuffer), su_TRUE);
+            su_darray_create(1, sizeof(struct su_RendererCfgInstanceBuffer), su_TRUE);
 
-        struct sb_RendererCfgInstanceBufferLayout model_mat = {
-            .name = su_string_create("i_model_matrix", su_REALLOCATION_KIND_FIXED_SIZE),
+        struct su_RendererCfgInstanceBufferLayout model_mat = {
+            .name = "i_model_matrix",
             .type = su_TYPE_MAT4,
             .offset = 0,
             .location = 3,
         };
-        struct sb_RendererCfgInstanceBufferLayout color = {
-            .name = su_string_create("i_color", su_REALLOCATION_KIND_FIXED_SIZE),
+        struct su_RendererCfgInstanceBufferLayout color = {
+            .name = "i_color",
             .type = su_TYPE_COLOR,
             .offset = 64,
             .location = 7,
         };
 
-        struct sb_RendererCfgInstanceBuffer buffer = {
-            .name = su_string_create("default string buffer", su_REALLOCATION_KIND_FIXED_SIZE),
-            .layout_array = su_darray_create(2, sizeof(struct sb_RendererCfgInstanceBufferLayout), su_TRUE),
+        struct su_RendererCfgInstanceBuffer buffer = {
+            .name = "default string buffer",
+            .layout_array = su_darray_create(2, sizeof(struct su_RendererCfgInstanceBufferLayout), su_TRUE),
         };
 
         su_darray_push(buffer.layout_array, &model_mat);
@@ -326,7 +326,7 @@ SA_INTERNAL void sb__init_instance_buffers(struct sb_RendererConfig* cfg_out) {
     }
 }
 
-SA_INTERNAL void sb__renderer_instance_fill_default(struct sb_RendererConfig* cfg_out, const union sb_GFXInfo* gfx_info) {
+SA_INTERNAL void sb__renderer_instance_fill_default(struct su_RendererConfig* cfg_out, const union sb_GFXInfo* gfx_info) {
     sb_init_uniforms(cfg_out, gfx_info);
     sb_init_samplers(cfg_out, gfx_info);
     sb_init_vertex_layout(cfg_out);
@@ -334,14 +334,14 @@ SA_INTERNAL void sb__renderer_instance_fill_default(struct sb_RendererConfig* cf
 }
 
 SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* rendr) {
-    struct sb_RendererConfig cfg = rendr->cfg;
+    struct su_RendererConfig cfg = rendr->cfg;
 
     su_U64 index_size = cfg.index_data.element_size_internal * cfg.batch.index_cfg.capacity + su_SIZE_OF_DARRAY + 1024;
     su_U64 vertex_size = cfg.vertex_data.element_size_internal * cfg.batch.vertex_cfg.capacity + su_SIZE_OF_DARRAY + 1024;
-    su_U64 instance_size = cfg.batch.instance_cfg.capacity * sizeof(struct sb_GFXInstanceData) + su_SIZE_OF_DARRAY + 1024;
+    su_U64 instance_size = cfg.batch.instance_cfg.capacity * sizeof(struct sb_DrawInstanceData) + su_SIZE_OF_DARRAY + 1024;
     su_U64 uniform_size = su_darray_length(cfg.uniform_array) * sizeof(struct sb_GFXUniformData) + su_SIZE_OF_DARRAY + 1024;
 
-    rendr->batch_ptr_array = su_CALLOC_M(cfg.batch.capacity, sizeof(struct sb_GFXDrawData*));
+    rendr->batch_ptr_array = calloc(cfg.batch.capacity, sizeof(struct sb_GFXDrawData*));
 
     for (su_U8 i = 0; i < cfg.batch.capacity; ++i) {
         void *drawdata_mem = NULL,
@@ -349,30 +349,30 @@ SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* re
              *vertex_mem = NULL,
              *instance_mem = NULL,
              *uniform_mem = NULL;
-        sb_mem_alloc(sb_MEM_CONTEXT_RENDERER, 1,
-                     sizeof(struct sb_GFXDrawData), &drawdata_mem);
-        sb_mem_alloc(sb_MEM_CONTEXT_RENDERER, 1,
-                     index_size, &index_mem);
-        sb_mem_alloc(sb_MEM_CONTEXT_RENDERER, 1,
-                     vertex_size, &vertex_mem);
-        sb_mem_alloc(sb_MEM_CONTEXT_RENDERER, 1,
-                     instance_size, &instance_mem);
-        sb_mem_alloc(sb_MEM_CONTEXT_RENDERER, 1,
-                     uniform_size, &uniform_mem);
+        su_mem_alloc(su_MEM_CONTEXT_RENDERER, 1,
+                     sizeof(struct sb_GFXDrawData) /* , &drawdata_mem */);
+        su_mem_alloc(su_MEM_CONTEXT_RENDERER, 1,
+                     index_size /* , &index_mem */);
+        su_mem_alloc(su_MEM_CONTEXT_RENDERER, 1,
+                     vertex_size /* , &vertex_mem */);
+        su_mem_alloc(su_MEM_CONTEXT_RENDERER, 1,
+                     instance_size /* , &instance_mem */);
+        su_mem_alloc(su_MEM_CONTEXT_RENDERER, 1,
+                     uniform_size /* , &uniform_mem */);
         if (!drawdata_mem || !index_mem || !vertex_mem || !instance_mem || !uniform_mem) {
             su_LOG_ERROR_M(
                 su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
                 su_LOG_CONTEXT_RENDERER_INSTANCE, "Could not initialize memory for renderer");
         }
 
-        struct sb_GFXDrawData* drawdata = su_SCAST_TO_M(struct sb_GFXDrawData*)(drawdata_mem);
+        struct sb_GFXDrawData* drawdata = su_CAST_M(struct sb_GFXDrawData*)(drawdata_mem);
 
-        drawdata->vertex_array = su_darray_create_ctx(
-            vertex_mem,
-            vertex_size,
-            cfg.batch.vertex_cfg.capacity,
-            cfg.vertex_data.element_size_internal,
-            cfg.batch.vertex_cfg.fixed_size);
+        // drawdata->vertex_array = su_darray_create_ctx(
+        //     vertex_mem,
+        //     vertex_size,
+        //     cfg.batch.vertex_cfg.capacity,
+        //     cfg.vertex_data.element_size_internal,
+        //     cfg.batch.vertex_cfg.fixed_size);
         drawdata->vertex_struct_size = sizeof(struct sb_Vertex);
         if (!drawdata->vertex_array) {
             su_LOG_ERROR_M(
@@ -381,12 +381,12 @@ SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* re
                 "Could not create a batch's vertex array");
         }
 
-        drawdata->index_array = su_darray_create_ctx(
-            index_mem,
-            index_size,
-            cfg.batch.index_cfg.capacity,
-            sizeof(su_U32),
-            cfg.batch.index_cfg.fixed_size);
+        // drawdata->index_array = su_darray_create_ctx(
+        //     index_mem,
+        //     index_size,
+        //     cfg.batch.index_cfg.capacity,
+        //     sizeof(su_U32),
+        //     cfg.batch.index_cfg.fixed_size);
         drawdata->index_struct_size = sizeof(su_U32);
         if (!drawdata->index_array) {
             su_LOG_ERROR_M(
@@ -396,25 +396,25 @@ SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* re
         }
 
         // TODO not well made, needs to contain the data for the arrays inside itself
-        drawdata->instance_buffer_array = su_darray_create_ctx(
-            instance_mem,
-            instance_size,
-            cfg.batch.instance_cfg.capacity,
-            sizeof(struct sb_GFXInstanceData),
-            cfg.batch.instance_cfg.fixed_size);
-        if (!drawdata->instance_buffer_array) {
-            su_LOG_ERROR_M(
-                su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
-                su_LOG_CONTEXT_RENDERER_INSTANCE,
-                "Could not create a batch's instance array");
-        }
+        // drawdata->instance_buffer_array = su_darray_create_ctx(
+        //     instance_mem,
+        //     instance_size,
+        //     cfg.batch.instance_cfg.capacity,
+        //     sizeof(struct sb_GFXInstanceData),
+        //     cfg.batch.instance_cfg.fixed_size);
+        // if (!drawdata->instance_buffer_array) {
+        //     su_LOG_ERROR_M(
+        //         su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
+        //         su_LOG_CONTEXT_RENDERER_INSTANCE,
+        //         "Could not create a batch's instance array");
+        // }
 
-        drawdata->uniform_data_array = su_darray_create_ctx(
-            uniform_mem,
-            uniform_size,
-            su_darray_length(cfg.uniform_array),
-            sizeof(struct sb_GFXUniformData),
-            su_TRUE);
+        // drawdata->uniform_data_array = su_darray_create_ctx(
+        //     uniform_mem,
+        //     uniform_size,
+        //     su_darray_length(cfg.uniform_array),
+        //     sizeof(struct sb_GFXUniformData),
+        //     su_TRUE);
         if (!drawdata->uniform_data_array) {
             su_LOG_ERROR_M(su_LOG_TYPE_USER,
                            su_LOG_ERROR_SEVERITY_CRASH,
@@ -432,7 +432,7 @@ SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* re
     }
 }
 
-SA_INTERNAL void sb__renderer_init_bound_extra(struct sb_InstanceBoundExtra* bound_extra, const struct sb_RendererConfig cfg) {
+SA_INTERNAL void sb__renderer_init_bound_extra(struct sb_InstanceBoundExtra* bound_extra, const struct su_RendererConfig cfg) {
     // TODO remove magic number use a cfg member
-    bound_extra->bound_instance_data_array = su_darray_create(1024, sizeof(struct sb_GFXInstanceData), su_TRUE);
+    bound_extra->bound_instance_data_array = su_darray_create(1024, sizeof(struct sb_DrawInstanceData), su_TRUE);
 }
