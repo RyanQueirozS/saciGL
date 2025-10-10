@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "saci-utils/su-log.h"
 
 SA_INTERNAL su_Bool su__darray_can_append(const su_DArray* dest, const su_DArray* src);
 

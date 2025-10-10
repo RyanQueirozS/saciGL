@@ -1,4 +1,5 @@
 #include "saci-utils/math/su-math-vec.h"
+#include "saci-utils/math/su-math-general.h"
 
 su_Vec3 su_vec3_subtract(su_Vec3 a, su_Vec3 b) {
     su_Vec3 result = {a.x - b.x, a.y - b.y, a.z - b.z};

@@ -1,7 +1,30 @@
-#ifndef SACI_BACKEND_GRAPHICS_SB_GFX_H
-#define SACI_BACKEND_GRAPHICS_SB_GFX_H
+#ifndef SACI_BACKEND_RESOURCES_SB_DEPENDENCY_H
+#define SACI_BACKEND_RESOURCES_SB_DEPENDENCY_H
 
 #include "saci-utils/su-types-common.h"
+#include "saci-utils/su-general.h"
+
+struct sb_WindowingApiFuncs {
+    struct {
+        int (*init)(void);
+        void (*set_hint)(int, int);
+        su_Window (*create_window)(int, int, const char*, su_Monitor, su_Window);
+        void* (*get_proc)(const char*);
+        void (*destroy_window)(su_Window);
+        void (*make_context_current)(su_Window);
+        su_S32 (*should_close)(su_Window);
+        void (*set_pos_handler)(su_Window, void*);
+        void (*set_size_handler)(su_Window, void*);
+        void (*terminate)(void);
+        void (*swap_buffers)(su_Window);
+        void (*poll_events)(void);
+        void (*wait_events)(void);
+        void (*wait_events_timeout)(double);
+        void (*post_empty_event)(void);
+        void (*set_mouse_pos_handler)(su_Window, void*);
+        su_S32 (*is_key_pressed)(su_Window, int);
+    } glfw;
+};
 
 struct sb_RenderApiFuncs {
     struct {
@@ -82,4 +105,12 @@ struct sb_RenderApiLoaderFuncs {
     } gl;
 };
 
-#endif // SACI_BACKEND_GRAPHICS_SB_GFX_H
+SA_API void sb_dependecies_load(void);
+
+SA_API struct sb_WindowingApiFuncs sb_dependencies_get_windowing_api_funcs(void);
+
+SA_API struct sb_RenderApiFuncs sb_dependencies_get_render_api_funcs(void);
+
+SA_API struct sb_RenderApiLoaderFuncs sb_dependencies_get_render_loader_api_funcs(void);
+
+#endif // SACI_BACKEND_RESOURCES_SB_DEPENDENCY_H

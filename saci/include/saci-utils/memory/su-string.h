@@ -4,8 +4,6 @@
 #include "../su-general.h"
 #include "../su-types-common.h"
 
-#include "./su-memory.h"
-
 typedef struct su_String su_String;
 
 SA_API su_String* su_string_create(const char* data, su_ReallocationKind realloc_kind);

@@ -1,5 +1,7 @@
 #include "saci-backend/windowing/sb-windowing.h"
 #include "saci-backend/graphics/sb-gfx.h"
+#include "saci-backend/windowing/sb-glfw.h"
+#include "saci-utils/su-log.h"
 
 /* === Main declaration=== */
 

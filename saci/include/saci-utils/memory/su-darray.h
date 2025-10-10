@@ -3,7 +3,6 @@
 
 #include "../su-general.h"
 #include "../su-types-common.h"
-#include "../su-log.h" // Used in implementation
 
 #include "./su-memory.h"
 

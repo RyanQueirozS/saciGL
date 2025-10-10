@@ -164,7 +164,7 @@ struct su_RendererConfig {
     su_U64 sampler_array_length;
     struct su_RendererCfgSampler* sampler_array;
 
-    struct {
+    struct su_RendererCfgVertexData {
         su_U64 element_size_internal;
         su_U64 layout_array_length;
         struct su_RendererCfgVertexLayout* layout_array;
@@ -191,14 +191,28 @@ SA_API void su_cfg_manager_set(const struct su_ConfigManager cfg_manager);
 
 SA_API su_Bool su_cfg_manager_fetch(const char* path);
 
-SA_API void su_cfg_manager_load_dependencies(void);
-
 SA_API enum su_RenderApi su_cfg_manager_get_renderer_api(void);
 
-SA_API struct su_WindowingApiFuncs su_cfg_manager_get_window_funcs(void);
+const char* su_cfg_manager_get_renderer_api_path(void);
 
-SA_API struct su_RenderApiLoaderFuncs su_cfg_manager_get_loader_funcs(void);
+SA_API enum su_RenderApiLoader su_cfg_manager_get_renderer_api_loader(void);
+
+const char* su_cfg_manager_get_renderer_api_loader_path(void);
+
+SA_API enum su_WindowApi su_cfg_manager_get_window_api(void);
+
+const char* su_cfg_manager_get_window_api_path(void);
 
 SA_API void su_cfg_manager_get_renderer(char* name, struct su_RendererConfig* cfg_out);
+
+SA_API void su_cfg_manager_set_instance_data(const su_U64 count, const struct su_RendererCfgInstanceBuffer* buffer_array);
+
+SA_API void su_cfg_manager_set_instance_buffer_layout(struct su_RendererCfgInstanceBuffer* buffer_array_out,
+                                                      const struct su_RendererCfgInstanceBufferLayout* buffer_layout,
+                                                      const su_U64 layout_count);
+
+SA_API void su_cfg_manager_set_vertex_data(struct su_RendererCfgVertexData* data_out,
+                                           const struct su_RendererCfgVertexLayout* layout_array,
+                                           const su_U64 layout_array_length);
 
 #endif // SACI_UTILS_CONFIG_SU_CONFIG_MANAGER_H

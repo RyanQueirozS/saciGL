@@ -1,7 +1,7 @@
 #ifndef SACI_BACKEND_SB_GFX_H
 #define SACI_BACKEND_SB_GFX_H
 
-#include "saci-utils/config/sb-config-manager.h"
+#include "saci-utils/config/su-config-manager.h"
 #include "saci-utils/math/su-math-mat.h"
 #include "saci-utils/memory/su-darray.h"
 #include "saci-utils/memory/su-string.h"
@@ -63,6 +63,12 @@ struct sb_GFXUniformData {
     su_DataType type;
     su_S32 location;
     union sb_GFXUniformValue value;
+};
+
+struct sb_GFXInstanceData {
+    su_U32 location;
+    su_U32 data_size;
+    void* instance_data_structure;
 };
 
 struct sb_GFXDrawData {

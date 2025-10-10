@@ -3,7 +3,6 @@
 
 #include "../su-general.h"
 #include "../su-types-common.h"
-#include "./su-math-general.h"
 #include "./su-math-types.h"
 
 #define su_COLOR_8BIT_MAX (255.0f)
@@ -17,7 +16,7 @@
  *
  * @return su_Color The new color based on the hex code
  */
-su_Color su_color_from_hex(su_U32 hex);
+SA_API su_Color su_color_from_hex(su_U32 hex);
 
 /**
  * @fn su_color_from_u8
@@ -30,7 +29,7 @@ su_Color su_color_from_hex(su_U32 hex);
  *
  * @return su_Color The new color based on the rgba value
  */
-su_Color su_color_from_u8(su_U8 r, su_U8 g, su_U8 b, su_U8 a);
+SA_API su_Color su_color_from_u8(su_U8 r, su_U8 g, su_U8 b, su_U8 a);
 
 /**
  * @fn su_color_to_hex
@@ -40,6 +39,6 @@ su_Color su_color_from_u8(su_U8 r, su_U8 g, su_U8 b, su_U8 a);
  *
  * @return su_U32 The new hex code
  */
-su_U32 su_color_to_hex(su_Color color);
+SA_API su_U32 su_color_to_hex(su_Color color);
 
 #endif // SACI_UTILS_MATH_SU_MATH_COLOR_H

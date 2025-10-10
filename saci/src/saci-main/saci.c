@@ -1,12 +1,13 @@
 #include "saci-main/saci.h"
 
-#include "saci-utils/config/sb-config-manager.h"
-#include "saci-backend/graphics/sb-gfx.h"
-#include "saci-utils/su-log.h"
+#include "saci-utils/config/su-config-manager.h"
 #include "saci-utils/memory/su-memory.h"
 #include "saci-utils/su-general.h"
-#include "saci-utils/math/su-math-general.h"
+#include "saci-utils/su-log.h"
 #include "saci-utils/su-types-common.h"
+
+#include "saci-backend/graphics/sb-gfx.h"
+#include "saci-backend/renderer/sb-renderer.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,7 +63,7 @@ enum saci_ShapeType {
     saci_SHAPE_CUBE = 1,
 };
 
-typedef struct sb_DrawInstanceData saci_InstanceData;
+typedef struct sb_GFXInstanceData saci_InstanceData;
 typedef struct {
     su_Mat4 transform;
     su_Color color;
@@ -98,7 +99,6 @@ void saci_init(void) {
     if (!su_cfg_manager_fetch(SACI_DEFAULT_CONFIG_PATH)) {
         su_cfg_manager_load_default();
     }
-    su_cfg_manager_load_dependencies();
     sb_gfx_load();
     su_Vec3 cube_vertices[] = {
         {-1, -1, -1},

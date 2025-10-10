@@ -2,7 +2,6 @@
 #include "saci-utils/su-types-common.h"
 
 #include "saci-utils/su-log.h"
-#include "saci-utils/su-general.h"
 #include <stdlib.h>
 
 #define ARENA_ASSERT(x) su_LOG_ASSERT_M(x, su_LOG_CONTEXT_CORE_MEMORY, "Error in arena function")
@@ -14,11 +13,16 @@
 #include <stdio.h>
 #include <string.h>
 
-/* === Internal === */
+#define SU_MEM_KB (1024ULL)
+#define SU_MEM_MB (1024ULL * SU_MEM_KB)
+#define SU_MEM_GB (1024ULL * SU_MEM_MB)
+#define SU_MEM_TB (1024ULL * SU_MEM_GB)
 
-su_Bool su__mem_safe_copy(void* dest_ptr, size_t dest_capacity, size_t dest_offset,
-                          const void* src_ptr, size_t src_size, size_t src_offset,
-                          size_t copy_length);
+struct su_MemPool {
+    Arena arena;
+};
+
+/* === Internal === */
 
 su_Bool su__mem_alloc_arena(void* pool, const su_U64 capacity, const su_U64 size, void** mem_out);
 
@@ -28,8 +32,8 @@ su_Bool su__mem_malloc(su_U64* capacity_out, const su_U64 size, void** mem_out);
 
 struct su_MemChunk {
     enum su_MemContext ctx;
-    su_U64 capacity_bytes;
-    su_U64 used_bytes;
+    su_U64 element_count;
+    su_U64 element_size_bytes;
     void* data;
 };
 
@@ -44,9 +48,14 @@ struct {
 struct {
     su_Bool is_arena_based;
     su_Bool is_initialized;
+    su_U64 default_sizes[su_MEM_CONTEXT_COUNT];
 } su__mem_manager_cfg = {
     .is_arena_based = su_FALSE,
     .is_initialized = su_FALSE,
+    .default_sizes = {
+        2 * SU_MEM_KB,
+        1 * SU_MEM_GB,
+    },
 };
 
 void su_mem_init(const su_Bool use_arenas) {
@@ -58,20 +67,17 @@ void su_mem_init(const su_Bool use_arenas) {
         return;
     }
     su__mem_manager_cfg.is_arena_based = use_arenas;
+    if (use_arenas) {
+        for (su_U64 i = 0; i < su_MEM_CONTEXT_COUNT; ++i) {
+            ArenaInit(su__mem_manager[i].pool, su__mem_manager_cfg.default_sizes[i]);
+        }
+    }
 }
 
 struct su_MemChunk* su_mem_alloc(const enum su_MemContext ctx,
                                  const su_U64 count,
                                  const su_U64 element_size) {
     void* memctx = NULL;
-    if (element_size <= sizeof(struct su_MemChunk)) {
-        su_LOG_ERRORF_M(
-            su_LOG_TYPE_USER,
-            su_LOG_ERROR_SEVERITY_CRASH,
-            su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
-            "Allocating less then %lu bytes (size of MemChunk)", sizeof(struct su_MemChunk));
-        return NULL;
-    }
     if (element_size != 0 && count > UINT64_MAX / element_size) {
         su_LOG_ERROR_M(
             su_LOG_TYPE_USER,
@@ -80,7 +86,7 @@ struct su_MemChunk* su_mem_alloc(const enum su_MemContext ctx,
             "Overflow in allocation size");
         return NULL;
     }
-    su_U64 total_size = count * element_size;
+    su_U64 total_size = count * element_size + sizeof(struct su_MemChunk);
     if (su__mem_manager_cfg.is_arena_based) {
         su__mem_alloc_arena(
             su__mem_manager[ctx].pool,
@@ -97,20 +103,98 @@ struct su_MemChunk* su_mem_alloc(const enum su_MemContext ctx,
             "Memory context could not be created");
         return NULL;
     }
+    // Allocates the memory for the chunk
     struct su_MemChunk* chunk = (struct su_MemChunk*)(memctx);
     chunk->ctx = ctx;
-    chunk->capacity_bytes = total_size;
-    chunk->used_bytes = 0;
+    chunk->element_count = count;
+    chunk->element_size_bytes = element_size;
+    // Data goes after the chunk structure
     chunk->data = (void*)((char*)memctx + sizeof(struct su_MemChunk));
     return chunk;
 }
 
-su_Bool su_mem_chunk_push(struct su_MemChunk* dest, const struct su_MemChunk* src) {
-    return su__mem_safe_copy(dest->data, dest->capacity_bytes, dest->used_bytes, src->data, src->capacity_bytes, 0, src->used_bytes);
+su_MemPool* su_mem_alloc_pool(const enum su_MemContext ctx,
+                              const su_U64 size) {
+    void* memctx = NULL;
+    if (size <= 0) {
+        su_LOG_ERROR_M(
+            su_LOG_TYPE_USER,
+            su_LOG_ERROR_SEVERITY_CRASH,
+            su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+            "Overflow in allocation size");
+        return NULL;
+    }
+    su_U64 total_size = sizeof(su_MemPool) + size;
+
+    // In this case will generate a partion out of the mem_manager's memory pool.
+    if (su__mem_manager_cfg.is_arena_based) {
+        su__mem_alloc_arena(
+            su__mem_manager[ctx].pool,
+            su__mem_manager[ctx].capacity,
+            total_size, &memctx);
+    } else {
+        // And in this it will malloc the data and create an arena through it.
+        su__mem_malloc(&su__mem_manager[ctx].capacity, total_size, &memctx);
+    }
+    if (!memctx) {
+        su_LOG_ERROR_M(
+            su_LOG_TYPE_USER,
+            su_LOG_ERROR_SEVERITY_CRASH,
+            su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+            "Memory context could not be created");
+        return NULL;
+    }
+
+    su_MemPool* pool = (su_MemPool*)memctx;
+    ArenaInitCtx(&pool->arena, (void*)((char*)memctx + sizeof(su_MemPool)), size);
+
+    return pool;
 }
 
-su_Bool su_mem_chunk_push_data(struct su_MemChunk* dest, const void* src, const su_U64 src_size) {
-    return su__mem_safe_copy(dest->data, dest->capacity_bytes, dest->used_bytes, src, src_size, 0, src_size);
+su_Bool su_mem_chunk_set(struct su_MemChunk* chunk, su_U64 idx, void* data, su_U64 data_size) {
+    if (chunk->element_count < idx) {
+        su_LOG_ERRORF_M(
+            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_CONTEXT_CORE_MEMORY,
+            "Could not set data in chunk, idx is %lu and there are %lu elements",
+            chunk->element_count, idx);
+    }
+    if (chunk->element_size_bytes != data_size) {
+        su_LOG_ERRORF_M(
+            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_CONTEXT_CORE_MEMORY,
+            "Could not set data in chunk, data (%lu) is bigger than element "
+            "size (%lu) in chunk",
+            chunk->element_size_bytes, idx);
+    }
+    const su_U64 dest_capacity = chunk->element_size_bytes * chunk->element_count;
+    const su_U64 dest_offset = chunk->element_size_bytes * idx;
+    // We use the chunk->element_size_bytes as the copy length to avoid overflow
+    su_mem_safe_copy(chunk->data, dest_capacity, dest_offset, data, 0, data_size,
+                     chunk->element_size_bytes);
+    return su_TRUE;
+}
+
+const void* su_mem_chunk_get(struct su_MemChunk* chunk, su_U64 idx) {
+    if (idx < chunk->element_count) {
+        su_LOG_ERRORF_M(
+            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_CONTEXT_CORE_MEMORY,
+            "Could not get data from chunk, idx is %lu and there are %lu elements",
+            chunk->element_count, idx);
+    }
+    return (const void*)((char*)chunk->data + (idx * chunk->element_size_bytes));
+}
+
+void* su_mem_chunk_get_ptr(struct su_MemChunk* chunk, su_U64 idx) {
+    if (idx < chunk->element_count) {
+        su_LOG_ERRORF_M(
+            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_CONTEXT_CORE_MEMORY,
+            "Could not get data from chunk, idx is %lu and there are %lu elements",
+            chunk->element_count, idx);
+    }
+    return (void*)((char*)chunk->data + (idx * chunk->element_size_bytes));
 }
 
 void su_mem_print_info(void) {
@@ -129,11 +213,25 @@ void su_mem_print_info(void) {
            capacity_total);
 }
 
-/* === Internal Implementation === */
+enum su_MemContext su_mem_chunk_get_ctx(const struct su_MemChunk* chunk) {
+    return chunk->ctx;
+}
 
-su_Bool su__mem_safe_copy(void* dest_ptr, size_t dest_capacity, size_t dest_offset,
-                          const void* src_ptr, size_t src_size, size_t src_offset,
-                          size_t copy_length) {
+su_U64 su_mem_chunk_get_capacity(const struct su_MemChunk* chunk) {
+    return chunk->element_size_bytes * chunk->element_count;
+}
+
+su_U64 su_mem_chunk_get_element_size(const struct su_MemChunk* chunk) {
+    return chunk->element_size_bytes;
+}
+
+su_U64 su_mem_chunk_get_element_count(const struct su_MemChunk* chunk) {
+    return chunk->element_count;
+}
+
+su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offset,
+                         const void* src_ptr, su_U64 src_size, su_U64 src_offset,
+                         su_U64 copy_length) {
     if (dest_ptr == NULL) {
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
                         su_LOG_CONTEXT_CORE_MEMORY,
@@ -230,6 +328,8 @@ su_Bool su__mem_safe_copy(void* dest_ptr, size_t dest_capacity, size_t dest_offs
 
     return su_TRUE;
 }
+
+/* === Internal Implementation === */
 
 // This function expects pool and mem_out to be initialized,
 // it is not it's responsability to check it.

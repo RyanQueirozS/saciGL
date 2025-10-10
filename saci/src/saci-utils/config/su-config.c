@@ -1,4 +1,4 @@
-#include "saci-backend/sb-config.h"
+#include "saci-utils/config/su-config.h"
 
 #include <lua5.4/lauxlib.h>
 #include <lua5.4/lualib.h>
@@ -7,9 +7,9 @@
 #include <stdbool.h>
 
 #include "saci-utils/su-log.h"
-#include "saci-utils/su-types.h"
+#include "saci-utils/su-types-common.h"
 
-sb_ConfigState* sb_config_load(const char* file_path) {
+su_ConfigState* su_config_load(const char* file_path) {
     lua_State* lua_state = luaL_newstate();
     luaL_openlibs(lua_state);
 
@@ -21,7 +21,7 @@ sb_ConfigState* sb_config_load(const char* file_path) {
     return lua_state;
 }
 
-su_Bool sb_config_load_table(sb_ConfigState* state, const char* table_name) {
+su_Bool su_config_load_table(su_ConfigState* state, const char* table_name) {
     if (!state) {
         return false;
     }
@@ -34,13 +34,13 @@ su_Bool sb_config_load_table(sb_ConfigState* state, const char* table_name) {
     return true;
 }
 
-su_S8 sb_config_get_bool(sb_ConfigState* state, const char* b_name) {
+su_S8 su_config_get_bool(su_ConfigState* state, const char* b_name) {
     if (!state) {
         return -1;
     }
     lua_getfield(state, -1, b_name);
     if (lua_isboolean(state, -1)) {
-        su_S8 val = su_SCAST_TO_M(su_S8)(lua_tointeger(state, -1));
+        su_S8 val = su_CAST_M(su_S8)(lua_tointeger(state, -1));
         lua_pop(state, 1);
         return val;
     }
@@ -49,13 +49,13 @@ su_S8 sb_config_get_bool(sb_ConfigState* state, const char* b_name) {
     return -1;
 }
 
-su_U8 sb_config_get_uint8(sb_ConfigState* state, const char* i_name) {
+su_U8 su_config_get_uint8(su_ConfigState* state, const char* i_name) {
     if (!state) {
         return 0;
     }
     lua_getfield(state, -1, i_name);
     if (lua_isnumber(state, -1)) {
-        su_U8 val = su_SCAST_TO_M(su_U8)(lua_tointeger(state, -1));
+        su_U8 val = su_CAST_M(su_U8)(lua_tointeger(state, -1));
         lua_pop(state, 1);
         return val;
     }
@@ -64,13 +64,13 @@ su_U8 sb_config_get_uint8(sb_ConfigState* state, const char* i_name) {
     return 0;
 }
 
-su_U32 sb_config_get_uint32(sb_ConfigState* state, const char* i_name) {
+su_U32 su_config_get_uint32(su_ConfigState* state, const char* i_name) {
     if (!state) {
         return 0;
     }
     lua_getfield(state, -1, i_name);
     if (lua_isnumber(state, -1)) {
-        su_U32 val = su_SCAST_TO_M(su_U32)(lua_tointeger(state, -1));
+        su_U32 val = su_CAST_M(su_U32)(lua_tointeger(state, -1));
         lua_pop(state, 1);
         return val;
     }
@@ -79,13 +79,13 @@ su_U32 sb_config_get_uint32(sb_ConfigState* state, const char* i_name) {
     return 0;
 }
 
-su_U64 sb_config_get_uint64(sb_ConfigState* state, const char* i_name) {
+su_U64 su_config_get_uint64(su_ConfigState* state, const char* i_name) {
     if (!state) {
         return 0;
     }
     lua_getfield(state, -1, i_name);
     if (lua_isnumber(state, -1)) {
-        su_U64 val = su_SCAST_TO_M(su_U64)(lua_tointeger(state, -1));
+        su_U64 val = su_CAST_M(su_U64)(lua_tointeger(state, -1));
         lua_pop(state, 1);
         return val;
     }
@@ -94,7 +94,7 @@ su_U64 sb_config_get_uint64(sb_ConfigState* state, const char* i_name) {
     return 0;
 }
 
-su_U64 sb_config_get_array_length(sb_ConfigState* state) {
+su_U64 su_config_get_array_length(su_ConfigState* state) {
     if (!state) {
         return 0;
     }
@@ -107,13 +107,13 @@ su_U64 sb_config_get_array_length(sb_ConfigState* state) {
     return len;
 }
 
-const char* sb_config_get_str(sb_ConfigState* state, const char* s_name) {
+char* su_config_get_str(su_ConfigState* state, const char* s_name) {
     if (!state) {
         return NULL;
     }
     lua_getfield(state, -1, s_name);
     if (lua_isstring(state, -1)) {
-        const char* val = (lua_tostring(state, -1));
+        char* val = lua_tostring(state, -1); // TODO
         lua_pop(state, 1);
         return val;
     }
@@ -122,7 +122,7 @@ const char* sb_config_get_str(sb_ConfigState* state, const char* s_name) {
     return NULL;
 }
 
-su_S64 sb_config_get_enum(sb_ConfigState* state, const char* e_name) {
+su_S64 su_config_get_enum(su_ConfigState* state, const char* e_name) {
     if (!state) {
         return -1;
     }
@@ -137,7 +137,7 @@ su_S64 sb_config_get_enum(sb_ConfigState* state, const char* e_name) {
     return -1;
 }
 
-su_Bool sb_config_push_global_table(sb_ConfigState* state, const char* table_name) {
+su_Bool su_config_push_global_table(su_ConfigState* state, const char* table_name) {
     lua_getglobal(state, table_name);
     if (!lua_istable(state, -1)) {
         su_LOG_ERRORF_M(su_LOG_TYPE_DEV, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_CORE_CONFIG,
@@ -148,7 +148,7 @@ su_Bool sb_config_push_global_table(sb_ConfigState* state, const char* table_nam
     return true;
 }
 
-su_Bool sb_config_push_field_table(sb_ConfigState* state, const char* field_name) {
+su_Bool su_config_push_field_table(su_ConfigState* state, const char* field_name) {
     lua_getfield(state, -1, field_name);
     if (!lua_istable(state, -1)) {
         su_LOG_ERRORF_M(su_LOG_TYPE_DEV, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_CORE_CONFIG, "Field '%s' not found or not a table", field_name);
@@ -158,7 +158,7 @@ su_Bool sb_config_push_field_table(sb_ConfigState* state, const char* field_name
     return true;
 }
 
-su_U64 sb_config_push_field_array(sb_ConfigState* state, const char* array_name) {
+su_U64 su_config_push_field_array(su_ConfigState* state, const char* array_name) {
     if (!state) {
         return 0;
     }
@@ -173,7 +173,7 @@ su_U64 sb_config_push_field_array(sb_ConfigState* state, const char* array_name)
 }
 
 // 0 based
-su_U64 sb_config_push_array_entry(sb_ConfigState* state, const su_U64 index) {
+su_U64 su_config_push_array_entry(su_ConfigState* state, const su_U64 index) {
     if (!state) {
         return 0;
     }
@@ -190,11 +190,11 @@ su_U64 sb_config_push_array_entry(sb_ConfigState* state, const su_U64 index) {
     return 1;
 }
 
-void sb_config_pop(sb_ConfigState* state, int count) {
+void su_config_pop(su_ConfigState* state, int count) {
     lua_pop(state, count);
 }
 
-void sb_config_close(sb_ConfigState* state) {
+void su_config_close(su_ConfigState* state) {
     if (!state) {
         return;
     }

@@ -2,7 +2,6 @@
 #define SACI_UTILS_MATH_SU_MATH_MAT_H
 
 #include "./su-math-types.h"
-#include "./su-math-vec.h"
 
 static const su_Mat4 su_IDENTITY_MAT4 = {
     .data = {

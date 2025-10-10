@@ -3,6 +3,8 @@
 #include <string.h>
 
 #include "saci-backend/assets/sb-model.h"
+#include "saci-utils/su-general.h"
+#include "saci-utils/su-log.h"
 
 // #define TINYOBJ_FREE
 #define TINYOBJ_LOADER_C_IMPLEMENTATION

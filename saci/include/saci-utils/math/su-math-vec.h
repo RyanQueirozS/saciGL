@@ -1,7 +1,6 @@
 #ifndef SACI_UTILS_MATH_SU_MATH_VEC_H
 #define SACI_UTILS_MATH_SU_MATH_VEC_H
 
-#include "./su-math-general.h"
 #include "../su-general.h"
 #include "./su-math-types.h"
 
@@ -14,7 +13,7 @@
  *
  * @return su_Vec3 The result of the subtraction
  */
-su_Vec3 su_vec3_subtract(su_Vec3 a, su_Vec3 b);
+SA_API su_Vec3 su_vec3_subtract(su_Vec3 a, su_Vec3 b);
 
 /**
  * @fn su_vec3_add
@@ -25,7 +24,7 @@ su_Vec3 su_vec3_subtract(su_Vec3 a, su_Vec3 b);
  *
  * @return su_Vec3 The result of the subtraction
  */
-su_Vec3 su_vec3_add(su_Vec3 a, su_Vec3 b);
+SA_API su_Vec3 su_vec3_add(su_Vec3 a, su_Vec3 b);
 
 /**
  * @fn su_vec3_scale
@@ -36,7 +35,7 @@ su_Vec3 su_vec3_add(su_Vec3 a, su_Vec3 b);
  *
  * @return su_Vec3 The result of the scalation
  */
-su_Vec3 su_vec3_scale(su_Vec3 v, float scalar);
+SA_API su_Vec3 su_vec3_scale(su_Vec3 v, float scalar);
 
 /**
  * @fn su_vec3_normalize
@@ -46,7 +45,7 @@ su_Vec3 su_vec3_scale(su_Vec3 v, float scalar);
  *
  * @return su_Vec3 The normalized vector with a length of 1
  */
-su_Vec3 su_vec3_normalize(su_Vec3 v);
+SA_API su_Vec3 su_vec3_normalize(su_Vec3 v);
 
 /**
  * @fn su_vec3_cross
@@ -58,7 +57,7 @@ su_Vec3 su_vec3_normalize(su_Vec3 v);
  * @return su_Vec3 The result of the cross product of vectors a and b
  */
 
-su_Vec3 su_vec3_cross(su_Vec3 a, su_Vec3 b);
+SA_API su_Vec3 su_vec3_cross(su_Vec3 a, su_Vec3 b);
 
 /**
  * @fn su_vec3_dot
@@ -69,6 +68,6 @@ su_Vec3 su_vec3_cross(su_Vec3 a, su_Vec3 b);
  *
  * @return float The result of the dot product of vectors a and b
  */
-float su_vec3_dot(su_Vec3 a, su_Vec3 b);
+SA_API float su_vec3_dot(su_Vec3 a, su_Vec3 b);
 
 #endif // SACI_UTILS_MATH_SU_MATH_VEC_H

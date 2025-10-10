@@ -378,7 +378,7 @@ SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct 
     if (!su_darray_is_empty(data->instance_data_array)) {
         instance_count = su_darray_length(data->instance_data_array);
         for (su_U64 i = 0; i < instance_count; ++i) {
-            const struct sb_DrawInstanceData* instance_buffer = su_darray_get(data->instance_data_array, i);
+            const struct sb_GFXInstanceData* instance_buffer = su_darray_get(data->instance_data_array, i);
             render_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, gfx_info->gl_data.instance_buffer);
             render_funcs.gl.buffer_subdata(sb_GL_ARRAY_BUFFER, 0,
                                            instance_buffer->data_size,

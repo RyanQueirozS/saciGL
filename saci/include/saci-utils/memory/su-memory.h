@@ -4,29 +4,45 @@
 #include "../su-types-common.h"
 
 enum su_MemContext {
+    su_MEM_CONTEXT_CONFIG,
     su_MEM_CONTEXT_RENDERER,
 };
 
-#define su_MEM_CONTEXT_COUNT 1
+#define su_MEM_CONTEXT_COUNT 2
 
-struct su_MemChunk;
+typedef struct su_MemChunk su_MemChunk;
+
+typedef struct su_MemPool su_MemPool;
 
 void su_mem_init(const su_Bool use_arenas);
 
 void su_mem_print_info(void);
 
-struct su_MemChunk* su_mem_alloc(const enum su_MemContext ctx,
-                                 const su_U64 count,
-                                 const su_U64 element_type);
+su_MemChunk* su_mem_alloc(const enum su_MemContext ctx,
+                          const su_U64 count,
+                          const su_U64 element_type);
 
-su_Bool su_mem_chunk_push(struct su_MemChunk* dest, const struct su_MemChunk* src);
+su_MemPool* su_mem_alloc_pool(const enum su_MemContext ctx,
+                              const su_U64 size);
 
-su_Bool su_mem_chunk_push_data(struct su_MemChunk* dest, const void* src, const su_U64 src_size);
+su_Bool su_mem_chunk_set(struct su_MemChunk* chunk, su_U64 idx, void* data, su_U64 data_size);
+
+const void* su_mem_chunk_get(struct su_MemChunk* chunk, su_U64 idx);
+
+void* su_mem_chunk_get_ptr(struct su_MemChunk* chunk, su_U64 idx);
 
 enum su_MemContext su_mem_chunk_get_ctx(const struct su_MemChunk* chunk);
 
 su_U64 su_mem_chunk_get_capacity(const struct su_MemChunk* chunk);
 
-su_U64 su_mem_chunk_get_used(const struct su_MemChunk* chunk);
+su_U64 su_mem_chunk_get_element_size(const struct su_MemChunk* chunk);
+
+su_U64 su_mem_chunk_get_element_count(const struct su_MemChunk* chunk);
+
+void* su_mem_pool_alloc(su_MemPool* pool, const su_U64 size);
+
+su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offset,
+                         const void* src_ptr, su_U64 src_size, su_U64 src_offset,
+                         su_U64 copy_length);
 
 #endif // SACI_UTILS_MEMORY_SU_MEMORY_H

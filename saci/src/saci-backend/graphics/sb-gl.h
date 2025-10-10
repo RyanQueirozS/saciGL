@@ -7,7 +7,7 @@
 #include "saci-utils/su-types-common.h"
 #include "saci-utils/su-log.h"
 
-#include "./sb-render-funcs.h"
+#include "../resources/sb-dependency.h"
 
 enum sb_GLConstants {
     sb_GL_TRIANGLES = 0x0004,

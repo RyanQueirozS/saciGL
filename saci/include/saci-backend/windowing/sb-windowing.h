@@ -4,30 +4,6 @@
 #include "saci-utils/math/su-math-types.h"
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-types-common.h"
-#include "saci-backend/windowing/sb-glfw.h"
-#include "saci-utils/su-log.h"
-
-struct sb_WindowingApiFuncs {
-    struct {
-        int (*init)(void);
-        void (*set_hint)(int, int);
-        su_Window (*create_window)(int, int, const char*, su_Monitor, su_Window);
-        void* (*get_proc)(const char*);
-        void (*destroy_window)(su_Window);
-        void (*make_context_current)(su_Window);
-        su_S32 (*should_close)(su_Window);
-        void (*set_pos_handler)(su_Window, void*);
-        void (*set_size_handler)(su_Window, void*);
-        void (*terminate)(void);
-        void (*swap_buffers)(su_Window);
-        void (*poll_events)(void);
-        void (*wait_events)(void);
-        void (*wait_events_timeout)(double);
-        void (*post_empty_event)(void);
-        void (*set_mouse_pos_handler)(su_Window, void*);
-        su_S32 (*is_key_pressed)(su_Window, int);
-    } glfw;
-};
 
 su_Bool sb_load_windowing(void);
 su_Bool sb_proc_load(void);

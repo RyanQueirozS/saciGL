@@ -1,4 +1,6 @@
 #include "saci-utils/math/su-math-mat.h"
+#include "saci-utils/math/su-math-vec.h"
+#include "saci-utils/math/su-math-general.h"
 
 // TODO remove math.h
 #include <math.h>
