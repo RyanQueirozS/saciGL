@@ -152,7 +152,7 @@ void ArenaInitCtx(Arena* arena, void* ctx, size_t capacity) {
 }
 
 void* ArenaPush(Arena* arena, size_t size) {
-    ARENA_ASSERT(arena->offset + size < arena->capacity);
+    ARENA_ASSERT(arena->offset + size <= arena->capacity);
     void* ptr = (void*)(arena->data + arena->offset);
     arena->offset += size;
     return ptr;
