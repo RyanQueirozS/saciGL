@@ -18,10 +18,7 @@ CFLAGS = -Wall -Wextra -O0 -g \
 	-DSACI_DEFAULT_CONFIG_PATH=\"../saci/saci-config.lua\"
 
 # Sources for the saci library (adjust paths if needed)
-SACI_SRC = \
-	../saci/src/saci-backend/**.c \
-	../saci/src/saci-utils/**.c \
-	../saci/src/saci-main/**.c \
+SACI_SRC := $(shell find ../saci/src/saci-backend ../saci/src/saci-utils ../saci/src/saci-main -name '*.c')
 
 # Example directories
 EXAMPLES = \

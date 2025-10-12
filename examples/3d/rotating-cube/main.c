@@ -1,5 +1,7 @@
 #include "saci-main/saci.h"
-#include "saci-utils/su-math.h"
+#include "saci-utils/math/su-math-color.h"
+#include "saci-utils/math/su-math-general.h"
+#include "saci-utils/math/su-math-vec.h"
 
 static su_Vec3 rotation = {0.02, 0.02, 0.02};
 static su_Vec3 rotation1 = {0.03, 0.01, 0.06};
