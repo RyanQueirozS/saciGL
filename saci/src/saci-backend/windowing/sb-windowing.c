@@ -1,4 +1,5 @@
 #include "saci-backend/windowing/sb-windowing.h"
+#include "../resources/sb-dependency-internal.h"
 #include "saci-backend/graphics/sb-gfx.h"
 #include "saci-backend/windowing/sb-glfw.h"
 #include "saci-utils/su-log.h"
@@ -8,7 +9,7 @@
 SA_INTERNAL struct sb_WindowingApiFuncs windowing_dependent_funcs;
 
 su_Bool sb_load_windowing(void) {
-    // windowing_dependent_funcs = su_cfg_manager_get_window_funcs();
+    windowing_dependent_funcs = sb_dependencies_get_windowing_api_funcs();
     // loader_dependent_funcs = su_cfg_manager_get_loader_funcs();
     // render_dependent_funcs = su_cfg_manager_get_render_funcs();
 

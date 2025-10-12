@@ -9,14 +9,13 @@ su_Bool sb_load_windowing(void);
 su_Bool sb_proc_load(void);
 su_Window sb_window_create(int width, int height, const char* title,
                            su_Monitor monitor, su_Window share);
-void sb_window_free(su_Window window);
-void sb_window_make_context(su_Window window);
-su_Bool sb_window_should_close(su_Window window);
-void sb_window_set_pos_handler(su_Window window, su_WindowSizeHandler window_pos_handler);
-void sb_window_set_size_handler(su_Window window, su_WindowSizeHandler window_size_handler);
-void sb_window_terminate(void);
-void sb_window_clear_color(const su_Color color);
-void sb_window_swap_buffer(su_Window window);
+SA_API void sb_window_free(su_Window window);
+SA_API void sb_window_make_context(su_Window window);
+SA_API su_Bool sb_window_should_close(su_Window window);
+SA_API void sb_window_set_pos_handler(su_Window window, su_WindowSizeHandler window_pos_handler);
+SA_API void sb_window_set_size_handler(su_Window window, su_WindowSizeHandler window_size_handler);
+SA_API void sb_window_terminate(void);
+SA_API void sb_window_swap_buffer(su_Window window);
 
 /* === Event === */
 

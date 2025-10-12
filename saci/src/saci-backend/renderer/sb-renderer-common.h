@@ -2,7 +2,6 @@
 #define SACI_BACKEND_SB_RENDERER_COMMON_H
 
 #include "saci-backend/renderer/sb-renderer.h"
-#include "saci-utils/su-log.h"
 #include "saci-utils/su-types-common.h"
 
 #include "saci-backend/graphics/sb-gfx.h"
@@ -280,64 +279,33 @@ SA_INTERNAL const struct sb_RendererInterface sb__RENDERER_INSTANCE_INTERFACE_DE
 
 /* --- Renderer Header Impl --- */
 
-sb_Renderer* sb_renderer_new(const enum sb_RendererType type) {
-    sb_Renderer* rendr = malloc(sizeof(struct sb_Renderer));
-    rendr->type = type;
-    switch (type) {
-    case sb_RENDERER_STATIC:
-    case sb_RENDERER_DYNAMIC:
-    case sb_RENDERER_INSTANCE:
-        rendr->type = sb_RENDERER_INSTANCE;
-        rendr->interface = &sb__RENDERER_INSTANCE_INTERFACE_DEFAULT_INITIALIZER;
-        rendr->interface->new(rendr);
-        break;
-    }
-    return rendr;
-}
+sb_Renderer* sb_renderer_new(const enum sb_RendererType type);
 
-void sb_renderer_begin(struct sb_Renderer* rendr) {
-    rendr->interface->begin(rendr);
-}
+void sb_renderer_begin(struct sb_Renderer* rendr);
 
-void sb_renderer_bind_texture(struct sb_Renderer* rendr, su_TextureId tex_id) {
-    rendr->interface->bind_texture(rendr, tex_id);
-}
+void sb_renderer_bind_texture(struct sb_Renderer* rendr, su_TextureId tex_id);
 
 su_S32 sb_renderer_get_uniform_id(struct sb_Renderer* rendr,
-                                  const char* const uniform_name) {
-    return rendr->interface->get_uniform_id(rendr, uniform_name);
-}
+                                  const char* const uniform_name);
 
 void sb_renderer_set_uniform(struct sb_Renderer* rendr,
                              const su_S32 uniform_id,
                              const void* const value,
-                             const su_DataType type) {
-    rendr->interface->set_uniform(rendr, uniform_id, value, type);
-}
+                             const su_DataType type);
 
 void sb_renderer_bind_index_buffer(struct sb_Renderer* rendr,
-                                   const su_DArray* new_indices) {
-    rendr->interface->bind_index_buffer(rendr, new_indices);
-}
+                                   const su_DArray* new_indices);
 
 void sb_renderer_push_mesh(struct sb_Renderer* rendr,
                            const su_DArray* pos_array,
                            const su_DArray* uv_array,
-                           const su_DArray* color_array) {
-    rendr->interface->push_mesh(rendr, pos_array, uv_array, color_array);
-}
+                           const su_DArray* color_array);
 
-void sb_renderer_draw(const struct sb_Renderer* rendr) {
-    rendr->interface->draw(rendr);
-}
+void sb_renderer_draw(const struct sb_Renderer* rendr);
 
-void sb_renderer_free(struct sb_Renderer* rendr) {
-    rendr->interface->free(rendr);
-}
+void sb_renderer_free(struct sb_Renderer* rendr);
 
-void sb_renderer_free_opts(struct sb_Renderer* rendr, int free_opts) {
-    rendr->interface->free_opts(rendr, free_opts);
-}
+void sb_renderer_free_opts(struct sb_Renderer* rendr, int free_opts);
 
 /* --- FUNCS USED IN OTHER RENDERER FILES --- */
 

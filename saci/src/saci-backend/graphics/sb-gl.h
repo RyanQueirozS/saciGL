@@ -7,7 +7,8 @@
 #include "saci-utils/su-types-common.h"
 #include "saci-utils/su-log.h"
 
-#include "../resources/sb-dependency.h"
+#include "../resources/sb-dependency-internal.h"
+#include "saci-utils/math/su-math-types.h"
 
 enum sb_GLConstants {
     sb_GL_TRIANGLES = 0x0004,
@@ -74,6 +75,8 @@ SA_API void sb_gl_set_vertex_attrib_pointer(su_U32 index, int size, su_U32 type,
 SA_API void sb_gl_enable_vertex_attrib_array(su_U32 id);
 SA_API void sb_gl_vertex_attrib_divisor(su_U32 id, su_U32 div);
 SA_API su_S32 sb_gl_uniform_location(su_ShaderId program_id, const char* const name);
+SA_API void sb_gl_clear_color(const su_Color color);
+SA_API void sb_gl_clear_depth_buffer(void);
 // TODO bind program
 
 /* === Shader === */

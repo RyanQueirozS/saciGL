@@ -1,5 +1,5 @@
-#ifndef SACI_BACKEND_RESOURCES_SB_DEPENDENCY_H
-#define SACI_BACKEND_RESOURCES_SB_DEPENDENCY_H
+#ifndef SACI_BACKEND_RESOURCES_SB_DEPENDENCY_INTERNAL_H
+#define SACI_BACKEND_RESOURCES_SB_DEPENDENCY_INTERNAL_H
 
 #include "saci-utils/su-types-common.h"
 #include "saci-utils/su-general.h"
@@ -105,12 +105,10 @@ struct sb_RenderApiLoaderFuncs {
     } gl;
 };
 
-SA_API void sb_dependecies_load(void);
-
 SA_API struct sb_WindowingApiFuncs sb_dependencies_get_windowing_api_funcs(void);
 
 SA_API struct sb_RenderApiFuncs sb_dependencies_get_render_api_funcs(void);
 
 SA_API struct sb_RenderApiLoaderFuncs sb_dependencies_get_render_loader_api_funcs(void);
 
-#endif // SACI_BACKEND_RESOURCES_SB_DEPENDENCY_H
+#endif // SACI_BACKEND_RESOURCES_SB_DEPENDENCY_INTERNAL_H

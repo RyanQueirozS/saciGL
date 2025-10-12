@@ -22,8 +22,8 @@ su_MemChunk* su_mem_alloc(const enum su_MemContext ctx,
                           const su_U64 count,
                           const su_U64 element_type);
 
-su_MemPool* su_mem_alloc_pool(const enum su_MemContext ctx,
-                              const su_U64 size);
+su_MemPool* su_mem_create_pool(const enum su_MemContext ctx,
+                               const su_U64 size);
 
 su_Bool su_mem_chunk_set(struct su_MemChunk* chunk, su_U64 idx, void* data, su_U64 data_size);
 

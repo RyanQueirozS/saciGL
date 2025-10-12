@@ -113,8 +113,8 @@ struct su_MemChunk* su_mem_alloc(const enum su_MemContext ctx,
     return chunk;
 }
 
-su_MemPool* su_mem_alloc_pool(const enum su_MemContext ctx,
-                              const su_U64 size) {
+su_MemPool* su_mem_create_pool(const enum su_MemContext ctx,
+                               const su_U64 size) {
     void* memctx = NULL;
     if (size <= 0) {
         su_LOG_ERROR_M(
@@ -227,6 +227,10 @@ su_U64 su_mem_chunk_get_element_size(const struct su_MemChunk* chunk) {
 
 su_U64 su_mem_chunk_get_element_count(const struct su_MemChunk* chunk) {
     return chunk->element_count;
+}
+
+void* su_mem_pool_alloc(su_MemPool* pool, const su_U64 size) {
+    return ArenaPush(&pool->arena, size);
 }
 
 su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offset,

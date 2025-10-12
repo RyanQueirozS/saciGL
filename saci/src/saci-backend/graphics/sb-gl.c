@@ -294,6 +294,15 @@ SA_API su_S32 sb_gl_uniform_location(su_ShaderId program_id, const char* const n
     return gl_funcs.gl.get_uniform_location(program_id, name);
 }
 
+void sb_gl_clear_color(const su_Color color) {
+    gl_funcs.gl.clear_color(color.r, color.g, color.b, color.a);
+    gl_funcs.gl.clear(sb_GL_COLOR_BUFFER_BIT);
+}
+
+void sb_gl_clear_depth_buffer(void) {
+    gl_funcs.gl.clear(sb_GL_DEPTH_BUFFER_BIT);
+}
+
 /* === GL Helper ===  */
 
 SA_INTERNAL su_ShaderId sb__shader_compile(const char* shader_source, su_U32 shader_type) {

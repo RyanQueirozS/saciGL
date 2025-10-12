@@ -97,6 +97,8 @@ void sb_gfx_create(union sb_GFXInfo* info_out, const struct su_RendererConfig cf
 
 void sb_gfx_clear_color(const su_Color color);
 
+void sb_gfx_clear_depth_buffer(void);
+
 void sb_gfx_load_debugger(void* debug_func);
 
 void sb_gfx_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* data);

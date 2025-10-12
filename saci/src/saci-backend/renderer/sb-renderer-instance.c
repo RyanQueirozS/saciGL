@@ -300,7 +300,7 @@ SA_INTERNAL void sb__renderer_draw_instance_batch(const struct sb_Renderer* self
 SA_INTERNAL void sb__init_instance_buffers(struct su_RendererConfig* cfg_out) {
     if (!cfg_out->instance_data.buffer_array) {
         // TODO remove magic numbers, have this as a constant value somewhere else
-        struct su_RendererCfgInstanceBufferLayout layouts[] = {
+        SA_STATIC struct su_RendererCfgInstanceBufferLayout layouts[] = {
             {
                 .name = "i_model_matrix",
                 .type = su_TYPE_MAT4,
@@ -314,11 +314,14 @@ SA_INTERNAL void sb__init_instance_buffers(struct su_RendererConfig* cfg_out) {
                 .location = 7,
             },
         };
-        struct su_RendererCfgInstanceBuffer buffer = {
+        SA_STATIC struct su_RendererCfgInstanceBuffer buffer = {
             .name = "default string buffer",
             .layout_array = NULL,
         };
-        su_cfg_manager_set_instance_buffer_layout(&buffer, layouts, su_ARRLEN_M(layouts));
+        buffer.layout_array = layouts;
+        buffer.layout_array_length = su_ARRLEN_M(layouts);
+
+        cfg_out->instance_data.buffer_array = &buffer;
     }
 }
 

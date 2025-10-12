@@ -7,7 +7,9 @@
 #include "saci-utils/su-types-common.h"
 
 #include "saci-backend/graphics/sb-gfx.h"
+#include "saci-backend/graphics/sb-graphics.h"
 #include "saci-backend/renderer/sb-renderer.h"
+#include "saci-backend/resources/sb-dependency.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -99,6 +101,7 @@ void saci_init(void) {
     if (!su_cfg_manager_fetch(SACI_DEFAULT_CONFIG_PATH)) {
         su_cfg_manager_load_default();
     }
+    sb_dependecies_load();
     sb_gfx_load();
     su_Vec3 cube_vertices[] = {
         {-1, -1, -1},
@@ -140,7 +143,8 @@ void saci_enable(saci_RenderingFlags enable_flag, su_Bool enable) {
 
 void saci_begin(void) {
     saci__handle_events();
-    sb_window_clear_color(saci_context.windowing.bg_color);
+    sb_graphics_clear_color(saci_context.windowing.bg_color);
+    sb_graphics_clear_depth_buffer();
     saci__begin_renderer(saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer);
 }
 

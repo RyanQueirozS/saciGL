@@ -1,5 +1,64 @@
 #include "./sb-renderer-common.h"
 
+sb_Renderer* sb_renderer_new(const enum sb_RendererType type) {
+    sb_Renderer* rendr = malloc(sizeof(struct sb_Renderer));
+    rendr->type = type;
+    switch (type) {
+    case sb_RENDERER_STATIC:
+    case sb_RENDERER_DYNAMIC:
+    case sb_RENDERER_INSTANCE:
+        rendr->type = sb_RENDERER_INSTANCE;
+        rendr->interface = &sb__RENDERER_INSTANCE_INTERFACE_DEFAULT_INITIALIZER;
+        rendr->interface->new(rendr);
+        break;
+    }
+    return rendr;
+}
+
+void sb_renderer_begin(struct sb_Renderer* rendr) {
+    rendr->interface->begin(rendr);
+}
+
+void sb_renderer_bind_texture(struct sb_Renderer* rendr, su_TextureId tex_id) {
+    rendr->interface->bind_texture(rendr, tex_id);
+}
+
+su_S32 sb_renderer_get_uniform_id(struct sb_Renderer* rendr,
+                                  const char* const uniform_name) {
+    return rendr->interface->get_uniform_id(rendr, uniform_name);
+}
+
+void sb_renderer_set_uniform(struct sb_Renderer* rendr,
+                             const su_S32 uniform_id,
+                             const void* const value,
+                             const su_DataType type) {
+    rendr->interface->set_uniform(rendr, uniform_id, value, type);
+}
+
+void sb_renderer_bind_index_buffer(struct sb_Renderer* rendr,
+                                   const su_DArray* new_indices) {
+    rendr->interface->bind_index_buffer(rendr, new_indices);
+}
+
+void sb_renderer_push_mesh(struct sb_Renderer* rendr,
+                           const su_DArray* pos_array,
+                           const su_DArray* uv_array,
+                           const su_DArray* color_array) {
+    rendr->interface->push_mesh(rendr, pos_array, uv_array, color_array);
+}
+
+void sb_renderer_draw(const struct sb_Renderer* rendr) {
+    rendr->interface->draw(rendr);
+}
+
+void sb_renderer_free(struct sb_Renderer* rendr) {
+    rendr->interface->free(rendr);
+}
+
+void sb_renderer_free_opts(struct sb_Renderer* rendr, int free_opts) {
+    rendr->interface->free_opts(rendr, free_opts);
+}
+
 void sb_renderer_init_bound(struct sb_RendererBound* bound_out, const struct su_RendererConfig cfg) {
     bound_out->index_array = su_darray_create(
         cfg.bound.index_cfg.capacity,
@@ -72,14 +131,19 @@ void sb_init_samplers(struct su_RendererConfig* cfg_out, const union sb_GFXInfo*
 }
 
 void sb_init_vertex_layout(struct su_RendererConfig* cfg_out) {
-    SA_INTERNAL struct su_RendererCfgVertexLayout v_layout[3] = {
+    SA_STATIC struct su_RendererCfgVertexLayout v_layout[3] = {
         {.name = "pos", .type = su_TYPE_VEC3, .location = 0, .offset = 0},
         {.name = "color", .type = su_TYPE_VEC4, .location = 1, .offset = 12},
         {.name = "uv", .type = su_TYPE_UV, .location = 2, .offset = 38},
     };
+    su_U64 size_of_elements =
+        su_SIZE_OF_TYPE[v_layout[0].type] +
+        su_SIZE_OF_TYPE[v_layout[1].type] +
+        su_SIZE_OF_TYPE[v_layout[2].type];
 
-    su_cfg_manager_set_vertex_data(&cfg_out->vertex_data,
-                                   v_layout, su_ARRLEN_M(v_layout));
+    cfg_out->vertex_data.layout_array = v_layout;
+    cfg_out->vertex_data.layout_array_length = su_ARRLEN_M(v_layout);
+    cfg_out->vertex_data.element_size_internal = size_of_elements;
 }
 
 void sb_init_shaders(struct su_RendererConfig* cfg, union sb_GFXInfo* info_out) {

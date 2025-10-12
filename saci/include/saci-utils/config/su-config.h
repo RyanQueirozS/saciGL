@@ -22,7 +22,7 @@ SA_API su_U64 su_config_get_uint64(su_ConfigState* state, const char* i_name);
 
 SA_API su_U64 su_config_get_array_length(su_ConfigState* state);
 
-SA_API char* su_config_get_str(su_ConfigState* state, const char* s_name);
+SA_API const char* su_config_get_str(su_ConfigState* state, const char* s_name);
 
 SA_API su_S64 su_config_get_enum(su_ConfigState* state, const char* e_name);
 

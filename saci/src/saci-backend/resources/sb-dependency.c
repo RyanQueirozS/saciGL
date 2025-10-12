@@ -1,7 +1,9 @@
+#include <stdio.h>
 #define DYLILO_IMPL
 #include "dylilo/dylilo.h"
 
-#include "./sb-dependency.h"
+#include "saci-backend/resources/sb-dependency.h"
+#include "./sb-dependency-internal.h"
 
 #include "saci-utils/su-general.h"
 #include "saci-utils/config/su-config-manager.h"
@@ -15,7 +17,7 @@ struct sb__DependencySymbolTable {
 };
 
 SA_INTERNAL void sb__dependencies_load_handles(void);
-SA_INTERNAL void sb__cfg_manager_load_symbols(void);
+SA_INTERNAL void sb__dependencies_load_symbols(void);
 SA_INTERNAL void sb__dependecies_validate(void);
 SA_INTERNAL void sb__load_symbols(DyliloHandle handle,
                                   const struct sb__DependencySymbolTable* symbols,
@@ -125,8 +127,8 @@ SA_INTERNAL struct sb__DependencySymbolTable sb__glfw_symbols[] = {
 
 SA_API void sb_dependecies_load(void) {
     sb__dependencies_load_handles();
-    sb__cfg_manager_load_symbols();
     sb__dependecies_validate();
+    sb__dependencies_load_symbols();
 }
 
 SA_API struct sb_WindowingApiFuncs sb_dependencies_get_windowing_api_funcs(void) {
@@ -143,7 +145,7 @@ SA_API struct sb_RenderApiLoaderFuncs sb_dependencies_get_render_loader_api_func
 
 /* === HELPER IMPL === */
 
-SA_INTERNAL void sb__cfg_manager_load_symbols(void) {
+SA_INTERNAL void sb__dependencies_load_symbols(void) {
     switch (su_cfg_manager_get_renderer_api()) {
     case su_RENDERER_API_OPENGL:
         sb__load_symbols(sb__dependency_handler.render_handle,
@@ -192,13 +194,12 @@ SA_INTERNAL void sb__dependencies_load_handles(void) {
     /* Render API */
     switch (su_cfg_manager_get_renderer_api()) {
     case su_RENDERER_API_OPENGL:
-        sb__dependency_handler.render_loader_handle = dylilo_load_lib(
+        sb__dependency_handler.render_handle = dylilo_load_lib(
             (char*)su_cfg_manager_get_renderer_api_path(),
             DYLILO_FLAGS_DEFAULT);
         break;
     default:
-        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_CORE_CONFIG, "Invalid renderer api");
-        exit(1);
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH, su_LOG_CONTEXT_CORE_CONFIG, "Invalid renderer api");
     }
 
     /* Render API Loader */
@@ -209,8 +210,7 @@ SA_INTERNAL void sb__dependencies_load_handles(void) {
             DYLILO_FLAGS_DEFAULT);
         break;
     default:
-        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_CORE_CONFIG, "Invalid api loader");
-        exit(1);
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH, su_LOG_CONTEXT_CORE_CONFIG, "Invalid api loader");
     }
 
     /* Windowing API */
@@ -221,8 +221,7 @@ SA_INTERNAL void sb__dependencies_load_handles(void) {
             DYLILO_FLAGS_DEFAULT);
         break;
     default:
-        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_CORE_CONFIG, "Invalid windowing api");
-        exit(1);
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH, su_LOG_CONTEXT_CORE_CONFIG, "Invalid windowing api");
     }
 }
 

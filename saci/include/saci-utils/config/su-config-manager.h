@@ -205,14 +205,4 @@ const char* su_cfg_manager_get_window_api_path(void);
 
 SA_API void su_cfg_manager_get_renderer(char* name, struct su_RendererConfig* cfg_out);
 
-SA_API void su_cfg_manager_set_instance_data(const su_U64 count, const struct su_RendererCfgInstanceBuffer* buffer_array);
-
-SA_API void su_cfg_manager_set_instance_buffer_layout(struct su_RendererCfgInstanceBuffer* buffer_array_out,
-                                                      const struct su_RendererCfgInstanceBufferLayout* buffer_layout,
-                                                      const su_U64 layout_count);
-
-SA_API void su_cfg_manager_set_vertex_data(struct su_RendererCfgVertexData* data_out,
-                                           const struct su_RendererCfgVertexLayout* layout_array,
-                                           const su_U64 layout_array_length);
-
 #endif // SACI_UTILS_CONFIG_SU_CONFIG_MANAGER_H

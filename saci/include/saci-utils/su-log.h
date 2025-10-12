@@ -181,11 +181,9 @@ SA_API void su_log_dummy_check(const su_Bool condition, const enum su_LogContext
     su_log_error(type, severity, context, message, __FILE__, __LINE__)
 
 // The do while loop crashes if the severity is "su_LOG_ERROR_SEVERITY_CRASH"
-#define su_LOG_WARN_M(type, severity, context, message)                              \
-    do {                                                                             \
-        char __severity_check[((severity) != su_LOG_ERROR_SEVERITY_CRASH) ? 1 : -1]; \
-        (void)__severity_check;                                                      \
-        su_log_warn(type, severity, context, message, __FILE__, __LINE__);           \
+#define su_LOG_WARN_M(type, severity, context, message)                    \
+    do {                                                                   \
+        su_log_warn(type, severity, context, message, __FILE__, __LINE__); \
     } while (0)
 
 #define su_LOG_INFO_M(type, context, message) \

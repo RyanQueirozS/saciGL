@@ -3,9 +3,13 @@
 #include <lua5.4/lauxlib.h>
 #include <lua5.4/lualib.h>
 #include <lua5.4/lua.h>
-#include <saci-utils/su-general.h>
-#include <stdbool.h>
 
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "saci-utils/memory/su-memory.h"
+#include "saci-utils/su-general.h"
 #include "saci-utils/su-log.h"
 #include "saci-utils/su-types-common.h"
 
@@ -107,16 +111,20 @@ su_U64 su_config_get_array_length(su_ConfigState* state) {
     return len;
 }
 
-char* su_config_get_str(su_ConfigState* state, const char* s_name) {
+const char* su_config_get_str(su_ConfigState* state, const char* s_name) {
     if (!state) {
         return NULL;
     }
     lua_getfield(state, -1, s_name);
     if (lua_isstring(state, -1)) {
-        char* val = lua_tostring(state, -1); // TODO
+        size_t len;
+        const char* lua_str = lua_tolstring(state, -1, &len);
+        char* copy = malloc(sizeof(char) * (len + 1)); // TODO remove
+        memcpy(copy, lua_str, len + 1);
         lua_pop(state, 1);
-        return val;
+        return copy;
     }
+
     su_LOG_ERRORF_M(su_LOG_TYPE_DEV, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_CORE_CONFIG, "Missing or invalid string: %s", s_name);
     lua_pop(state, 1);
     return NULL;
