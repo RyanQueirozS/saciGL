@@ -119,6 +119,7 @@ void su_cfg_manager_get_renderer(char* name, struct su_RendererConfig* cfg_out) 
         su_LOG_WARN_M(su_LOG_TYPE_USER, su_LOG_WARN_SEVERITY_MEDIUM, su_LOG_CONTEXT_CORE_CONFIG, "Could not load config");
         return;
     }
+    su_LOG_INFOF_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_CORE_CONFIG, "Loaded config at %s", name);
     if (!su_config_push_global_table(lua_state, "Saci_Backend")) {
         su_config_close(lua_state);
         return;
@@ -280,7 +281,7 @@ void su_cfg_manager_get_renderer(char* name, struct su_RendererConfig* cfg_out) 
                                         su_mem_safe_copy(layout.name, layout_name_str_size, 0, name_str, layout_name_str_size, 0, layout_name_str_size);
                                     }
                                     buffer.size_byte_internal += su_SIZE_OF_TYPE[layout.type];
-                                    cfg_out->instance_data.buffer_array[b].layout_array[l] = layout;
+                                    buffer.layout_array[l] = layout;
                                     su_config_pop(lua_state, 1);
                                 }
                             }
@@ -297,6 +298,11 @@ void su_cfg_manager_get_renderer(char* name, struct su_RendererConfig* cfg_out) 
             }
 
             su_config_pop(lua_state, 1); // pop instances
+        }
+        if (su_config_push_field_table(lua_state, "bound")) {
+            cfg_out->bound.index_cfg.capacity = su_config_get_uint64(lua_state, "index_capacity");
+            cfg_out->bound.instance_cfg.capacity = su_config_get_uint64(lua_state, "instance_capacity");
+            su_config_pop(lua_state, 1);
         }
         if (su_config_push_field_table(lua_state, "draw")) {
             cfg_out->draw = (struct su_RendererCfgDraw){

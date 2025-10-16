@@ -196,19 +196,15 @@ Saci_Backend = {
 			},
 			batch = {
 				capacity = 10,
-				fixed_capacity = true,
 
 				index = {
 					capacity = 1000,
-					fixed_capacity = true,
 				},
 				vertex = {
 					capacity = 1000,
-					fixed_capacity = true,
 				},
 				instances = {
-					capacity = 10,
-					fixed_capacity = true,
+					capacity = 1000,
 					buffers = {
 						{
 							name = "buffer 1",
@@ -229,6 +225,10 @@ Saci_Backend = {
 						},
 					},
 				},
+			},
+			bound = {
+				index_capacity = 1000,
+				instance_capacity = 10,
 			},
 			draw = {
 				primitive = Saci_Primites.TRIANGLES,

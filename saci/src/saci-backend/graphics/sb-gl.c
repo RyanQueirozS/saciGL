@@ -3,6 +3,7 @@
 // would be nice
 #include "saci-backend/graphics/sb-gl.h"
 
+#include "saci-backend/resources/sb-dependency-internal.h"
 #include <stdio.h>
 
 #define GL_LINK_STATUS 0x8B82
@@ -62,7 +63,7 @@ SA_API su_U32 sb_gl_type_to_gl(const su_DataType data_type) {
 }
 
 void sb_gl_load(void) {
-    // gl_funcs = sb_cfg_manager_get_render_funcs();
+    gl_funcs = sb_dependencies_get_render_api_funcs();
 }
 
 SA_API void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, const void* value) {

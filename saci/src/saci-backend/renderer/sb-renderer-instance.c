@@ -61,6 +61,7 @@ void sb_renderer_instanced_new(sb_Renderer* self) {
     self->interface = &sc_INSTANCE_RENDERER_DEFAULT_INTERFACE;
     struct su_RendererConfig cfg = sb_CFG_DEFAULT_INSTANCE;
     su_cfg_manager_get_renderer("instance", &cfg);
+    sb_renderer_get_pool_from_cfg(&cfg, sb_RENDERER_INSTANCE);
     sb_init_shaders(&cfg, &rendr->gfx);
     sb__renderer_instance_fill_default(&cfg, &rendr->gfx);
     rendr->cfg = cfg;
@@ -469,5 +470,5 @@ SA_INTERNAL void sb__renderer_init_instance_batch(struct sb_InstanceRenderer* re
 
 SA_INTERNAL void sb__renderer_init_bound_extra(struct sb_InstanceBoundExtra* bound_extra, const struct su_RendererConfig cfg) {
     // TODO remove magic number use a cfg member
-    bound_extra->bound_instance_data_array = su_darray_create(1024, sizeof(struct sb_GFXInstanceData), su_TRUE);
+    // bound_extra->bound_instance_data_array = su_darray_create(cfg.bound.instance_cfg.capacity, sizeof(struct sb_GFXInstanceData), su_TRUE);
 }

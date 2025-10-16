@@ -101,26 +101,21 @@ struct su_RendererCfgBatch {
 
     struct {
         su_U64 capacity;
-        su_Bool fixed_size;
     } index_cfg;
     struct {
         su_U64 capacity;
-        su_Bool fixed_size;
     } vertex_cfg;
     struct {
         su_U64 capacity;
-        su_Bool fixed_size;
     } instance_cfg;
 };
 
 struct su_RendererCfgBound {
     struct {
         su_U64 capacity;
-        su_Bool fixed_size;
     } index_cfg;
     struct {
         su_U64 capacity;
-        su_Bool fixed_size;
     } instance_cfg;
 };
 

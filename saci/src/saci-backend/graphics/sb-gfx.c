@@ -23,6 +23,13 @@ void sb_gfx_load(void) {
     sb__render_funcs = sb_dependencies_get_render_api_funcs();
     sb__render_loader_funcs = sb_dependencies_get_render_loader_api_funcs();
     sb__render_api = su_cfg_manager_get_renderer_api();
+    switch (sb__render_api) {
+    case su_RENDERER_API_OPENGL:
+        sb_gl_load();
+        break;
+    case su_RENDERER_API_VULKAN:
+        break;
+    }
 }
 
 void sb_gfx_load_proc(sb_GfxProcAddress addrs) {

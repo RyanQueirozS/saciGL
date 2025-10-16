@@ -193,11 +193,9 @@ SA_INTERNAL const struct su_RendererConfig sb_CFG_DEFAULT = {
         .fixed_capacity = su_TRUE,
         .index_cfg = {
             .capacity = sb_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY,
-            .fixed_size = su_TRUE,
         },
         .vertex_cfg = {
             .capacity = sb_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY,
-            .fixed_size = su_TRUE,
         },
     },
     .draw = {
@@ -233,11 +231,9 @@ SA_INTERNAL const struct su_RendererConfig sb_CFG_DEFAULT_INSTANCE = {
     .bound = {
         .index_cfg = {
             .capacity = sb_RENDERER_DEFAULT_BOUND_INDEX_CAPACITY,
-            .fixed_size = su_TRUE,
         },
         .instance_cfg = {
             .capacity = sb_RENDERER_DEFAULT_BOUND_INSTANCE_CAPACITY,
-            .fixed_size = su_TRUE,
         },
     },
     .batch = {
@@ -245,15 +241,12 @@ SA_INTERNAL const struct su_RendererConfig sb_CFG_DEFAULT_INSTANCE = {
         .fixed_capacity = su_TRUE,
         .index_cfg = {
             .capacity = sb_RENDERER_DEFAULT_BATCH_INDEX_CAPACITY,
-            .fixed_size = su_TRUE,
         },
         .vertex_cfg = {
             .capacity = sb_RENDERER_DEFAULT_BATCH_VERTEX_CAPACITY,
-            .fixed_size = su_TRUE,
         },
         .instance_cfg = {
             .capacity = sb_RENDERER_DEFAULT_INSTANCE_CAPACITY,
-            .fixed_size = su_TRUE,
         },
     },
     .draw = {
@@ -320,5 +313,7 @@ void sb_init_vertex_layout(struct su_RendererConfig* cfg_out);
 void sb_init_shaders(struct su_RendererConfig* cfg, union sb_GFXInfo* info_out);
 
 union sb_GFXUniformValue sb_renderer_uniform_value_from_type(su_DataType type, const void* value);
+
+su_MemPool* sb_renderer_get_pool_from_cfg(const struct su_RendererConfig* cfg, enum sb_RendererType type);
 
 #endif // SACI_BACKEND_SB_RENDERER_COMMON_H

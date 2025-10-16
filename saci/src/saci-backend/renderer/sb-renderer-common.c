@@ -1,5 +1,7 @@
 #include "./sb-renderer-common.h"
 
+#include <stdio.h>
+
 sb_Renderer* sb_renderer_new(const enum sb_RendererType type) {
     sb_Renderer* rendr = malloc(sizeof(struct sb_Renderer));
     rendr->type = type;
@@ -63,13 +65,13 @@ void sb_renderer_init_bound(struct sb_RendererBound* bound_out, const struct su_
     bound_out->index_array = su_darray_create(
         cfg.bound.index_cfg.capacity,
         sizeof(su_U32),
-        cfg.batch.index_cfg.fixed_size);
+        su_FALSE);
 
     // TODO
     bound_out->uniform_data_array = su_darray_create(
         cfg.uniform_array_length,
         sizeof(struct sb_GFXUniformData),
-        cfg.batch.index_cfg.fixed_size);
+        su_FALSE);
 }
 
 void sb_init_uniforms(struct su_RendererConfig* cfg_out, const union sb_GFXInfo* gfx_info) {
@@ -223,4 +225,46 @@ union sb_GFXUniformValue sb_renderer_uniform_value_from_type(su_DataType type, c
     }
 
     return result;
+}
+
+su_MemPool* sb_renderer_get_pool_from_cfg(const struct su_RendererConfig* cfg, enum sb_RendererType type) {
+    su_U64 total_size = 0,
+           vertex_size = cfg->vertex_data.element_size_internal,
+           index_size = cfg->index_data.element_size_internal,
+           batch_capacity = cfg->batch.capacity;
+
+    total_size += sizeof(struct sb_Renderer);
+    total_size += sizeof(struct sb_RendererInterface);
+
+    // If there is any instance buffer data
+    switch (type) {
+    case sb_RENDERER_STATIC:
+        total_size += sizeof(struct sb_StaticRenderer);
+        break;
+    case sb_RENDERER_DYNAMIC:
+        break;
+    case sb_RENDERER_INSTANCE:
+        total_size += sizeof(struct sb_InstanceRenderer);
+        break;
+    }
+    { // InstanceBoundExtra
+        total_size += su_SIZE_OF_DARRAY;
+        total_size += cfg->bound.instance_cfg.capacity * sizeof(struct sb_GFXInstanceData);
+    }
+    { // GFXDrawData
+        total_size += sizeof(struct sb_GFXDrawData);
+        total_size += su_SIZE_OF_DARRAY; // vertex_array;
+        total_size += su_SIZE_OF_DARRAY; // index_array;
+        total_size += su_SIZE_OF_DARRAY; // instance_data_array;
+        total_size += su_SIZE_OF_DARRAY; // uniform_data_array;
+
+        total_size += vertex_size * cfg->batch.vertex_cfg.capacity * batch_capacity;
+        total_size += index_size * cfg->batch.index_cfg.capacity * batch_capacity;
+    }
+    { // RendererBound
+        total_size += cfg->bound.index_cfg.capacity * index_size;
+        total_size += cfg->uniform_array_length * sizeof(struct sb_GFXUniformData);
+    }
+
+    return su_mem_create_pool(su_MEM_CONTEXT_RENDERER, total_size);
 }
