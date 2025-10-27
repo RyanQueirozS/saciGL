@@ -3,8 +3,7 @@
 
 #include "../su-types-common.h"
 
-enum su_MemContext
-{
+enum su_MemContext {
     su_MEM_CONTEXT_CONFIG,
     su_MEM_CONTEXT_RENDERER,
 };
@@ -33,13 +32,15 @@ const void* su_mem_chunk_get(struct su_MemChunk* chunk, su_U64 idx, su_U64 data_
 
 void* su_mem_chunk_get_ptr(struct su_MemChunk* chunk, su_U64 idx);
 
-enum su_MemContext su_mem_chunk_get_ctx(const struct su_MemChunk* chunk);
+su_Bool su_mem_chunk_get_ctx(const struct su_MemChunk* chunk, enum su_MemContext* ctx_out);
 
-su_U64 su_mem_chunk_get_capacity(const struct su_MemChunk* chunk);
+su_Bool su_mem_chunk_get_capacity(const struct su_MemChunk* chunk, su_U64* data_out);
 
-su_U64 su_mem_chunk_get_element_size(const struct su_MemChunk* chunk);
+su_Bool su_mem_chunk_get_element_size(const struct su_MemChunk* chunk, su_U64* data_out);
 
-su_U64 su_mem_chunk_get_element_count(const struct su_MemChunk* chunk);
+su_Bool su_mem_chunk_get_element_count(const struct su_MemChunk* chunk, su_U64* data_out);
+
+su_Bool su_mem_chunk_free(struct su_MemChunk* chunk);
 
 void* su_mem_pool_alloc(su_MemPool* pool, const su_U64 size);
 

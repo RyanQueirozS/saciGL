@@ -25,37 +25,40 @@
 
 /* === Internal === */
 
-// su_Bool su__mem_alloc_arena(void* pool, const su_U64 capacity, const su_U64 size, void** mem_out);
-//
-// su_Bool su__mem_malloc(su_U64* capacity_out, const su_U64 size, void** mem_out);
-//
+SA_INTERNAL su_Bool su__mem_alloc(void* pool, su_U64* capacity_inout, const su_U64 total_size, void* mem_out);
 
-su_Bool su__mem_alloc(void* pool, su_U64* capacity_inout, const su_U64 total_size, void* mem_out);
+SA_INTERNAL su_Bool su__mem_pool_can_join(struct su_MemPool* dest, su_MemPool src);
 
-su_Bool su__mem_pool_can_join(struct su_MemPool* dest, su_MemPool src);
+SA_INTERNAL struct su_MemPool* su__mem_pool_join(struct su_MemPool* dest, su_MemPool src);
 
-struct su_MemPool* su__mem_pool_join(struct su_MemPool* dest, su_MemPool src);
+SA_INTERNAL struct su_MemChunk* su__mem_chunk_find_suitable(const enum su_MemContext ctx,
+                                                            const su_U64 size,
+                                                            struct su_MemChunk** chunk_ptr_array,
+                                                            const su_U64 chunk_ptr_array_len);
 
-struct su_MemChunk* su__mem_chunk_find_suitable(const enum su_MemContext ctx,
-                                                const su_U64 size,
-                                                struct su_MemChunk** chunk_ptr_array,
-                                                const su_U64 chunk_ptr_array_len);
+SA_INTERNAL su_Bool su__mem_chunk_check_empty(struct su_MemChunk** chunk_ptr_array, const su_U64 chunk_ptr_array_len, su_U64* idx_out);
 
-su_Bool su__mem_chunk_check_empty(struct su_MemChunk** chunk_ptr_array, const su_U64 chunk_ptr_array_len, su_U64* idx_out);
+SA_INTERNAL su_U64 su__mem_new_chunk_id(void);
 
-su_U64 su__mem_new_chunk_id(void);
+SA_INTERNAL void su__mem_chunk_join_all(struct su_MemChunk** mem_chunk_ptr_array, const su_U64 array_len, su_U64 i);
+
+SA_INTERNAL su_S32 su__mem_chunk_can_join(const struct su_MemChunk* c1, const struct su_MemChunk* c2);
 
 /* === Header impl === */
 
-struct su_MemPool
-{
+struct su_MemPool {
     su_U64 id; // Static. Is incremented per "new" mempool, allows reusing preexisting chunks.
+
+    su_U64 is_freed; // When freed the user might still have access, this flag denies the use from the functions in the su-memory.h
+
     Arena arena;
 };
 
-struct su_MemChunk
-{
+struct su_MemChunk {
     su_U64 id; // Static. Is incremented per "new" memchunk
+
+    su_U64 is_freed; // When freed the user might still have access, this flag denies the use from the functions in the su-memory.h
+
     enum su_MemContext ctx;
 
     su_U64 element_count;      // Can be 0
@@ -65,10 +68,8 @@ struct su_MemChunk
     void* data;
 };
 
-SA_STATIC struct
-{
-    struct
-    {
+SA_STATIC struct {
+    struct {
         su_U64 size_now;
         su_U64 capacity;
 
@@ -82,8 +83,7 @@ SA_STATIC struct
     struct su_MemChunk* su__freed_chunk_ptr_array[su_MEM_FREED_CHUNK_PTR_ARRAY_COUNT];
 } su__mem_manager = {0};
 
-struct
-{
+SA_STATIC struct {
     su_Bool is_arena_based;
     su_Bool is_initialized;
     su_U64 default_sizes[su_MEM_CONTEXT_COUNT];
@@ -98,8 +98,7 @@ struct
 
 void su_mem_init(const su_Bool use_arenas)
 {
-    if (su__mem_manager_cfg.is_initialized)
-    {
+    if (su__mem_manager_cfg.is_initialized) {
         su_LOG_ERROR_M(
             su_LOG_TYPE_DEV, su_LOG_ERROR_SEVERITY_CRASH,
             su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
@@ -107,10 +106,8 @@ void su_mem_init(const su_Bool use_arenas)
         return;
     }
     su__mem_manager_cfg.is_arena_based = use_arenas;
-    if (use_arenas)
-    {
-        for (su_U64 i = 0; i < su_MEM_CONTEXT_COUNT; ++i)
-        {
+    if (use_arenas) {
+        for (su_U64 i = 0; i < su_MEM_CONTEXT_COUNT; ++i) {
             ArenaInit(su__mem_manager.context_array[i].pool, su__mem_manager_cfg.default_sizes[i]);
         }
     }
@@ -119,8 +116,7 @@ void su_mem_init(const su_Bool use_arenas)
 struct su_MemChunk* su_mem_alloc_chunk_size(const enum su_MemContext ctx,
                                             const su_U64 size)
 {
-    if (size == 0)
-    {
+    if (size == 0) {
         su_LOG_ERROR_M(su_LOG_TYPE_USER,
                        su_LOG_ERROR_SEVERITY_CRASH,
                        su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
@@ -130,15 +126,13 @@ struct su_MemChunk* su_mem_alloc_chunk_size(const enum su_MemContext ctx,
     struct su_MemChunk* suitable_chunk = su__mem_chunk_find_suitable(
         ctx, total_size, su__mem_manager.su__freed_chunk_ptr_array,
         su_MEM_FREED_CHUNK_PTR_ARRAY_COUNT);
-    if (suitable_chunk)
-    {
+    if (suitable_chunk) {
         suitable_chunk->element_count = 0; // zero the 'unused element data'
         suitable_chunk->element_size_bytes = 0;
         return suitable_chunk;
     }
     void* memctx = NULL;
-    if (!memctx)
-    {
+    if (!memctx) {
         su_LOG_ERROR_M(
             su_LOG_TYPE_USER,
             su_LOG_ERROR_SEVERITY_CRASH,
@@ -150,6 +144,7 @@ struct su_MemChunk* su_mem_alloc_chunk_size(const enum su_MemContext ctx,
     // Allocates the memory for the chunk
     struct su_MemChunk* chunk = (struct su_MemChunk*)(memctx);
     *chunk = (struct su_MemChunk){
+        .id = su__mem_new_chunk_id(),
         .size = size, // Will set size, but make 'element data' be zeroed
         .ctx = ctx,
         .element_size_bytes = 0,
@@ -165,8 +160,7 @@ struct su_MemChunk* su_mem_alloc_chunk(const enum su_MemContext ctx,
                                        const su_U64 element_size)
 {
     void* memctx = NULL;
-    if (element_size != 0 && count > UINT64_MAX / element_size)
-    {
+    if (element_size != 0 && count > UINT64_MAX / element_size) {
         su_LOG_ERROR_M(
             su_LOG_TYPE_USER,
             su_LOG_ERROR_SEVERITY_CRASH,
@@ -179,8 +173,7 @@ struct su_MemChunk* su_mem_alloc_chunk(const enum su_MemContext ctx,
 
     struct su_MemChunk* suitable_chunk = su__mem_chunk_find_suitable(
         ctx, total_size, su__mem_manager.su__freed_chunk_ptr_array, su_MEM_FREED_CHUNK_PTR_ARRAY_COUNT);
-    if (suitable_chunk)
-    {
+    if (suitable_chunk) {
         suitable_chunk->element_size_bytes = element_size;
         suitable_chunk->element_count = count;
         return suitable_chunk;
@@ -188,8 +181,7 @@ struct su_MemChunk* su_mem_alloc_chunk(const enum su_MemContext ctx,
 
     su__mem_alloc(su__mem_manager.context_array[ctx].pool, &su__mem_manager.context_array[ctx].capacity,
                   total_size, &memctx);
-    if (!memctx)
-    {
+    if (!memctx) {
         su_LOG_ERROR_M(
             su_LOG_TYPE_USER,
             su_LOG_ERROR_SEVERITY_CRASH,
@@ -200,6 +192,7 @@ struct su_MemChunk* su_mem_alloc_chunk(const enum su_MemContext ctx,
 
     // Allocates the memory for the chunk
     struct su_MemChunk* chunk = (struct su_MemChunk*)(memctx);
+    chunk->id = su__mem_new_chunk_id();
     chunk->size = size;
     chunk->ctx = ctx;
     chunk->element_count = count;
@@ -213,8 +206,7 @@ su_MemPool* su_mem_create_pool(const enum su_MemContext ctx,
                                const su_U64 size)
 {
     void* memctx = NULL;
-    if (size <= 0)
-    {
+    if (size <= 0) {
         su_LOG_ERROR_M(
             su_LOG_TYPE_USER,
             su_LOG_ERROR_SEVERITY_CRASH,
@@ -228,8 +220,7 @@ su_MemPool* su_mem_create_pool(const enum su_MemContext ctx,
     su__mem_alloc(su__mem_manager.context_array[0].pool,
                   &su__mem_manager.context_array[0].capacity,
                   total_size, &memctx);
-    if (!memctx)
-    {
+    if (!memctx) {
         su_LOG_ERROR_M(
             su_LOG_TYPE_USER,
             su_LOG_ERROR_SEVERITY_CRASH,
@@ -246,16 +237,18 @@ su_MemPool* su_mem_create_pool(const enum su_MemContext ctx,
 
 su_Bool su_mem_chunk_set(struct su_MemChunk* chunk, su_U64 idx, void* data, su_U64 data_size)
 {
-    if (chunk->element_count < idx)
-    {
+    su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Using empty memory chunk in set func");
+    su_LOG_DUMMY_CHECK_M(chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Using freed memory chunk in set func");
+    if (chunk->element_count < idx) {
         su_LOG_ERRORF_M(
             su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
             su_LOG_CONTEXT_CORE_MEMORY,
             "Could not set data in chunk, idx is %lu and there are %lu elements",
             chunk->element_count, idx);
     }
-    if (chunk->element_size_bytes != data_size)
-    {
+    if (chunk->element_size_bytes != data_size) {
         su_LOG_ERRORF_M(
             su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
             su_LOG_CONTEXT_CORE_MEMORY,
@@ -273,6 +266,11 @@ su_Bool su_mem_chunk_set(struct su_MemChunk* chunk, su_U64 idx, void* data, su_U
 
 const void* su_mem_chunk_get(struct su_MemChunk* chunk, su_U64 idx, su_U64 data_size)
 {
+    su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Using empty memory chunk in get func");
+    su_LOG_DUMMY_CHECK_M(chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Using freed memory chunk in get func");
+
     if (data_size < chunk->element_size_bytes && chunk->element_size_bytes) // has to have non-zero element_size
     {
         su_LOG_ERRORF_M(
@@ -295,8 +293,11 @@ const void* su_mem_chunk_get(struct su_MemChunk* chunk, su_U64 idx, su_U64 data_
 
 void* su_mem_chunk_get_ptr(struct su_MemChunk* chunk, su_U64 idx)
 {
-    if (idx < chunk->element_count)
-    {
+    su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Using empty memory chunk in get ptr func");
+    su_LOG_DUMMY_CHECK_M(chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Using freed memory chunk in get ptr func");
+    if (idx < chunk->element_count) {
         su_LOG_ERRORF_M(
             su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
             su_LOG_CONTEXT_CORE_MEMORY,
@@ -309,13 +310,11 @@ void* su_mem_chunk_get_ptr(struct su_MemChunk* chunk, su_U64 idx)
 void su_mem_print_info(void)
 {
     su_U64 capacity_total = 0, size_total = 0;
-    for (su_U64 i = 0; i < su_MEM_CONTEXT_COUNT; ++i)
-    {
+    for (su_U64 i = 0; i < su_MEM_CONTEXT_COUNT; ++i) {
         capacity_total += su__mem_manager.context_array[i].capacity;
         size_total += su__mem_manager.context_array[i].size_now;
     }
-    if (su__mem_manager_cfg.is_arena_based)
-    {
+    if (su__mem_manager_cfg.is_arena_based) {
         printf("Allocated %lu memory and used %lu", capacity_total, size_total);
         return;
     }
@@ -325,24 +324,67 @@ void su_mem_print_info(void)
            capacity_total);
 }
 
-enum su_MemContext su_mem_chunk_get_ctx(const struct su_MemChunk* chunk)
+su_Bool su_mem_chunk_get_ctx(const struct su_MemChunk* chunk, enum su_MemContext* ctx_out)
 {
-    return chunk->ctx;
+    su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Using empty memory chunk in get ctx func");
+    su_LOG_DUMMY_CHECK_M(chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Using freed memory chunk in get ctx func");
+
+    *ctx_out = chunk->ctx;
+    return su_TRUE;
 }
 
-su_U64 su_mem_chunk_get_capacity(const struct su_MemChunk* chunk)
+su_Bool su_mem_chunk_get_capacity(const struct su_MemChunk* chunk, su_U64* data_out)
 {
-    return chunk->element_size_bytes * chunk->element_count;
+    su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Using empty memory chunk in get capacity func");
+    su_LOG_DUMMY_CHECK_M(chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Using freed memory chunk in get capacity func");
+    *data_out = chunk->size;
+    return su_TRUE;
 }
 
-su_U64 su_mem_chunk_get_element_size(const struct su_MemChunk* chunk)
+su_Bool su_mem_chunk_get_element_size(const struct su_MemChunk* chunk, su_U64* data_out)
 {
-    return chunk->element_size_bytes;
+    su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Using empty memory chunk in get element size func");
+    su_LOG_DUMMY_CHECK_M(chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Using freed memory chunk in get element size func");
+    *data_out = chunk->element_size_bytes;
+    return su_TRUE;
 }
 
-su_U64 su_mem_chunk_get_element_count(const struct su_MemChunk* chunk)
+su_Bool su_mem_chunk_get_element_count(const struct su_MemChunk* chunk, su_U64* data_out)
 {
-    return chunk->element_count;
+    su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Using empty memory chunk in get element count func");
+    su_LOG_DUMMY_CHECK_M(chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Using freed memory chunk in get element count func");
+    *data_out = chunk->element_count;
+    return su_TRUE;
+}
+
+su_Bool su_mem_chunk_free(struct su_MemChunk* chunk)
+{
+    if (!chunk) {
+        return su_FALSE;
+    }
+
+    su_U64 suitable_idx = 0;
+    su__mem_chunk_check_empty(su__mem_manager.su__freed_chunk_ptr_array, su_MEM_FREED_CHUNK_PTR_ARRAY_COUNT, &suitable_idx);
+
+    if (!suitable_idx) { // Cannot free if there is no freed chunk space
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
+                       su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                       "Trying to free caused an overflow in freed chunk's, "
+                       "please handle memory more carefully");
+        return su_FALSE;
+    }
+    chunk->is_freed = su_TRUE;
+    su__mem_manager.su__freed_chunk_ptr_array[suitable_idx] = chunk;
+
+    return su_TRUE;
 }
 
 void* su_mem_pool_alloc(su_MemPool* pool, const su_U64 size)
@@ -354,32 +396,28 @@ su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offse
                          const void* src_ptr, su_U64 src_size, su_U64 src_offset,
                          su_U64 copy_length)
 {
-    if (dest_ptr == NULL)
-    {
+    if (dest_ptr == NULL) {
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
                         su_LOG_CONTEXT_CORE_MEMORY,
                         "Destination pointer is NULL in safe memcpy");
         return su_FALSE;
     }
 
-    if (src_ptr == NULL)
-    {
+    if (src_ptr == NULL) {
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
                         su_LOG_CONTEXT_CORE_MEMORY,
                         "Source pointer is NULL in safe memcpy");
         return su_FALSE;
     }
 
-    if (copy_length == 0)
-    {
+    if (copy_length == 0) {
         su_LOG_WARNF_M(su_LOG_TYPE_USER, su_LOG_WARN_SEVERITY_LOW,
                        su_LOG_CONTEXT_CORE_MEMORY,
                        "Zero-length copy operation requested");
         return su_TRUE; // Zero-length copy is technically valid
     }
 
-    if (dest_offset > dest_capacity)
-    {
+    if (dest_offset > dest_capacity) {
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
                         su_LOG_CONTEXT_CORE_MEMORY,
                         "Destination offset exceeds capacity (offset: %zu, capacity: %zu)",
@@ -387,8 +425,7 @@ su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offse
         return su_FALSE;
     }
 
-    if (dest_offset + copy_length > dest_capacity)
-    {
+    if (dest_offset + copy_length > dest_capacity) {
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
                         su_LOG_CONTEXT_CORE_MEMORY,
                         "Copy would exceed destination capacity (offset: %zu, length: %zu, capacity: %zu)",
@@ -396,8 +433,7 @@ su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offse
         return su_FALSE;
     }
 
-    if (src_offset > src_size)
-    {
+    if (src_offset > src_size) {
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
                         su_LOG_CONTEXT_CORE_MEMORY,
                         "Source offset exceeds source size (offset: %zu, size: %zu)",
@@ -405,8 +441,7 @@ su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offse
         return su_FALSE;
     }
 
-    if (src_offset + copy_length > src_size)
-    {
+    if (src_offset + copy_length > src_size) {
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
                         su_LOG_CONTEXT_CORE_MEMORY,
                         "Copy would exceed source bounds (offset: %zu, length: %zu, size: %zu)",
@@ -418,8 +453,7 @@ su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offse
     const uint8_t* src_start = (const uint8_t*)src_ptr + src_offset;
 
     if ((src_start < dest_start && src_start + copy_length > dest_start) ||
-        (dest_start < src_start && dest_start + copy_length > src_start))
-    {
+        (dest_start < src_start && dest_start + copy_length > src_start)) {
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
                         su_LOG_CONTEXT_CORE_MEMORY,
                         "Overlapping memory regions in safe memcpy (src: %p, dest: %p, length: %zu)",
@@ -440,14 +474,12 @@ su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offse
 
     memcpy(dest_start, src_start, copy_length);
 
-    if (copy_length > 0)
-    {
+    if (copy_length > 0) {
         su_LOG_DUMMY_CHECKF_M(*src_start == *dest_start,
                               su_LOG_CONTEXT_CORE_MEMORY,
                               "First byte verification in safe memcpy");
 
-        if (copy_length > 1)
-        {
+        if (copy_length > 1) {
             su_LOG_DUMMY_CHECKF_M(*(src_start + copy_length - 1) == *(dest_start + copy_length - 1),
                                   su_LOG_CONTEXT_CORE_MEMORY,
                                   "Last byte verification in safe memcpy");
@@ -467,8 +499,7 @@ char* su_mem_pool_cpy_str(const char* src, su_MemPool* mem)
         return NULL;
     su_U64 len = strlen(src) + 1;
     char* dst = (char*)su_mem_pool_alloc(mem, len);
-    if (dst)
-    {
+    if (dst) {
         su_mem_safe_copy(dst, len, 0, src, len, 0, len);
     }
     return dst;
@@ -476,8 +507,7 @@ char* su_mem_pool_cpy_str(const char* src, su_MemPool* mem)
 
 su_Bool su_mem_pool_free(struct su_MemPool* pool)
 {
-    if (!pool)
-    {
+    if (!pool) {
         return su_FALSE;
     };
 
@@ -491,8 +521,7 @@ su_Bool su_mem_pool_free(struct su_MemPool* pool)
 // it is not it's responsability to check it.
 su_Bool su__mem_alloc_arena(void* pool, const su_U64 capacity, const su_U64 size, void** mem_out)
 {
-    if (capacity < size)
-    {
+    if (capacity < size) {
         su_LOG_ERRORF_M(
             su_LOG_TYPE_USER,
             su_LOG_ERROR_SEVERITY_CRASH,
@@ -507,8 +536,7 @@ su_Bool su__mem_alloc_arena(void* pool, const su_U64 capacity, const su_U64 size
 
 su_Bool su__mem_malloc(su_U64* capacity_out, const su_U64 size, void** mem_out)
 {
-    if (!size)
-    {
+    if (!size) {
         su_LOG_ERROR_M(
             su_LOG_TYPE_USER,
             su_LOG_ERROR_SEVERITY_HIGH,
@@ -516,8 +544,7 @@ su_Bool su__mem_malloc(su_U64* capacity_out, const su_U64 size, void** mem_out)
             "Could not allocate memory: asking for 0 bytes");
     }
     *mem_out = malloc(size);
-    if (!*mem_out)
-    {
+    if (!*mem_out) {
         return su_FALSE;
     }
     *capacity_out += size;
@@ -533,16 +560,14 @@ struct su_MemChunk* su__mem_chunk_find_suitable(const enum su_MemContext ctx,
     // chunk if there is no space (empty slot) in ptr_array
     su_U64 empty_slot_idx = 0;
     su_Bool has_empty_slot = su__mem_chunk_check_empty(chunk_ptr_array_inout, chunk_ptr_array_len, &empty_slot_idx);
-    if (!has_empty_slot)
-    {
+    if (!has_empty_slot) {
         return NULL;
     }
 
     struct su_MemChunk* suitable_chunk = NULL;
     struct su_MemChunk* split_chunk = NULL;
 
-    for (su_U64 i = 0; i < su_MEM_FREED_CHUNK_PTR_ARRAY_COUNT; ++i)
-    {
+    for (su_U64 i = 0; i < su_MEM_FREED_CHUNK_PTR_ARRAY_COUNT; ++i) {
         struct su_MemChunk* chunk_ptr = chunk_ptr_array_inout[i];
         if (!chunk_ptr)
             continue;
@@ -552,8 +577,7 @@ struct su_MemChunk* su__mem_chunk_find_suitable(const enum su_MemContext ctx,
 
         const su_U64 iter_total_size = chunk_ptr->element_size_bytes * chunk_ptr->element_count;
         // Check if can hold size + a new mem_chunk from it's data
-        if (iter_total_size >= size + sizeof(struct su_MemChunk))
-        {
+        if (iter_total_size >= size + sizeof(struct su_MemChunk)) {
             suitable_chunk = chunk_ptr; // set the suitable_chunk
             split_chunk = (struct su_MemChunk*)((char*)chunk_ptr->data + size);
             *split_chunk = (struct su_MemChunk){
@@ -573,10 +597,8 @@ struct su_MemChunk* su__mem_chunk_find_suitable(const enum su_MemContext ctx,
 
 su_Bool su__mem_chunk_check_empty(struct su_MemChunk** chunk_ptr_array, const su_U64 chunk_ptr_array_len, su_U64* idx_out)
 {
-    for (su_U64 i = 0; i < chunk_ptr_array_len; ++i)
-    {
-        if (chunk_ptr_array[i] == NULL)
-        {
+    for (su_U64 i = 0; i < chunk_ptr_array_len; ++i) {
+        if (chunk_ptr_array[i] == NULL) {
             *idx_out = i;
             return su_TRUE;
         }
@@ -590,10 +612,75 @@ su_U64 su__mem_new_chunk_id(void)
     return ++su__mem_manager.mem_chunk_id;
 }
 
+// used in su__mem_chunk_join_all
+SA_INTERNAL void su__mem_chunk_join(struct su_MemChunk* dest, struct su_MemChunk* to_join)
+{
+    dest->size += to_join->size;
+}
+
+void su__mem_chunk_join_all(struct su_MemChunk** mem_chunk_ptr_array, const su_U64 array_len, su_U64 i)
+{
+    if (i >= array_len) {
+        return;
+    }
+    su_Bool joined = su_FALSE;
+    for (su_U64 j = 0; j < array_len; ++j) {
+        struct su_MemChunk* c1_ptr = mem_chunk_ptr_array[j];
+        struct su_MemChunk* c2_ptr = mem_chunk_ptr_array[i];
+        if (!c1_ptr || !c2_ptr)
+            continue;
+
+        su_S32 can_join = su__mem_chunk_can_join(c1_ptr, c2_ptr);
+        switch (can_join) {
+        case 1:
+            {
+                su__mem_chunk_join(c1_ptr, c2_ptr);
+                mem_chunk_ptr_array[j] = NULL;
+                joined = su_TRUE;
+                break;
+            }
+        case -1:
+            {
+                su__mem_chunk_join(c2_ptr, c1_ptr);
+                mem_chunk_ptr_array[i] = NULL;
+                joined = su_TRUE;
+                break;
+            }
+        }
+    }
+    if (joined) {
+        su__mem_chunk_join_all(mem_chunk_ptr_array, array_len, i);
+        return;
+    }
+    su__mem_chunk_join_all(mem_chunk_ptr_array, array_len, ++i);
+}
+
+// Returns:
+// 1 if c1 can join c2
+// -1 if c2 can join c1
+// 0 if non can
+su_S32 su__mem_chunk_can_join(const struct su_MemChunk* c1, const struct su_MemChunk* c2)
+{
+    char* c1_end = (char*)c1 + sizeof(struct su_MemChunk) + c1->size;
+    char* c2_start = (char*)c2;
+
+    if (c1_end == c2_start) {
+        return 1;
+    }
+
+    char* c2_end = (char*)c2 + sizeof(struct su_MemChunk) + c2->size;
+    char* c1_start = (char*)c1;
+
+    if (c2_end == c1_start) {
+        return -1;
+    }
+
+    return 0;
+}
+
 su_Bool su__mem_alloc(void* pool, su_U64* capacity_inout, const su_U64 total_size, void* mem_out)
 {
-    if (pool)
-    {
+    if (pool) {
         return su__mem_alloc_arena(
             pool,
             *capacity_inout,

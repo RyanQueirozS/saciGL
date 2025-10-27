@@ -16,4 +16,14 @@ AllowAllParametersOfDeclarationOnNextLine: true  # Allows parameters to go to th
 
 IndentCaseBlocks: true 
 
-BreakBeforeBraces: Allman
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterEnum: false
+  AfterStruct: false
+  AfterUnion: false
+  BeforeElse: false
+  BeforeWhile: false
+  SplitEmptyFunction: true
+  AfterExternBlock: true
+  AfterCaseLabel: true
+  AfterFunction: true
