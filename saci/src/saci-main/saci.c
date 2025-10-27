@@ -257,7 +257,7 @@ SA_INTERNAL void saci__init_memory(void) {
     saci_context.renderer_info_array = calloc(
         SACI_RENDERER_AMOUNT,
         sizeof(struct saci_RendererInfo*));
-    struct sb_Renderer* instance_rendr = sb_renderer_new(sb_RENDERER_STATIC);
+    struct sb_Renderer* instance_rendr = sb_renderer_new(sb_RENDERER_INSTANCE, "instance");
     saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer = instance_rendr;
     saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array = malloc(sizeof(su_S32) * 5);
     saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[0] =

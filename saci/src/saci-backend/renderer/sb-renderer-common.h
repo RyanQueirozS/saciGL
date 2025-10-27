@@ -117,7 +117,7 @@ typedef void (*sb_RendererDrawFunction)(sb_Renderer*);
 typedef void (*sb_RendererFreeFunction)(sb_Renderer*);
 
 struct sb_RendererInterface {
-    void (*new)(struct sb_Renderer* self);
+    void (*new)(struct sb_Renderer* self, su_MemPool* mem, struct su_RendererConfig* cfg, union sb_GFXInfo* info);
     void (*begin)(const struct sb_Renderer* self);
     void (*bind_texture)(struct sb_Renderer* self, su_TextureId);
     void (*set_uniform)(struct sb_Renderer* self, su_S32, const void* const, su_DataType);
@@ -263,46 +263,16 @@ SA_INTERNAL const struct su_RendererConfig sb_CFG_DEFAULT_INSTANCE = {
     },
 };
 
-extern void sb_renderer_instanced_new(sb_Renderer* rendr); // Defined in sb-renderer-instance
+extern void sb_renderer_instanced_new(struct sb_Renderer* self, su_MemPool* mem, struct su_RendererConfig* cfg, union sb_GFXInfo* info); // Implemented in sb-renderer-instance
 
 SA_INTERNAL const struct sb_RendererInterface sb__RENDERER_INSTANCE_INTERFACE_DEFAULT_INITIALIZER =
     {
         .new = sb_renderer_instanced_new,
 };
 
-/* --- Renderer Header Impl --- */
-
-sb_Renderer* sb_renderer_new(const enum sb_RendererType type);
-
-void sb_renderer_begin(struct sb_Renderer* rendr);
-
-void sb_renderer_bind_texture(struct sb_Renderer* rendr, su_TextureId tex_id);
-
-su_S32 sb_renderer_get_uniform_id(struct sb_Renderer* rendr,
-                                  const char* const uniform_name);
-
-void sb_renderer_set_uniform(struct sb_Renderer* rendr,
-                             const su_S32 uniform_id,
-                             const void* const value,
-                             const su_DataType type);
-
-void sb_renderer_bind_index_buffer(struct sb_Renderer* rendr,
-                                   const su_DArray* new_indices);
-
-void sb_renderer_push_mesh(struct sb_Renderer* rendr,
-                           const su_DArray* pos_array,
-                           const su_DArray* uv_array,
-                           const su_DArray* color_array);
-
-void sb_renderer_draw(const struct sb_Renderer* rendr);
-
-void sb_renderer_free(struct sb_Renderer* rendr);
-
-void sb_renderer_free_opts(struct sb_Renderer* rendr, int free_opts);
-
 /* --- FUNCS USED IN OTHER RENDERER FILES --- */
 
-void sb_renderer_init_bound(struct sb_RendererBound* bound_out, const struct su_RendererConfig cfg);
+void sb_renderer_init_bound(struct sb_RendererBound* bound_out, const struct su_RendererConfig cfg, su_MemPool* mem);
 
 void sb_init_uniforms(struct su_RendererConfig* cfg_out, const union sb_GFXInfo* gfx_info);
 
@@ -315,5 +285,7 @@ void sb_init_shaders(struct su_RendererConfig* cfg, union sb_GFXInfo* info_out);
 union sb_GFXUniformValue sb_renderer_uniform_value_from_type(su_DataType type, const void* value);
 
 su_MemPool* sb_renderer_get_pool_from_cfg(const struct su_RendererConfig* cfg, enum sb_RendererType type);
+
+void sb_renderer_cfg_copy_and_cleanup(struct su_RendererConfig* src, struct su_RendererConfig* dest, su_MemPool* pool);
 
 #endif // SACI_BACKEND_SB_RENDERER_COMMON_H

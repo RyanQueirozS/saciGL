@@ -86,6 +86,15 @@
 
 #endif // SACI_DEBUG_MODE
 
+#ifdef SACI_DEBUG_MODE
+#  define su_TODO_M \
+      printf("Not implemented %s:%d\n", __FILE__, __LINE__)
+#else
+#  define su_TODO                                            \
+      printf("Not implemented %s:%d\n", __FILE__, __LINE__); \
+      abort()
+#endif // SACI_DEBUG_MODE
+
 /**
  * @define su_MIN_M
  * @brief Returns the smallest of two values

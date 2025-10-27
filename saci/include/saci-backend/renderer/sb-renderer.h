@@ -78,7 +78,7 @@ enum sb_RendererType {
     sb_RENDERER_INSTANCE,
 };
 
-SA_API sb_Renderer* sb_renderer_new(const enum sb_RendererType type);
+SA_API sb_Renderer* sb_renderer_new(const enum sb_RendererType type, const char* name);
 
 SA_API void sb_renderer_begin(struct sb_Renderer* rendr);
 

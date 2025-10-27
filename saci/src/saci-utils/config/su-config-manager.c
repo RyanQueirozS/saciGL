@@ -112,8 +112,8 @@ const char* su_cfg_manager_get_window_api_path(void) {
     return su__cfg_manager.windowing_api_data.path_to_api;
 }
 
-void su_cfg_manager_get_renderer(char* name, struct su_RendererConfig* cfg_out) {
-    cfg_out->name = name;
+void su_cfg_manager_get_renderer(const char* name, struct su_RendererConfig* cfg_out) {
+    // cfg_out->name = name; // TODO
     su_ConfigState* lua_state = su_config_load(su__cfg_manager.cfg_file_path);
     if (!lua_state) {
         su_LOG_WARN_M(su_LOG_TYPE_USER, su_LOG_WARN_SEVERITY_MEDIUM, su_LOG_CONTEXT_CORE_CONFIG, "Could not load config");
@@ -321,6 +321,14 @@ void su_cfg_manager_get_renderer(char* name, struct su_RendererConfig* cfg_out) 
             su_config_pop(lua_state, 1);
         }
     }
+}
+
+SA_API su_U64 su_cfg_manager_render_cfg_size(const struct su_RendererConfig* cfg) {
+    su_U64 total_size = 0;
+    return total_size;
+}
+
+SA_API void su_cfg_manager_cleanup_renderer_cfg(struct su_RendererConfig* cfg) {
 }
 
 /* === Internal Impl === */

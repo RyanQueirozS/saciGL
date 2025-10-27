@@ -2,16 +2,55 @@
 
 #include <stdio.h>
 
-sb_Renderer* sb_renderer_new(const enum sb_RendererType type) {
-    sb_Renderer* rendr = malloc(sizeof(struct sb_Renderer));
+// Internal
+SA_INTERNAL void sb__init_instance_buffers(struct su_RendererConfig* cfg_out);
+
+SA_INTERNAL void sb__renderer_instance_fill_default(struct su_RendererConfig* cfg_out, const union sb_GFXInfo* gfx_info);
+
+// Header impl
+
+sb_Renderer* sb_renderer_new(const enum sb_RendererType type, const char* name) {
+    struct su_RendererConfig cfg = {0};
+    union sb_GFXInfo info = {0};
+    struct sb_RendererInterface interface = {0};
+    const char* name_ptr = name;
+
+    if (!name) {
+        switch (type) {
+        case sb_RENDERER_STATIC:
+            name_ptr = "static";
+            break;
+        case sb_RENDERER_DYNAMIC:
+            name_ptr = "dynamic";
+            break;
+        case sb_RENDERER_INSTANCE:
+            name_ptr = "instance";
+            cfg = sb_CFG_DEFAULT_INSTANCE;
+            break;
+        }
+    }
+    su_cfg_manager_get_renderer(name_ptr, &cfg);
+    sb_init_shaders(&cfg, &info);
+    sb__renderer_instance_fill_default(&cfg, &info);
+    su_MemPool* pool = sb_renderer_get_pool_from_cfg(&cfg, type);
+    sb_Renderer* rendr = su_mem_pool_alloc(pool, sizeof(struct sb_Renderer));
+    rendr->interface = su_mem_pool_alloc(pool, sizeof(struct sb_RendererInterface));
     rendr->type = type;
+
     switch (type) {
     case sb_RENDERER_STATIC:
+        su_TODO;
+        break;
     case sb_RENDERER_DYNAMIC:
+        su_TODO;
+        break;
     case sb_RENDERER_INSTANCE:
-        rendr->type = sb_RENDERER_INSTANCE;
-        rendr->interface = &sb__RENDERER_INSTANCE_INTERFACE_DEFAULT_INITIALIZER;
-        rendr->interface->new(rendr);
+        interface = sb__RENDERER_INSTANCE_INTERFACE_DEFAULT_INITIALIZER;
+        su_mem_safe_copy(&rendr->interface, sizeof(interface),
+                         0, &interface,
+                         sizeof(interface), 0,
+                         sizeof(interface));
+        rendr->interface->new(rendr, pool, &cfg, &info);
         break;
     }
     return rendr;
@@ -61,7 +100,7 @@ void sb_renderer_free_opts(struct sb_Renderer* rendr, int free_opts) {
     rendr->interface->free_opts(rendr, free_opts);
 }
 
-void sb_renderer_init_bound(struct sb_RendererBound* bound_out, const struct su_RendererConfig cfg) {
+void sb_renderer_init_bound(struct sb_RendererBound* bound_out, const struct su_RendererConfig cfg, su_MemPool* mem) {
     bound_out->index_array = su_darray_create(
         cfg.bound.index_cfg.capacity,
         sizeof(su_U32),
@@ -267,4 +306,136 @@ su_MemPool* sb_renderer_get_pool_from_cfg(const struct su_RendererConfig* cfg, e
     }
 
     return su_mem_create_pool(su_MEM_CONTEXT_RENDERER, total_size);
+}
+
+void sb_renderer_cfg_copy_and_cleanup(struct su_RendererConfig* dest, struct su_RendererConfig* src, su_MemPool* pool) {
+    if (!src || !dest || !pool)
+        return;
+    {
+        dest->name = su_mem_pool_cpy_str(src->name, pool);
+        dest->shaders.frag = su_mem_pool_cpy_str(src->shaders.frag, pool);
+        dest->shaders.vert = su_mem_pool_cpy_str(src->shaders.vert, pool);
+        dest->shaders.geom = su_mem_pool_cpy_str(src->shaders.geom, pool);
+
+        dest->uniform_array_length = src->uniform_array_length;
+        dest->sampler_array_length = src->sampler_array_length;
+
+        dest->vertex_data.element_size_internal = src->vertex_data.element_size_internal;
+        dest->vertex_data.layout_array_length = src->vertex_data.layout_array_length;
+
+        dest->index_data.element_size_internal = src->index_data.element_size_internal;
+
+        dest->instance_data.buffer_array_length = src->instance_data.buffer_array_length;
+
+        dest->batch = src->batch;
+        dest->bound = src->bound;
+        dest->draw = src->draw;
+        dest->pipeline = src->pipeline;
+    }
+    { // Uniform
+        if (src->uniform_array_length > 0 && src->uniform_array) {
+            dest->uniform_array = (struct su_RendererCfgUniform*)
+                su_mem_pool_alloc(pool, sizeof(struct su_RendererCfgUniform) * src->uniform_array_length);
+
+            for (su_U64 i = 0; i < src->uniform_array_length; ++i) {
+                dest->uniform_array[i] = src->uniform_array[i];
+                dest->uniform_array[i].name = su_mem_pool_cpy_str(src->uniform_array[i].name, pool);
+            }
+        } else {
+            dest->uniform_array = NULL;
+        }
+    }
+    {
+        if (src->sampler_array_length > 0 && src->sampler_array) {
+            dest->sampler_array = (struct su_RendererCfgSampler*)
+                su_mem_pool_alloc(pool, sizeof(struct su_RendererCfgSampler) * src->sampler_array_length);
+
+            for (su_U64 i = 0; i < src->sampler_array_length; ++i) {
+                dest->sampler_array[i] = src->sampler_array[i];
+                dest->sampler_array[i].name = su_mem_pool_cpy_str(src->sampler_array[i].name, pool);
+            }
+        } else {
+            dest->sampler_array = NULL;
+        }
+    }
+    {
+        if (src->vertex_data.layout_array_length > 0 && src->vertex_data.layout_array) {
+            dest->vertex_data.layout_array = (struct su_RendererCfgVertexLayout*)
+                su_mem_pool_alloc(pool, sizeof(struct su_RendererCfgVertexLayout) * src->vertex_data.layout_array_length);
+
+            for (su_U64 i = 0; i < src->vertex_data.layout_array_length; ++i) {
+                dest->vertex_data.layout_array[i] = src->vertex_data.layout_array[i];
+                dest->vertex_data.layout_array[i].name = su_mem_pool_cpy_str(src->vertex_data.layout_array[i].name, pool);
+            }
+        } else {
+            dest->vertex_data.layout_array = NULL;
+        }
+    }
+    {
+        if (src->instance_data.buffer_array_length > 0 && src->instance_data.buffer_array) {
+            dest->instance_data.buffer_array = (struct su_RendererCfgInstanceBuffer*)
+                su_mem_pool_alloc(pool, sizeof(struct su_RendererCfgInstanceBuffer) * src->instance_data.buffer_array_length);
+
+            for (su_U64 i = 0; i < src->instance_data.buffer_array_length; ++i) {
+                const struct su_RendererCfgInstanceBuffer* src_buf = &src->instance_data.buffer_array[i];
+                struct su_RendererCfgInstanceBuffer* dst_buf = &dest->instance_data.buffer_array[i];
+
+                *dst_buf = *src_buf;
+                dst_buf->name = su_mem_pool_cpy_str(src_buf->name, pool);
+
+                if (src_buf->layout_array_length > 0 && src_buf->layout_array) {
+                    dst_buf->layout_array = (struct su_RendererCfgInstanceBufferLayout*)
+                        su_mem_pool_alloc(pool, sizeof(struct su_RendererCfgInstanceBufferLayout) * src_buf->layout_array_length);
+
+                    for (su_U64 j = 0; j < src_buf->layout_array_length; ++j) {
+                        dst_buf->layout_array[j] = src_buf->layout_array[j];
+                        dst_buf->layout_array[j].name = su_mem_pool_cpy_str(src_buf->layout_array[j].name, pool);
+                    }
+                } else {
+                    dst_buf->layout_array = NULL;
+                }
+            }
+        } else {
+            dest->instance_data.buffer_array = NULL;
+        }
+    }
+
+    su_cfg_manager_cleanup_renderer_cfg(dest);
+}
+
+// Internal
+
+SA_INTERNAL void sb__renderer_instance_fill_default(struct su_RendererConfig* cfg_out, const union sb_GFXInfo* gfx_info) {
+    sb_init_uniforms(cfg_out, gfx_info);
+    sb_init_samplers(cfg_out, gfx_info);
+    sb_init_vertex_layout(cfg_out);
+    sb__init_instance_buffers(cfg_out);
+}
+
+SA_INTERNAL void sb__init_instance_buffers(struct su_RendererConfig* cfg_out) {
+    if (!cfg_out->instance_data.buffer_array) {
+        // TODO remove magic numbers, have this as a constant value somewhere else
+        SA_STATIC struct su_RendererCfgInstanceBufferLayout layouts[] = {
+            {
+                .name = "i_model_matrix",
+                .type = su_TYPE_MAT4,
+                .offset = 0,
+                .location = 3,
+            },
+            {
+                .name = "i_color",
+                .type = su_TYPE_COLOR,
+                .offset = 64,
+                .location = 7,
+            },
+        };
+        SA_STATIC struct su_RendererCfgInstanceBuffer buffer = {
+            .name = "default string buffer",
+            .layout_array = NULL,
+        };
+        buffer.layout_array = layouts;
+        buffer.layout_array_length = su_ARRLEN_M(layouts);
+
+        cfg_out->instance_data.buffer_array = &buffer;
+    }
 }

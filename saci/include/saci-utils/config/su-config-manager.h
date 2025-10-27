@@ -198,6 +198,10 @@ SA_API enum su_WindowApi su_cfg_manager_get_window_api(void);
 
 const char* su_cfg_manager_get_window_api_path(void);
 
-SA_API void su_cfg_manager_get_renderer(char* name, struct su_RendererConfig* cfg_out);
+SA_API void su_cfg_manager_get_renderer(const char* name, struct su_RendererConfig* cfg_out);
+
+SA_API su_U64 su_cfg_manager_render_cfg_size(const struct su_RendererConfig* cfg);
+
+SA_API void su_cfg_manager_cleanup_renderer_cfg(struct su_RendererConfig* cfg);
 
 #endif // SACI_UTILS_CONFIG_SU_CONFIG_MANAGER_H
