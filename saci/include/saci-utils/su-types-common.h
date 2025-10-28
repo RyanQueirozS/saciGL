@@ -33,6 +33,13 @@ typedef int16_t su_S16;
 
 typedef int8_t su_S8;
 
+#if defined(__cplusplus) && __cplusplus < 201103L
+#  include <cstddef>
+typedef std::uintptr_t su_UintPtr;
+#else
+typedef uintptr_t su_UintPtr;
+#endif
+
 /* === Boolean Constants === */
 
 #define su_TRUE true

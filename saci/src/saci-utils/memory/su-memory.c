@@ -23,6 +23,9 @@
 #define su_MEM_FREED_POOL_PTR_ARRAY_COUNT 1024
 #define su_MEM_FREED_CHUNK_PTR_ARRAY_COUNT 1024
 
+#define su_CHUNK_END(chunk) ((char*)(chunk)->data + (chunk)->size)
+#define su_CHUNK_START(chunk) ((char*)(chunk)->data)
+
 /* === Internal === */
 
 SA_INTERNAL su_Bool su__mem_alloc(void* pool, su_U64* capacity_inout, const su_U64 total_size, void* mem_out);
@@ -40,7 +43,7 @@ SA_INTERNAL su_Bool su__mem_chunk_check_empty(struct su_MemChunk** chunk_ptr_arr
 
 SA_INTERNAL su_U64 su__mem_new_chunk_id(void);
 
-SA_INTERNAL void su__mem_chunk_join_all(struct su_MemChunk** mem_chunk_ptr_array, const su_U64 array_len, su_U64 i);
+SA_INTERNAL void su__mem_chunk_join_all(struct su_MemChunk** mem_chunk_ptr_array, const su_U64 array_len);
 
 SA_INTERNAL su_S32 su__mem_chunk_can_join(const struct su_MemChunk* c1, const struct su_MemChunk* c2);
 
@@ -370,6 +373,12 @@ su_Bool su_mem_chunk_free(struct su_MemChunk* chunk)
     if (!chunk) {
         return su_FALSE;
     }
+    if (chunk->is_freed) {
+        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+                       su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                       "Trying to free already freed memory chunk");
+        return su_FALSE;
+    }
 
     su_U64 suitable_idx = 0;
     su__mem_chunk_check_empty(su__mem_manager.su__freed_chunk_ptr_array, su_MEM_FREED_CHUNK_PTR_ARRAY_COUNT, &suitable_idx);
@@ -383,6 +392,7 @@ su_Bool su_mem_chunk_free(struct su_MemChunk* chunk)
     }
     chunk->is_freed = su_TRUE;
     su__mem_manager.su__freed_chunk_ptr_array[suitable_idx] = chunk;
+    su__mem_chunk_join_all(su__mem_manager.su__freed_chunk_ptr_array, su_MEM_FREED_CHUNK_PTR_ARRAY_COUNT);
 
     return su_TRUE;
 }
@@ -612,70 +622,49 @@ su_U64 su__mem_new_chunk_id(void)
     return ++su__mem_manager.mem_chunk_id;
 }
 
-// used in su__mem_chunk_join_all
-SA_INTERNAL void su__mem_chunk_join(struct su_MemChunk* dest, struct su_MemChunk* to_join)
+SA_INTERNAL int su__mem_chunk_compare_addresses(const void* a, const void* b)
 {
-    dest->size += to_join->size;
-}
+    const su_MemChunk* ca = *(const su_MemChunk**)a;
+    const su_MemChunk* cb = *(const su_MemChunk**)b;
 
-void su__mem_chunk_join_all(struct su_MemChunk** mem_chunk_ptr_array, const su_U64 array_len, su_U64 i)
-{
-    if (i >= array_len) {
-        return;
-    }
-    su_Bool joined = su_FALSE;
-    for (su_U64 j = 0; j < array_len; ++j) {
-        struct su_MemChunk* c1_ptr = mem_chunk_ptr_array[j];
-        struct su_MemChunk* c2_ptr = mem_chunk_ptr_array[i];
-        if (!c1_ptr || !c2_ptr)
-            continue;
-
-        su_S32 can_join = su__mem_chunk_can_join(c1_ptr, c2_ptr);
-        switch (can_join) {
-        case 1:
-            {
-                su__mem_chunk_join(c1_ptr, c2_ptr);
-                mem_chunk_ptr_array[j] = NULL;
-                joined = su_TRUE;
-                break;
-            }
-        case -1:
-            {
-                su__mem_chunk_join(c2_ptr, c1_ptr);
-                mem_chunk_ptr_array[i] = NULL;
-                joined = su_TRUE;
-                break;
-            }
-        }
-    }
-    if (joined) {
-        su__mem_chunk_join_all(mem_chunk_ptr_array, array_len, i);
-        return;
-    }
-    su__mem_chunk_join_all(mem_chunk_ptr_array, array_len, ++i);
-}
-
-// Returns:
-// 1 if c1 can join c2
-// -1 if c2 can join c1
-// 0 if non can
-su_S32 su__mem_chunk_can_join(const struct su_MemChunk* c1, const struct su_MemChunk* c2)
-{
-    char* c1_end = (char*)c1 + sizeof(struct su_MemChunk) + c1->size;
-    char* c2_start = (char*)c2;
-
-    if (c1_end == c2_start) {
-        return 1;
-    }
-
-    char* c2_end = (char*)c2 + sizeof(struct su_MemChunk) + c2->size;
-    char* c1_start = (char*)c1;
-
-    if (c2_end == c1_start) {
+    if ((su_UintPtr)ca->data < (su_UintPtr)cb->data) {
         return -1;
     }
-
+    if ((su_UintPtr)ca->data > (su_UintPtr)cb->data) {
+        return 1;
+    }
     return 0;
+}
+
+void su__mem_chunk_join_all(struct su_MemChunk** mem_chunk_ptr_array, const su_U64 array_len)
+{
+    su_LOG_ASSERT_M(mem_chunk_ptr_array, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                    "Invalid free chunk array");
+    su_LOG_ASSERT_M(array_len > 0, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                    "Invalid array free chunk length");
+    qsort(mem_chunk_ptr_array, array_len, sizeof(struct su_MemChunk*),
+          su__mem_chunk_compare_addresses);
+
+    su_U64 write_idx = 0;
+    for (su_U64 read_idx = 1; read_idx < array_len; ++read_idx) {
+        struct su_MemChunk* write = mem_chunk_ptr_array[write_idx];
+        struct su_MemChunk* read = mem_chunk_ptr_array[read_idx];
+        if (!write) {
+            mem_chunk_ptr_array[write_idx] = read;
+            continue;
+        }
+
+        if (!read)
+            continue;
+
+        if (su_CHUNK_END(write) == su_CHUNK_START(read)) {
+            write->size += read->size;
+            continue;
+        }
+
+        ++write_idx;
+        mem_chunk_ptr_array[write_idx] = read;
+    }
 }
 
 su_Bool su__mem_alloc(void* pool, su_U64* capacity_inout, const su_U64 total_size, void* mem_out)
