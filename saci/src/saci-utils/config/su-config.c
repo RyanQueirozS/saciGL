@@ -13,7 +13,8 @@
 #include "saci-utils/su-log.h"
 #include "saci-utils/su-types-common.h"
 
-su_ConfigState* su_config_load(const char* file_path) {
+su_ConfigState* su_config_load(const char* file_path)
+{
     lua_State* lua_state = luaL_newstate();
     luaL_openlibs(lua_state);
 
@@ -25,7 +26,8 @@ su_ConfigState* su_config_load(const char* file_path) {
     return lua_state;
 }
 
-su_Bool su_config_load_table(su_ConfigState* state, const char* table_name) {
+su_Bool su_config_load_table(su_ConfigState* state, const char* table_name)
+{
     if (!state) {
         return false;
     }
@@ -38,7 +40,8 @@ su_Bool su_config_load_table(su_ConfigState* state, const char* table_name) {
     return true;
 }
 
-su_S8 su_config_get_bool(su_ConfigState* state, const char* b_name) {
+su_S8 su_config_get_bool(su_ConfigState* state, const char* b_name)
+{
     if (!state) {
         return -1;
     }
@@ -53,7 +56,8 @@ su_S8 su_config_get_bool(su_ConfigState* state, const char* b_name) {
     return -1;
 }
 
-su_U8 su_config_get_uint8(su_ConfigState* state, const char* i_name) {
+su_U8 su_config_get_uint8(su_ConfigState* state, const char* i_name)
+{
     if (!state) {
         return 0;
     }
@@ -68,7 +72,8 @@ su_U8 su_config_get_uint8(su_ConfigState* state, const char* i_name) {
     return 0;
 }
 
-su_U32 su_config_get_uint32(su_ConfigState* state, const char* i_name) {
+su_U32 su_config_get_uint32(su_ConfigState* state, const char* i_name)
+{
     if (!state) {
         return 0;
     }
@@ -83,7 +88,8 @@ su_U32 su_config_get_uint32(su_ConfigState* state, const char* i_name) {
     return 0;
 }
 
-su_U64 su_config_get_uint64(su_ConfigState* state, const char* i_name) {
+su_U64 su_config_get_uint64(su_ConfigState* state, const char* i_name)
+{
     if (!state) {
         return 0;
     }
@@ -98,7 +104,8 @@ su_U64 su_config_get_uint64(su_ConfigState* state, const char* i_name) {
     return 0;
 }
 
-su_U64 su_config_get_array_length(su_ConfigState* state) {
+su_U64 su_config_get_array_length(su_ConfigState* state)
+{
     if (!state) {
         return 0;
     }
@@ -111,7 +118,8 @@ su_U64 su_config_get_array_length(su_ConfigState* state) {
     return len;
 }
 
-const char* su_config_get_str(su_ConfigState* state, const char* s_name) {
+const char* su_config_get_str(su_ConfigState* state, const char* s_name)
+{
     if (!state) {
         return NULL;
     }
@@ -130,7 +138,8 @@ const char* su_config_get_str(su_ConfigState* state, const char* s_name) {
     return NULL;
 }
 
-su_S64 su_config_get_enum(su_ConfigState* state, const char* e_name) {
+su_S64 su_config_get_enum(su_ConfigState* state, const char* e_name)
+{
     if (!state) {
         return -1;
     }
@@ -145,7 +154,8 @@ su_S64 su_config_get_enum(su_ConfigState* state, const char* e_name) {
     return -1;
 }
 
-su_Bool su_config_push_global_table(su_ConfigState* state, const char* table_name) {
+su_Bool su_config_push_global_table(su_ConfigState* state, const char* table_name)
+{
     lua_getglobal(state, table_name);
     if (!lua_istable(state, -1)) {
         su_LOG_ERRORF_M(su_LOG_TYPE_DEV, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_CORE_CONFIG,
@@ -156,7 +166,8 @@ su_Bool su_config_push_global_table(su_ConfigState* state, const char* table_nam
     return true;
 }
 
-su_Bool su_config_push_field_table(su_ConfigState* state, const char* field_name) {
+su_Bool su_config_push_field_table(su_ConfigState* state, const char* field_name)
+{
     lua_getfield(state, -1, field_name);
     if (!lua_istable(state, -1)) {
         su_LOG_ERRORF_M(su_LOG_TYPE_DEV, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_CORE_CONFIG, "Field '%s' not found or not a table", field_name);
@@ -166,7 +177,8 @@ su_Bool su_config_push_field_table(su_ConfigState* state, const char* field_name
     return true;
 }
 
-su_U64 su_config_push_field_array(su_ConfigState* state, const char* array_name) {
+su_U64 su_config_push_field_array(su_ConfigState* state, const char* array_name)
+{
     if (!state) {
         return 0;
     }
@@ -181,7 +193,8 @@ su_U64 su_config_push_field_array(su_ConfigState* state, const char* array_name)
 }
 
 // 0 based
-su_U64 su_config_push_array_entry(su_ConfigState* state, const su_U64 index) {
+su_U64 su_config_push_array_entry(su_ConfigState* state, const su_U64 index)
+{
     if (!state) {
         return 0;
     }
@@ -198,13 +211,47 @@ su_U64 su_config_push_array_entry(su_ConfigState* state, const su_U64 index) {
     return 1;
 }
 
-void su_config_pop(su_ConfigState* state, int count) {
+void su_config_pop(su_ConfigState* state, int count)
+{
     lua_pop(state, count);
 }
 
-void su_config_close(su_ConfigState* state) {
+void su_config_close(su_ConfigState* state)
+{
     if (!state) {
         return;
     }
     lua_close(state);
+}
+
+void su_lua_dump_stack(su_ConfigState* L)
+{
+
+    int top = lua_gettop(L);
+    printf("---- SACI Lua stack (top=%d) ----\n", top);
+    for (int i = 1; i <= top; i++) {
+        int t = lua_type(L, i);
+        printf("%d: %s - ", i, lua_typename(L, t));
+        switch (t) {
+        case LUA_TSTRING:
+            printf("'%s'\n", lua_tostring(L, i));
+            break;
+        case LUA_TBOOLEAN:
+            printf(lua_toboolean(L, i) ? "true\n" : "false\n");
+            break;
+        case LUA_TNUMBER:
+            printf("%g\n", lua_tonumber(L, i));
+            break;
+        case LUA_TTABLE:
+            printf("{table}\n");
+            break;
+        case LUA_TFUNCTION:
+            printf("{function}\n");
+            break;
+        default:
+            printf("%p\n", lua_topointer(L, i));
+            break;
+        }
+    }
+    printf("---------------------------\n");
 }

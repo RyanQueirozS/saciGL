@@ -39,19 +39,32 @@ SA_INTERNAL su_Bool su__cfg_manager_load_window_api(su_ConfigState* lua_state);
 
 SA_INTERNAL su_MemPool* su__cfg_manager_get_renderer_pool(su_ConfigState* cfg_state);
 
+SA_INTERNAL void su__load_renderer_vertex_data(su_ConfigState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool);
+SA_INTERNAL void su__load_renderer_index_data(su_ConfigState* lua, struct su_RendererConfig* cfg_out);
+SA_INTERNAL void su__load_renderer_shaders(su_ConfigState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool);
+SA_INTERNAL void su__load_renderer_uniforms(su_ConfigState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool);
+SA_INTERNAL void su__load_renderer_samplers(su_ConfigState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool);
+SA_INTERNAL void su__load_renderer_batch(su_ConfigState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool);
+SA_INTERNAL void su__load_renderer_bound(su_ConfigState* lua, struct su_RendererConfig* cfg_out);
+SA_INTERNAL void su__load_renderer_draw(su_ConfigState* lua, struct su_RendererConfig* cfg_out);
+SA_INTERNAL void su__load_renderer_pipeline(su_ConfigState* lua, struct su_RendererConfig* cfg_out);
+
 /* === Header impl === */
 
 SA_INTERNAL struct su_ConfigManager su__cfg_manager = su_CFG_MANAGER_DEFAULT;
 
-void su_cfg_manager_load_default(void) {
+void su_cfg_manager_load_default(void)
+{
     su__cfg_manager = su_CFG_MANAGER_DEFAULT;
 }
 
-void su_cfg_manager_set(const struct su_ConfigManager cfg_manager) {
+void su_cfg_manager_set(const struct su_ConfigManager cfg_manager)
+{
     su__cfg_manager = cfg_manager;
 }
 
-su_Bool su_cfg_manager_fetch(const char* path) {
+su_Bool su_cfg_manager_fetch(const char* path)
+{
     su_ConfigState* lua_state = su_config_load(path);
     if (!lua_state) {
         su_LOG_WARN_M(su_LOG_TYPE_USER, su_LOG_WARN_SEVERITY_MEDIUM, su_LOG_CONTEXT_CORE_CONFIG, "Could not load config");
@@ -88,252 +101,83 @@ su_Bool su_cfg_manager_fetch(const char* path) {
     return true;
 }
 
-SA_API enum su_RenderApi su_cfg_manager_get_renderer_api(void) {
+SA_API enum su_RenderApi su_cfg_manager_get_renderer_api(void)
+{
     return su__cfg_manager.render_api_data.api;
 }
 
-const char* su_cfg_manager_get_renderer_api_path(void) {
+const char* su_cfg_manager_get_renderer_api_path(void)
+{
     return su__cfg_manager.render_api_data.path_to_api;
 }
 
-SA_API enum su_RenderApiLoader su_cfg_manager_get_renderer_api_loader(void) {
+SA_API enum su_RenderApiLoader su_cfg_manager_get_renderer_api_loader(void)
+{
     return su__cfg_manager.render_api_loader_data.api_loader;
 }
 
-const char* su_cfg_manager_get_renderer_api_loader_path(void) {
+const char* su_cfg_manager_get_renderer_api_loader_path(void)
+{
     return su__cfg_manager.render_api_loader_data.path_to_api;
 }
 
-SA_API enum su_WindowApi su_cfg_manager_get_window_api(void) {
+SA_API enum su_WindowApi su_cfg_manager_get_window_api(void)
+{
     return su__cfg_manager.windowing_api_data.api;
 }
 
-const char* su_cfg_manager_get_window_api_path(void) {
+const char* su_cfg_manager_get_window_api_path(void)
+{
     return su__cfg_manager.windowing_api_data.path_to_api;
 }
 
-void su_cfg_manager_get_renderer(const char* name, struct su_RendererConfig* cfg_out) {
-    // cfg_out->name = name; // TODO
-    su_ConfigState* lua_state = su_config_load(su__cfg_manager.cfg_file_path);
-    if (!lua_state) {
-        su_LOG_WARN_M(su_LOG_TYPE_USER, su_LOG_WARN_SEVERITY_MEDIUM, su_LOG_CONTEXT_CORE_CONFIG, "Could not load config");
+void su_cfg_manager_get_renderer(const char* name, struct su_RendererConfig* cfg_out)
+{
+    su_ConfigState* lua = su_config_load(su__cfg_manager.cfg_file_path);
+    if (!lua) {
+        su_LOG_WARN_M(su_LOG_TYPE_USER, su_LOG_WARN_SEVERITY_MEDIUM,
+                      su_LOG_CONTEXT_CORE_CONFIG, "Could not load config");
         return;
     }
+
     su_LOG_INFOF_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_CORE_CONFIG, "Loaded config at %s", name);
-    if (!su_config_push_global_table(lua_state, "Saci_Backend")) {
-        su_config_close(lua_state);
-        return;
-    }
-    if (!su_config_push_field_table(lua_state, "renderers")) {
-        su_config_close(lua_state);
-        return;
-    }
-    if (!su_config_push_field_table(lua_state, name)) {
-        su_config_close(lua_state);
+
+    if (!su_config_push_global_table(lua, "Saci_Backend") ||
+        !su_config_push_field_table(lua, "renderers") ||
+        !su_config_push_field_table(lua, name)) {
+        su_config_close(lua);
         return;
     }
 
-    su_MemPool* pool = su__cfg_manager_get_renderer_pool(lua_state);
+    su_MemPool* pool = su__cfg_manager_get_renderer_pool(lua);
 
-    if (su_config_push_field_table(lua_state, "vertex")) {
-        if (su_config_push_field_array(lua_state, "layout")) {
-            su_U64 count = su_config_get_array_length(lua_state);
-            cfg_out->vertex_data.layout_array_length = count;
-            cfg_out->vertex_data.layout_array = su_mem_pool_alloc(pool, count * sizeof(struct su_RendererCfgVertexLayout));
-            cfg_out->vertex_data.element_size_internal = 0;
-            for (su_U64 i = 0; i < count; ++i) {
-                if (su_config_push_array_entry(lua_state, i)) {
-                    struct su_RendererCfgVertexLayout layout = {
-                        .type = su_CAST_M(su_DataType)(su_config_get_enum(lua_state, "type")),
-                        .offset = su_config_get_uint64(lua_state, "offset"),
-                        .location = su_config_get_uint32(lua_state, "location"),
-                    };
+    su__load_renderer_vertex_data(lua, cfg_out, pool);
+    su__load_renderer_index_data(lua, cfg_out);
+    su__load_renderer_shaders(lua, cfg_out, pool);
+    su__load_renderer_uniforms(lua, cfg_out, pool);
+    su__load_renderer_samplers(lua, cfg_out, pool);
+    su__load_renderer_batch(lua, cfg_out, pool);
+    su__load_renderer_bound(lua, cfg_out);
+    su__load_renderer_draw(lua, cfg_out);
+    su__load_renderer_pipeline(lua, cfg_out);
 
-                    const char* name_str = su_config_get_str(lua_state, "name");
-                    if (name_str) {
-                        su_U64 name_str_size = (strlen(name_str) + 1) * sizeof(char);
-                        layout.name = su_mem_pool_alloc(pool, name_str_size);
-                        su_mem_safe_copy(&layout.name, name_str_size, 0, name_str, name_str_size, 0, name_str_size);
-                    }
-                    cfg_out->vertex_data.layout_array[i] = layout;
-                    su_config_pop(lua_state, 1);
-                }
-            }
-            su_config_pop(lua_state, 1);
-        }
-        su_config_pop(lua_state, 1);
-    }
-    if (su_config_push_field_table(lua_state, "index")) {
-        cfg_out->index_data.element_size_internal = su_SIZE_OF_TYPE[su_config_get_enum(lua_state, "element_type")];
-        su_config_pop(lua_state, 1);
-    }
-    if (su_config_push_field_table(lua_state, "shaders")) {
-        const char* frag = su_config_get_str(lua_state, "frag");
-        if (frag) {
-            su_U64 frag_str_size = (strlen(frag) + 1) * sizeof(char);
-            cfg_out->shaders.frag = su_mem_pool_alloc(pool, frag_str_size);
-            su_mem_safe_copy(cfg_out->shaders.frag, frag_str_size, 0, frag, frag_str_size, 0, frag_str_size);
-        }
-        const char* vert = su_config_get_str(lua_state, "vert");
-        if (vert) {
-            su_U64 vert_str_size = (strlen(vert) + 1) * sizeof(char);
-            cfg_out->shaders.vert = su_mem_pool_alloc(pool, vert_str_size);
-            su_mem_safe_copy(cfg_out->shaders.vert, vert_str_size, 0, vert, vert_str_size, 0, vert_str_size);
-        }
-        const char* geom = su_config_get_str(lua_state, "geom");
-        if (geom) {
-            su_U64 geom_str_size = (strlen(geom) + 1) * sizeof(char);
-            cfg_out->shaders.geom = su_mem_pool_alloc(pool, geom_str_size);
-            su_mem_safe_copy(cfg_out->shaders.geom, geom_str_size, 0, geom, geom_str_size, 0, geom_str_size);
-        }
-        su_config_pop(lua_state, 1);
-    }
-    if (su_config_push_field_array(lua_state, "uniforms")) {
-        su_U64 count = su_config_get_array_length(lua_state);
-        cfg_out->uniform_array_length = count;
-        cfg_out->uniform_array = su_mem_pool_alloc(pool, count * sizeof(struct su_RendererCfgUniform));
-
-        for (su_U64 i = 0; i < count; i++) {
-            if (su_config_push_array_entry(lua_state, i)) {
-                struct su_RendererCfgUniform uniform = {
-                    .type = su_CAST_M(su_DataType)(su_config_get_enum(lua_state, "type")),
-                    .location = su_CAST_M(su_S32)(su_config_get_uint32(lua_state, "location")),
-                };
-                const char* name_str = su_config_get_str(lua_state, "name");
-                if (name_str) {
-                    su_U64 name_str_size = (strlen(name_str) + 1) * sizeof(char);
-                    uniform.name = su_mem_pool_alloc(pool, name_str_size);
-                    su_mem_safe_copy(uniform.name, name_str_size, 0, name_str, name_str_size, 0, name_str_size);
-                }
-                cfg_out->uniform_array[i] = uniform;
-                su_config_pop(lua_state, 1);
-            }
-        }
-        su_config_pop(lua_state, 1);
-    }
-    if (su_config_push_field_array(lua_state, "samplers")) {
-        su_U64 count = su_config_get_array_length(lua_state);
-        cfg_out->sampler_array_length = count;
-        cfg_out->sampler_array = su_mem_pool_alloc(pool, count * sizeof(struct su_RendererCfgSampler));
-
-        for (su_U64 i = 0; i < count; ++i) {
-            if (su_config_push_array_entry(lua_state, i)) {
-                struct su_RendererCfgSampler sampler = {
-                    .type = su_CAST_M(su_DataType)(su_config_get_enum(lua_state, "type")),
-                    .binding = su_CAST_M(su_S32)(su_config_get_uint32(lua_state, "binding")),
-                };
-                const char* name_str = su_config_get_str(lua_state, "name");
-                if (name_str) {
-                    su_U64 name_str_size = (strlen(name_str) + 1) * sizeof(char);
-                    sampler.name = su_mem_pool_alloc(pool, name_str_size);
-                    su_mem_safe_copy(sampler.name, name_str_size, 0, name_str, name_str_size, 0, name_str_size);
-                }
-                su_config_pop(lua_state, 1);
-            }
-        }
-        su_config_pop(lua_state, 1);
-    }
-    if (su_config_push_field_table(lua_state, "batch")) {
-        cfg_out->batch.capacity = su_config_get_uint64(lua_state, "capacity");
-        if (su_config_push_field_table(lua_state, "index")) {
-            cfg_out->batch.index_cfg.capacity = su_config_get_uint64(lua_state, "capacity");
-            su_config_pop(lua_state, 1);
-        }
-        if (su_config_push_field_table(lua_state, "vertex")) {
-            cfg_out->batch.vertex_cfg.capacity = su_config_get_uint64(lua_state, "capacity");
-            su_config_pop(lua_state, 1);
-        }
-        if (su_config_push_field_table(lua_state, "instances")) {
-            cfg_out->batch.instance_cfg.capacity = su_config_get_uint64(lua_state, "capacity");
-
-            if (su_config_push_field_table(lua_state, "buffers")) {
-                su_U64 buffer_count = su_config_get_array_length(lua_state);
-                cfg_out->instance_data.buffer_array_length = buffer_count;
-                cfg_out->instance_data.buffer_array = su_mem_pool_alloc(pool, sizeof(struct su_RendererCfgInstanceBuffer) * buffer_count);
-
-                for (su_U64 b = 0; b < buffer_count; ++b) {
-                    if (su_config_push_array_entry(lua_state, b)) {
-                        struct su_RendererCfgInstanceBuffer buffer = {0};
-                        const char* name_str = su_config_get_str(lua_state, "name");
-                        if (name_str) {
-                            su_U64 name_str_size = (strlen(name_str) + 1) * sizeof(char);
-                            buffer.name = su_mem_pool_alloc(pool, name_str_size);
-                            su_mem_safe_copy(buffer.name, name_str_size, 0, name_str, name_str_size, 0, name_str_size);
-                        }
-
-                        if (su_config_push_field_array(lua_state, "layout")) {
-                            su_U64 layout_count = su_config_get_array_length(lua_state);
-                            buffer.layout_array_length = layout_count;
-                            buffer.layout_array = su_mem_pool_alloc(pool, layout_count * sizeof(struct su_RendererCfgInstanceBufferLayout));
-                            buffer.size_byte_internal = 0;
-
-                            for (su_U64 l = 0; l < layout_count; ++l) {
-                                if (su_config_push_array_entry(lua_state, l)) {
-                                    struct su_RendererCfgInstanceBufferLayout layout = {
-                                        .type = su_CAST_M(su_DataType)(su_config_get_enum(lua_state, "type")),
-                                        .offset = su_config_get_uint64(lua_state, "offset"),
-                                        .location = su_config_get_uint32(lua_state, "location"),
-                                    };
-                                    const char* layout_name_str = su_config_get_str(lua_state, "name");
-                                    if (layout_name_str) {
-                                        su_U64 layout_name_str_size = (strlen(name_str) + 1) * sizeof(char);
-                                        layout.name = su_mem_pool_alloc(pool, layout_name_str_size);
-                                        su_mem_safe_copy(layout.name, layout_name_str_size, 0, name_str, layout_name_str_size, 0, layout_name_str_size);
-                                    }
-                                    buffer.size_byte_internal += su_SIZE_OF_TYPE[layout.type];
-                                    buffer.layout_array[l] = layout;
-                                    su_config_pop(lua_state, 1);
-                                }
-                            }
-
-                            su_config_pop(lua_state, 1); // pop layout array
-                        }
-
-                        cfg_out->instance_data.buffer_array[b] = buffer;
-                        su_config_pop(lua_state, 1); // pop buffer entry
-                    }
-                }
-
-                su_config_pop(lua_state, 1); // pop buffers array
-            }
-
-            su_config_pop(lua_state, 1); // pop instances
-        }
-        if (su_config_push_field_table(lua_state, "bound")) {
-            cfg_out->bound.index_cfg.capacity = su_config_get_uint64(lua_state, "index_capacity");
-            cfg_out->bound.instance_cfg.capacity = su_config_get_uint64(lua_state, "instance_capacity");
-            su_config_pop(lua_state, 1);
-        }
-        if (su_config_push_field_table(lua_state, "draw")) {
-            cfg_out->draw = (struct su_RendererCfgDraw){
-                .primitive = su_CAST_M(enum su_RendererPrimitives)(su_config_get_enum(lua_state, "primitives")),
-                .cull_mode = su_CAST_M(enum su_RendererCullMode)(su_config_get_enum(lua_state, "cull_mode")),
-                .front_face = su_CAST_M(enum su_RendererFrontFace)(su_config_get_enum(lua_state, "front_face")),
-            };
-            su_config_pop(lua_state, 1);
-        }
-        if (su_config_push_field_table(lua_state, "pipeline")) {
-            cfg_out->pipeline.depth_test = su_config_get_bool(lua_state, "depth_test");
-            if (su_config_push_field_table(lua_state, "blend")) {
-                cfg_out->pipeline.blend.enabled = su_config_get_bool(lua_state, "enabled");
-                su_config_pop(lua_state, 1);
-            }
-            su_config_pop(lua_state, 1);
-        }
-    }
+    su_config_close(lua);
 }
 
-SA_API su_U64 su_cfg_manager_render_cfg_size(const struct su_RendererConfig* cfg) {
+SA_API su_U64 su_cfg_manager_render_cfg_size(const struct su_RendererConfig* cfg)
+{
     su_U64 total_size = 0;
     return total_size;
 }
 
-SA_API void su_cfg_manager_cleanup_renderer_cfg(struct su_RendererConfig* cfg) {
+SA_API void su_cfg_manager_cleanup_renderer_cfg(struct su_RendererConfig* cfg)
+{
 }
 
 /* === Internal Impl === */
 
-SA_INTERNAL enum su_RenderApi su__parse_render_api(const char* api_str) {
+SA_INTERNAL enum su_RenderApi su__parse_render_api(const char* api_str)
+{
     if (!api_str) {
         exit(1);
     }
@@ -346,7 +190,8 @@ SA_INTERNAL enum su_RenderApi su__parse_render_api(const char* api_str) {
     exit(1);
 }
 
-SA_INTERNAL enum su_RenderApiLoader su__parse_render_loader(const char* loader_str) {
+SA_INTERNAL enum su_RenderApiLoader su__parse_render_loader(const char* loader_str)
+{
     if (!loader_str) {
         exit(1);
     }
@@ -355,7 +200,8 @@ SA_INTERNAL enum su_RenderApiLoader su__parse_render_loader(const char* loader_s
     exit(1);
 }
 
-SA_INTERNAL enum su_WindowApi su__parse_window_api(const char* api_str) {
+SA_INTERNAL enum su_WindowApi su__parse_window_api(const char* api_str)
+{
     if (!api_str) {
         exit(1);
     }
@@ -365,7 +211,8 @@ SA_INTERNAL enum su_WindowApi su__parse_window_api(const char* api_str) {
     exit(1);
 }
 
-SA_INTERNAL su_Bool su__cfg_manager_load_render_api(su_ConfigState* lua_state) {
+SA_INTERNAL su_Bool su__cfg_manager_load_render_api(su_ConfigState* lua_state)
+{
     if (!su_config_push_field_table(lua_state, "render_api")) {
         return false;
     }
@@ -381,7 +228,8 @@ SA_INTERNAL su_Bool su__cfg_manager_load_render_api(su_ConfigState* lua_state) {
     return true;
 }
 
-SA_INTERNAL su_Bool su__cfg_manager_load_render_loader(su_ConfigState* lua_state) {
+SA_INTERNAL su_Bool su__cfg_manager_load_render_loader(su_ConfigState* lua_state)
+{
     if (!su_config_push_field_table(lua_state, "render_loader")) {
         return false;
     }
@@ -398,7 +246,8 @@ SA_INTERNAL su_Bool su__cfg_manager_load_render_loader(su_ConfigState* lua_state
     return true;
 }
 
-SA_INTERNAL su_Bool su__cfg_manager_load_window_api(su_ConfigState* lua_state) {
+SA_INTERNAL su_Bool su__cfg_manager_load_window_api(su_ConfigState* lua_state)
+{
     if (!su_config_push_field_table(lua_state, "window_api")) {
         return false;
     }
@@ -416,7 +265,8 @@ SA_INTERNAL su_Bool su__cfg_manager_load_window_api(su_ConfigState* lua_state) {
 }
 
 // Returns a memory pool with preallocated memory to use in the renderer cfg.
-SA_INTERNAL su_MemPool* su__cfg_manager_get_renderer_pool(su_ConfigState* cfg_state) {
+SA_INTERNAL su_MemPool* su__cfg_manager_get_renderer_pool(su_ConfigState* cfg_state)
+{
     su_U64 total_size = 0;
 
     if (su_config_push_field_table(cfg_state, "vertex")) {
@@ -527,4 +377,246 @@ SA_INTERNAL su_MemPool* su__cfg_manager_get_renderer_pool(su_ConfigState* cfg_st
     }
 
     return su_mem_create_pool(su_MEM_CONTEXT_CONFIG, total_size);
+}
+
+void su__load_renderer_vertex_data(su_ConfigState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool)
+{
+    if (!su_config_push_field_table(lua, "vertex"))
+        return;
+
+    if (su_config_push_field_array(lua, "layout")) {
+        su_U64 count = su_config_get_array_length(lua);
+        cfg_out->vertex_data.layout_array_length = count;
+        cfg_out->vertex_data.layout_array = su_mem_pool_alloc(pool, count * sizeof(struct su_RendererCfgVertexLayout));
+        cfg_out->vertex_data.element_size_internal = 0;
+
+        for (su_U64 i = 0; i < count; ++i) {
+            if (su_config_push_array_entry(lua, i)) {
+                struct su_RendererCfgVertexLayout layout = {
+                    .type = su_CAST_M(su_DataType)(su_config_get_enum(lua, "type")),
+                    .offset = su_config_get_uint64(lua, "offset"),
+                    .location = su_config_get_uint32(lua, "location"),
+                };
+
+                const char* name_str = su_config_get_str(lua, "name");
+                if (name_str) {
+                    su_U64 size = (strlen(name_str) + 1) * sizeof(char);
+                    layout.name = su_mem_pool_alloc(pool, size);
+                    su_mem_safe_copy(layout.name, size, 0, name_str, size, 0, size);
+                }
+
+                cfg_out->vertex_data.layout_array[i] = layout;
+                su_config_pop(lua, 1);
+            }
+        }
+
+        su_config_pop(lua, 1);
+    }
+
+    su_config_pop(lua, 1);
+}
+
+void su__load_renderer_index_data(su_ConfigState* lua, struct su_RendererConfig* cfg_out)
+{
+    if (su_config_push_field_table(lua, "index")) {
+        cfg_out->index_data.element_size_internal = su_SIZE_OF_TYPE[su_config_get_enum(lua, "element_type")];
+        su_config_pop(lua, 1);
+    }
+}
+
+void su__load_renderer_shaders(su_ConfigState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool)
+{
+    if (!su_config_push_field_table(lua, "shaders"))
+        return;
+
+    const char* frag = su_config_get_str(lua, "frag");
+    if (frag) {
+        su_U64 size = (strlen(frag) + 1) * sizeof(char);
+        cfg_out->shaders.frag = su_mem_pool_alloc(pool, size);
+        su_mem_safe_copy(cfg_out->shaders.frag, size, 0, frag, size, 0, size);
+    }
+
+    const char* vert = su_config_get_str(lua, "vert");
+    if (vert) {
+        su_U64 size = (strlen(vert) + 1) * sizeof(char);
+        cfg_out->shaders.vert = su_mem_pool_alloc(pool, size);
+        su_mem_safe_copy(cfg_out->shaders.vert, size, 0, vert, size, 0, size);
+    }
+
+    const char* geom = su_config_get_str(lua, "geom");
+    if (geom) {
+        su_U64 size = (strlen(geom) + 1) * sizeof(char);
+        cfg_out->shaders.geom = su_mem_pool_alloc(pool, size);
+        su_mem_safe_copy(cfg_out->shaders.geom, size, 0, geom, size, 0, size);
+    }
+
+    su_config_pop(lua, 1);
+}
+
+void su__load_renderer_uniforms(su_ConfigState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool)
+{
+    if (su_config_push_field_array(lua, "uniforms")) {
+        su_U64 count = su_config_get_array_length(lua);
+        cfg_out->uniform_array_length = count;
+        cfg_out->uniform_array = su_mem_pool_alloc(pool, count * sizeof(struct su_RendererCfgUniform));
+
+        for (su_U64 i = 0; i < count; i++) {
+            if (su_config_push_array_entry(lua, i)) {
+                struct su_RendererCfgUniform uniform = {
+                    .type = su_CAST_M(su_DataType)(su_config_get_enum(lua, "type")),
+                    .location = su_CAST_M(su_S32)(su_config_get_uint32(lua, "location")),
+                };
+                const char* name_str = su_config_get_str(lua, "name");
+                if (name_str) {
+                    su_U64 name_str_size = (strlen(name_str) + 1) * sizeof(char);
+                    uniform.name = su_mem_pool_alloc(pool, name_str_size);
+                    su_mem_safe_copy(uniform.name, name_str_size, 0, name_str, name_str_size, 0, name_str_size);
+                }
+                cfg_out->uniform_array[i] = uniform;
+                su_config_pop(lua, 1);
+            }
+        }
+        su_config_pop(lua, 1);
+    }
+}
+
+void su__load_renderer_samplers(su_ConfigState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool)
+{
+    if (su_config_push_field_array(lua, "samplers")) {
+        su_U64 count = su_config_get_array_length(lua);
+        cfg_out->sampler_array_length = count;
+        cfg_out->sampler_array = su_mem_pool_alloc(pool, count * sizeof(struct su_RendererCfgSampler));
+
+        for (su_U64 i = 0; i < count; ++i) {
+            if (su_config_push_array_entry(lua, i)) {
+                struct su_RendererCfgSampler sampler = {
+                    .type = su_CAST_M(su_DataType)(su_config_get_enum(lua, "type")),
+                    .binding = su_CAST_M(su_S32)(su_config_get_uint32(lua, "binding")),
+                };
+                const char* name_str = su_config_get_str(lua, "name");
+                if (name_str) {
+                    su_U64 name_str_size = (strlen(name_str) + 1) * sizeof(char);
+                    sampler.name = su_mem_pool_alloc(pool, name_str_size);
+                    su_mem_safe_copy(sampler.name, name_str_size, 0, name_str, name_str_size, 0, name_str_size);
+                }
+                su_config_pop(lua, 1);
+            }
+        }
+        su_config_pop(lua, 1);
+    }
+}
+
+void su__load_renderer_batch(su_ConfigState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool)
+{
+    if (!su_config_push_field_table(lua, "batch"))
+        return;
+
+    cfg_out->batch.capacity = su_config_get_uint64(lua, "capacity");
+
+    if (su_config_push_field_table(lua, "index")) {
+        cfg_out->batch.index_cfg.capacity = su_config_get_uint64(lua, "capacity");
+        su_config_pop(lua, 1); // pop index
+    }
+
+    if (su_config_push_field_table(lua, "vertex")) {
+        cfg_out->batch.vertex_cfg.capacity = su_config_get_uint64(lua, "capacity");
+        su_config_pop(lua, 1); // pop vertex
+    }
+
+    if (su_config_push_field_table(lua, "instances")) {
+        cfg_out->batch.instance_cfg.capacity = su_config_get_uint64(lua, "capacity");
+
+        if (su_config_push_field_array(lua, "buffers")) { // FIXED: should be push_field_array
+            su_U64 buffer_count = su_config_get_array_length(lua);
+            cfg_out->instance_data.buffer_array_length = buffer_count;
+            cfg_out->instance_data.buffer_array = su_mem_pool_alloc(pool, sizeof(struct su_RendererCfgInstanceBuffer) * buffer_count);
+
+            for (su_U64 b = 0; b < buffer_count; ++b) {
+                if (su_config_push_array_entry(lua, b)) {
+                    struct su_RendererCfgInstanceBuffer buffer = {0};
+
+                    const char* name_str = su_config_get_str(lua, "name");
+                    if (name_str) {
+                        su_U64 name_size = (strlen(name_str) + 1);
+                        buffer.name = su_mem_pool_alloc(pool, name_size);
+                        su_mem_safe_copy(buffer.name, name_size, 0, name_str, name_size, 0, name_size);
+                    }
+
+                    if (su_config_push_field_array(lua, "layout")) {
+                        su_U64 layout_count = su_config_get_array_length(lua);
+                        buffer.layout_array_length = layout_count;
+                        buffer.layout_array = su_mem_pool_alloc(pool, layout_count * sizeof(struct su_RendererCfgInstanceBufferLayout));
+                        buffer.size_byte_internal = 0;
+
+                        for (su_U64 l = 0; l < layout_count; ++l) {
+                            if (su_config_push_array_entry(lua, l)) {
+                                struct su_RendererCfgInstanceBufferLayout layout = {
+                                    .type = su_CAST_M(su_DataType)(su_config_get_enum(lua, "type")),
+                                    .offset = su_config_get_uint64(lua, "offset"),
+                                    .location = su_config_get_uint32(lua, "location"),
+                                };
+
+                                const char* layout_name_str = su_config_get_str(lua, "name");
+                                if (layout_name_str) {
+                                    su_U64 layout_name_size = (strlen(layout_name_str) + 1);
+                                    layout.name = su_mem_pool_alloc(pool, layout_name_size);
+                                    su_mem_safe_copy(layout.name, layout_name_size, 0, layout_name_str, layout_name_size, 0, layout_name_size);
+                                }
+
+                                buffer.size_byte_internal += su_SIZE_OF_TYPE[layout.type];
+                                buffer.layout_array[l] = layout;
+
+                                su_config_pop(lua, 1); // pop array entry
+                            }
+                        }
+
+                        su_config_pop(lua, 1); // pop layout array
+                    }
+
+                    cfg_out->instance_data.buffer_array[b] = buffer;
+
+                    su_config_pop(lua, 1); // pop buffer entry
+                }
+            }
+
+            su_config_pop(lua, 1); // pop buffers array
+        }
+
+        su_config_pop(lua, 1); // pop instances
+    }
+
+    su_config_pop(lua, 1); // pop batch
+}
+
+void su__load_renderer_bound(su_ConfigState* lua, struct su_RendererConfig* cfg_out)
+{
+    if (su_config_push_field_table(lua, "bound")) {
+        cfg_out->bound.index_cfg.capacity = su_config_get_uint64(lua, "index_capacity");
+        cfg_out->bound.instance_cfg.capacity = su_config_get_uint64(lua, "instance_capacity");
+        su_config_pop(lua, 1);
+    }
+}
+
+void su__load_renderer_draw(su_ConfigState* lua, struct su_RendererConfig* cfg_out)
+{
+    if (su_config_push_field_table(lua, "draw")) {
+        cfg_out->draw = (struct su_RendererCfgDraw){
+            .primitive = su_CAST_M(enum su_RendererPrimitives)(su_config_get_enum(lua, "primitives")),
+            .cull_mode = su_CAST_M(enum su_RendererCullMode)(su_config_get_enum(lua, "cull_mode")),
+            .front_face = su_CAST_M(enum su_RendererFrontFace)(su_config_get_enum(lua, "front_face")),
+        };
+        su_config_pop(lua, 1);
+    }
+}
+
+void su__load_renderer_pipeline(su_ConfigState* lua, struct su_RendererConfig* cfg_out)
+{
+    if (su_config_push_field_table(lua, "pipeline")) {
+        cfg_out->pipeline.depth_test = su_config_get_bool(lua, "depth_test");
+        if (su_config_push_field_table(lua, "blend")) {
+            cfg_out->pipeline.blend.enabled = su_config_get_bool(lua, "enabled");
+            su_config_pop(lua, 1);
+        }
+        su_config_pop(lua, 1);
+    }
 }

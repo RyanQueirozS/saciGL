@@ -38,4 +38,6 @@ SA_API void su_config_pop(su_ConfigState* state, int count);
 
 SA_API void su_config_close(su_ConfigState* state);
 
+SA_API void su_lua_dump_stack(su_ConfigState* L);
+
 #endif // SACI_UTILS_CONFIG_SU_CONFIG_H

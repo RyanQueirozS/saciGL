@@ -7,7 +7,7 @@
 
 // INTERNAL
 
-SA_INTERNAL enum su_LogType su__log_type = su_LOG_TYPE_PROD;
+SA_INTERNAL enum su_LogType su__log_type = su_LOG_TYPE_DEV;
 
 SA_INTERNAL void su__log_default_event_callback(const struct su_LogEvent* event);
 SA_INTERNAL void su__log_default_crash_callback(const su_LogError* error);
@@ -51,15 +51,18 @@ SA_INTERNAL struct su_LogConfig {
 
 /* === Header implementation === */
 
-enum su_LogType su_log_get_current_type(void) {
+enum su_LogType su_log_get_current_type(void)
+{
     return su__log_type;
 }
 
-void su_log_set_type(enum su_LogType type) {
+void su_log_set_type(enum su_LogType type)
+{
     su__log_type = type;
 }
 
-const su_LogError* su_log_get_last_error(void) {
+const su_LogError* su_log_get_last_error(void)
+{
     su_LogError* err = &su__log_buffer.error_array[su__log_config.error_count];
     if (su__log_config.error_count != 0) {
         --su__log_config.error_count;
@@ -67,7 +70,8 @@ const su_LogError* su_log_get_last_error(void) {
     return err;
 }
 
-void su_log_error(const enum su_LogType type, const enum su_LogErrorSeverity severity, const enum su_LogContext context, const char* message, const char* file, const int line) {
+void su_log_error(const enum su_LogType type, const enum su_LogErrorSeverity severity, const enum su_LogContext context, const char* message, const char* file, const int line)
+{
     su_LogError err = (su_LogError){
         .type = type,
         .severity = severity,
@@ -80,7 +84,8 @@ void su_log_error(const enum su_LogType type, const enum su_LogErrorSeverity sev
     su__log_push_error_event(&err);
 }
 
-void su_log_warn(const enum su_LogType type, const enum su_LogWarnSeverity severity, const enum su_LogContext context, const char* message, const char* file, const int line) {
+void su_log_warn(const enum su_LogType type, const enum su_LogWarnSeverity severity, const enum su_LogContext context, const char* message, const char* file, const int line)
+{
     su_LogWarning warn = (su_LogWarning){
         .type = type,
         .severity = severity,
@@ -93,7 +98,8 @@ void su_log_warn(const enum su_LogType type, const enum su_LogWarnSeverity sever
     su__log_push_warning_event(&warn);
 }
 
-void su_log_info(const enum su_LogType type, const enum su_LogContext context, const char* message, const char* file, const int line) {
+void su_log_info(const enum su_LogType type, const enum su_LogContext context, const char* message, const char* file, const int line)
+{
     if (type > su__log_type) {
         return;
     }
@@ -109,7 +115,8 @@ void su_log_info(const enum su_LogType type, const enum su_LogContext context, c
     su__log_push_info_event(&info);
 }
 
-void su_log_assert(const su_Bool condition, const enum su_LogContext context, const char* message, const char* file, const int line) {
+void su_log_assert(const su_Bool condition, const enum su_LogContext context, const char* message, const char* file, const int line)
+{
     su_LogAssertion assertion = {
         .passed = condition,
         .context = context,
@@ -121,7 +128,8 @@ void su_log_assert(const su_Bool condition, const enum su_LogContext context, co
     su__log_push_assertion_event(&assertion);
 }
 
-void su_log_dummy_check(const su_Bool condition, const enum su_LogContext context, const char* message, const char* file, const int line) {
+void su_log_dummy_check(const su_Bool condition, const enum su_LogContext context, const char* message, const char* file, const int line)
+{
     su_LogDummyCheck dummy_check = {
         .passed = condition,
         .context = context,
@@ -134,23 +142,28 @@ void su_log_dummy_check(const su_Bool condition, const enum su_LogContext contex
     su__log_push_dummy_check_event(&dummy_check);
 }
 
-void su_log_set_event_callback(su_LogEventCallback event_callback) {
+void su_log_set_event_callback(su_LogEventCallback event_callback)
+{
     su__log_config.event_callback = event_callback;
 }
 
-void su_log_set_crash_callback(su_LogCrashCallback crash_callback) {
+void su_log_set_crash_callback(su_LogCrashCallback crash_callback)
+{
     su__log_config.crash_callback = crash_callback;
 }
 
-void su_log_set_assertion_fail_callback(su_LogAssertionFailCallback assertion_fail_callback) {
+void su_log_set_assertion_fail_callback(su_LogAssertionFailCallback assertion_fail_callback)
+{
     su__log_config.assertion_fail_callback = assertion_fail_callback;
 }
 
-void su_log_set_dummy_check_fail_callback(su_LogDummyCheckFailCallback dummy_check_fail_callback) {
+void su_log_set_dummy_check_fail_callback(su_LogDummyCheckFailCallback dummy_check_fail_callback)
+{
     su__log_config.dummy_check_fail_callback = dummy_check_fail_callback;
 }
 
-const char* su_log_severity_as_str(const enum su_LogErrorSeverity severity) {
+const char* su_log_severity_as_str(const enum su_LogErrorSeverity severity)
+{
     switch (severity) {
     case su_LOG_ERROR_SEVERITY_LOW:
         return "LOW";
@@ -164,7 +177,8 @@ const char* su_log_severity_as_str(const enum su_LogErrorSeverity severity) {
     return "UNKOWN";
 }
 
-const char* su_log_context_as_str(const enum su_LogContext context) {
+const char* su_log_context_as_str(const enum su_LogContext context)
+{
     switch (context) {
     case su_LOG_CONTEXT_CORE_INIT:
         return "CORE_INIT";
@@ -239,7 +253,8 @@ const char* su_log_context_as_str(const enum su_LogContext context) {
 
 // INTERNAL
 
-SA_INTERNAL void su__log_default_event_callback(const struct su_LogEvent* event) {
+SA_INTERNAL void su__log_default_event_callback(const struct su_LogEvent* event)
+{
     switch (event->EVENT_TYPE) {
     case su_LOG_EVENT_ERROR:
         {
@@ -280,28 +295,35 @@ SA_INTERNAL void su__log_default_event_callback(const struct su_LogEvent* event)
     }
 }
 
-SA_INTERNAL void su__log_default_crash_callback(const su_LogError* error) {
+SA_INTERNAL void su__log_default_crash_callback(const su_LogError* error)
+{
     if (su_log_get_current_type() == su_LOG_TYPE_PROD) {
         printf("A fatal error occoured, please contact the product owner\n");
+        return;
     }
     printf("FATAL [%s] ERROR: %s at %s:%d\n", su_log_context_as_str(error->context), error->message, error->file, error->line);
 }
 
-SA_INTERNAL void su__log_default_assertion_fail_callback(const su_LogAssertion* assertion) {
+SA_INTERNAL void su__log_default_assertion_fail_callback(const su_LogAssertion* assertion)
+{
     if (su_log_get_current_type() == su_LOG_TYPE_PROD) {
         printf("An assertion failed, please contact the product owner\n");
+        return;
     }
     printf("ASSERTION FAIL [%s]: %s at %s:%d\n", su_log_context_as_str(assertion->context), assertion->message, assertion->file, assertion->line);
 }
 
-SA_INTERNAL void su__log_default_dummy_check_fail_callback(const su_LogDummyCheck* dummy_check) {
+SA_INTERNAL void su__log_default_dummy_check_fail_callback(const su_LogDummyCheck* dummy_check)
+{
     if (su_log_get_current_type() == su_LOG_TYPE_PROD) {
         printf("A dummy check failed, please contact the product owner\n");
+        return;
     }
     printf("DUMMY CHECK FAIL [%s]: %s at %s:%d\n", su_log_context_as_str(dummy_check->context), dummy_check->message, dummy_check->file, dummy_check->line);
 }
 
-SA_INTERNAL void su__log_copy_safe(char* dest_out, const char* src, su_U64 max, const char* fallback) {
+SA_INTERNAL void su__log_copy_safe(char* dest_out, const char* src, su_U64 max, const char* fallback)
+{
     if (!src) {
         su_U64 str_len = strnlen(fallback, max);
         if (str_len >= max) {
@@ -319,13 +341,15 @@ SA_INTERNAL void su__log_copy_safe(char* dest_out, const char* src, su_U64 max, 
     dest_out[str_len] = '\0';
 }
 
-SA_INTERNAL void su__log_call_event_callback(const struct su_LogEvent* event) {
+SA_INTERNAL void su__log_call_event_callback(const struct su_LogEvent* event)
+{
     if (su__log_config.event_callback) {
         su__log_config.event_callback(event);
     }
 }
 
-SA_INTERNAL void su__log_push_error_event(su_LogError* err) {
+SA_INTERNAL void su__log_push_error_event(su_LogError* err)
+{
     if (err->severity == su_LOG_ERROR_SEVERITY_CRASH) {
         if (su__log_config.crash_callback) {
             su__log_config.crash_callback(err);
@@ -344,7 +368,8 @@ SA_INTERNAL void su__log_push_error_event(su_LogError* err) {
     su__log_call_event_callback(&event);
 }
 
-SA_INTERNAL void su__log_push_warning_event(su_LogWarning* war) {
+SA_INTERNAL void su__log_push_warning_event(su_LogWarning* war)
+{
     if (su__log_config.warning_count == su_LOG_ERROR_MAX_COUNT - 1) {
         su__log_config.warning_count = 0;
     }
@@ -356,7 +381,8 @@ SA_INTERNAL void su__log_push_warning_event(su_LogWarning* war) {
     su__log_call_event_callback(&event);
 }
 
-SA_INTERNAL void su__log_push_info_event(su_LogInfo* info) {
+SA_INTERNAL void su__log_push_info_event(su_LogInfo* info)
+{
     if (su__log_config.info_count == su_LOG_ERROR_MAX_COUNT - 1) {
         su__log_config.info_count = 0;
     }
@@ -368,7 +394,8 @@ SA_INTERNAL void su__log_push_info_event(su_LogInfo* info) {
     su__log_call_event_callback(&event);
 }
 
-SA_INTERNAL void su__log_push_assertion_event(su_LogAssertion* assertion) {
+SA_INTERNAL void su__log_push_assertion_event(su_LogAssertion* assertion)
+{
     if (!assertion->passed) {
         if (su__log_config.assertion_fail_callback) {
             su__log_config.assertion_fail_callback(assertion);
@@ -386,7 +413,8 @@ SA_INTERNAL void su__log_push_assertion_event(su_LogAssertion* assertion) {
     su__log_call_event_callback(&event);
 }
 
-SA_INTERNAL void su__log_push_dummy_check_event(su_LogDummyCheck* dummy_check) {
+SA_INTERNAL void su__log_push_dummy_check_event(su_LogDummyCheck* dummy_check)
+{
     if (!dummy_check->passed) {
         if (su__log_config.dummy_check_fail_callback) {
             su__log_config.dummy_check_fail_callback(dummy_check);
