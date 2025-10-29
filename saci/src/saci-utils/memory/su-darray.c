@@ -16,7 +16,8 @@ typedef struct su_DArray {
     su_Bool is_fixed_size;
 } su_DArray;
 
-su_DArray* su_darray_create(su_U64 capacity, su_U64 elem_size, su_Bool fixed_size) {
+su_DArray* su_darray_create(su_U64 capacity, su_U64 elem_size, su_Bool fixed_size)
+{
     su_LOG_DUMMY_CHECK_M(capacity > 0, su_LOG_CONTEXT_CORE_DARRAY, "Capacity must be greater than zero");
     su_LOG_DUMMY_CHECK_M(elem_size > 0, su_LOG_CONTEXT_CORE_DARRAY, "Element size must be greater than zero");
 
@@ -31,6 +32,32 @@ su_DArray* su_darray_create(su_U64 capacity, su_U64 elem_size, su_Bool fixed_siz
     array->data = calloc(capacity, elem_size);
     su_LOG_ASSERT_M(array->data, su_LOG_CONTEXT_CORE_DARRAY, "Could not allocate memory for su_DArray");
     return array;
+}
+
+SA_API su_DArray* su_darray_create_ctx_void(void* memctx, su_U64 ctx_size, su_U64 capacity, su_U64 elem_size)
+{
+    if (!memctx || elem_size == 0 || capacity == 0)
+        return NULL;
+
+    printf("oi\n");
+
+    su_U64 required_size = sizeof(su_DArray) + (capacity * elem_size);
+    if (ctx_size < required_size)
+        return NULL;
+
+    printf("bye\n");
+
+    su_DArray* arr = (su_DArray*)memctx;
+
+    void* data_ptr = (void*)((unsigned char*)memctx + sizeof(su_DArray));
+
+    arr->data = data_ptr;
+    arr->length = 0;
+    arr->capacity = capacity;
+    arr->elem_size = elem_size;
+    arr->is_fixed_size = true;
+
+    return arr;
 }
 
 #if 0
@@ -63,7 +90,8 @@ su_DArray* su_darray_create_ctx(struct su_MemChunk* memctx, su_U64 elem_size) {
 }
 #endif
 
-void su_darray_free(su_DArray* array) {
+void su_darray_free(su_DArray* array)
+{
     free(array->data);
     array->data = NULL;
     array->length = 0;
@@ -71,7 +99,8 @@ void su_darray_free(su_DArray* array) {
     array->elem_size = 0;
 }
 
-su_Bool su_darray_clear(su_DArray* array) {
+su_Bool su_darray_clear(su_DArray* array)
+{
     if (!array) {
         return su_FALSE;
     }
@@ -82,7 +111,8 @@ su_Bool su_darray_clear(su_DArray* array) {
     return su_TRUE;
 }
 
-su_Bool su_darray_resize(su_DArray* array, su_U64 new_cap) {
+su_Bool su_darray_resize(su_DArray* array, su_U64 new_cap)
+{
     su_LOG_ASSERT_M(new_cap > array->capacity, su_LOG_CONTEXT_CORE_DARRAY, "New capacity must be greater than current capacity");
 
     if (array->is_fixed_size) {
@@ -99,7 +129,8 @@ su_Bool su_darray_resize(su_DArray* array, su_U64 new_cap) {
     return su_TRUE;
 }
 
-su_Bool su_darray_push(su_DArray* array, const void* value) {
+su_Bool su_darray_push(su_DArray* array, const void* value)
+{
     su_LOG_ASSERT_M(array, su_LOG_CONTEXT_CORE_DARRAY, "Array is NULL");
     su_LOG_ASSERT_M(value, su_LOG_CONTEXT_CORE_DARRAY, "Value to push is NULL");
 
@@ -120,33 +151,38 @@ su_Bool su_darray_push(su_DArray* array, const void* value) {
     return su_TRUE;
 }
 
-void su_darray_pop(su_DArray* array) {
+void su_darray_pop(su_DArray* array)
+{
     if (array->length == 0) {
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH, su_LOG_CONTEXT_CORE_DARRAY, "Cannot pop dynamic array, length is 0");
     }
     array->length--;
 }
 
-const void* su_darray_get(const su_DArray* array, su_U64 index) {
+const void* su_darray_get(const su_DArray* array, su_U64 index)
+{
     su_LOG_DUMMY_CHECK_M(array, su_LOG_CONTEXT_CORE_DARRAY, "DArray is NULL");
     su_LOG_DUMMY_CHECK_M(array->data, su_LOG_CONTEXT_CORE_DARRAY, "DArray data is NULL");
     su_LOG_ASSERTF_M(index < array->length, su_LOG_CONTEXT_CORE_DARRAY, "DArray has length %lu cannot get at index %lu", array->length, index);
     return (char*)array->data + index * array->elem_size;
 }
 
-void* su_darray_get_ptr(const su_DArray* array, su_U64 index) {
+void* su_darray_get_ptr(const su_DArray* array, su_U64 index)
+{
     su_LOG_DUMMY_CHECK_M(array, su_LOG_CONTEXT_CORE_DARRAY, "DArray is NULL");
     su_LOG_DUMMY_CHECK_M(array->data, su_LOG_CONTEXT_CORE_DARRAY, "DArray data is NULL");
     su_LOG_ASSERTF_M(index < array->length, su_LOG_CONTEXT_CORE_DARRAY, "DArray has length %lu cannot get at index %lu", array->length, index);
     return (char*)array->data + index * array->elem_size;
 }
 
-SA_API su_U64 su_darray_get_elem_size(const su_DArray* array) {
+SA_API su_U64 su_darray_get_elem_size(const su_DArray* array)
+{
     return array->elem_size;
 }
 
 // TODO
-void su_darray_set(su_DArray* array, su_U64 index, const void* value, su_U64 value_size) {
+void su_darray_set(su_DArray* array, su_U64 index, const void* value, su_U64 value_size)
+{
     su_LOG_DUMMY_CHECK_M(array, su_LOG_CONTEXT_CORE_DARRAY, "DArray is NULL");
     su_LOG_DUMMY_CHECK_M(array->data, su_LOG_CONTEXT_CORE_DARRAY, "DArray data is NULL");
     su_LOG_DUMMY_CHECK_M(array->elem_size == value_size, su_LOG_CONTEXT_CORE_DARRAY, "Element size is not equal to value size");
@@ -156,15 +192,18 @@ void su_darray_set(su_DArray* array, su_U64 index, const void* value, su_U64 val
     memcpy(dest, value, array->elem_size);
 }
 
-su_U64 su_darray_length(const su_DArray* array) {
+su_U64 su_darray_length(const su_DArray* array)
+{
     return array->length;
 }
 
-su_U64 su_darray_capacity(const su_DArray* array) {
+su_U64 su_darray_capacity(const su_DArray* array)
+{
     return array->capacity;
 }
 
-su_Bool su_darray_append(su_DArray* dest, const su_DArray* src) {
+su_Bool su_darray_append(su_DArray* dest, const su_DArray* src)
+{
     if (!su__darray_can_append(dest, src)) {
         return su_FALSE;
     }
@@ -182,22 +221,26 @@ su_Bool su_darray_append(su_DArray* dest, const su_DArray* src) {
     return su_TRUE;
 }
 
-void su_darray_debug_print(const su_DArray* arr) {
+void su_darray_debug_print(const su_DArray* arr)
+{
     printf("su_DArray Debug: data=%p, length=%lu, capacity=%lu, elem_size=%lu, fixed=%d\n",
            arr->data, arr->length, arr->capacity, arr->elem_size, arr->is_fixed_size);
 }
 
-su_Bool su_darray_is_null(const su_DArray* arr) {
+su_Bool su_darray_is_null(const su_DArray* arr)
+{
     return arr->data == NULL;
 }
 
-su_Bool su_darray_is_empty(const su_DArray* arr) {
+su_Bool su_darray_is_empty(const su_DArray* arr)
+{
     return arr->length == 0;
 }
 
 /* === DArray impl === */
 
-SA_INTERNAL su_Bool su__darray_can_append(const su_DArray* dest, const su_DArray* src) {
+SA_INTERNAL su_Bool su__darray_can_append(const su_DArray* dest, const su_DArray* src)
+{
     su_LOG_ASSERT_M(dest, su_LOG_CONTEXT_CORE_DARRAY, "dest is NULL");
     su_LOG_ASSERT_M(src, su_LOG_CONTEXT_CORE_DARRAY, "src is NULL");
     su_LOG_ASSERT_M(dest->data, su_LOG_CONTEXT_CORE_DARRAY, "dest->data is NULL");
@@ -212,7 +255,8 @@ SA_INTERNAL su_Bool su__darray_can_append(const su_DArray* dest, const su_DArray
     return su_TRUE;
 }
 
-SA_INTERNAL su_Bool su__darray_ensure_capacity(su_DArray* dest, su_U64 required_capacity) {
+SA_INTERNAL su_Bool su__darray_ensure_capacity(su_DArray* dest, su_U64 required_capacity)
+{
     if (required_capacity <= dest->capacity) {
         return su_TRUE;
     }

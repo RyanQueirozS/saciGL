@@ -1,6 +1,7 @@
 #include "saci-main/saci.h"
 
 #include "saci-utils/config/su-config-manager.h"
+#include "saci-utils/math/su-math-mat.h"
 #include "saci-utils/memory/su-memory.h"
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-log.h"
@@ -97,7 +98,8 @@ SA_INTERNAL struct saci_Context {
     su_U64 enable_flags;
 } saci_context = {0};
 
-void saci_init(void) {
+void saci_init(void)
+{
     if (!su_cfg_manager_fetch(SACI_DEFAULT_CONFIG_PATH)) {
         su_cfg_manager_load_default();
     }
@@ -133,7 +135,8 @@ void saci_init(void) {
     saci__init_memory();
 }
 
-void saci_enable(saci_RenderingFlags enable_flag, su_Bool enable) {
+void saci_enable(saci_RenderingFlags enable_flag, su_Bool enable)
+{
     if (enable) {
         saci_context.enable_flags |= enable_flag;
     } else {
@@ -141,34 +144,40 @@ void saci_enable(saci_RenderingFlags enable_flag, su_Bool enable) {
     }
 }
 
-void saci_begin(void) {
+void saci_begin(void)
+{
     saci__handle_events();
     sb_graphics_clear_color(saci_context.windowing.bg_color);
     sb_graphics_clear_depth_buffer();
     saci__begin_renderer(saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer);
 }
 
-void saci_set_background_color(const su_Color color) {
+void saci_set_background_color(const su_Color color)
+{
     saci_context.windowing.bg_color = color;
 }
 
-void saci_set_loop_func(saci_LoopFunc loop_func) {
+void saci_set_loop_func(saci_LoopFunc loop_func)
+{
     su_LOG_ASSERT_M(loop_func, su_LOG_CONTEXT_CORE_MAINLOOP, "Loop function is NULL");
     saci_context.loop_func = loop_func;
 }
 
-const saci_Event* saci_get_event(void) {
+const saci_Event* saci_get_event(void)
+{
     return NULL;
 }
 
-void saci_loop(void) {
+void saci_loop(void)
+{
     while (!sb_window_should_close(saci_context.windowing.window)) {
         saci_context.loop_func(saci__get_delta());
     }
 }
 
 // Doesn't actually draw it but instead pushes to shape draw call array
-void saci_draw_cube(const saci_Cube cube) {
+void saci_draw_cube(const saci_Cube cube)
+{
     su_Mat4 transform = saci__mat4_create_transform_from_flag(
         (struct saci_Transform){
             cube.pos_center,
@@ -194,7 +203,8 @@ void saci_draw_cube(const saci_Cube cube) {
     }
 }
 
-void saci_present(void) {
+void saci_present(void)
+{
     su_Mat4 proj = su_mat4_perspective(90, 16.0f / 9.0f, 1, 100);
     su_Mat4 view = su_mat4_look_at((su_Vec3){0.0f, 2.0f, -20.0f},
                                    (su_Vec3){0.0f, 0.0f, 0.0f},
@@ -229,7 +239,8 @@ void saci_present(void) {
     sb_window_swap_buffer(saci_context.windowing.window);
 }
 
-void saci_free(void) {
+void saci_free(void)
+{
     su_mem_print_info();
 }
 
@@ -239,7 +250,8 @@ SA_INTERNAL void saci__init_windowing(
     su_Window* window_out,
     su_S32 x,
     su_S32 y,
-    const char* name) {
+    const char* name)
+{
     su_LOG_ASSERT_M(sb_load_windowing(), su_LOG_CONTEXT_CORE_INIT, "Could not load window");
 
     *window_out = sb_window_create(
@@ -253,7 +265,8 @@ SA_INTERNAL void saci__init_windowing(
     su_LOG_ASSERT_M(sb_proc_load(), su_LOG_CONTEXT_CORE_INIT, "Could not load proc");
 }
 
-SA_INTERNAL void saci__init_memory(void) {
+SA_INTERNAL void saci__init_memory(void)
+{
     saci_context.renderer_info_array = calloc(
         SACI_RENDERER_AMOUNT,
         sizeof(struct saci_RendererInfo*));
@@ -278,7 +291,8 @@ SA_INTERNAL void saci__init_memory(void) {
     }
 }
 
-SA_INTERNAL void saci__reset_memory(void) {
+SA_INTERNAL void saci__reset_memory(void)
+{
     const su_S32 saci_shape_amount = 10; /// TODO
     for (su_S32 i = 0; i < saci_shape_amount; ++i) {
         if (!su_darray_clear(saci_context.shape_instance_data_array[i].instance_data_array)) {
@@ -291,7 +305,8 @@ SA_INTERNAL void saci__reset_memory(void) {
 
 SA_INTERNAL su_Mat4 saci__mat4_create_transform_from_flag(
     struct saci_Transform transform,
-    su_U64 flag_var) {
+    su_U64 flag_var)
+{
     su_Mat4 transform_mat = su_IDENTITY_MAT4;
     if (!saci__has_flag(flag_var, saci_RENDERING_FLAG_ROTATION_RTS)) { // Most likelly
         transform_mat = su_mat4_model_matrix_trs(
@@ -307,12 +322,14 @@ SA_INTERNAL su_Mat4 saci__mat4_create_transform_from_flag(
     return transform_mat;
 }
 
-SA_INTERNAL void saci__begin_renderer(sb_Renderer* rendr) {
+SA_INTERNAL void saci__begin_renderer(sb_Renderer* rendr)
+{
     saci__reset_memory();
     sb_renderer_begin(rendr);
 }
 
-SA_INTERNAL void saci__handle_events(void) {
+SA_INTERNAL void saci__handle_events(void)
+{
     memset(saci_context.event.keyboard.key_was_pressed, 0,
            sizeof(saci_context.event.keyboard.key_was_pressed));
 
@@ -334,10 +351,12 @@ SA_INTERNAL void saci__handle_events(void) {
     sb_event_poll();
 }
 
-SA_INTERNAL_INLINE su_Bool saci__has_flag(su_U64 flag_var, su_U64 flag_to_check) {
+SA_INTERNAL_INLINE su_Bool saci__has_flag(su_U64 flag_var, su_U64 flag_to_check)
+{
     return ((flag_var & flag_to_check) == flag_to_check);
 }
 
-SA_INTERNAL double saci__get_delta(void) {
+SA_INTERNAL double saci__get_delta(void)
+{
     return 0.0; // TODO
 }

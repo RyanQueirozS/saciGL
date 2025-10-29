@@ -14,6 +14,8 @@ SA_API su_DArray* su_darray_create(su_U64 capacity, su_U64 elem_size, su_Bool fi
 
 SA_API su_DArray* su_darray_create_ctx(struct su_MemChunk* memctx, su_U64 elem_size);
 
+SA_API su_DArray* su_darray_create_ctx_void(void* memctx, su_U64 ctx_size, su_U64 capacity, su_U64 elem_size);
+
 SA_API void su_darray_free(su_DArray* array);
 
 SA_API su_Bool su_darray_clear(su_DArray* array);

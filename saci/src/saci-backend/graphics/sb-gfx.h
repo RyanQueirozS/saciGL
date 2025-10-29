@@ -2,19 +2,13 @@
 #define SACI_BACKEND_SB_GFX_H
 
 #include "saci-utils/config/su-config-manager.h"
-#include "saci-utils/math/su-math-mat.h"
 #include "saci-utils/memory/su-darray.h"
 #include "saci-utils/memory/su-string.h"
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-types-common.h"
-#include "saci-utils/math/su-math-color.h"
-#include "saci-utils/math/su-math-general.h"
-#include "saci-utils/math/su-math-vec.h"
-#include "saci-utils/memory/su-memory.h"
-#include "saci-utils/su-log.h"
 
-#include "saci-backend/graphics/sb-gl.h"
 #include "saci-backend/sb-backend-common.h"
+#include "saci-utils/math/su-math-types.h"
 
 union sb_GFXUniformValue {
     // Scalar types
@@ -72,10 +66,10 @@ struct sb_GFXInstanceData {
 };
 
 struct sb_GFXDrawData {
-    su_DArray* vertex_array;
+    su_DArray* vertex_array; // Darray<unkown_size_at_compiletime>
     su_U64 vertex_struct_size;
 
-    su_DArray* index_array; // DArray
+    su_DArray* index_array; // DArray<unkown_size_at_compiletime>
     su_U64 index_struct_size;
 
     su_DArray* instance_data_array; // DArray<GFXInstanceData>

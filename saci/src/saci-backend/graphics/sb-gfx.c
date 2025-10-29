@@ -1,6 +1,8 @@
 #include "./sb-gfx.h"
 #include "../resources/sb-dependency-internal.h"
 
+#include "./sb-gl.h"
+
 #include <stdio.h>
 
 /* === Internal helper Declarations === */
@@ -19,7 +21,8 @@ SA_INTERNAL su_Bool sb__has_texture(union sb_Texture* texture_array, su_U32 arra
 
 /* === Header Impl === */
 
-void sb_gfx_load(void) {
+void sb_gfx_load(void)
+{
     sb__render_funcs = sb_dependencies_get_render_api_funcs();
     sb__render_loader_funcs = sb_dependencies_get_render_loader_api_funcs();
     sb__render_api = su_cfg_manager_get_renderer_api();
@@ -32,7 +35,8 @@ void sb_gfx_load(void) {
     }
 }
 
-void sb_gfx_load_proc(sb_GfxProcAddress addrs) {
+void sb_gfx_load_proc(sb_GfxProcAddress addrs)
+{
     switch (sb__render_api) {
     case su_RENDERER_API_OPENGL:
         sb__render_loader_funcs.gl.load_opengl(addrs);
@@ -42,7 +46,8 @@ void sb_gfx_load_proc(sb_GfxProcAddress addrs) {
     }
 }
 
-void sb_gfx_init_shader(union sb_GFXInfo* info_out, const struct su_RendererConfig cfg) {
+void sb_gfx_init_shader(union sb_GFXInfo* info_out, const struct su_RendererConfig cfg)
+{
     su_LOG_ASSERT_M(cfg.shaders.vert, su_LOG_CONTEXT_GFX, "Vertex shader is empty or NULL");
     su_LOG_ASSERT_M(cfg.shaders.frag, su_LOG_CONTEXT_GFX, "Frag shader is empty or NULL");
     switch (sb__render_api) {
@@ -65,7 +70,8 @@ void sb_gfx_init_shader(union sb_GFXInfo* info_out, const struct su_RendererConf
     }
 }
 
-void sb_gfx_create(union sb_GFXInfo* info_out, const struct su_RendererConfig cfg) {
+void sb_gfx_create(union sb_GFXInfo* info_out, const struct su_RendererConfig cfg)
+{
     switch (sb__render_api) {
     case su_RENDERER_API_OPENGL:
         sb__gfx_gl_init_info(info_out, cfg);
@@ -76,15 +82,18 @@ void sb_gfx_create(union sb_GFXInfo* info_out, const struct su_RendererConfig cf
 }
 
 // TODO move to sb-gl
-void sb_gfx_clear_color(const su_Color color) {
+void sb_gfx_clear_color(const su_Color color)
+{
     sb_gl_clear_color(color);
 }
 
-void sb_gfx_clear_depth_buffer(void) {
+void sb_gfx_clear_depth_buffer(void)
+{
     sb_gl_clear_depth_buffer();
 }
 
-void sb_gfx_load_debugger(void* debug_func) {
+void sb_gfx_load_debugger(void* debug_func)
+{
     sb__render_funcs.gl.enable(sb_GL_DEBUG_OUTPUT);
     sb__render_funcs.gl.enable(sb_GL_DEBUG_OUTPUT_SYNCHRONOUS);
     sb__render_funcs.gl.enable(sb_GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -92,7 +101,8 @@ void sb_gfx_load_debugger(void* debug_func) {
     su_LOG_INFO_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_LIB_OPENGL, "Loaded opengl debug message callback");
 }
 
-void sb_gfx_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* data) {
+void sb_gfx_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* data)
+{
     switch (sb__render_api) {
     case su_RENDERER_API_OPENGL:
         sb__gfx_gl_draw(gfx_info, data);
@@ -102,11 +112,13 @@ void sb_gfx_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* 
     }
 }
 
-su_S32 sb_gfx_get_uniform_loc(const union sb_GFXInfo* info, const su_String* name) {
+su_S32 sb_gfx_get_uniform_loc(const union sb_GFXInfo* info, const su_String* name)
+{
     return sb_gfx_get_uniform_loc_cstr(info, su_string_data(name));
 }
 
-su_S32 sb_gfx_get_uniform_loc_cstr(const union sb_GFXInfo* info, const char* name) {
+su_S32 sb_gfx_get_uniform_loc_cstr(const union sb_GFXInfo* info, const char* name)
+{
     su_S32 location = 0;
     switch (sb__render_api) {
     case su_RENDERER_API_OPENGL:
@@ -118,7 +130,8 @@ su_S32 sb_gfx_get_uniform_loc_cstr(const union sb_GFXInfo* info, const char* nam
     return location;
 }
 
-union sb_Texture sb_gfx_gen_texture(void) {
+union sb_Texture sb_gfx_gen_texture(void)
+{
     union sb_Texture id;
     sb__render_funcs.gl.gen_textures(1, &id.gl_texture.texture);
     return id;
@@ -127,14 +140,16 @@ union sb_Texture sb_gfx_gen_texture(void) {
 void sb_gfx_upload_texture_2d(union sb_Texture texture,
                               su_S32 format,
                               int width, int height,
-                              const void* data) {
+                              const void* data)
+{
     sb__render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, texture.gl_texture.texture);
     sb__render_funcs.gl.tex_image_2d(sb_GL_TEXTURE_2D, 0,
                                      format, width, height, 0,
                                      (su_U32)format, sb_GL_UNSIGNED_BYTE, data);
 }
 
-void sb_gfx_get_texture_size(union sb_Texture texture, int* width_out, int* height_out) {
+void sb_gfx_get_texture_size(union sb_Texture texture, int* width_out, int* height_out)
+{
     su_S32 prev_tex;
     sb__render_funcs.gl.get_integer_v(sb_GL_TEXTURE_BINDING_2D, &prev_tex);
 
@@ -146,7 +161,8 @@ void sb_gfx_get_texture_size(union sb_Texture texture, int* width_out, int* heig
     sb__render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, (su_U32)prev_tex);
 }
 
-void sb_gfx_generate_mipmap(union sb_Texture texture) {
+void sb_gfx_generate_mipmap(union sb_Texture texture)
+{
     su_S32 prev_tex;
     sb__render_funcs.gl.get_integer_v(sb_GL_TEXTURE_BINDING_2D, &prev_tex);
 
@@ -157,7 +173,8 @@ void sb_gfx_generate_mipmap(union sb_Texture texture) {
     sb__render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, (su_U32)prev_tex);
 }
 
-void sb_gfx_delete_texture(union sb_Texture texture) {
+void sb_gfx_delete_texture(union sb_Texture texture)
+{
     sb__render_funcs.gl.delete_textures(1, &texture.gl_texture.texture);
 }
 
@@ -271,7 +288,8 @@ SA_INTERNAL void sb__gl_initialize_debugger(void) {
 
 SA_INTERNAL void sb__gfx_gl_create_main_buffers(
     union sb_GFXInfo* info_out,
-    const struct su_RendererConfig cfg) {
+    const struct su_RendererConfig cfg)
+{
     info_out->gl_data.vbo = sb_gl_create_vertex_buffer_dynamic(
         cfg.batch.vertex_cfg.capacity * cfg.vertex_data.element_size_internal,
         NULL);
@@ -286,7 +304,8 @@ SA_INTERNAL void sb__gfx_gl_create_main_buffers(
 SA_INTERNAL void sb__gfx_gl_setup_vertex_attributes(
     const struct su_RendererConfig cfg,
     su_BufferId vao,
-    su_BufferId vbo) {
+    su_BufferId vbo)
+{
     sb_gl_bind_vertex_array(vao);
     sb_gl_bind_vertex_buffer(vbo);
 
@@ -306,7 +325,8 @@ SA_INTERNAL void sb__gfx_gl_setup_vertex_attributes(
 }
 
 SA_INTERNAL void sb__gfx_gl_setup_instance_buffers(
-    const struct su_RendererConfig cfg) {
+    const struct su_RendererConfig cfg)
+{
     if (!cfg.instance_data.buffer_array_length)
         return;
 
@@ -354,7 +374,8 @@ SA_INTERNAL void sb__gfx_gl_setup_instance_buffers(
 
 SA_INTERNAL void sb__gfx_gl_init_info(
     union sb_GFXInfo* info_out,
-    const struct su_RendererConfig cfg) {
+    const struct su_RendererConfig cfg)
+{
     su_LOG_ASSERT_M(cfg.shaders.vert, su_LOG_CONTEXT_GFX, "GL vert shader is empty");
     su_LOG_ASSERT_M(cfg.shaders.frag, su_LOG_CONTEXT_GFX, "GL frag shader is empty");
     su_LOG_ASSERT_M(cfg.batch.index_cfg.capacity, su_LOG_CONTEXT_GFX, "Index capacity is not set");
@@ -365,7 +386,8 @@ SA_INTERNAL void sb__gfx_gl_init_info(
     sb__gfx_gl_setup_instance_buffers(cfg);
 }
 
-SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* data) {
+SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* data)
+{
     sb__render_funcs.gl.enable(sb_GL_DEPTH_TEST);
     // su_DUMMY_CHECK_M(su_darray_length(data->instance_array_array) ==
     //                      su_darray_length(data->instance_location_array),
@@ -409,7 +431,7 @@ SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct 
 
     if (sb__has_texture(su_CAST_M(union sb_Texture*)(data->texture_array), SACI_MAX_TEXTURES)) {
         for (su_U32 i = 0; i < SACI_MAX_TEXTURES; ++i) {
-            if (data->texture_array[i].gl_texture.texture != previous_draw_call.texture_array[i].gl_texture.texture && data->texture_array[i].gl_texture.texture != sb_TEXTURE_INVALID) {
+            if (data->texture_array[i].gl_texture.texture != previous_draw_call.texture_array[i].gl_texture.texture && data->texture_array[i].gl_texture.texture != su_TEXTURE_INVALID) {
                 sb__render_funcs.gl.active_texture(sb_GL_TEXTURE0);
                 sb__render_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, data->texture_array[i].gl_texture.texture);
                 previous_draw_call.texture_array[i] = data->texture_array[i];
@@ -432,7 +454,8 @@ SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct 
     sb__render_funcs.gl.bind_buffer(sb_GL_UNIFORM_BUFFER, 0);
 }
 
-SA_INTERNAL su_Bool sb__has_texture(union sb_Texture* texture_array, su_U32 array_length) {
+SA_INTERNAL su_Bool sb__has_texture(union sb_Texture* texture_array, su_U32 array_length)
+{
     for (su_U32 i = 0; i < array_length; ++i) {
         if (texture_array[i].gl_texture.texture != 0) {
             return su_TRUE;
@@ -441,7 +464,8 @@ SA_INTERNAL su_Bool sb__has_texture(union sb_Texture* texture_array, su_U32 arra
     return su_FALSE;
 }
 
-SA_INTERNAL void sb__gfx_gl_set_uniform_from_uniform_data(const struct sb_GFXUniformData uniform_data) {
+SA_INTERNAL void sb__gfx_gl_set_uniform_from_uniform_data(const struct sb_GFXUniformData uniform_data)
+{
     const void* value_ptr = NULL;
 
     switch (uniform_data.type) {

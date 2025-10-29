@@ -28,24 +28,20 @@
 
 /* === Internal === */
 
-SA_INTERNAL su_Bool su__mem_alloc(void* pool, su_U64* capacity_inout, const su_U64 total_size, void* mem_out);
-
-SA_INTERNAL su_Bool su__mem_pool_can_join(struct su_MemPool* dest, su_MemPool src);
-
-SA_INTERNAL struct su_MemPool* su__mem_pool_join(struct su_MemPool* dest, su_MemPool src);
+SA_INTERNAL su_Bool su__mem_alloc(void* pool, su_U64* capacity_inout, const su_U64 total_size, void** mem_out);
 
 SA_INTERNAL struct su_MemChunk* su__mem_chunk_find_suitable(const enum su_MemContext ctx,
                                                             const su_U64 size,
                                                             struct su_MemChunk** chunk_ptr_array,
                                                             const su_U64 chunk_ptr_array_len);
 
+SA_INTERNAL su_Bool su__mem_chunk_is_empty(struct su_MemChunk** chunk_ptr_array, const su_U64 chunk_ptr_array_len);
+
 SA_INTERNAL su_Bool su__mem_chunk_check_empty(struct su_MemChunk** chunk_ptr_array, const su_U64 chunk_ptr_array_len, su_U64* idx_out);
 
 SA_INTERNAL su_U64 su__mem_new_chunk_id(void);
 
 SA_INTERNAL void su__mem_chunk_join_all(struct su_MemChunk** mem_chunk_ptr_array, const su_U64 array_len);
-
-SA_INTERNAL su_S32 su__mem_chunk_can_join(const struct su_MemChunk* c1, const struct su_MemChunk* c2);
 
 /* === Header impl === */
 
@@ -179,6 +175,7 @@ struct su_MemChunk* su_mem_alloc_chunk(const enum su_MemContext ctx,
     if (suitable_chunk) {
         suitable_chunk->element_size_bytes = element_size;
         suitable_chunk->element_count = count;
+        suitable_chunk->is_freed = su_FALSE;
         return suitable_chunk;
     }
 
@@ -195,13 +192,17 @@ struct su_MemChunk* su_mem_alloc_chunk(const enum su_MemContext ctx,
 
     // Allocates the memory for the chunk
     struct su_MemChunk* chunk = (struct su_MemChunk*)(memctx);
-    chunk->id = su__mem_new_chunk_id();
-    chunk->size = size;
-    chunk->ctx = ctx;
-    chunk->element_count = count;
-    chunk->element_size_bytes = element_size;
-    // Data goes after the chunk structure
-    chunk->data = (void*)((char*)memctx + sizeof(struct su_MemChunk));
+    *chunk = (struct su_MemChunk){
+        .id = su__mem_new_chunk_id(),
+        .is_freed = su_FALSE,
+        .ctx = ctx,
+        .element_count = count,
+        .element_size_bytes = element_size,
+        .size = size,
+
+        // Data goes after the chunk structure
+        .data = (void*)((char*)memctx + sizeof(struct su_MemChunk)),
+    };
     return chunk;
 }
 
@@ -220,10 +221,9 @@ su_MemPool* su_mem_create_pool(const enum su_MemContext ctx,
     su_U64 total_size = sizeof(su_MemPool) + size;
 
     // In this case will generate a partion out of the mem_manager's memory pool.
-    su__mem_alloc(su__mem_manager.context_array[0].pool,
-                  &su__mem_manager.context_array[0].capacity,
-                  total_size, &memctx);
-    if (!memctx) {
+    if (!su__mem_alloc(su__mem_manager.context_array[ctx].pool,
+                       &su__mem_manager.context_array[ctx].capacity,
+                       total_size, &memctx)) {
         su_LOG_ERROR_M(
             su_LOG_TYPE_USER,
             su_LOG_ERROR_SEVERITY_CRASH,
@@ -242,7 +242,7 @@ su_Bool su_mem_chunk_set(struct su_MemChunk* chunk, su_U64 idx, void* data, su_U
 {
     su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using empty memory chunk in set func");
-    su_LOG_DUMMY_CHECK_M(chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+    su_LOG_DUMMY_CHECK_M(!chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using freed memory chunk in set func");
     if (chunk->element_count < idx) {
         su_LOG_ERRORF_M(
@@ -271,13 +271,13 @@ const void* su_mem_chunk_get(struct su_MemChunk* chunk, su_U64 idx, su_U64 data_
 {
     su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using empty memory chunk in get func");
-    su_LOG_DUMMY_CHECK_M(chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+    su_LOG_DUMMY_CHECK_M(!chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using freed memory chunk in get func");
 
     if (data_size < chunk->element_size_bytes && chunk->element_size_bytes) // has to have non-zero element_size
     {
         su_LOG_ERRORF_M(
-            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
             su_LOG_CONTEXT_CORE_MEMORY,
             "Could not get data from chunk, data_size expected (%lu) is not "
             "equal to the one recieved (%lu)",
@@ -286,7 +286,7 @@ const void* su_mem_chunk_get(struct su_MemChunk* chunk, su_U64 idx, su_U64 data_
     if (idx < chunk->element_count && chunk->element_count) // has to have non-zero element_count
     {
         su_LOG_ERRORF_M(
-            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
             su_LOG_CONTEXT_CORE_MEMORY,
             "Could not get data from chunk, idx is %lu and there are %lu elements",
             chunk->element_count, idx);
@@ -298,11 +298,11 @@ void* su_mem_chunk_get_ptr(struct su_MemChunk* chunk, su_U64 idx)
 {
     su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using empty memory chunk in get ptr func");
-    su_LOG_DUMMY_CHECK_M(chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+    su_LOG_DUMMY_CHECK_M(!chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using freed memory chunk in get ptr func");
-    if (idx < chunk->element_count) {
+    if (idx >= chunk->element_count) {
         su_LOG_ERRORF_M(
-            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
+            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
             su_LOG_CONTEXT_CORE_MEMORY,
             "Could not get data from chunk, idx is %lu and there are %lu elements",
             chunk->element_count, idx);
@@ -331,7 +331,7 @@ su_Bool su_mem_chunk_get_ctx(const struct su_MemChunk* chunk, enum su_MemContext
 {
     su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using empty memory chunk in get ctx func");
-    su_LOG_DUMMY_CHECK_M(chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+    su_LOG_DUMMY_CHECK_M(!chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using freed memory chunk in get ctx func");
 
     *ctx_out = chunk->ctx;
@@ -342,7 +342,7 @@ su_Bool su_mem_chunk_get_capacity(const struct su_MemChunk* chunk, su_U64* data_
 {
     su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using empty memory chunk in get capacity func");
-    su_LOG_DUMMY_CHECK_M(chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+    su_LOG_DUMMY_CHECK_M(!chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using freed memory chunk in get capacity func");
     *data_out = chunk->size;
     return su_TRUE;
@@ -352,7 +352,7 @@ su_Bool su_mem_chunk_get_element_size(const struct su_MemChunk* chunk, su_U64* d
 {
     su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using empty memory chunk in get element size func");
-    su_LOG_DUMMY_CHECK_M(chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+    su_LOG_DUMMY_CHECK_M(!chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using freed memory chunk in get element size func");
     *data_out = chunk->element_size_bytes;
     return su_TRUE;
@@ -362,7 +362,7 @@ su_Bool su_mem_chunk_get_element_count(const struct su_MemChunk* chunk, su_U64* 
 {
     su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using empty memory chunk in get element count func");
-    su_LOG_DUMMY_CHECK_M(chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+    su_LOG_DUMMY_CHECK_M(!chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using freed memory chunk in get element count func");
     *data_out = chunk->element_count;
     return su_TRUE;
@@ -370,16 +370,10 @@ su_Bool su_mem_chunk_get_element_count(const struct su_MemChunk* chunk, su_U64* 
 
 su_Bool su_mem_chunk_free(struct su_MemChunk* chunk)
 {
-    if (!chunk) {
-        return su_FALSE;
-    }
-    if (chunk->is_freed) {
-        su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
-                       su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
-                       "Trying to free already freed memory chunk");
-        return su_FALSE;
-    }
-
+    su_LOG_DUMMY_CHECK_M(chunk, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Trying to free a chunk that is NULL");
+    su_LOG_DUMMY_CHECK_M(!chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                         "Trying to free a already freed memory chunk");
     su_U64 suitable_idx = 0;
     su__mem_chunk_check_empty(su__mem_manager.su__freed_chunk_ptr_array, su_MEM_FREED_CHUNK_PTR_ARRAY_COUNT, &suitable_idx);
 
@@ -568,6 +562,9 @@ struct su_MemChunk* su__mem_chunk_find_suitable(const enum su_MemContext ctx,
 {
     // There is no way to split a chunk into a suitable and another unsuitable
     // chunk if there is no space (empty slot) in ptr_array
+    if (su__mem_chunk_is_empty(chunk_ptr_array_inout, chunk_ptr_array_len)) {
+        return NULL;
+    };
     su_U64 empty_slot_idx = 0;
     su_Bool has_empty_slot = su__mem_chunk_check_empty(chunk_ptr_array_inout, chunk_ptr_array_len, &empty_slot_idx);
     if (!has_empty_slot) {
@@ -603,6 +600,16 @@ struct su_MemChunk* su__mem_chunk_find_suitable(const enum su_MemContext ctx,
     }
     suitable_chunk->size = size;
     return suitable_chunk;
+}
+
+su_Bool su__mem_chunk_is_empty(struct su_MemChunk** chunk_ptr_array, const su_U64 chunk_ptr_array_len)
+{
+    for (su_U64 i = 0; i < chunk_ptr_array_len; ++i) {
+        if (chunk_ptr_array[i]) {
+            return su_FALSE;
+        }
+    }
+    return su_TRUE;
 }
 
 su_Bool su__mem_chunk_check_empty(struct su_MemChunk** chunk_ptr_array, const su_U64 chunk_ptr_array_len, su_U64* idx_out)
@@ -667,14 +674,14 @@ void su__mem_chunk_join_all(struct su_MemChunk** mem_chunk_ptr_array, const su_U
     }
 }
 
-su_Bool su__mem_alloc(void* pool, su_U64* capacity_inout, const su_U64 total_size, void* mem_out)
+su_Bool su__mem_alloc(void* pool, su_U64* capacity_inout, const su_U64 total_size, void** mem_out)
 {
     if (pool) {
         return su__mem_alloc_arena(
             pool,
             *capacity_inout,
-            total_size, &mem_out);
+            total_size, mem_out);
     }
 
-    return su__mem_malloc(capacity_inout, total_size, &mem_out);
+    return su__mem_malloc(capacity_inout, total_size, mem_out);
 }
