@@ -76,6 +76,13 @@ struct saci_ShapeDrawCall {
     su_DArray* instance_data_array; // saci_InstanceData
 };
 
+enum saci__UniformDefaults {
+    saci__UNIFORM_DEFAULT_MODEL_MATRIX = 0,
+    saci__UNIFORM_DEFAULT_VIEW_MATRIX = 1,
+    saci__UNIFORM_DEFAULT_PROJ_MATRIX = 2,
+    saci__UNIFORM_DEFAULT_FLAGS = 3,
+};
+
 SA_INTERNAL struct saci_Context {
 
     // Each index is a shape
@@ -211,17 +218,17 @@ void saci_present(void)
                                    (su_Vec3){0.0f, 1.0f, 0.0f});
     sb_renderer_set_uniform(
         saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
-        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[0],
+        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_MODEL_MATRIX],
         &su_IDENTITY_MAT4,
         su_TYPE_MAT4);
     sb_renderer_set_uniform(
         saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
-        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[1],
+        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_VIEW_MATRIX],
         &view,
         su_TYPE_MAT4);
     sb_renderer_set_uniform(
         saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
-        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[2],
+        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_PROJ_MATRIX],
         &proj,
         su_TYPE_MAT4);
     sb_renderer_bind_index_buffer(
@@ -273,13 +280,13 @@ SA_INTERNAL void saci__init_memory(void)
     struct sb_Renderer* instance_rendr = sb_renderer_new(sb_RENDERER_INSTANCE, "instance");
     saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer = instance_rendr;
     saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array = malloc(sizeof(su_S32) * 5);
-    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[0] =
+    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_MODEL_MATRIX] =
         sb_renderer_get_uniform_id(instance_rendr, "u_model_matrix");
-    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[1] =
+    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_VIEW_MATRIX] =
         sb_renderer_get_uniform_id(instance_rendr, "u_view_matrix");
-    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[2] =
+    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_PROJ_MATRIX] =
         sb_renderer_get_uniform_id(instance_rendr, "u_projection_matrix");
-    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[3] =
+    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_FLAGS] =
         sb_renderer_get_uniform_id(instance_rendr, "u_flags");
 
     const su_S32 saci_shape_amount = 10; /// TODO

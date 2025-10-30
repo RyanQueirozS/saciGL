@@ -3,6 +3,7 @@
 
 #include "saci-utils/su-log.h"
 #include "saci-utils/memory/su-memory.h"
+#include "saci-utils/math/su-math-mat.h"
 
 #include "saci-utils/su-types-common.h"
 
@@ -58,6 +59,7 @@ void sb_renderer_instanced_new(struct sb_Renderer* self, su_MemPool* mem, struct
 
     struct sb_InstanceRenderer* rendr = malloc(sizeof(struct sb_InstanceRenderer));
     self->rendr.instance_renderer = rendr;
+    self->rendr.instance_renderer->gfx = *info;
     self->interface = &sc_INSTANCE_RENDERER_DEFAULT_INTERFACE;
 
     sb_renderer_cfg_copy_and_cleanup(&rendr->cfg, cfg, mem);
@@ -177,7 +179,7 @@ SA_INTERNAL su_S32 sb__renderer_instance_get_uniform_id(struct sb_Renderer* self
                                                         const char* const uniform_name)
 {
     return sb_gfx_get_uniform_loc_cstr(
-        &self->rendr.instance_renderer->gfx,
+        &(self->rendr.instance_renderer->gfx),
         uniform_name);
 }
 
@@ -189,14 +191,14 @@ SA_INTERNAL void sb__renderer_instance_set_uniform(struct sb_Renderer* self,
     // TODO check if is needed
     su_DArray** uniform_data_array = &self->rendr.instance_renderer->bound.uniform_data_array;
 
-    if (uniform_id < 0 || uniform_id >= su_TYPE_MAX ||
+    if (uniform_id < 0 ||
         uniform_id == su_TYPE_BUFFERID || uniform_id == su_TYPE_SHADERID ||
         uniform_id == su_TYPE_TEXTUREID) {
         su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_RENDERER,
                        "Trying to bind uniform with invalid ID");
         return;
     }
-    if (su_CAST_M(int)(type) == 0 || su_CAST_M(int)(type) > 26) {
+    if (su_CAST_M(int)(type) == 0 || su_CAST_M(int)(type) > su_TYPE_MAX) {
         su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_RENDERER,
                        "Trying to bind uniform with invalid type");
         return;

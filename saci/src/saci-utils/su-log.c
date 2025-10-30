@@ -14,7 +14,7 @@ SA_INTERNAL void su__log_default_crash_callback(const su_LogError* error);
 SA_INTERNAL void su__log_default_assertion_fail_callback(const su_LogAssertion* assertion);
 SA_INTERNAL void su__log_default_dummy_check_fail_callback(const su_LogDummyCheck* dummy_check);
 
-SA_INTERNAL void su__log_copy_safe(char* dest_out, const char* src, su_U64 max, const char* fallback);
+SA_INTERNAL void su__log_copy_safe_str(char* dest_out, const char* src, su_U64 max, const char* fallback);
 SA_INTERNAL void su__log_call_event_callback(const struct su_LogEvent* event);
 SA_INTERNAL void su__log_push_error_event(su_LogError* err);
 SA_INTERNAL void su__log_push_warning_event(su_LogWarning* war);
@@ -78,8 +78,8 @@ void su_log_error(const enum su_LogType type, const enum su_LogErrorSeverity sev
         .context = context,
         .line = line,
     };
-    su__log_copy_safe(err.file, file, su_LOG_FILE_CHAR_COUNT - 1, "UNKOWN FILE");
-    su__log_copy_safe(err.message, message, su_LOG_MESSAGE_CHAR_COUNT - 1, "NO MESSAGE");
+    su__log_copy_safe_str(err.file, file, su_LOG_FILE_CHAR_COUNT - 1, "UNKOWN FILE");
+    su__log_copy_safe_str(err.message, message, su_LOG_MESSAGE_CHAR_COUNT - 1, "NO MESSAGE");
 
     su__log_push_error_event(&err);
 }
@@ -92,8 +92,8 @@ void su_log_warn(const enum su_LogType type, const enum su_LogWarnSeverity sever
         .context = context,
         .line = line,
     };
-    su__log_copy_safe(warn.file, file, su_LOG_FILE_CHAR_COUNT - 1, "UNKOWN FILE");
-    su__log_copy_safe(warn.message, message, su_LOG_MESSAGE_CHAR_COUNT - 1, "NO MESSAGE");
+    su__log_copy_safe_str(warn.file, file, su_LOG_FILE_CHAR_COUNT - 1, "UNKOWN FILE");
+    su__log_copy_safe_str(warn.message, message, su_LOG_MESSAGE_CHAR_COUNT - 1, "NO MESSAGE");
 
     su__log_push_warning_event(&warn);
 }
@@ -109,8 +109,8 @@ void su_log_info(const enum su_LogType type, const enum su_LogContext context, c
         .line = line,
     };
 
-    su__log_copy_safe(info.file, file, su_LOG_FILE_CHAR_COUNT - 1, "UNKOWN FILE");
-    su__log_copy_safe(info.message, message, su_LOG_MESSAGE_CHAR_COUNT - 1, "NO MESSAGE");
+    su__log_copy_safe_str(info.file, file, su_LOG_FILE_CHAR_COUNT - 1, "UNKOWN FILE");
+    su__log_copy_safe_str(info.message, message, su_LOG_MESSAGE_CHAR_COUNT - 1, "NO MESSAGE");
 
     su__log_push_info_event(&info);
 }
@@ -122,8 +122,8 @@ void su_log_assert(const su_Bool condition, const enum su_LogContext context, co
         .context = context,
         .line = line,
     };
-    su__log_copy_safe(assertion.file, file, su_LOG_FILE_CHAR_COUNT - 1, "UNKOWN FILE");
-    su__log_copy_safe(assertion.message, message, su_LOG_MESSAGE_CHAR_COUNT - 1, "NO MESSAGE");
+    su__log_copy_safe_str(assertion.file, file, su_LOG_FILE_CHAR_COUNT - 1, "UNKOWN FILE");
+    su__log_copy_safe_str(assertion.message, message, su_LOG_MESSAGE_CHAR_COUNT - 1, "NO MESSAGE");
 
     su__log_push_assertion_event(&assertion);
 }
@@ -136,8 +136,8 @@ void su_log_dummy_check(const su_Bool condition, const enum su_LogContext contex
         .line = line,
     };
 
-    su__log_copy_safe(dummy_check.file, file, su_LOG_FILE_CHAR_COUNT - 1, "UNKOWN FILE");
-    su__log_copy_safe(dummy_check.message, message, su_LOG_MESSAGE_CHAR_COUNT - 1, "NO MESSAGE");
+    su__log_copy_safe_str(dummy_check.file, file, su_LOG_FILE_CHAR_COUNT - 1, "UNKOWN FILE");
+    su__log_copy_safe_str(dummy_check.message, message, su_LOG_MESSAGE_CHAR_COUNT - 1, "NO MESSAGE");
 
     su__log_push_dummy_check_event(&dummy_check);
 }
@@ -322,7 +322,7 @@ SA_INTERNAL void su__log_default_dummy_check_fail_callback(const su_LogDummyChec
     printf("DUMMY CHECK FAIL [%s]: %s at %s:%d\n", su_log_context_as_str(dummy_check->context), dummy_check->message, dummy_check->file, dummy_check->line);
 }
 
-SA_INTERNAL void su__log_copy_safe(char* dest_out, const char* src, su_U64 max, const char* fallback)
+SA_INTERNAL void su__log_copy_safe_str(char* dest_out, const char* src, su_U64 max, const char* fallback)
 {
     if (!src) {
         su_U64 str_len = strnlen(fallback, max);

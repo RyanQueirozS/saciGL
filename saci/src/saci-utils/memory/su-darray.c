@@ -39,13 +39,9 @@ SA_API su_DArray* su_darray_create_ctx_void(void* memctx, su_U64 ctx_size, su_U6
     if (!memctx || elem_size == 0 || capacity == 0)
         return NULL;
 
-    printf("oi\n");
-
     su_U64 required_size = sizeof(su_DArray) + (capacity * elem_size);
     if (ctx_size < required_size)
         return NULL;
-
-    printf("bye\n");
 
     su_DArray* arr = (su_DArray*)memctx;
 

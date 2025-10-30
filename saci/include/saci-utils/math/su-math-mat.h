@@ -12,6 +12,13 @@ static const su_Mat4 su_IDENTITY_MAT4 = {
     },
 };
 
+#define su_MAT4_FMT "{{%.3f %.3f %.3f %.3f}, {%.3f %.3f %.3f %.3f}, {%.3f %.3f %.3f %.3f}, {%.3f %.3f %.3f %.3f}}\n"
+#define su_MAT4_ARGS(m)                                                 \
+    (m).data[0][0], (m).data[0][1], (m).data[0][2], (m).data[0][3],     \
+        (m).data[1][0], (m).data[1][1], (m).data[1][2], (m).data[1][3], \
+        (m).data[2][0], (m).data[2][1], (m).data[2][2], (m).data[2][3], \
+        (m).data[3][0], (m).data[3][1], (m).data[3][2], (m).data[3][3]
+
 /**
  * @fn su_mat4_multiply
  * @brief Returns a Multiplied matrix given another
