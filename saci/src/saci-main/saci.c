@@ -91,6 +91,8 @@ SA_INTERNAL struct saci_Context {
     struct saci_Windowing {
         su_Color bg_color;
         su_Window window;
+        int x, y;
+        float width, height;
     } windowing;
 
     struct saci_RendererInfo {
@@ -112,6 +114,7 @@ void saci_init(void)
     }
     sb_dependecies_load();
     sb_gfx_load();
+    sb_gfx_initialize_renderer_debugger();
     su_Vec3 cube_vertices[] = {
         {-1, -1, -1},
         {-1, -1, 1},
@@ -138,7 +141,11 @@ void saci_init(void)
         su_LOG_ASSERT_M(su_darray_push(saci_cube_index, &indices[i]), su_LOG_CONTEXT_CORE_INIT, "Could not initialize cube model mesh indices");
     }
 
-    saci__init_windowing(&saci_context.windowing.window, 1600, 900, "test");
+    saci_context.windowing.width = 800,
+    saci_context.windowing.height = 600;
+    saci__init_windowing(&saci_context.windowing.window,
+                         (int)saci_context.windowing.width,
+                         (int)saci_context.windowing.height, "test");
     saci__init_memory();
 }
 
@@ -212,7 +219,7 @@ void saci_draw_cube(const saci_Cube cube)
 
 void saci_present(void)
 {
-    su_Mat4 proj = su_mat4_perspective(90, 16.0f / 9.0f, 1, 100);
+    su_Mat4 proj = su_mat4_perspective(90, saci_context.windowing.width / saci_context.windowing.height, 1, 100);
     su_Mat4 view = su_mat4_look_at((su_Vec3){0.0f, 2.0f, -20.0f},
                                    (su_Vec3){0.0f, 0.0f, 0.0f},
                                    (su_Vec3){0.0f, 1.0f, 0.0f});

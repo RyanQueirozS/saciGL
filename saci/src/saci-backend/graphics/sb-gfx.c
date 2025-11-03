@@ -1,6 +1,7 @@
 #include "./sb-gfx.h"
 #include "../resources/sb-dependency-internal.h"
 
+#include "saci-utils/math/su-math-mat.h"
 #include "./sb-gl.h"
 
 #include <stdio.h>
@@ -81,7 +82,6 @@ void sb_gfx_create(union sb_GFXInfo* info_out, const struct su_RendererConfig cf
     }
 }
 
-// TODO move to sb-gl
 void sb_gfx_clear_color(const su_Color color)
 {
     sb_gl_clear_color(color);
@@ -178,113 +178,18 @@ void sb_gfx_delete_texture(union sb_Texture texture)
     sb__render_funcs.gl.delete_textures(1, &texture.gl_texture.texture);
 }
 
+void sb_gfx_initialize_renderer_debugger(void)
+{
+    switch (sb__render_api) {
+    case su_RENDERER_API_OPENGL:
+        sb_gl_initialized_debugger();
+        break;
+    case su_RENDERER_API_VULKAN:
+        break;
+    }
+}
+
 /* === Internal helper Implementation === */
-
-#if 0
-SA_INTERNAL void sb_log_opengl_debug_message_callback(su_U32 source, su_U32 type, su_U32 id, su_U32 severity,
-                                                      int length, const char* msg, const void* data) {
-    (void)length, (void)data;
-    char* _source;
-    char* _type;
-    char* _severity;
-
-    switch (source) {
-    case sb_GL_DEBUG_SOURCE_API:
-        _source = "API";
-        break;
-
-    case sb_GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-        _source = "WINDOW SYSTEM";
-        break;
-
-    case sb_GL_DEBUG_SOURCE_SHADER_COMPILER:
-        _source = "SHADER COMPILER";
-        break;
-
-    case sb_GL_DEBUG_SOURCE_THIRD_PARTY:
-        _source = "THIRD PARTY";
-        break;
-
-    case sb_GL_DEBUG_SOURCE_APPLICATION:
-        _source = "APPLICATION";
-        break;
-
-    case sb_GL_DEBUG_SOURCE_OTHER:
-    default:
-        _source = "UNKNOWN";
-        break;
-    }
-
-    switch (type) {
-    case sb_GL_DEBUG_TYPE_ERROR:
-        _type = "ERROR";
-        break;
-
-    case sb_GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-        _type = "DEPRECATED BEHAVIOR";
-        break;
-
-    case sb_GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-        _type = "UDEFINED BEHAVIOR";
-        break;
-
-    case sb_GL_DEBUG_TYPE_PORTABILITY:
-        _type = "PORTABILITY";
-        break;
-
-    case sb_GL_DEBUG_TYPE_PERFORMANCE:
-        _type = "PERFORMANCE";
-        break;
-
-    case sb_GL_DEBUG_TYPE_OTHER:
-        _type = "OTHER";
-        break;
-
-    case sb_GL_DEBUG_TYPE_MARKER:
-        _type = "MARKER";
-        break;
-
-    default:
-        _type = "UNKNOWN";
-        break;
-    }
-
-    switch (severity) {
-    case sb_GL_DEBUG_SEVERITY_HIGH:
-        _severity = "HIGH";
-        break;
-
-    case sb_GL_DEBUG_SEVERITY_MEDIUM:
-        _severity = "MEDIUM";
-        break;
-
-    case sb_GL_DEBUG_SEVERITY_LOW:
-        _severity = "LOW";
-        break;
-
-    case sb_GL_DEBUG_SEVERITY_NOTIFICATION:
-        _severity = "NOTIFICATION";
-        break;
-
-    default:
-        _severity = "UNKNOWN";
-        break;
-    }
-
-    printf("%d: %s of %s severity, raised from %s: %s\n", id, _type, _severity, _source, msg);
-}
-#endif
-
-// this should be in sb-gl.c
-#if 0
-SA_INTERNAL void sb__gl_initialize_debugger(void) {
-    render_funcs.gl.enable(sb_GL_DEBUG_OUTPUT);
-    render_funcs.gl.enable(sb_GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    render_funcs.gl.enable(sb_GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    render_funcs.gl.debug_message_callback((void*)sb_log_opengl_debug_message_callback, NULL);
-    su_LOG_INFO_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_LIB_OPENGL, "Loaded opengl debug message callback");
-}
-#endif
 
 SA_INTERNAL void sb__gfx_gl_create_main_buffers(
     union sb_GFXInfo* info_out,
@@ -325,6 +230,7 @@ SA_INTERNAL void sb__gfx_gl_setup_vertex_attributes(
 }
 
 SA_INTERNAL void sb__gfx_gl_setup_instance_buffers(
+    union sb_GFXInfo* info_out,
     const struct su_RendererConfig cfg)
 {
     if (!cfg.instance_data.buffer_array_length)
@@ -333,12 +239,11 @@ SA_INTERNAL void sb__gfx_gl_setup_instance_buffers(
     for (su_U64 buf_i = 0; buf_i < cfg.instance_data.buffer_array_length; ++buf_i) {
         const struct su_RendererCfgInstanceBuffer buffer_cfg = cfg.instance_data.buffer_array[buf_i];
 
-        su_BufferId vbo = 0;
-        sb__render_funcs.gl.gen_buffers(1, &vbo);
-        sb__render_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo);
+        sb__render_funcs.gl.gen_buffers(1, &info_out->gl_data.instance_buffer);
+        sb__render_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, info_out->gl_data.instance_buffer);
         sb__render_funcs.gl.buffer_data(
             sb_GL_ARRAY_BUFFER,
-            80,
+            (su_S64)buffer_cfg.size_byte_internal,
             NULL,
             sb_GL_DYNAMIC_DRAW);
 
@@ -383,15 +288,12 @@ SA_INTERNAL void sb__gfx_gl_init_info(
 
     sb__gfx_gl_create_main_buffers(info_out, cfg);
     sb__gfx_gl_setup_vertex_attributes(cfg, info_out->gl_data.vao, info_out->gl_data.vbo);
-    sb__gfx_gl_setup_instance_buffers(cfg);
+    sb__gfx_gl_setup_instance_buffers(info_out, cfg);
 }
 
 SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* data)
 {
     sb__render_funcs.gl.enable(sb_GL_DEPTH_TEST);
-    // su_DUMMY_CHECK_M(su_darray_length(data->instance_array_array) ==
-    //                      su_darray_length(data->instance_location_array),
-    //                  "There needs to be the same amount of instance and instance locations per draw call");
 
     su_U64 instance_count = 0;
     static struct {
@@ -413,6 +315,11 @@ SA_INTERNAL void sb__gfx_gl_draw(const union sb_GFXInfo* gfx_info, const struct 
         instance_count = su_darray_length(data->instance_data_array);
         for (su_U64 i = 0; i < instance_count; ++i) {
             const struct sb_GFXInstanceData* instance_buffer = su_darray_get(data->instance_data_array, i);
+            struct {
+                su_Mat4 mat;
+                su_Color col;
+            }* daowid = instance_buffer->instance_data_structure;
+            printf("s:%d\tl:%d\t" su_MAT4_FMT "\n", instance_buffer->data_size, instance_buffer->location, su_MAT4_FMT_ARGS(daowid->mat));
             sb__render_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, gfx_info->gl_data.instance_buffer);
             sb__render_funcs.gl.buffer_subdata(sb_GL_ARRAY_BUFFER, 0,
                                                instance_buffer->data_size,

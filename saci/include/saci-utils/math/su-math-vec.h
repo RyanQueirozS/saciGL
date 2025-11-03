@@ -4,6 +4,9 @@
 #include "../su-general.h"
 #include "./su-math-types.h"
 
+#define su_VEC3_FMT "x:%f y:%f z:%f"
+#define su_VEC3_FMT_ARGS(v) (v).x, (v).y, (v).z
+
 /**
  * @fn su_vec3_subtract
  * @brief Returns a new vector from a vector subtracted from another

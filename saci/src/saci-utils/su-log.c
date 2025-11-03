@@ -41,7 +41,6 @@ SA_INTERNAL struct su_LogConfig {
     su_U64 info_count;
     su_U64 assertion_count;
     su_U64 dummy_check_count;
-
 } su__log_config = {
     .event_callback = su__log_default_event_callback,
     .crash_callback = su__log_default_crash_callback,
@@ -100,9 +99,6 @@ void su_log_warn(const enum su_LogType type, const enum su_LogWarnSeverity sever
 
 void su_log_info(const enum su_LogType type, const enum su_LogContext context, const char* message, const char* file, const int line)
 {
-    if (type > su__log_type) {
-        return;
-    }
     su_LogInfo info = {
         .type = type,
         .context = context,

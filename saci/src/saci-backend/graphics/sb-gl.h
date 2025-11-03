@@ -79,6 +79,8 @@ SA_API void sb_gl_clear_color(const su_Color color);
 SA_API void sb_gl_clear_depth_buffer(void);
 // TODO bind program
 
+SA_API void sb_gl_initialized_debugger(void);
+
 /* === Shader === */
 
 SA_API su_ShaderId sb_gl_shader_compile_shader_vert(const char* source);

@@ -8,11 +8,108 @@
 
 #define GL_LINK_STATUS 0x8B82
 
+/* === Helper === */
+
+void sb__opengl_debug_message_callback(su_U32 source, su_U32 type, su_U32 id, su_U32 severity,
+                                       int length, const char* msg, const void* data)
+{
+    (void)length, (void)data;
+    char* _source;
+    char* _type;
+    char* _severity;
+
+    switch (source) {
+    case sb_GL_DEBUG_SOURCE_API:
+        _source = "API";
+        break;
+
+    case sb_GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+        _source = "WINDOW SYSTEM";
+        break;
+
+    case sb_GL_DEBUG_SOURCE_SHADER_COMPILER:
+        _source = "SHADER COMPILER";
+        break;
+
+    case sb_GL_DEBUG_SOURCE_THIRD_PARTY:
+        _source = "THIRD PARTY";
+        break;
+
+    case sb_GL_DEBUG_SOURCE_APPLICATION:
+        _source = "APPLICATION";
+        break;
+
+    case sb_GL_DEBUG_SOURCE_OTHER:
+    default:
+        _source = "UNKNOWN";
+        break;
+    }
+
+    switch (type) {
+    case sb_GL_DEBUG_TYPE_ERROR:
+        _type = "ERROR";
+        break;
+
+    case sb_GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+        _type = "DEPRECATED BEHAVIOR";
+        break;
+
+    case sb_GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+        _type = "UDEFINED BEHAVIOR";
+        break;
+
+    case sb_GL_DEBUG_TYPE_PORTABILITY:
+        _type = "PORTABILITY";
+        break;
+
+    case sb_GL_DEBUG_TYPE_PERFORMANCE:
+        _type = "PERFORMANCE";
+        break;
+
+    case sb_GL_DEBUG_TYPE_OTHER:
+        _type = "OTHER";
+        break;
+
+    case sb_GL_DEBUG_TYPE_MARKER:
+        _type = "MARKER";
+        break;
+
+    default:
+        _type = "UNKNOWN";
+        break;
+    }
+
+    switch (severity) {
+    case sb_GL_DEBUG_SEVERITY_HIGH:
+        _severity = "HIGH";
+        break;
+
+    case sb_GL_DEBUG_SEVERITY_MEDIUM:
+        _severity = "MEDIUM";
+        break;
+
+    case sb_GL_DEBUG_SEVERITY_LOW:
+        _severity = "LOW";
+        break;
+
+    case sb_GL_DEBUG_SEVERITY_NOTIFICATION:
+        _severity = "NOTIFICATION";
+        break;
+
+    default:
+        _severity = "UNKNOWN";
+        break;
+    }
+
+    printf("%d: %s of %s severity, raised from %s: %s\n", id, _type, _severity, _source, msg);
+}
+
 /* === OpenGL === */
 
 SA_INTERNAL struct sb_RenderApiFuncs gl_funcs;
 
-SA_API su_U32 sb_gl_type_to_gl(const su_DataType data_type) {
+SA_API su_U32 sb_gl_type_to_gl(const su_DataType data_type)
+{
     switch (data_type) {
     case su_TYPE_U8:
         return sb_GL_UNSIGNED_BYTE;
@@ -62,11 +159,13 @@ SA_API su_U32 sb_gl_type_to_gl(const su_DataType data_type) {
     }
 }
 
-void sb_gl_load(void) {
+void sb_gl_load(void)
+{
     gl_funcs = sb_dependencies_get_render_api_funcs();
 }
 
-SA_API void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, const void* value) {
+SA_API void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, const void* value)
+{
     switch (type) {
     case su_TYPE_U8:
     case su_TYPE_U16:
@@ -150,7 +249,8 @@ SA_API void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, con
     }
 }
 
-SA_API void sb_gl_resize_vertex_buffer(su_U32 vao_id, su_U32 vbo_id, su_U64 new_size) {
+SA_API void sb_gl_resize_vertex_buffer(su_U32 vao_id, su_U32 vbo_id, su_U64 new_size)
+{
     gl_funcs.gl.bind_vertex_array(vao_id);
 
     gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo_id);
@@ -160,7 +260,8 @@ SA_API void sb_gl_resize_vertex_buffer(su_U32 vao_id, su_U32 vbo_id, su_U64 new_
     gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, 0);
 }
 
-SA_API su_U32 sb_gl_create_index_buffer_dynamic(su_U64 indice_amount, su_U32* indices) {
+SA_API su_U32 sb_gl_create_index_buffer_dynamic(su_U64 indice_amount, su_U32* indices)
+{
     su_U32 ibo;
     gl_funcs.gl.gen_buffers(1, &ibo);
     gl_funcs.gl.bind_buffer(sb_GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -170,7 +271,8 @@ SA_API su_U32 sb_gl_create_index_buffer_dynamic(su_U64 indice_amount, su_U32* in
     return ibo;
 }
 
-SA_API su_U32 sb_gl_create_index_buffer_static(su_U64 indice_amount, su_U32* indices) {
+SA_API su_U32 sb_gl_create_index_buffer_static(su_U64 indice_amount, su_U32* indices)
+{
     su_U32 ibo;
     gl_funcs.gl.gen_buffers(1, &ibo);
     gl_funcs.gl.bind_buffer(sb_GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -180,19 +282,23 @@ SA_API su_U32 sb_gl_create_index_buffer_static(su_U64 indice_amount, su_U32* ind
     return ibo;
 }
 
-SA_API void sb_gl_create_vertex_array(su_U64 amount, su_U32* arrays) {
+SA_API void sb_gl_create_vertex_array(su_U64 amount, su_U32* arrays)
+{
     gl_funcs.gl.gen_vertex_arrays(su_CAST_M(int)(amount), arrays);
 }
 
-SA_API void sb_gl_bind_vertex_array(su_U32 array) {
+SA_API void sb_gl_bind_vertex_array(su_U32 array)
+{
     gl_funcs.gl.bind_vertex_array(array);
 }
 
-SA_API void sb_gl_bind_vertex_buffer(su_U32 vbo) {
+SA_API void sb_gl_bind_vertex_buffer(su_U32 vbo)
+{
     gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo);
 }
 
-SA_API su_U32 sb_gl_create_vertex_buffer_dynamic(su_U64 size, const void* data) {
+SA_API su_U32 sb_gl_create_vertex_buffer_dynamic(su_U64 size, const void* data)
+{
     su_U32 vbo = 0;
     gl_funcs.gl.gen_buffers(1, &vbo);
     gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo);
@@ -201,7 +307,8 @@ SA_API su_U32 sb_gl_create_vertex_buffer_dynamic(su_U64 size, const void* data) 
     return vbo;
 }
 
-SA_API su_U32 sb_gl_create_vertex_buffer_static(su_U64 size, const void* data) {
+SA_API su_U32 sb_gl_create_vertex_buffer_static(su_U64 size, const void* data)
+{
     su_U32 vbo = 0;
     gl_funcs.gl.gen_buffers(1, &vbo);
     gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo);
@@ -210,15 +317,18 @@ SA_API su_U32 sb_gl_create_vertex_buffer_static(su_U64 size, const void* data) {
     return vbo;
 }
 
-SA_API void sb_gl_set_vertex_attrib_pointer(su_U32 index, int size, su_U32 type, su_Bool normalized, su_U64 stride, void* ptr) {
+SA_API void sb_gl_set_vertex_attrib_pointer(su_U32 index, int size, su_U32 type, su_Bool normalized, su_U64 stride, void* ptr)
+{
     gl_funcs.gl.vertex_attrib_pointer(index, size, type, normalized, su_CAST_M(int)(stride), ptr);
 }
 
-void sb_gl_vertex_attrib_divisor(su_U32 id, su_U32 div) {
+void sb_gl_vertex_attrib_divisor(su_U32 id, su_U32 div)
+{
     gl_funcs.gl.vertex_attrib_divisor(id, div);
 }
 
-void sb_gl_enable_vertex_attrib_array(su_U32 id) {
+void sb_gl_enable_vertex_attrib_array(su_U32 id)
+{
     gl_funcs.gl.enable_vertex_attrib_array(id);
 }
 
@@ -226,19 +336,23 @@ void sb_gl_enable_vertex_attrib_array(su_U32 id) {
 
 SA_INTERNAL su_ShaderId sb__shader_compile(const char* shader_source, su_U32 shader_type);
 
-su_ShaderId sb_gl_shader_compile_shader_vert(const char* source) {
+su_ShaderId sb_gl_shader_compile_shader_vert(const char* source)
+{
     return sb__shader_compile(source, sb_GL_VERTEX_SHADER);
 }
 
-su_ShaderId sb_gl_shader_compile_shader_frag(const char* source) {
+su_ShaderId sb_gl_shader_compile_shader_frag(const char* source)
+{
     return sb__shader_compile(source, sb_GL_FRAGMENT_SHADER);
 }
 
-su_ShaderId sb_gl_shader_compile_shader_geom(const char* source) {
+su_ShaderId sb_gl_shader_compile_shader_geom(const char* source)
+{
     return sb__shader_compile(source, sb_GL_GEOMETRY_SHADER);
 }
 
-su_ShaderId sb_gl_shader_create_shader_program(su_ShaderId vshader, su_ShaderId fshader) {
+su_ShaderId sb_gl_shader_create_shader_program(su_ShaderId vshader, su_ShaderId fshader)
+{
     su_ShaderId program_id = gl_funcs.gl.create_program();
     gl_funcs.gl.attach_shader(program_id, vshader);
     gl_funcs.gl.attach_shader(program_id, fshader);
@@ -263,7 +377,8 @@ su_ShaderId sb_gl_shader_create_shader_program(su_ShaderId vshader, su_ShaderId 
     return program_id;
 }
 
-su_ShaderId sb_gl_shader_create_shader_program_geom(su_ShaderId vshader, su_ShaderId fshader, su_ShaderId gshader) {
+su_ShaderId sb_gl_shader_create_shader_program_geom(su_ShaderId vshader, su_ShaderId fshader, su_ShaderId gshader)
+{
     su_ShaderId program_id = gl_funcs.gl.create_program();
     gl_funcs.gl.attach_shader(program_id, vshader);
     gl_funcs.gl.attach_shader(program_id, fshader);
@@ -291,22 +406,35 @@ su_ShaderId sb_gl_shader_create_shader_program_geom(su_ShaderId vshader, su_Shad
     return program_id;
 }
 
-SA_API su_S32 sb_gl_uniform_location(su_ShaderId program_id, const char* const name) {
+SA_API su_S32 sb_gl_uniform_location(su_ShaderId program_id, const char* const name)
+{
     return gl_funcs.gl.get_uniform_location(program_id, name);
 }
 
-void sb_gl_clear_color(const su_Color color) {
+void sb_gl_clear_color(const su_Color color)
+{
     gl_funcs.gl.clear_color(color.r, color.g, color.b, color.a);
     gl_funcs.gl.clear(sb_GL_COLOR_BUFFER_BIT);
 }
 
-void sb_gl_clear_depth_buffer(void) {
+void sb_gl_clear_depth_buffer(void)
+{
     gl_funcs.gl.clear(sb_GL_DEPTH_BUFFER_BIT);
+}
+
+void sb_gl_initialized_debugger(void)
+{
+    gl_funcs.gl.enable(sb_GL_DEBUG_OUTPUT);
+    gl_funcs.gl.enable(sb_GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    gl_funcs.gl.enable(sb_GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    gl_funcs.gl.debug_message_callback((void*)sb__opengl_debug_message_callback, NULL);
+    su_LOG_INFO_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_LIB_OPENGL, "Loaded opengl debug message callback");
 }
 
 /* === GL Helper ===  */
 
-SA_INTERNAL su_ShaderId sb__shader_compile(const char* shader_source, su_U32 shader_type) {
+SA_INTERNAL su_ShaderId sb__shader_compile(const char* shader_source, su_U32 shader_type)
+{
     su_ShaderId shader_id = gl_funcs.gl.create_shader(shader_type);
 
     gl_funcs.gl.shader_source(shader_id, 1, &shader_source, NULL);

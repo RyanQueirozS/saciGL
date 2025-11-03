@@ -5,9 +5,9 @@
 #include "./su-general.h"
 
 enum su_LogType {
-    su_LOG_TYPE_DEV = -1,  // used ONLY for developers of the SACI lib
-    su_LOG_TYPE_USER = -0, // used for the users of the SACI lib
-    su_LOG_TYPE_PROD = 1,  // used for products using saci
+    su_LOG_TYPE_DEV = -1, // used ONLY for developers of the SACI lib
+    su_LOG_TYPE_USER = 0, // used for the users of the SACI lib
+    su_LOG_TYPE_PROD = 1, // used for products using saci
 };
 
 enum su_LogErrorSeverity {
@@ -138,11 +138,11 @@ SA_API const su_LogError* su_log_get_last_error(void);
 typedef struct su_LogBuffer su_LogBuffer; // Contains all of the above in the given counts
 
 typedef enum {
-    su_LOG_EVENT_ERROR,
-    su_LOG_EVENT_WARNING,
-    su_LOG_EVENT_INFO,
-    su_LOG_EVENT_ASSERTION,
-    su_LOG_EVENT_DUMMY_CHECK
+    su_LOG_EVENT_ERROR = 0,
+    su_LOG_EVENT_WARNING = 1,
+    su_LOG_EVENT_INFO = 2,
+    su_LOG_EVENT_ASSERTION = 3,
+    su_LOG_EVENT_DUMMY_CHECK = 4,
 } su_LogEventType;
 
 struct su_LogEvent {
@@ -181,10 +181,8 @@ SA_API void su_log_dummy_check(const su_Bool condition, const enum su_LogContext
     su_log_error(type, severity, context, message, __FILE__, __LINE__)
 
 // The do while loop crashes if the severity is "su_LOG_ERROR_SEVERITY_CRASH"
-#define su_LOG_WARN_M(type, severity, context, message)                    \
-    do {                                                                   \
-        su_log_warn(type, severity, context, message, __FILE__, __LINE__); \
-    } while (0)
+#define su_LOG_WARN_M(type, severity, context, message) \
+    su_log_warn(type, severity, context, message, __FILE__, __LINE__);
 
 #define su_LOG_INFO_M(type, context, message) \
     su_log_info(type, context, message, __FILE__, __LINE__)

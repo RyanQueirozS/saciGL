@@ -110,4 +110,6 @@ void sb_gfx_get_texture_size(union sb_Texture texture_id, int* width_out, int* h
 void sb_gfx_generate_mipmap(union sb_Texture texture_id);
 void sb_gfx_delete_texture(union sb_Texture texture_id);
 
+void sb_gfx_initialize_renderer_debugger(void);
+
 #endif // SACI_BACKEND_SB_GFX_H
