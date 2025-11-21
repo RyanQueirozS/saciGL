@@ -1,6 +1,6 @@
 #include "saci-main/saci.h"
 #include "saci-utils/math/su-math-color.h"
-#include "saci-utils/math/su-math-general.h"
+
 #include "saci-utils/math/su-math-vec.h"
 
 static su_Vec3 rotation = {0.02, 0.02, 0.02};
@@ -27,17 +27,6 @@ static saci_Cube cube_big_orbiting = {
     .rotation = (su_Vec3){0, 0, 0},
     .color = (su_Color){0, 1, 0, 1},
 };
-
-void Draw_Fps(void) {
-#if 0
-    double fps = saci_Get_Fps();
-    char formatted_str[50]; 
-
-    snprintf(formatted_str, sizeof(formatted_str), "FPS: %.6f", fps);
-
-    saci_Draw_Text(font_id, formatted_str);
-#endif
-}
 
 void loop_func(double delta) {
     saci_begin();

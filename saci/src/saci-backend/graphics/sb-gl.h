@@ -5,9 +5,7 @@
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-types-common.h"
-#include "saci-utils/su-log.h"
 
-#include "../resources/sb-dependency-internal.h"
 #include "saci-utils/math/su-math-types.h"
 
 enum sb_GLConstants {
@@ -62,6 +60,7 @@ enum sb_GLConstants {
 SA_API su_U32 sb_gl_type_to_gl(const su_DataType data_type);
 
 SA_API void sb_gl_load(void);
+SA_API void sb_gl_enable(su_U32);
 SA_API void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, const void* value);
 SA_API su_U32 sb_gl_create_index_buffer_dynamic(su_U64 indice_amount, su_U32* indices);
 SA_API su_U32 sb_gl_create_index_buffer_static(su_U64 indice_amount, su_U32* indices);

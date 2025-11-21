@@ -8,6 +8,9 @@
 #include "saci-utils/su-types-common.h"
 
 #include "saci-utils/math/su-math-mat.h"
+#include <saci-backend/graphics/sb-gfx.h>
+#include <saci-utils/math/su-math-types.h>
+#include <saci-utils/memory/su-darray.h>
 #include <stdio.h>
 
 /* --- LOCAL --- */

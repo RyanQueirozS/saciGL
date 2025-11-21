@@ -18,7 +18,7 @@
 #define SU_MEM_GB (1024ULL * SU_MEM_MB)
 #define SU_MEM_TB (1024ULL * SU_MEM_GB)
 
-#define su_MEM_CONTEXT_COUNT 2
+#define su_MEM_CONTEXT_COUNT 3
 
 #define su_MEM_FREED_POOL_PTR_ARRAY_COUNT 1024
 #define su_MEM_FREED_CHUNK_PTR_ARRAY_COUNT 1024
@@ -92,6 +92,7 @@ SA_STATIC struct {
     .default_sizes = {
         2 * SU_MEM_KB,
         1 * SU_MEM_GB,
+        2 * SU_MEM_KB,
     },
 };
 
@@ -131,6 +132,8 @@ struct su_MemChunk* su_mem_alloc_chunk_size(const enum su_MemContext ctx,
         return suitable_chunk;
     }
     void* memctx = NULL;
+    su__mem_alloc(su__mem_manager.context_array[ctx].pool, &su__mem_manager.context_array[ctx].capacity,
+                  total_size, &memctx);
     if (!memctx) {
         su_LOG_ERROR_M(
             su_LOG_TYPE_USER,
@@ -244,14 +247,14 @@ su_Bool su_mem_chunk_set(struct su_MemChunk* chunk, su_U64 idx, void* data, su_U
                          "Using empty memory chunk in set func");
     su_LOG_DUMMY_CHECK_M(!chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using freed memory chunk in set func");
-    if (chunk->element_count < idx) {
+    if (chunk->element_count < idx && chunk->element_count != 0) {
         su_LOG_ERRORF_M(
             su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
             su_LOG_CONTEXT_CORE_MEMORY,
             "Could not set data in chunk, idx is %lu and there are %lu elements",
             chunk->element_count, idx);
     }
-    if (chunk->element_size_bytes != data_size) {
+    if (chunk->element_size_bytes != data_size && chunk->element_size_bytes != 0) {
         su_LOG_ERRORF_M(
             su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
             su_LOG_CONTEXT_CORE_MEMORY,
@@ -263,7 +266,7 @@ su_Bool su_mem_chunk_set(struct su_MemChunk* chunk, su_U64 idx, void* data, su_U
     const su_U64 dest_offset = chunk->element_size_bytes * idx;
     // We use the chunk->element_size_bytes as the copy length to avoid overflow
     su_mem_safe_copy(chunk->data, dest_capacity, dest_offset, data, 0, data_size,
-                     chunk->element_size_bytes);
+                     chunk->element_size_bytes ? chunk->element_size_bytes : data_size);
     return su_TRUE;
 }
 
@@ -300,7 +303,7 @@ void* su_mem_chunk_get_ptr(struct su_MemChunk* chunk, su_U64 idx)
                          "Using empty memory chunk in get ptr func");
     su_LOG_DUMMY_CHECK_M(!chunk->is_freed, su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                          "Using freed memory chunk in get ptr func");
-    if (idx >= chunk->element_count) {
+    if (idx >= chunk->element_count && chunk->element_count) {
         su_LOG_ERRORF_M(
             su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
             su_LOG_CONTEXT_CORE_MEMORY,

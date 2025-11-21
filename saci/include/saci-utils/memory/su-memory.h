@@ -6,6 +6,7 @@
 enum su_MemContext {
     su_MEM_CONTEXT_CONFIG,
     su_MEM_CONTEXT_RENDERER,
+    su_MEM_CONTEXT_GFX,
 };
 
 typedef struct su_MemChunk su_MemChunk;

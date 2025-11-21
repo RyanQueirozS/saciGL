@@ -4,7 +4,9 @@
 #include "saci-backend/graphics/sb-gl.h"
 
 #include "saci-backend/resources/sb-dependency-internal.h"
+#include "saci-utils/su-log.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #define GL_LINK_STATUS 0x8B82
 
@@ -164,6 +166,11 @@ void sb_gl_load(void)
     gl_funcs = sb_dependencies_get_render_api_funcs();
 }
 
+SA_API void sb_gl_enable(su_U32 flag)
+{
+    gl_funcs.gl.enable(flag);
+}
+
 SA_API void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, const void* value)
 {
     switch (type) {
@@ -319,7 +326,7 @@ SA_API su_U32 sb_gl_create_vertex_buffer_static(su_U64 size, const void* data)
 
 SA_API void sb_gl_set_vertex_attrib_pointer(su_U32 index, int size, su_U32 type, su_Bool normalized, su_U64 stride, void* ptr)
 {
-    gl_funcs.gl.vertex_attrib_pointer(index, size, type, normalized, su_CAST_M(int)(stride), ptr);
+    gl_funcs.gl.vertex_attrib_pointer(index, size / sizeof(float), type, normalized, su_CAST_M(int)(stride), ptr);
 }
 
 void sb_gl_vertex_attrib_divisor(su_U32 id, su_U32 div)

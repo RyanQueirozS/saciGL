@@ -12,7 +12,7 @@ static const su_Mat4 su_IDENTITY_MAT4 = {
     },
 };
 
-#define su_MAT4_FMT "{{%.3f %.3f %.3f %.3f}, {%.3f %.3f %.3f %.3f}, {%.3f %.3f %.3f %.3f}, {%.3f %.3f %.3f %.3f}}\n"
+#define su_MAT4_FMT "{{%.3f %.3f %.3f %.3f}, {%.3f %.3f %.3f %.3f}, {%.3f %.3f %.3f %.3f}, {%.3f %.3f %.3f %.3f}}"
 #define su_MAT4_FMT_ARGS(m)                                             \
     (m).data[0][0], (m).data[0][1], (m).data[0][2], (m).data[0][3],     \
         (m).data[1][0], (m).data[1][1], (m).data[1][2], (m).data[1][3], \
