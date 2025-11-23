@@ -34,8 +34,6 @@ su_DArray* saci_cube_pos;
 
 su_DArray* saci_cube_index;
 
-SA_INTERNAL_INLINE su_Bool saci__has_flag(su_U64 flag_var, su_U64 flag_to_check);
-
 SA_INTERNAL double saci__get_delta(void);
 
 SA_INTERNAL void saci__init_windowing(
@@ -149,12 +147,12 @@ void saci_init(void)
     saci__init_memory();
 }
 
-void saci_enable(saci_RenderingFlags enable_flag, su_Bool enable)
+void saci_enable(saci_RenderingFlags render_flag, su_Bool enable)
 {
     if (enable) {
-        saci_context.enable_flags |= enable_flag;
+        saci_context.enable_flags |= render_flag;
     } else {
-        saci_context.enable_flags &= ~enable_flag;
+        saci_context.enable_flags &= ~render_flag;
     }
 }
 
@@ -198,9 +196,9 @@ void saci_draw_cube(const saci_Cube cube)
             cube.rotation,
             cube.dimentions,
         },
-        saci_context.enable_flags);
+        cube.flags);
     saci_ShapeInstance instance = {
-        .color = cube.color,
+        .color = cube.fill_color,
         .transform = transform,
     };
     saci_InstanceData instance_data = {
@@ -322,7 +320,7 @@ SA_INTERNAL su_Mat4 saci__mat4_create_transform_from_flag(
     su_U64 flag_var)
 {
     su_Mat4 transform_mat = su_IDENTITY_MAT4;
-    if (!saci__has_flag(flag_var, saci_RENDERING_FLAG_ROTATION_RTS)) { // Most likelly
+    if (!su_HAS_FLAG(flag_var, saci_MODEL_FLAG_ROTATION_RTS)) { // Most likelly
         transform_mat = su_mat4_model_matrix_trs(
             transform.pos,
             transform.rotation,
@@ -363,11 +361,6 @@ SA_INTERNAL void saci__handle_events(void)
            sizeof(saci_context.event.controller.button_was_released));
 
     sb_event_poll();
-}
-
-SA_INTERNAL_INLINE su_Bool saci__has_flag(su_U64 flag_var, su_U64 flag_to_check)
-{
-    return ((flag_var & flag_to_check) == flag_to_check);
 }
 
 SA_INTERNAL double saci__get_delta(void)

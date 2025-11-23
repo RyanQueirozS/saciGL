@@ -117,4 +117,12 @@
 
 #define su_TEXTURE_INVALID (UINT32_MAX)
 
+#define su_HAS_FLAG(var, flag) (((var) & (flag)) == (flag))
+
+#define su_ADD_FLAG(var, flag) ((var) |= (flag))
+
+#define su_REMOVE_FLAG(var, flag) ((var) &= ~(flag))
+
+#define su_TOGGLE_FLAG(var, flag) ((var) ^= (flag))
+
 #endif // SACI_UTILS_SU_GENERAL_H

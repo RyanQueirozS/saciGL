@@ -5,18 +5,23 @@
 
 #include "saci-utils/su-general.h"
 
+typedef enum {
+    saci_MODEL_FLAG_ROTATION_RTS = 1U << 0,
+} saci_ModelFlag;
+
+typedef enum {
+    saci_RENDERING_FLAG_BLEND = 1U << 0,
+} saci_RenderingFlags;
+
 typedef struct saci_Cube {
     su_Vec3 pos_center;
     su_Vec3 dimentions;
     su_Vec3 rotation;
-    su_Color color;
+    su_Color fill_color;
+    saci_ModelFlag flags;
 } saci_Cube;
 
 typedef void (*saci_LoopFunc)(const double delta);
-
-typedef enum {
-    saci_RENDERING_FLAG_ROTATION_RTS = 1, // Default is TRS
-} saci_RenderingFlags;
 
 typedef struct {
     struct {
