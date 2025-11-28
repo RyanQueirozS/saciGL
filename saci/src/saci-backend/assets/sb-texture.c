@@ -1,3 +1,4 @@
+// TODO change this whole's file location
 #include "saci-backend/assets/sb-texture.h"
 
 #include "saci-utils/su-log.h"
@@ -30,7 +31,8 @@ SA_INTERNAL su_U32 sb__texture_determine_format(int nr_channels);
 
 /* === Header impl === */
 
-void sb_texture_load_data(const char* path, su_Bool flip_img, int* width_out, int* height_out, int* nr_channels_out, su_U8** data_out) {
+void sb_texture_load_data(const char* path, su_Bool flip_img, int* width_out, int* height_out, int* nr_channels_out, su_U8** data_out)
+{
     // NOTE: flipImg is used with a `!` operator because stbi automatically flips the image
     stbi_set_flip_vertically_on_load(!flip_img);
     *data_out = stbi_load(path, width_out, height_out, nr_channels_out, 0);
@@ -40,7 +42,8 @@ void sb_texture_load_data(const char* path, su_Bool flip_img, int* width_out, in
     }
 }
 
-union sb_Texture sb_texture_load(const char* path, su_Bool flip_img) {
+union sb_Texture sb_texture_load(const char* path, su_Bool flip_img)
+{
     int width = 0;
     int height = 0;
     int nr_channels = 0;
@@ -66,7 +69,7 @@ union sb_Texture sb_texture_load(const char* path, su_Bool flip_img) {
 
     sb_gfx_upload_texture_2d(tex, su_CAST_M(int)(format), width, height, data);
 
-    sb_gfx_get_texture_size(tex, &width, &height);
+    sb_gfx_get_texture_size_2d(tex, &width, &height);
 
     if (width <= 0 || height <= 0) {
         su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM, su_LOG_CONTEXT_TEXTURE_LOADING,
@@ -75,21 +78,23 @@ union sb_Texture sb_texture_load(const char* path, su_Bool flip_img) {
         return tex;
     }
 
-    sb_gfx_generate_mipmap(tex);
+    sb_gfx_generate_mipmap_2d(tex);
 
     free(data);
     su_LOG_INFO_M(su_LOG_TYPE_PROD, su_LOG_CONTEXT_TEXTURE_LOADING, "Loaded texture");
     return tex;
 }
 
-void sb_texture_free(union sb_Texture texture) {
+void sb_texture_free(union sb_Texture texture)
+{
     su_LOG_INFO_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_TEXTURE_LOADING, "Freed texture");
     sb_gfx_delete_texture(texture);
 }
 
 /* === Helper Func impl === */
 
-su_U32 sb__texture_determine_format(int nr_channels) {
+su_U32 sb__texture_determine_format(int nr_channels)
+{
     if (nr_channels == 3) {
         return SU_GL_RGB;
     }

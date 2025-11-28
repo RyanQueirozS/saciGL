@@ -5,6 +5,7 @@
 
 #include "saci-backend/resources/sb-dependency-internal.h"
 #include "saci-utils/su-log.h"
+#include <saci-utils/su-general.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -108,9 +109,9 @@ void sb__opengl_debug_message_callback(su_U32 source, su_U32 type, su_U32 id, su
 
 /* === OpenGL === */
 
-SA_INTERNAL struct sb_RenderApiFuncs gl_funcs;
+SA_INTERNAL struct sb_RenderApiFuncs sb__gl_funcs;
 
-SA_API su_U32 sb_gl_type_to_gl(const su_DataType data_type)
+su_U32 sb_gl_type_to_gl(const su_DataType data_type)
 {
     switch (data_type) {
     case su_TYPE_U8:
@@ -163,15 +164,15 @@ SA_API su_U32 sb_gl_type_to_gl(const su_DataType data_type)
 
 void sb_gl_load(void)
 {
-    gl_funcs = sb_dependencies_get_render_api_funcs();
+    sb__gl_funcs = sb_dependencies_get_render_api_funcs();
 }
 
-SA_API void sb_gl_enable(su_U32 flag)
+void sb_gl_enable(su_U32 flag)
 {
-    gl_funcs.gl.enable(flag);
+    sb__gl_funcs.gl.enable(flag);
 }
 
-SA_API void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, const void* value)
+void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, const void* value)
 {
     switch (type) {
     case su_TYPE_U8:
@@ -181,7 +182,7 @@ SA_API void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, con
     case su_TYPE_SHADERID:
     case su_TYPE_TEXTUREID:
     case su_TYPE_BUFFERID:
-        gl_funcs.gl.uniform1ui(location, *(const su_U32*)value);
+        sb__gl_funcs.gl.uniform1ui(location, *(const su_U32*)value);
         break;
 
     case su_TYPE_BOOL:
@@ -189,64 +190,64 @@ SA_API void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, con
     case su_TYPE_S16:
     case su_TYPE_S32:
     case su_TYPE_S64:
-        gl_funcs.gl.uniform1i(location, *(const su_S32*)value);
+        sb__gl_funcs.gl.uniform1i(location, *(const su_S32*)value);
         break;
 
     case su_TYPE_UV:
     case su_TYPE_VEC2:
-        gl_funcs.gl.uniform2f(location, ((const float*)value)[0], ((const float*)value)[1]);
+        sb__gl_funcs.gl.uniform2f(location, ((const float*)value)[0], ((const float*)value)[1]);
         break;
 
     case su_TYPE_VEC3:
-        gl_funcs.gl.uniform3f(location,
-                              ((const float*)value)[0],
-                              ((const float*)value)[1],
-                              ((const float*)value)[2]);
+        sb__gl_funcs.gl.uniform3f(location,
+                                  ((const float*)value)[0],
+                                  ((const float*)value)[1],
+                                  ((const float*)value)[2]);
         break;
 
     case su_TYPE_VEC4:
     case su_TYPE_COLOR:
-        gl_funcs.gl.uniform4f(location,
-                              ((const float*)value)[0],
-                              ((const float*)value)[1],
-                              ((const float*)value)[2],
-                              ((const float*)value)[3]);
+        sb__gl_funcs.gl.uniform4f(location,
+                                  ((const float*)value)[0],
+                                  ((const float*)value)[1],
+                                  ((const float*)value)[2],
+                                  ((const float*)value)[3]);
         break;
 
     case su_TYPE_MAT2:
-        gl_funcs.gl.uniform_matrix_2fv(location, 1, su_FALSE, (const float*)value);
+        sb__gl_funcs.gl.uniform_matrix_2fv(location, 1, su_FALSE, (const float*)value);
         break;
 
     case su_TYPE_MAT3:
-        gl_funcs.gl.uniform_matrix_3fv(location, 1, su_FALSE, (const float*)value);
+        sb__gl_funcs.gl.uniform_matrix_3fv(location, 1, su_FALSE, (const float*)value);
         break;
 
     case su_TYPE_MAT4:
-        gl_funcs.gl.uniform_matrix_4fv(location, 1, su_FALSE, (const float*)value);
+        sb__gl_funcs.gl.uniform_matrix_4fv(location, 1, su_FALSE, (const float*)value);
         break;
 
     case su_TYPE_MAT2X3:
-        gl_funcs.gl.uniform_matrix_2x3fv(location, 1, su_FALSE, (const float*)value);
+        sb__gl_funcs.gl.uniform_matrix_2x3fv(location, 1, su_FALSE, (const float*)value);
         break;
 
     case su_TYPE_MAT2X4:
-        gl_funcs.gl.uniform_matrix_2x4fv(location, 1, su_FALSE, (const float*)value);
+        sb__gl_funcs.gl.uniform_matrix_2x4fv(location, 1, su_FALSE, (const float*)value);
         break;
 
     case su_TYPE_MAT3X2:
-        gl_funcs.gl.uniform_matrix_3x2fv(location, 1, su_FALSE, (const float*)value);
+        sb__gl_funcs.gl.uniform_matrix_3x2fv(location, 1, su_FALSE, (const float*)value);
         break;
 
     case su_TYPE_MAT3X4:
-        gl_funcs.gl.uniform_matrix_3x4fv(location, 1, su_FALSE, (const float*)value);
+        sb__gl_funcs.gl.uniform_matrix_3x4fv(location, 1, su_FALSE, (const float*)value);
         break;
 
     case su_TYPE_MAT4X2:
-        gl_funcs.gl.uniform_matrix_4x2fv(location, 1, su_FALSE, (const float*)value);
+        sb__gl_funcs.gl.uniform_matrix_4x2fv(location, 1, su_FALSE, (const float*)value);
         break;
 
     case su_TYPE_MAT4X3:
-        gl_funcs.gl.uniform_matrix_4x3fv(location, 1, su_FALSE, (const float*)value);
+        sb__gl_funcs.gl.uniform_matrix_4x3fv(location, 1, su_FALSE, (const float*)value);
         break;
 
     default:
@@ -256,87 +257,92 @@ SA_API void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, con
     }
 }
 
-SA_API void sb_gl_resize_vertex_buffer(su_U32 vao_id, su_U32 vbo_id, su_U64 new_size)
+void sb_gl_resize_vertex_buffer(su_U32 vao_id, su_U32 vbo_id, su_U64 new_size)
 {
-    gl_funcs.gl.bind_vertex_array(vao_id);
+    sb__gl_funcs.gl.bind_vertex_array(vao_id);
 
-    gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo_id);
-    gl_funcs.gl.buffer_data(sb_GL_ARRAY_BUFFER, su_CAST_M(su_S64)(new_size), NULL, sb_GL_DYNAMIC_DRAW);
+    sb__gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo_id);
+    sb__gl_funcs.gl.buffer_data(sb_GL_ARRAY_BUFFER, su_CAST_M(su_S64)(new_size), NULL, sb_GL_DYNAMIC_DRAW);
 
-    gl_funcs.gl.bind_vertex_array(0);
-    gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, 0);
+    sb__gl_funcs.gl.bind_vertex_array(0);
+    sb__gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, 0);
 }
 
-SA_API su_U32 sb_gl_create_index_buffer_dynamic(su_U64 indice_amount, su_U32* indices)
+su_U32 sb_gl_create_index_buffer_dynamic(su_U64 indice_amount, su_U32* indices)
 {
     su_U32 ibo;
-    gl_funcs.gl.gen_buffers(1, &ibo);
-    gl_funcs.gl.bind_buffer(sb_GL_ELEMENT_ARRAY_BUFFER, ibo);
-    gl_funcs.gl.buffer_data(sb_GL_ELEMENT_ARRAY_BUFFER, su_CAST_M(su_S64)(indice_amount * sizeof(su_U32)), &indices[0],
-                            sb_GL_DYNAMIC_DRAW);
-    gl_funcs.gl.bind_buffer(sb_GL_ELEMENT_ARRAY_BUFFER, 0);
+    sb__gl_funcs.gl.gen_buffers(1, &ibo);
+    sb__gl_funcs.gl.bind_buffer(sb_GL_ELEMENT_ARRAY_BUFFER, ibo);
+    sb__gl_funcs.gl.buffer_data(sb_GL_ELEMENT_ARRAY_BUFFER, su_CAST_M(su_S64)(indice_amount * sizeof(su_U32)), &indices[0],
+                                sb_GL_DYNAMIC_DRAW);
+    sb__gl_funcs.gl.bind_buffer(sb_GL_ELEMENT_ARRAY_BUFFER, 0);
     return ibo;
 }
 
-SA_API su_U32 sb_gl_create_index_buffer_static(su_U64 indice_amount, su_U32* indices)
+su_U32 sb_gl_create_index_buffer_static(su_U64 indice_amount, su_U32* indices)
 {
     su_U32 ibo;
-    gl_funcs.gl.gen_buffers(1, &ibo);
-    gl_funcs.gl.bind_buffer(sb_GL_ELEMENT_ARRAY_BUFFER, ibo);
-    gl_funcs.gl.buffer_data(sb_GL_ELEMENT_ARRAY_BUFFER, su_CAST_M(su_S64)(indice_amount * sizeof(su_U32)), &indices[0],
-                            sb_GL_STATIC_DRAW);
-    gl_funcs.gl.bind_buffer(sb_GL_ELEMENT_ARRAY_BUFFER, 0);
+    sb__gl_funcs.gl.gen_buffers(1, &ibo);
+    sb__gl_funcs.gl.bind_buffer(sb_GL_ELEMENT_ARRAY_BUFFER, ibo);
+    sb__gl_funcs.gl.buffer_data(sb_GL_ELEMENT_ARRAY_BUFFER, su_CAST_M(su_S64)(indice_amount * sizeof(su_U32)), &indices[0],
+                                sb_GL_STATIC_DRAW);
+    sb__gl_funcs.gl.bind_buffer(sb_GL_ELEMENT_ARRAY_BUFFER, 0);
     return ibo;
 }
 
-SA_API void sb_gl_create_vertex_array(su_U64 amount, su_U32* arrays)
+void sb_gl_create_vertex_array(su_U64 amount, su_U32* arrays)
 {
-    gl_funcs.gl.gen_vertex_arrays(su_CAST_M(int)(amount), arrays);
+    sb__gl_funcs.gl.gen_vertex_arrays(su_CAST_M(int)(amount), arrays);
 }
 
-SA_API void sb_gl_bind_vertex_array(su_U32 array)
+void sb_gl_bind_vertex_array(su_U32 array)
 {
-    gl_funcs.gl.bind_vertex_array(array);
+    sb__gl_funcs.gl.bind_vertex_array(array);
 }
 
-SA_API void sb_gl_bind_vertex_buffer(su_U32 vbo)
+void sb_gl_bind_vertex_buffer(su_U32 vbo)
 {
-    gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo);
+    sb__gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo);
 }
 
-SA_API su_U32 sb_gl_create_vertex_buffer_dynamic(su_U64 size, const void* data)
+void sb_gl_bind_index_buffer(su_U32 ibo)
+{
+    sb__gl_funcs.gl.bind_buffer(sb_GL_ELEMENT_ARRAY_BUFFER, ibo);
+}
+
+su_U32 sb_gl_create_vertex_buffer_dynamic(su_U64 size, const void* data)
 {
     su_U32 vbo = 0;
-    gl_funcs.gl.gen_buffers(1, &vbo);
-    gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo);
-    gl_funcs.gl.buffer_data(sb_GL_ARRAY_BUFFER, su_CAST_M(long int)(size), data, sb_GL_DYNAMIC_DRAW);
-    gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, 0);
+    sb__gl_funcs.gl.gen_buffers(1, &vbo);
+    sb__gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo);
+    sb__gl_funcs.gl.buffer_data(sb_GL_ARRAY_BUFFER, su_CAST_M(long int)(size), data, sb_GL_DYNAMIC_DRAW);
+    sb__gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, 0);
     return vbo;
 }
 
-SA_API su_U32 sb_gl_create_vertex_buffer_static(su_U64 size, const void* data)
+su_U32 sb_gl_create_vertex_buffer_static(su_U64 size, const void* data)
 {
     su_U32 vbo = 0;
-    gl_funcs.gl.gen_buffers(1, &vbo);
-    gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo);
-    gl_funcs.gl.buffer_data(sb_GL_ARRAY_BUFFER, su_CAST_M(long int)(size), data, sb_GL_STATIC_DRAW);
-    gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, 0);
+    sb__gl_funcs.gl.gen_buffers(1, &vbo);
+    sb__gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, vbo);
+    sb__gl_funcs.gl.buffer_data(sb_GL_ARRAY_BUFFER, su_CAST_M(long int)(size), data, sb_GL_STATIC_DRAW);
+    sb__gl_funcs.gl.bind_buffer(sb_GL_ARRAY_BUFFER, 0);
     return vbo;
 }
 
-SA_API void sb_gl_set_vertex_attrib_pointer(su_U32 index, int size, su_U32 type, su_Bool normalized, su_U64 stride, void* ptr)
+void sb_gl_set_vertex_attrib_pointer(su_U32 index, int size, su_U32 type, su_Bool normalized, su_U64 stride, void* ptr)
 {
-    gl_funcs.gl.vertex_attrib_pointer(index, size / sizeof(float), type, normalized, su_CAST_M(int)(stride), ptr);
+    sb__gl_funcs.gl.vertex_attrib_pointer(index, size / sizeof(float), type, normalized, su_CAST_M(int)(stride), ptr);
 }
 
 void sb_gl_vertex_attrib_divisor(su_U32 id, su_U32 div)
 {
-    gl_funcs.gl.vertex_attrib_divisor(id, div);
+    sb__gl_funcs.gl.vertex_attrib_divisor(id, div);
 }
 
 void sb_gl_enable_vertex_attrib_array(su_U32 id)
 {
-    gl_funcs.gl.enable_vertex_attrib_array(id);
+    sb__gl_funcs.gl.enable_vertex_attrib_array(id);
 }
 
 /* === GL Implementation === */
@@ -360,24 +366,24 @@ su_ShaderId sb_gl_shader_compile_shader_geom(const char* source)
 
 su_ShaderId sb_gl_shader_create_shader_program(su_ShaderId vshader, su_ShaderId fshader)
 {
-    su_ShaderId program_id = gl_funcs.gl.create_program();
-    gl_funcs.gl.attach_shader(program_id, vshader);
-    gl_funcs.gl.attach_shader(program_id, fshader);
-    gl_funcs.gl.link_program(program_id);
+    su_ShaderId program_id = sb__gl_funcs.gl.create_program();
+    sb__gl_funcs.gl.attach_shader(program_id, vshader);
+    sb__gl_funcs.gl.attach_shader(program_id, fshader);
+    sb__gl_funcs.gl.link_program(program_id);
 
     su_S32 success = su_FALSE;
-    gl_funcs.gl.get_program_iv(program_id, GL_LINK_STATUS, &success);
+    sb__gl_funcs.gl.get_program_iv(program_id, GL_LINK_STATUS, &success);
     if (!success) {
         char gl_err_message[1024];
         int size_returned = 0;
-        gl_funcs.gl.get_program_info_log(program_id, 2048, &size_returned, gl_err_message);
+        sb__gl_funcs.gl.get_program_info_log(program_id, 2048, &size_returned, gl_err_message);
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH, su_LOG_CONTEXT_LIB_OPENGL, "Shader program couldn't be loaded: %s", gl_err_message);
         return 0;
     }
-    gl_funcs.gl.detach_shader(program_id, vshader);
-    gl_funcs.gl.detach_shader(program_id, fshader);
-    gl_funcs.gl.delete_shader(vshader);
-    gl_funcs.gl.delete_shader(fshader);
+    sb__gl_funcs.gl.detach_shader(program_id, vshader);
+    sb__gl_funcs.gl.detach_shader(program_id, fshader);
+    sb__gl_funcs.gl.delete_shader(vshader);
+    sb__gl_funcs.gl.delete_shader(fshader);
 
     su_LOG_INFOF_M(su_LOG_TYPE_PROD, su_LOG_CONTEXT_LIB_OPENGL,
                    "Shader program %d loaded successfully", program_id);
@@ -386,55 +392,139 @@ su_ShaderId sb_gl_shader_create_shader_program(su_ShaderId vshader, su_ShaderId 
 
 su_ShaderId sb_gl_shader_create_shader_program_geom(su_ShaderId vshader, su_ShaderId fshader, su_ShaderId gshader)
 {
-    su_ShaderId program_id = gl_funcs.gl.create_program();
-    gl_funcs.gl.attach_shader(program_id, vshader);
-    gl_funcs.gl.attach_shader(program_id, fshader);
-    gl_funcs.gl.attach_shader(program_id, gshader);
-    gl_funcs.gl.link_program(program_id);
+    su_ShaderId program_id = sb__gl_funcs.gl.create_program();
+    sb__gl_funcs.gl.attach_shader(program_id, vshader);
+    sb__gl_funcs.gl.attach_shader(program_id, fshader);
+    sb__gl_funcs.gl.attach_shader(program_id, gshader);
+    sb__gl_funcs.gl.link_program(program_id);
 
     su_S32 success = su_FALSE;
-    gl_funcs.gl.get_program_iv(program_id, GL_LINK_STATUS, &success);
+    sb__gl_funcs.gl.get_program_iv(program_id, GL_LINK_STATUS, &success);
     if (!success) {
         char gl_err_message[1024];
         int size_returned = 0;
-        gl_funcs.gl.get_program_info_log(program_id, 2048, &size_returned, gl_err_message);
+        sb__gl_funcs.gl.get_program_info_log(program_id, 2048, &size_returned, gl_err_message);
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH, su_LOG_CONTEXT_LIB_OPENGL, "Shader program couldn't be loaded: %s", gl_err_message);
         return 0;
     }
-    gl_funcs.gl.detach_shader(program_id, vshader);
-    gl_funcs.gl.detach_shader(program_id, fshader);
-    gl_funcs.gl.detach_shader(program_id, gshader);
-    gl_funcs.gl.delete_shader(vshader);
-    gl_funcs.gl.delete_shader(fshader);
-    gl_funcs.gl.delete_shader(gshader);
+    sb__gl_funcs.gl.detach_shader(program_id, vshader);
+    sb__gl_funcs.gl.detach_shader(program_id, fshader);
+    sb__gl_funcs.gl.detach_shader(program_id, gshader);
+    sb__gl_funcs.gl.delete_shader(vshader);
+    sb__gl_funcs.gl.delete_shader(fshader);
+    sb__gl_funcs.gl.delete_shader(gshader);
     su_LOG_INFOF_M(su_LOG_TYPE_PROD, su_LOG_CONTEXT_LIB_OPENGL,
                    "Shader program %d loaded successfully", program_id);
 
     return program_id;
 }
 
-SA_API su_S32 sb_gl_uniform_location(su_ShaderId program_id, const char* const name)
+su_S32 sb_gl_uniform_location(su_ShaderId program_id, const char* const name)
 {
-    return gl_funcs.gl.get_uniform_location(program_id, name);
+    return sb__gl_funcs.gl.get_uniform_location(program_id, name);
 }
 
 void sb_gl_clear_color(const su_Color color)
 {
-    gl_funcs.gl.clear_color(color.r, color.g, color.b, color.a);
-    gl_funcs.gl.clear(sb_GL_COLOR_BUFFER_BIT);
+    sb__gl_funcs.gl.clear_color(color.r, color.g, color.b, color.a);
+    sb__gl_funcs.gl.clear(sb_GL_COLOR_BUFFER_BIT);
 }
 
 void sb_gl_clear_depth_buffer(void)
 {
-    gl_funcs.gl.clear(sb_GL_DEPTH_BUFFER_BIT);
+    sb__gl_funcs.gl.clear(sb_GL_DEPTH_BUFFER_BIT);
 }
 
-void sb_gl_initialized_debugger(void)
+void sb_gl_use_program(su_U32 program)
 {
-    gl_funcs.gl.enable(sb_GL_DEBUG_OUTPUT);
-    gl_funcs.gl.enable(sb_GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    gl_funcs.gl.enable(sb_GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    gl_funcs.gl.debug_message_callback((void*)sb__opengl_debug_message_callback, NULL);
+    sb__gl_funcs.gl.use_program(program);
+}
+
+void sb_gl_set_vertex_buffer_subdata(su_S64 offset, su_U64 size,
+                                     const void* data)
+{
+    sb__gl_funcs.gl.buffer_subdata(sb_GL_ARRAY_BUFFER, offset,
+                                   su_CAST_M(unsigned int)(size), data);
+}
+
+void sb_gl_set_index_buffer_subdata(su_S64 offset, su_U64 size, const void* data)
+{
+    sb__gl_funcs.gl.buffer_subdata(sb_GL_ELEMENT_ARRAY_BUFFER, offset,
+                                   su_CAST_M(unsigned int)(size), data);
+}
+
+void sb_gl_draw_elements(su_U32 primitives, su_U64 count, su_U32 type,
+                         void* data, su_U64 instance_count)
+{
+    if (instance_count > 0) {
+        sb__gl_funcs.gl.draw_elements_instanced(
+            primitives, (su_S32)count, type, data, (su_S32)instance_count);
+        return;
+    }
+    sb__gl_funcs.gl.draw_elements(primitives, (su_S32)count, type,
+                                  data);
+}
+
+void sb_gl_generate_textures(int count, su_U32* tex_array_out)
+{
+    sb__gl_funcs.gl.gen_textures(count, tex_array_out);
+}
+
+void sb_gl_generate_mipmap_2d(const su_U32 tex)
+{
+    su_S32 prev_tex;
+    sb__gl_funcs.gl.get_integer_v(sb_GL_TEXTURE_BINDING_2D, &prev_tex);
+
+    sb__gl_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, tex);
+
+    sb__gl_funcs.gl.generate_mipmap(sb_GL_TEXTURE_2D);
+
+    sb__gl_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, (su_U32)prev_tex);
+}
+
+void sb_gl_upload_texture_2d(const su_U32 tex, su_S32 format, int width, int height, const void* data)
+{
+    sb__gl_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, tex);
+    sb__gl_funcs.gl.tex_image_2d(sb_GL_TEXTURE_2D, 0,
+                                 format, width, height, 0,
+                                 (su_U32)format, sb_GL_UNSIGNED_BYTE, data);
+}
+
+void sb_gl_get_texture_size_2d(const su_U32 tex, int* width_out, int* height_out)
+{
+
+    su_S32 prev_tex;
+    sb__gl_funcs.gl.get_integer_v(sb_GL_TEXTURE_BINDING_2D, &prev_tex);
+
+    sb__gl_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, tex);
+
+    sb__gl_funcs.gl.get_texlevel_parameter_iv(sb_GL_TEXTURE_2D, 0, sb_GL_TEXTURE_WIDTH, width_out);
+    sb__gl_funcs.gl.get_texlevel_parameter_iv(sb_GL_TEXTURE_2D, 0, sb_GL_TEXTURE_HEIGHT, height_out);
+
+    sb__gl_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, (su_U32)prev_tex);
+}
+
+void sb_gl_delete_texture(int count, su_U32* tex_array_out)
+{
+    sb__gl_funcs.gl.delete_textures(count, tex_array_out);
+}
+
+void sb_gl_bind_texture_2d(enum sb_GLConstants texture_loc, const su_U32 tex)
+{
+    sb__gl_funcs.gl.active_texture(texture_loc);
+    sb__gl_funcs.gl.bind_texture(sb_GL_TEXTURE_2D, tex);
+}
+
+void sb_gl_initialized_debugger(void* debug_func)
+{
+    sb__gl_funcs.gl.enable(sb_GL_DEBUG_OUTPUT);
+    sb__gl_funcs.gl.enable(sb_GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    sb__gl_funcs.gl.enable(sb_GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    if (debug_func) {
+        sb__gl_funcs.gl.debug_message_callback((void*)debug_func, NULL);
+    } else {
+        sb__gl_funcs.gl.debug_message_callback((void*)sb__opengl_debug_message_callback, NULL);
+    }
     su_LOG_INFO_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_LIB_OPENGL, "Loaded opengl debug message callback");
 }
 
@@ -442,19 +532,19 @@ void sb_gl_initialized_debugger(void)
 
 SA_INTERNAL su_ShaderId sb__shader_compile(const char* shader_source, su_U32 shader_type)
 {
-    su_ShaderId shader_id = gl_funcs.gl.create_shader(shader_type);
+    su_ShaderId shader_id = sb__gl_funcs.gl.create_shader(shader_type);
 
-    gl_funcs.gl.shader_source(shader_id, 1, &shader_source, NULL);
-    gl_funcs.gl.compile_shader(shader_id);
+    sb__gl_funcs.gl.shader_source(shader_id, 1, &shader_source, NULL);
+    sb__gl_funcs.gl.compile_shader(shader_id);
 
     int success;
-    gl_funcs.gl.get_shaderiv(shader_id, sb_GL_COMPILE_STATUS, &success);
+    sb__gl_funcs.gl.get_shaderiv(shader_id, sb_GL_COMPILE_STATUS, &success);
     if (!success) {
         char err_message[2048];
         int size_returned = 0;
-        gl_funcs.gl.get_shader_info_log(shader_id, 2048, &size_returned, &err_message[0]);
+        sb__gl_funcs.gl.get_shader_info_log(shader_id, 2048, &size_returned, &err_message[0]);
 
-        gl_funcs.gl.delete_shader(shader_id);
+        sb__gl_funcs.gl.delete_shader(shader_id);
         { // Logging
             // TODO redo
             char* log_message = "";

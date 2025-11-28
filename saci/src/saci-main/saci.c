@@ -112,7 +112,7 @@ void saci_init(void)
     }
     sb_dependecies_load();
     sb_gfx_load();
-    sb_gfx_initialize_renderer_debugger();
+    sb_gfx_initialize_renderer_debugger(NULL); // default debugger
     su_Vec3 cube_vertices[] = {
         {-1, -1, -1},
         {-1, -1, 1},

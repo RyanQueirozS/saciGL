@@ -93,8 +93,6 @@ void sb_gfx_clear_color(const su_Color color);
 
 void sb_gfx_clear_depth_buffer(void);
 
-void sb_gfx_load_debugger(void* debug_func);
-
 void sb_gfx_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* data);
 
 su_S32 sb_gfx_get_uniform_loc(const union sb_GFXInfo* info, const su_String* name);
@@ -106,10 +104,10 @@ void sb_gfx_upload_texture_2d(union sb_Texture texture_id,
                               su_S32 format,
                               int width, int height,
                               const void* data);
-void sb_gfx_get_texture_size(union sb_Texture texture_id, int* width_out, int* height_out);
-void sb_gfx_generate_mipmap(union sb_Texture texture_id);
+void sb_gfx_get_texture_size_2d(union sb_Texture texture_id, int* width_out, int* height_out);
+void sb_gfx_generate_mipmap_2d(union sb_Texture texture_id);
 void sb_gfx_delete_texture(union sb_Texture texture_id);
 
-void sb_gfx_initialize_renderer_debugger(void);
+void sb_gfx_initialize_renderer_debugger(void* debug_func);
 
 #endif // SACI_BACKEND_SB_GFX_H

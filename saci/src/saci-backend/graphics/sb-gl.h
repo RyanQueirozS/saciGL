@@ -66,19 +66,35 @@ SA_API su_U32 sb_gl_create_index_buffer_dynamic(su_U64 indice_amount, su_U32* in
 SA_API su_U32 sb_gl_create_index_buffer_static(su_U64 indice_amount, su_U32* indices);
 SA_API su_U32 sb_gl_create_vertex_buffer_dynamic(su_U64 size, const void* data);
 SA_API su_U32 sb_gl_create_vertex_buffer_static(su_U64 size, const void* data);
+SA_API void sb_gl_set_vertex_attrib_pointer(su_U32 index, int size, su_U32 type, su_Bool normalized,
+                                            su_U64 stride, void* ptr);
 SA_API void sb_gl_create_vertex_array(su_U64 amount, su_U32* arrays);
 SA_API void sb_gl_resize_vertex_buffer(su_U32 vao_id, su_U32 vbo_id, su_U64 new_size);
 SA_API void sb_gl_bind_vertex_array(su_U32 array);
 SA_API void sb_gl_bind_vertex_buffer(su_U32 vbo);
-SA_API void sb_gl_set_vertex_attrib_pointer(su_U32 index, int size, su_U32 type, su_Bool normalized, su_U64 stride, void* ptr);
+SA_API void sb_gl_bind_index_buffer(su_U32 ibo);
+SA_API void sb_gl_set_vertex_attrib_posu_S32(su_U32 index, su_S32 size, su_U32 type, su_Bool normalized, su_U64 stride, void* ptr);
 SA_API void sb_gl_enable_vertex_attrib_array(su_U32 id);
 SA_API void sb_gl_vertex_attrib_divisor(su_U32 id, su_U32 div);
 SA_API su_S32 sb_gl_uniform_location(su_ShaderId program_id, const char* const name);
 SA_API void sb_gl_clear_color(const su_Color color);
 SA_API void sb_gl_clear_depth_buffer(void);
+SA_API void sb_gl_use_program(su_U32 program);
+SA_API void sb_gl_set_vertex_buffer_subdata(su_S64 offset, su_U64 size, const void* data);
+SA_API void sb_gl_set_index_buffer_subdata(su_S64 offset, su_U64 size, const void* data);
+SA_API void sb_gl_draw_elements(su_U32 primitives, su_U64 count, su_U32 type, void* data, su_U64 instance_count);
+
+// Textures
+SA_API void sb_gl_generate_textures(su_S32 count, su_U32* tex_out);
+SA_API void sb_gl_generate_mipmap_2d(const su_U32 tex);
+SA_API void sb_gl_upload_texture_2d(const su_U32 tex, su_S32 format, su_S32 width, su_S32 height, const void* data);
+SA_API void sb_gl_get_texture_size_2d(const su_U32 tex, su_S32* width_out, su_S32* height_out);
+SA_API void sb_gl_delete_texture(su_S32 count, su_U32* tex_array_out);
+SA_API void sb_gl_bind_texture_2d(enum sb_GLConstants texture_loc, const su_U32 tex);
+
 // TODO bind program
 
-SA_API void sb_gl_initialized_debugger(void);
+SA_API void sb_gl_initialized_debugger(void* debug_func);
 
 /* === Shader === */
 
