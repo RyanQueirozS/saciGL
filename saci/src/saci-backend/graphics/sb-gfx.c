@@ -15,7 +15,6 @@
 
 /* === Internal helper Declarations === */
 
-SA_STATIC struct sb_RenderApiFuncs sb__render_funcs;
 SA_STATIC struct sb_RenderApiLoaderFuncs sb__render_loader_funcs;
 SA_STATIC enum su_RenderApi sb__render_api;
 SA_STATIC struct su_MemPool* sb__instance_draw_data_pool = NULL; // Used in sb__gfx_join_instance_data
@@ -33,7 +32,6 @@ SA_INTERNAL su_Bool sb__has_texture(union sb_Texture* texture_array, su_U32 arra
 
 void sb_gfx_load(void)
 {
-    sb__render_funcs = sb_dependencies_get_render_api_funcs();
     sb__render_loader_funcs = sb_dependencies_get_render_loader_api_funcs();
     sb__render_api = su_cfg_manager_get_renderer_api();
     switch (sb__render_api) {
