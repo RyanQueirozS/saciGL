@@ -2,6 +2,7 @@
 #define SACI_MAIN_SACI_H
 
 #include "saci-backend/windowing/sb-windowing.h"
+#include "saci-utils/math/su-math-types.h"
 
 #include "saci-utils/su-general.h"
 

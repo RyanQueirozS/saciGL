@@ -53,6 +53,7 @@ enum su_LogContext {
     su_LOG_CONTEXT_SCENE_LOADING = 0x45,
 
     // (0x60-0x7F)
+    su_LOG_CONTEXT_WINDOWING = 0x60,
 
     // (0x80-0x9F)
 

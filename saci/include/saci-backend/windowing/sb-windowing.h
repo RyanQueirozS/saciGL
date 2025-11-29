@@ -1,12 +1,11 @@
 #ifndef SACI_BACKEND_WINDOWING_SC_WINDOWING_H
 #define SACI_BACKEND_WINDOWING_SC_WINDOWING_H
 
-#include "saci-utils/math/su-math-types.h"
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-types-common.h"
 
-su_Bool sb_load_windowing(void);
-su_Bool sb_proc_load(void);
+su_Bool sb_window_load(void);
+su_Bool sb_window_proc_load(void);
 su_Window sb_window_create(int width, int height, const char* title,
                            su_Monitor monitor, su_Window share);
 SA_API void sb_window_free(su_Window window);

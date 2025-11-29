@@ -264,7 +264,7 @@ SA_INTERNAL void saci__init_windowing(
     su_S32 y,
     const char* name)
 {
-    su_LOG_ASSERT_M(sb_load_windowing(), su_LOG_CONTEXT_CORE_INIT, "Could not load window");
+    su_LOG_ASSERT_M(sb_window_load(), su_LOG_CONTEXT_CORE_INIT, "Could not load window");
 
     *window_out = sb_window_create(
         x,
@@ -274,7 +274,7 @@ SA_INTERNAL void saci__init_windowing(
         NULL);
     sb_window_make_context(*window_out);
 
-    su_LOG_ASSERT_M(sb_proc_load(), su_LOG_CONTEXT_CORE_INIT, "Could not load proc");
+    su_LOG_ASSERT_M(sb_window_proc_load(), su_LOG_CONTEXT_CORE_INIT, "Could not load proc");
 }
 
 SA_INTERNAL void saci__init_memory(void)
