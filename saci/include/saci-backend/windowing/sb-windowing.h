@@ -4,17 +4,49 @@
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-types-common.h"
 
+union sb_Window;
+
+typedef void (*sb_WindowMousePosHandler)(union sb_Window*, int, int);
+typedef void (*sb_WindowSizeHandler)(union sb_Window*, int, int);
+typedef void (*sb_WindowPosHandler)(union sb_Window*, int, int);
+
+union sb_Window {
+    struct {
+        void* window;
+        const char* title;
+        int width, height;
+    } glfw;
+    struct {
+        void* context;
+        const char* selector;
+        int width, height;
+        sb_WindowMousePosHandler mouse_pos_handler;
+        sb_WindowSizeHandler size_handler;
+        sb_WindowPosHandler pos_handler;
+    } emscripten;
+};
+
+union sb_WindowOpts {
+    struct {
+        void* monitor;
+        void* window_share;
+    } glfw;
+    struct {
+        void* context;
+    } emscripten;
+};
+
 su_Bool sb_window_load(void);
 su_Bool sb_window_proc_load(void);
-su_Window sb_window_create(int width, int height, const char* title,
-                           su_Monitor monitor, su_Window share);
-SA_API void sb_window_free(su_Window window);
-SA_API void sb_window_make_context(su_Window window);
-SA_API su_Bool sb_window_should_close(su_Window window);
-SA_API void sb_window_set_pos_handler(su_Window window, su_WindowSizeHandler window_pos_handler);
-SA_API void sb_window_set_size_handler(su_Window window, su_WindowSizeHandler window_size_handler);
+union sb_Window sb_window_create(int width, int height, const char* title,
+                                 union sb_WindowOpts opts);
+SA_API void sb_window_free(union sb_Window window);
+SA_API void sb_window_make_context(union sb_Window window);
+SA_API su_Bool sb_window_should_close(union sb_Window window);
+SA_API void sb_window_set_pos_handler(union sb_Window window, su_WindowSizeHandler window_pos_handler);
+SA_API void sb_window_set_size_handler(union sb_Window window, su_WindowSizeHandler window_size_handler);
 SA_API void sb_window_terminate(void);
-SA_API void sb_window_swap_buffer(su_Window window);
+SA_API void sb_window_swap_buffer(union sb_Window window);
 
 /* === Event === */
 
@@ -153,7 +185,7 @@ SA_API void sb_event_poll(void);
 SA_API void sb_event_wait(void);
 SA_API void sb_event_wait_for_timeout(double timeout);
 SA_API void sb_event_post_empty(void);
-SA_API void sb_event_set_mouse_pos_handler(su_Window window, su_EventMousePosHandler mouse_pos_handler);
-SA_API su_Bool sb_event_is_key_pressed(su_Window window, int keycode);
+SA_API void sb_event_set_mouse_pos_handler(union sb_Window window, su_EventMousePosHandler mouse_pos_handler);
+SA_API su_Bool sb_event_is_key_pressed(union sb_Window window, int keycode);
 
 #endif // SACI_BACKEND_WINDOWING_SC_WINDOWING_H

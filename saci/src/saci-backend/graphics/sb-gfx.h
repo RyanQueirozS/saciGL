@@ -1,7 +1,7 @@
 #ifndef SACI_BACKEND_SB_GFX_H
 #define SACI_BACKEND_SB_GFX_H
 
-#include "saci-utils/config/su-config-manager.h"
+#include "saci-utils/config/su-config.h"
 #include "saci-utils/memory/su-darray.h"
 #include "saci-utils/memory/su-string.h"
 #include "saci-utils/su-general.h"

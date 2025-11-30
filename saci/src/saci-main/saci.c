@@ -1,6 +1,5 @@
 #include "saci-main/saci.h"
 
-#include "saci-utils/config/su-config-manager.h"
 #include "saci-utils/math/su-math-mat.h"
 #include "saci-utils/memory/su-memory.h"
 #include "saci-utils/su-general.h"
@@ -10,7 +9,11 @@
 #include "saci-backend/graphics/sb-gfx.h"
 #include "saci-backend/graphics/sb-graphics.h"
 #include "saci-backend/renderer/sb-renderer.h"
-#include "saci-backend/resources/sb-dependency.h"
+
+#ifndef __EMSCRIPTEN__
+#  include "saci-backend/resources/sb-dependency.h"
+#  include "saci-utils/config/su-config-manager.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +40,7 @@ su_DArray* saci_cube_index;
 SA_INTERNAL double saci__get_delta(void);
 
 SA_INTERNAL void saci__init_windowing(
-    su_Window* window_out,
+    union sb_Window* window_out,
     su_S32 x,
     su_S32 y,
     const char* name);
@@ -88,7 +91,7 @@ SA_INTERNAL struct saci_Context {
 
     struct saci_Windowing {
         su_Color bg_color;
-        su_Window window;
+        union sb_Window window;
         int x, y;
         float width, height;
     } windowing;
@@ -107,10 +110,12 @@ SA_INTERNAL struct saci_Context {
 
 void saci_init(void)
 {
+#ifndef __EMSCRIPTEN__
     if (!su_cfg_manager_fetch(SACI_DEFAULT_CONFIG_PATH)) {
         su_cfg_manager_load_default();
     }
     sb_dependecies_load();
+#endif
     sb_gfx_load();
     sb_gfx_initialize_renderer_debugger(NULL); // default debugger
     su_Vec3 cube_vertices[] = {
@@ -259,7 +264,7 @@ void saci_free(void)
 // Helper
 
 SA_INTERNAL void saci__init_windowing(
-    su_Window* window_out,
+    union sb_Window* window_out,
     su_S32 x,
     su_S32 y,
     const char* name)
@@ -270,8 +275,7 @@ SA_INTERNAL void saci__init_windowing(
         x,
         y,
         name,
-        NULL,
-        NULL);
+        (union sb_WindowOpts){0});
     sb_window_make_context(*window_out);
 
     su_LOG_ASSERT_M(sb_window_proc_load(), su_LOG_CONTEXT_CORE_INIT, "Could not load proc");

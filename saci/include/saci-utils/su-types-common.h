@@ -163,8 +163,6 @@ typedef enum su_ReallocationKind {
 
 // TODO move to types/su-types-backend.h
 typedef void* (*su_GLProc)(const char* name);
-typedef void* su_Window;
-typedef void* su_Monitor;
 typedef void* su_WindowPosHandler;
 typedef void* su_WindowSizeHandler;
 typedef void* su_EventMousePosHandler;

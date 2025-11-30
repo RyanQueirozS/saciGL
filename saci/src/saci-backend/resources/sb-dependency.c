@@ -125,27 +125,32 @@ SA_INTERNAL struct sb__DependencySymbolTable sb__glfw_symbols[] = {
 
 /* === HEADER IMPL ===  */
 
-SA_API void sb_dependecies_load(void) {
+SA_API void sb_dependecies_load(void)
+{
     sb__dependencies_load_handles();
     sb__dependecies_validate();
     sb__dependencies_load_symbols();
 }
 
-SA_API struct sb_WindowingApiFuncs sb_dependencies_get_windowing_api_funcs(void) {
+SA_API struct sb_WindowingApiFuncs sb_dependencies_get_windowing_api_funcs(void)
+{
     return sb__dependency_handler.windowing_funcs;
 }
 
-SA_API struct sb_RenderApiFuncs sb_dependencies_get_render_api_funcs(void) {
+SA_API struct sb_RenderApiFuncs sb_dependencies_get_render_api_funcs(void)
+{
     return sb__dependency_handler.render_funcs;
 }
 
-SA_API struct sb_RenderApiLoaderFuncs sb_dependencies_get_render_loader_api_funcs(void) {
+SA_API struct sb_RenderApiLoaderFuncs sb_dependencies_get_render_loader_api_funcs(void)
+{
     return sb__dependency_handler.render_loader_funcs;
 }
 
 /* === HELPER IMPL === */
 
-SA_INTERNAL void sb__dependencies_load_symbols(void) {
+SA_INTERNAL void sb__dependencies_load_symbols(void)
+{
     switch (su_cfg_manager_get_renderer_api()) {
     case su_RENDERER_API_OPENGL:
         sb__load_symbols(sb__dependency_handler.render_handle,
@@ -182,7 +187,8 @@ SA_INTERNAL void sb__dependencies_load_symbols(void) {
 
 SA_INTERNAL void sb__load_symbols(DyliloHandle handle,
                                   const struct sb__DependencySymbolTable* symbols,
-                                  size_t count) {
+                                  size_t count)
+{
     for (size_t i = 0; i < count; i++) {
         *symbols[i].func_out = dylilo_get_symbol(handle, symbols[i].name);
         su_LOG_ASSERTF_M(*symbols[i].func_out, su_LOG_CONTEXT_CORE_CONFIG,
@@ -190,7 +196,8 @@ SA_INTERNAL void sb__load_symbols(DyliloHandle handle,
     }
 }
 
-SA_INTERNAL void sb__dependencies_load_handles(void) {
+SA_INTERNAL void sb__dependencies_load_handles(void)
+{
     /* Render API */
     switch (su_cfg_manager_get_renderer_api()) {
     case su_RENDERER_API_OPENGL:
@@ -225,7 +232,8 @@ SA_INTERNAL void sb__dependencies_load_handles(void) {
     }
 }
 
-SA_INTERNAL void sb__dependecies_validate(void) {
+SA_INTERNAL void sb__dependecies_validate(void)
+{
     su_LOG_ASSERT_M(sb__dependency_handler.render_handle, su_LOG_CONTEXT_CORE_CONFIG,
                     "Could not load Render API handle");
     su_LOG_ASSERT_M(sb__dependency_handler.render_loader_handle, su_LOG_CONTEXT_CORE_CONFIG,

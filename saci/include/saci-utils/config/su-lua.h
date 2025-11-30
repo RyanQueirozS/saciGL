@@ -1,5 +1,5 @@
-#ifndef SACI_UTILS_CONFIG_SU_CONFIG_H
-#define SACI_UTILS_CONFIG_SU_CONFIG_H
+#ifndef SACI_UTILS_CONFIG_SU_LUA_H
+#define SACI_UTILS_CONFIG_SU_LUA_H
 
 #include <lua5.4/lua.h>
 
@@ -38,6 +38,6 @@ SA_API void su_lua_pop(su_LuaState* state, int count);
 
 SA_API void su_lua_close(su_LuaState* state);
 
-SA_API void su_lua_dump_stack(su_LuaState* L);
+SA_API void su_lua_dump_stack(su_LuaState* l);
 
-#endif // SACI_UTILS_CONFIG_SU_CONFIG_H
+#endif // SACI_UTILS_CONFIG_SU_LUA_H

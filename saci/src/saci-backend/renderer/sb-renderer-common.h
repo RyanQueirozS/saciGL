@@ -6,6 +6,8 @@
 
 #include "saci-backend/graphics/sb-gfx.h"
 
+#include <stddef.h>
+
 #ifndef sb_RENDERER_STRUCT
 #  define sb_RENDERER_STRUCT
 

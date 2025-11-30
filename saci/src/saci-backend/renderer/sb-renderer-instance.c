@@ -3,15 +3,14 @@
 
 #include "saci-utils/su-log.h"
 #include "saci-utils/memory/su-memory.h"
-#include "saci-utils/math/su-math-vec.h"
 
 #include "saci-utils/su-types-common.h"
 
-#include "saci-utils/math/su-math-mat.h"
 #include <saci-backend/graphics/sb-gfx.h>
 #include <saci-utils/math/su-math-types.h>
 #include <saci-utils/memory/su-darray.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /* --- LOCAL --- */
 

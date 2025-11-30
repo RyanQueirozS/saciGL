@@ -8,21 +8,21 @@ struct sb_WindowingApiFuncs {
     struct {
         int (*init)(void);
         void (*set_hint)(int, int);
-        su_Window (*create_window)(int, int, const char*, su_Monitor, su_Window);
+        void* (*create_window)(int, int, const char*, void*, void*);
         void* (*get_proc)(const char*);
-        void (*destroy_window)(su_Window);
-        void (*make_context_current)(su_Window);
-        su_S32 (*should_close)(su_Window);
-        void (*set_pos_handler)(su_Window, void*);
-        void (*set_size_handler)(su_Window, void*);
+        void (*destroy_window)(void*);
+        void (*make_context_current)(void*);
+        su_S32 (*should_close)(void*);
+        void (*set_pos_handler)(void*, void*);
+        void (*set_size_handler)(void*, void*);
         void (*terminate)(void);
-        void (*swap_buffers)(su_Window);
+        void (*swap_buffers)(void*);
         void (*poll_events)(void);
         void (*wait_events)(void);
         void (*wait_events_timeout)(double);
         void (*post_empty_event)(void);
-        void (*set_mouse_pos_handler)(su_Window, void*);
-        su_S32 (*is_key_pressed)(su_Window, int);
+        void (*set_mouse_pos_handler)(void*, void*);
+        su_S32 (*is_key_pressed)(void*, int);
     } glfw;
 };
 
