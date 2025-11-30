@@ -419,6 +419,21 @@ su_ShaderId sb_gl_shader_create_shader_program_geom(su_ShaderId vshader, su_Shad
     return program_id;
 }
 
+su_ShaderId sb_gl_shader_create_shader_program_source(const char* v, const char* f, const char* g)
+{
+    su_ShaderId program = 0;
+    su_ShaderId f_shader = sb_gl_shader_compile_shader_frag(f);
+    su_ShaderId v_shader = sb_gl_shader_compile_shader_vert(v);
+    if (g) {
+        su_ShaderId g_shader = sb_gl_shader_compile_shader_geom(g);
+        program = sb_gl_shader_create_shader_program_geom(v_shader,
+                                                          f_shader,
+                                                          g_shader);
+    }
+    program = sb_gl_shader_create_shader_program(v_shader, f_shader);
+    return program;
+}
+
 su_S32 sb_gl_uniform_location(su_ShaderId program_id, const char* const name)
 {
     return sb__gl_funcs.gl.get_uniform_location(program_id, name);

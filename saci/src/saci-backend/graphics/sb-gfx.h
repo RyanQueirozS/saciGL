@@ -83,7 +83,9 @@ struct sb_GFXDrawData {
 void sb_gfx_load(void);
 
 typedef void* (*sb_GfxProcAddress)(const char*);
+#ifndef __EMSCRIPTEN__
 void sb_gfx_load_proc(sb_GfxProcAddress addrs);
+#endif
 
 void sb_gfx_init_shader(union sb_GFXInfo* info_out, const struct su_RendererConfig cfg);
 

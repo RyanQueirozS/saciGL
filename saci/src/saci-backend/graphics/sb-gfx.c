@@ -5,6 +5,8 @@
 
 #ifndef __EMSCRIPTEN__
 #  include "saci-utils/config/su-config-manager.h"
+#else
+#  include "./sb-emsdk.h"
 #endif
 
 #include "saci-utils/math/su-math-types.h"
@@ -19,12 +21,20 @@
 
 /* === Internal helper Declarations === */
 
+#ifndef __EMSCRIPTEN__
 SA_STATIC struct sb_RenderApiLoaderFuncs sb__render_loader_funcs;
 SA_STATIC enum su_RenderApi sb__render_api;
+#else
+SA_STATIC enum su_RenderApi sb__render_api = su_RENDERER_API_OPENGL;
+#endif
+
 SA_STATIC struct su_MemPool* sb__instance_draw_data_pool = NULL; // Used in sb__gfx_join_instance_data
 
 // Init
 SA_INTERNAL void sb__gfx_gl_init_info(union sb_GFXInfo* info_out, const struct su_RendererConfig cfg);
+
+// Dependency
+SA_INTERNAL su_ShaderId sb__gfx_emsdk_shader_create_program(const char* f, const char* v);
 
 // Draw
 SA_INTERNAL void sb__gfx_join_instance_data(const struct sb_GFXDrawData* draw_data, void** instance_data_array_out, su_U64* instance_data_array_size_out);
@@ -36,12 +46,10 @@ SA_INTERNAL su_Bool sb__has_texture(union sb_Texture* texture_array, su_U32 arra
 
 void sb_gfx_load(void)
 {
-    sb__render_loader_funcs = sb_dependencies_get_render_loader_api_funcs();
 #ifndef __EMSCRIPTEN__
+    sb__render_loader_funcs = sb_dependencies_get_render_loader_api_funcs();
     sb__render_api = su_cfg_manager_get_renderer_api();
-#else
     sb__render_api = su_RENDERER_API_OPENGL;
-#endif
     switch (sb__render_api) {
     case su_RENDERER_API_OPENGL:
         sb_gl_load();
@@ -49,8 +57,10 @@ void sb_gfx_load(void)
     case su_RENDERER_API_VULKAN:
         break;
     }
+#endif
 }
 
+#ifndef __EMSCRIPTEN__
 void sb_gfx_load_proc(sb_GfxProcAddress addrs)
 {
     switch (sb__render_api) {
@@ -61,29 +71,27 @@ void sb_gfx_load_proc(sb_GfxProcAddress addrs)
         break;
     }
 }
+#endif
 
 void sb_gfx_init_shader(union sb_GFXInfo* info_out, const struct su_RendererConfig cfg)
 {
     su_LOG_ASSERT_M(cfg.shaders.vert, su_LOG_CONTEXT_GFX, "Vertex shader is empty or NULL");
     su_LOG_ASSERT_M(cfg.shaders.frag, su_LOG_CONTEXT_GFX, "Frag shader is empty or NULL");
+#ifndef __EMSCRIPTEN__
     switch (sb__render_api) {
     case su_RENDERER_API_OPENGL:
         {
-            su_ShaderId v_shader = sb_gl_shader_compile_shader_vert(cfg.shaders.vert);
-            su_ShaderId f_shader = sb_gl_shader_compile_shader_frag(cfg.shaders.frag);
-            if (cfg.shaders.geom) {
-                su_ShaderId g_shader = sb_gl_shader_compile_shader_geom(cfg.shaders.geom);
-                info_out->gl_data.shader_program = sb_gl_shader_create_shader_program_geom(v_shader,
-                                                                                           f_shader,
-                                                                                           g_shader);
-                break;
-            }
-            info_out->gl_data.shader_program = sb_gl_shader_create_shader_program(v_shader, f_shader);
+            info_out->gl_data.shader_program = sb_gl_shader_create_shader_program_source(
+                cfg.shaders.vert, cfg.shaders.frag, cfg.shaders.geom);
             break;
         }
     case su_RENDERER_API_VULKAN:
         break;
     }
+#else
+    su_LOG_ASSERT_M(!cfg.shaders.geom, su_LOG_CONTEXT_GFX, "Opengl ES3 does not accept geometry shaders");
+    info_out->gl_data.shader_program = sb_emsdk_shader_create_program_code(cfg.shaders.frag, cfg.shaders.vert);
+#endif
 }
 
 void sb_gfx_create(union sb_GFXInfo* info_out, const struct su_RendererConfig cfg)
@@ -297,6 +305,11 @@ SA_INTERNAL void sb__gfx_gl_init_info(
     sb__gfx_gl_create_main_buffers(info_out, cfg);
     sb__gfx_gl_setup_vertex_attributes(cfg, info_out->gl_data.vao, info_out->gl_data.vbo);
     sb__gfx_gl_setup_instance_buffers(info_out, cfg);
+}
+
+SA_INTERNAL su_ShaderId sb__gfx_emsdk_shader_create_program(const char* f, const char* v)
+{
+    su_TODO_M;
 }
 
 SA_INTERNAL void sb__gfx_join_instance_data(const struct sb_GFXDrawData* draw_data, void** instance_data_array_out, su_U64* instance_data_array_size_out)

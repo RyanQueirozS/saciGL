@@ -220,6 +220,8 @@ const char* su_log_context_as_str(const enum su_LogContext context)
         return "AUDIO_LOADING";
     case su_LOG_CONTEXT_SCENE_LOADING:
         return "SCENE_LOADING";
+    case su_LOG_CONTEXT_WINDOWING:
+        return "WINDOWING";
     case su_LOG_CONTEXT_INPUT:
         return "INPUT";
     case su_LOG_CONTEXT_INPUT_KEYBOARD:
