@@ -43,7 +43,8 @@ struct sb_ModelMesh {
 };
 #endif
 
-struct sb_ModelMesh* sb_model_mesh_load(const char* path) {
+struct sb_ModelMesh* sb_model_mesh_load(const char* path)
+{
     struct sb_ModelMesh* mesh = malloc(sizeof(struct sb_ModelMesh));
     su_Bool success = sb__model_parse(path,
                                       &mesh->position_array,
@@ -60,7 +61,8 @@ struct sb_ModelMesh* sb_model_mesh_load(const char* path) {
     return mesh;
 }
 
-void sb_model_delete(struct sb_ModelMesh* model_mesh) {
+void sb_model_delete(struct sb_ModelMesh* model_mesh)
+{
     free(model_mesh->index_array);
     free(model_mesh->position_array);
     free(model_mesh->uv_array);
@@ -75,7 +77,8 @@ void sb_model_delete(struct sb_ModelMesh* model_mesh) {
 
 void sb_model_get_vertex_index_array(const struct sb_ModelMesh* model_mesh,
                                      struct sb_VertexIndex** index_array_out,
-                                     su_U64* index_count_out) {
+                                     su_U64* index_count_out)
+{
     *index_array_out = malloc(sizeof(struct sb_VertexIndex) *
                               model_mesh->index_count);
     if (!*index_array_out) {
@@ -93,7 +96,8 @@ void sb_model_get_separated_index_data(const struct sb_ModelMesh* model_mesh,
                                        su_U32** vertex_index_out,
                                        su_U32** uv_index_out,
                                        su_U32** normal_index_out,
-                                       su_U64* index_array_count_out) {
+                                       su_U64* index_array_count_out)
+{
     *index_array_count_out = model_mesh->index_count;
 
     if (vertex_index_out) {
@@ -121,7 +125,8 @@ void sb_model_get_separated_index_data(const struct sb_ModelMesh* model_mesh,
 
 void sb_model_get_position_array(const struct sb_ModelMesh* model_mesh,
                                  su_Vec3** position_array_out,
-                                 su_U64* position_count_out) {
+                                 su_U64* position_count_out)
+{
     *position_array_out = malloc(sizeof(su_Vec3) * model_mesh->positions_count);
     *position_count_out = model_mesh->positions_count;
     memcpy(*position_array_out, model_mesh->position_array,
@@ -130,7 +135,8 @@ void sb_model_get_position_array(const struct sb_ModelMesh* model_mesh,
 
 void sb_model_get_uv_array(const struct sb_ModelMesh* model_mesh,
                            su_Uv** uv_array_out,
-                           su_U64* uv_count_out) {
+                           su_U64* uv_count_out)
+{
     *uv_array_out = malloc(sizeof(su_Uv) * model_mesh->uv_count);
     *uv_count_out = model_mesh->uv_count;
     memcpy(*uv_array_out, model_mesh->uv_array,
@@ -141,7 +147,8 @@ void sb_model_vertex_index_get_data(const struct sb_VertexIndex* vertex_index,
                                     su_U64 vertex_index_amount,
                                     su_U32** vertex_index_out,
                                     su_U32** uv_index_out,
-                                    su_U32** normal_index_out) {
+                                    su_U32** normal_index_out)
+{
     *vertex_index_out = malloc(sizeof(su_U32) * vertex_index_amount);
     *uv_index_out = malloc(sizeof(su_U32) * vertex_index_amount);
     *normal_index_out = malloc(sizeof(su_U32) * vertex_index_amount);
@@ -160,15 +167,16 @@ SA_INTERNAL su_Bool sb__model_parse(const char* file_path,
                                     su_Uv** uv_array_out,
                                     su_U64* uv_count_out,
                                     struct sb_VertexIndex** index_array_out,
-                                    su_U64* index_count_out) {
+                                    su_U64* index_count_out)
+{
     tinyobj_attrib_t attribute = {0};
     tinyobj_shape_t* shape_array = NULL;
     su_U64 shape_array_amount = 0;
     tinyobj_material_t* material_array = NULL;
     su_U64 material_array_size = 0;
 
-    su_S32 success = tinyobj_parse_obj(&attribute, &shape_array, &shape_array_amount, &material_array,
-                                       &material_array_size, file_path, sb__file_reader_function, NULL, TINYOBJ_FLAG_TRIANGULATE);
+    su_S32 success = tinyobj_parse_obj(&attribute, &shape_array, (size_t*)&shape_array_amount, &material_array,
+                                       (size_t*)&material_array_size, file_path, sb__file_reader_function, NULL, TINYOBJ_FLAG_TRIANGULATE);
     if (success < 0) {
         char error_reason[255] = "UNKNOWN";
         switch (success) {
@@ -232,7 +240,8 @@ SA_INTERNAL su_Bool sb__model_parse(const char* file_path,
 }
 
 SA_INTERNAL void sb__file_reader_function(void* ctx, const char* filename, int is_mtl,
-                                          const char* obj_filename2, char** buf, size_t* len) {
+                                          const char* obj_filename2, char** buf, size_t* len)
+{
     su_NOT_USED_M(ctx); // suppress unused warning
     su_NOT_USED_M(is_mtl);
     su_NOT_USED_M(obj_filename2);

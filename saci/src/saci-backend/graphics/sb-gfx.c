@@ -3,13 +3,17 @@
 
 #include "./sb-gl.h"
 
-#include <saci-utils/math/su-math-mat.h>
-#include <saci-utils/math/su-math-types.h>
-#include <saci-utils/memory/su-darray.h>
-#include <saci-utils/memory/su-memory.h>
-#include <saci-utils/su-general.h>
-#include <saci-utils/su-log.h>
-#include <saci-utils/su-types-common.h>
+#ifndef __EMSCRIPTEN__
+#  include "saci-utils/config/su-config-manager.h"
+#endif
+
+#include "saci-utils/math/su-math-types.h"
+#include "saci-utils/memory/su-darray.h"
+#include "saci-utils/memory/su-memory.h"
+#include "saci-utils/su-general.h"
+#include "saci-utils/su-log.h"
+#include "saci-utils/su-types-common.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -33,7 +37,11 @@ SA_INTERNAL su_Bool sb__has_texture(union sb_Texture* texture_array, su_U32 arra
 void sb_gfx_load(void)
 {
     sb__render_loader_funcs = sb_dependencies_get_render_loader_api_funcs();
+#ifndef __EMSCRIPTEN__
     sb__render_api = su_cfg_manager_get_renderer_api();
+#else
+    sb__render_api = su_RENDERER_API_OPENGL;
+#endif
     switch (sb__render_api) {
     case su_RENDERER_API_OPENGL:
         sb_gl_load();

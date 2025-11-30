@@ -4,6 +4,8 @@
 #include "./su-types-common.h"
 #include "./su-general.h"
 
+#include <stdio.h>
+
 enum su_LogType {
     su_LOG_TYPE_DEV = -1, // used ONLY for developers of the SACI lib
     su_LOG_TYPE_USER = 0, // used for the users of the SACI lib

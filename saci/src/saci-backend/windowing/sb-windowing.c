@@ -12,22 +12,19 @@
 
 /* === Internal Funcs === */
 
+#ifndef __EMSCRIPTEN__
 SA_INTERNAL int sb__windowing_init(void);
 
 SA_INTERNAL void* sb__windowing_get_proc(void);
+#endif
 
 /* === Main declaration=== */
 
-SA_INTERNAL struct sb_WindowingApiFuncs sb__windowing_dependent_funcs;
-
 su_Bool sb_window_load(void)
 {
-    sb__windowing_dependent_funcs = sb_dependencies_get_windowing_api_funcs();
-
+    // Emscripten doesn't need to load any api at runtime, nor any proc
 #ifndef __EMSCRIPTEN__
-    // Emscripten doesn't need to load dependencies at runtime
-    sb_window_glfw_load_dependencies(sb__windowing_dependent_funcs);
-#endif
+    sb_window_glfw_load_dependencies(sb_dependencies_get_windowing_api_funcs());
 
     int success = sb__windowing_init();
     if (!success) {
@@ -37,25 +34,17 @@ su_Bool sb_window_load(void)
     }
     su_LOG_INFO_M(su_LOG_TYPE_PROD, su_LOG_CONTEXT_WINDOWING, "Loaded window api");
 
-    return su_TRUE;
-}
-
-su_Bool sb_window_proc_load(void)
-{
-#ifdef __EMSCRIPTEN__
-    // Doesn't need to load proc
-    return su_TRUE;
-#else
     sb_gfx_load_proc(su_CAST_M(void* (*)(const char*)) sb__windowing_get_proc());
-    return su_TRUE;
 #endif
+    return su_TRUE;
 }
 
 union sb_Window sb_window_create(int width, int height, const char* title,
                                  union sb_WindowOpts opts)
 {
 #ifdef __EMSCRIPTEN__
-    return sb_window_emscripten_create(width, height, title, opts);
+    (void)title;
+    return sb_window_emscripten_create(width, height, opts);
 #else
     return sb_window_glfw_create(width, height, title, opts);
 #endif
@@ -113,18 +102,16 @@ void sb_window_set_size_handler(union sb_Window window, su_WindowSizeHandler win
 
 void sb_window_terminate(void)
 {
-#ifdef __EMSCRIPTEN__
-    sb_window_emscripten_terminate();
-#else
+#ifndef __EMSCRIPTEN__
     sb_window_glfw_terminate();
 #endif
-    su_LOG_INFO_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_WINDOWING, "Terminated GLFW");
+    su_LOG_INFO_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_WINDOWING, "Terminated window");
 }
 
 void sb_window_swap_buffer(union sb_Window window)
 {
 #ifdef __EMSCRIPTEN__
-    sb_window_emscripten_swap_buffer(window);
+    (void)window;
 #else
     sb_window_glfw_swap_buffer(window);
 #endif
@@ -134,18 +121,14 @@ void sb_window_swap_buffer(union sb_Window window)
 
 void sb_event_poll(void)
 {
-#ifdef __EMSCRIPTEN__
-    sb_event_emscripten_poll();
-#else
+#ifndef __EMSCRIPTEN__
     sb_event_glfw_poll();
 #endif
 }
 
 void sb_event_wait(void)
 {
-#ifdef __EMSCRIPTEN__
-    sb_event_emscripten_wait();
-#else
+#ifndef __EMSCRIPTEN__
     sb_event_glfw_wait();
 #endif
 }
@@ -180,7 +163,8 @@ void sb_event_set_mouse_pos_handler(union sb_Window window, su_EventMousePosHand
 su_Bool sb_event_is_key_pressed(union sb_Window window, int keycode)
 {
 #ifdef __EMSCRIPTEN__
-    return sb_event_emscripten_is_key_pressed(window, keycode);
+    (void)window;
+    return sb_event_emscripten_is_key_pressed(keycode);
 #else
     return sb_event_glfw_is_key_pressed(window, keycode);
 #endif
@@ -188,22 +172,16 @@ su_Bool sb_event_is_key_pressed(union sb_Window window, int keycode)
 
 /* === Internal Funcs === */
 
+#ifndef __EMSCRIPTEN__
 int sb__windowing_init(void)
 {
     int status = 0;
-#ifdef __EMSCRIPTEN__
-    status = sb_window_emscripten_init();
-#else
     status = sb_window_glfw_init();
-#endif
     return status;
 }
 
 void* sb__windowing_get_proc(void)
 {
-#ifdef __EMSCRIPTEN__
-    return NULL;
-#else
     return sb_window_glfw_get_proc();
-#endif
 }
+#endif

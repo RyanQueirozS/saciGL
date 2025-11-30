@@ -45,7 +45,13 @@ else
 endif
 
 # Sources for the saci library (adjust paths if needed)
-SACI_SRC := $(shell find ../saci/src/saci-backend ../saci/src/saci-utils ../saci/src/saci-main -name '*.c')
+# Exclude emsdk files for native build, exclude glfw files for emscripten build
+ifeq ($(TARGET_PLATFORM),emscripten)
+	SACI_SRC := $(shell find ../saci/src/saci-backend -name '*.c' ! -name 'sb-glfw.c')
+else
+	SACI_SRC := $(shell find ../saci/src/saci-backend -name '*.c' ! -name 'sb-emsdk.c')
+endif
+SACI_SRC += $(shell find ../saci/src/saci-utils ../saci/src/saci-main -name '*.c')
 
 # Example directories
 EXAMPLES = \
@@ -95,11 +101,9 @@ build/%/index.html: %/main.c $(SACI_SRC)
 # Libraries to link against
 LIBS = -llua5.4 -lm -Wl,-rpath,$(PWD)/../saci/deps/glfw/lib/GLFW
 
-# Emscripten-specific libraries and flags
+# Emscripten-specific libraries and flags (GLFW removed)
 EMSCRIPTEN_LIBS = \
-	-s USE_GLFW=3 \
-	-s LLD_REPORT_UNDEFINED \
-	--preload-file assets@/assets
+	-s LLD_REPORT_UNDEFINED
 
 # Run a specific example (native only)
 run: all

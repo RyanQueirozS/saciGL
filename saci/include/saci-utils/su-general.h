@@ -10,6 +10,8 @@
 #ifndef SACI_UTILS_SU_GENERAL_H
 #define SACI_UTILS_SU_GENERAL_H
 
+#include <stdlib.h>
+
 #ifndef SACI_LIB_PATH
 #  error "SACI_LIB_PATH not defined! Set it in CMakeLists.txt or config.sh"
 #endif
@@ -90,7 +92,7 @@
 #  define su_TODO_M \
       printf("Not implemented %s:%d\n", __FILE__, __LINE__)
 #else
-#  define su_TODO                                            \
+#  define su_TODO_M                                          \
       printf("Not implemented %s:%d\n", __FILE__, __LINE__); \
       abort()
 #endif // SACI_DEBUG_MODE

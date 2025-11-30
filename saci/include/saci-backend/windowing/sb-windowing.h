@@ -3,41 +3,9 @@
 
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-types-common.h"
-
-union sb_Window;
-
-typedef void (*sb_WindowMousePosHandler)(union sb_Window*, int, int);
-typedef void (*sb_WindowSizeHandler)(union sb_Window*, int, int);
-typedef void (*sb_WindowPosHandler)(union sb_Window*, int, int);
-
-union sb_Window {
-    struct {
-        void* window;
-        const char* title;
-        int width, height;
-    } glfw;
-    struct {
-        void* context;
-        const char* selector;
-        int width, height;
-        sb_WindowMousePosHandler mouse_pos_handler;
-        sb_WindowSizeHandler size_handler;
-        sb_WindowPosHandler pos_handler;
-    } emscripten;
-};
-
-union sb_WindowOpts {
-    struct {
-        void* monitor;
-        void* window_share;
-    } glfw;
-    struct {
-        void* context;
-    } emscripten;
-};
+#include "./sb-windowing-common.h"
 
 su_Bool sb_window_load(void);
-su_Bool sb_window_proc_load(void);
 union sb_Window sb_window_create(int width, int height, const char* title,
                                  union sb_WindowOpts opts);
 SA_API void sb_window_free(union sb_Window window);

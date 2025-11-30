@@ -2,6 +2,10 @@
 
 #include "saci-utils/su-log.h"
 
+#ifndef __EMSCRIPTEN__
+#  include "saci-utils/config/su-config-manager.h"
+#endif
+
 #include <stdio.h>
 
 // Internal
@@ -32,7 +36,9 @@ sb_Renderer* sb_renderer_new(const enum sb_RendererType type, const char* name)
             break;
         }
     }
+#ifndef __EMSCRIPTEN__
     su_cfg_manager_get_renderer(name_ptr, &cfg);
+#endif
     sb_init_shaders(&cfg, &info);
     sb__renderer_instance_fill_default(&cfg, &info);
     su_MemPool* pool = sb_renderer_get_pool_from_cfg(&cfg, type);
@@ -41,10 +47,10 @@ sb_Renderer* sb_renderer_new(const enum sb_RendererType type, const char* name)
 
     switch (type) {
     case sb_RENDERER_STATIC:
-        su_TODO;
+        su_TODO_M;
         break;
     case sb_RENDERER_DYNAMIC:
-        su_TODO;
+        su_TODO_M;
         break;
     case sb_RENDERER_INSTANCE:
         rendr->interface = &sb__RENDERER_INSTANCE_INTERFACE_DEFAULT_INITIALIZER;
@@ -415,7 +421,9 @@ void sb_renderer_cfg_copy_and_cleanup(struct su_RendererConfig* dest, struct su_
         }
     }
 
+#ifndef __EMSCRIPTEN__
     su_cfg_manager_cleanup_renderer_cfg(dest);
+#endif
 }
 
 // Internal

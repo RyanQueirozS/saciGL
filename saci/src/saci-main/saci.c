@@ -277,8 +277,6 @@ SA_INTERNAL void saci__init_windowing(
         name,
         (union sb_WindowOpts){0});
     sb_window_make_context(*window_out);
-
-    su_LOG_ASSERT_M(sb_window_proc_load(), su_LOG_CONTEXT_CORE_INIT, "Could not load proc");
 }
 
 SA_INTERNAL void saci__init_memory(void)

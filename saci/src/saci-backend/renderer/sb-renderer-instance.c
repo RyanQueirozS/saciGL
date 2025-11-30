@@ -115,7 +115,7 @@ SA_API void sb_renderer_set_instance_data_array(struct sb_Renderer* rendr, const
     su_LOG_INFOF_M(
         su_LOG_TYPE_USER,
         su_LOG_CONTEXT_RENDERER_INSTANCE,
-        "Binding %lu instances",
+        "Binding " su_FMTU64 " instances",
         su_darray_length(instance_data_array));
     if (!su_darray_clear(rendr->rendr.instance_renderer->bound_extra.bound_instance_data_array)) {
         su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
@@ -240,7 +240,7 @@ SA_INTERNAL void sb__renderer_instance_bind_index_buffer(struct sb_Renderer* sel
         return;
     }
     su_LOG_INFOF_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_RENDERER_INSTANCE,
-                   "Bound %lu indices", su_darray_length(new_indices));
+                   "Bound " su_FMTU64 " indices", su_darray_length(new_indices));
 
     su_darray_clear(self->rendr.instance_renderer->bound.index_array);
     su_darray_append(self->rendr.instance_renderer->bound.index_array, new_indices);
@@ -256,10 +256,10 @@ SA_INTERNAL void sb__renderer_instance_push_mesh(struct sb_Renderer* self,
     // TODO validate instance_transform
 
     su_LOG_INFOF_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_RENDERER_INSTANCE,
-                   "Attempting to push %lu vertices to instance batch",
+                   "Attempting to push " su_FMTU64 " vertices to instance batch",
                    su_darray_length(pos_array));
     su_LOG_INFOF_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_RENDERER_INSTANCE,
-                   "Attempting to push %lu indices to instance batch",
+                   "Attempting to push " su_FMTU64 " indices to instance batch",
                    su_darray_length(rendr->bound.index_array));
     struct sb_GFXDrawData* batch = &(rendr->batch_array)[rendr->batch_info.in_use];
     su_Color default_color = {0, 0, 0, 0};

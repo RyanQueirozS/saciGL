@@ -1,16 +1,17 @@
-#include "saci-utils/config/su-lua.h"
+#ifndef __EMSCRIPTEN__
+#  include "saci-utils/config/su-lua.h"
 
-#include <lua5.4/lauxlib.h>
-#include <lua5.4/lualib.h>
-#include <lua5.4/lua.h>
+#  include <lua5.4/lauxlib.h>
+#  include <lua5.4/lualib.h>
+#  include <lua5.4/lua.h>
 
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
+#  include <stdbool.h>
+#  include <stdlib.h>
+#  include <string.h>
 
-#include "saci-utils/su-general.h"
-#include "saci-utils/su-log.h"
-#include "saci-utils/su-types-common.h"
+#  include "saci-utils/su-general.h"
+#  include "saci-utils/su-log.h"
+#  include "saci-utils/su-types-common.h"
 
 su_LuaState* su_lua_load(const char* file_path)
 {
@@ -254,3 +255,4 @@ void su_lua_dump_stack(su_LuaState* L)
     }
     printf("---------------------------\n");
 }
+#endif // __EMSCRIPTEN__

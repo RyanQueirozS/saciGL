@@ -14,6 +14,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 /* === Typedefs === */
 
@@ -32,6 +33,16 @@ typedef int32_t su_S32;
 typedef int16_t su_S16;
 
 typedef int8_t su_S8;
+
+#define su_FMTU8 "%" PRIu8
+#define su_FMTU16 "%" PRIu16
+#define su_FMTU32 "%" PRIu32
+#define su_FMTU64 "%" PRIu64
+
+#define su_FMTS8 "%" PRId8
+#define su_FMTS16 "%" PRId16
+#define su_FMTS32 "%" PRId32
+#define su_FMTS64 "%" PRId64
 
 #if defined(__cplusplus) && __cplusplus < 201103L
 #  include <cstddef>

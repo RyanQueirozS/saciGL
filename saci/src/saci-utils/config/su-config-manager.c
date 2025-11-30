@@ -1,28 +1,29 @@
-#include "saci-utils/config/su-config-manager.h"
-#include "saci-utils/config/su-lua.h"
+#ifndef __EMSCRIPTEN__
+#  include "saci-utils/config/su-config-manager.h"
+#  include "saci-utils/config/su-lua.h"
 
-#include <saci-utils/memory/su-memory.h>
-#include <stdio.h>
-#include <string.h>
-#include "saci-utils/su-general.h"
-#include "saci-utils/su-log.h"
+#  include <saci-utils/memory/su-memory.h>
+#  include <stdio.h>
+#  include <string.h>
+#  include "saci-utils/su-general.h"
+#  include "saci-utils/su-log.h"
 
 // Platform-specific default library paths
-#ifdef _WIN32 // Windows
-#  define su_DEFAULT_OPENGL_PATH "C:\\Windows\\System32\\opengl32.dll"
-#  define su_DEFAULT_GLFW_PATH "C:\\Program Files\\GLFW\\lib\\glfw3.dll"
-#  define su_DEFAULT_GLAD_PATH "C:\\Program Files\\GLAD\\lib\\glad.dll"
-#elif defined(__linux__) // Linux
-#  define su_DEFAULT_OPENGL_PATH "/usr/lib/x86_64-linux-gnu/libGL.so"
-#  define su_DEFAULT_GLFW_PATH "/usr/local/lib/libglfw.so"
-#  define su_DEFAULT_GLAD_PATH "/usr/local/lib/libglad.so"
-#elif defined(__APPLE__) // macOS
-#  define su_DEFAULT_OPENGL_PATH "/System/Library/Frameworks/OpenGL.framework/OpenGL"
-#  define su_DEFAULT_GLFW_PATH "/usr/local/lib/libglfw.dylib"
-#  define su_DEFAULT_GLAD_PATH "/usr/local/lib/libglad.dylib"
-#else
-#  error "Unknown platform. Define paths for this platform."
-#endif
+#  ifdef _WIN32 // Windows
+#    define su_DEFAULT_OPENGL_PATH "C:\\Windows\\System32\\opengl32.dll"
+#    define su_DEFAULT_GLFW_PATH "C:\\Program Files\\GLFW\\lib\\glfw3.dll"
+#    define su_DEFAULT_GLAD_PATH "C:\\Program Files\\GLAD\\lib\\glad.dll"
+#  elif defined(__linux__) // Linux
+#    define su_DEFAULT_OPENGL_PATH "/usr/lib/x86_64-linux-gnu/libGL.so"
+#    define su_DEFAULT_GLFW_PATH "/usr/local/lib/libglfw.so"
+#    define su_DEFAULT_GLAD_PATH "/usr/local/lib/libglad.so"
+#  elif defined(__APPLE__) // macOS
+#    define su_DEFAULT_OPENGL_PATH "/System/Library/Frameworks/OpenGL.framework/OpenGL"
+#    define su_DEFAULT_GLFW_PATH "/usr/local/lib/libglfw.dylib"
+#    define su_DEFAULT_GLAD_PATH "/usr/local/lib/libglad.dylib"
+#  else
+#    error "Unknown platform. Define paths for this platform."
+#  endif
 
 /* === Internal === */
 
@@ -620,3 +621,4 @@ void su__load_renderer_pipeline(su_LuaState* lua, struct su_RendererConfig* cfg_
         su_lua_pop(lua, 1);
     }
 }
+#endif // __EMSCRIPTEN__

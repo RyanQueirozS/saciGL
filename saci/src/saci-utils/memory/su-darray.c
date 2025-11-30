@@ -159,7 +159,7 @@ const void* su_darray_get(const su_DArray* array, su_U64 index)
 {
     su_LOG_DUMMY_CHECK_M(array, su_LOG_CONTEXT_CORE_DARRAY, "DArray is NULL");
     su_LOG_DUMMY_CHECK_M(array->data, su_LOG_CONTEXT_CORE_DARRAY, "DArray data is NULL");
-    su_LOG_ASSERTF_M(index < array->length, su_LOG_CONTEXT_CORE_DARRAY, "DArray has length %lu cannot get at index %lu", array->length, index);
+    su_LOG_ASSERTF_M(index < array->length, su_LOG_CONTEXT_CORE_DARRAY, "DArray has length " su_FMTU64 " cannot get at index " su_FMTU64, array->length, index);
     return (char*)array->data + index * array->elem_size;
 }
 
@@ -167,7 +167,7 @@ void* su_darray_get_ptr(const su_DArray* array, su_U64 index)
 {
     su_LOG_DUMMY_CHECK_M(array, su_LOG_CONTEXT_CORE_DARRAY, "DArray is NULL");
     su_LOG_DUMMY_CHECK_M(array->data, su_LOG_CONTEXT_CORE_DARRAY, "DArray data is NULL");
-    su_LOG_ASSERTF_M(index < array->length, su_LOG_CONTEXT_CORE_DARRAY, "DArray has length %lu cannot get at index %lu", array->length, index);
+    su_LOG_ASSERTF_M(index < array->length, su_LOG_CONTEXT_CORE_DARRAY, "DArray has length " su_FMTU64 " cannot get at index " su_FMTU64, array->length, index);
     return (char*)array->data + index * array->elem_size;
 }
 
@@ -182,8 +182,8 @@ void su_darray_set(su_DArray* array, su_U64 index, const void* value, su_U64 val
     su_LOG_DUMMY_CHECK_M(array, su_LOG_CONTEXT_CORE_DARRAY, "DArray is NULL");
     su_LOG_DUMMY_CHECK_M(array->data, su_LOG_CONTEXT_CORE_DARRAY, "DArray data is NULL");
     su_LOG_DUMMY_CHECK_M(array->elem_size == value_size, su_LOG_CONTEXT_CORE_DARRAY, "Element size is not equal to value size");
-    su_LOG_ASSERTF_M(value, su_LOG_CONTEXT_CORE_DARRAY, "DArray has length %lu cannot get at index %lu", array->length, index);
-    su_LOG_ASSERTF_M(index < array->length, su_LOG_CONTEXT_CORE_DARRAY, "DArray has length %lu cannot get at index %lu", array->length, index);
+    su_LOG_ASSERTF_M(value, su_LOG_CONTEXT_CORE_DARRAY, "DArray has length " su_FMTU64 " cannot get at index " su_FMTU64, array->length, index);
+    su_LOG_ASSERTF_M(index < array->length, su_LOG_CONTEXT_CORE_DARRAY, "DArray has length " su_FMTU64 " cannot get at index " su_FMTU64, array->length, index);
     void* dest = (char*)array->data + index * array->elem_size;
     memcpy(dest, value, array->elem_size);
 }
@@ -219,7 +219,7 @@ su_Bool su_darray_append(su_DArray* dest, const su_DArray* src)
 
 void su_darray_debug_print(const su_DArray* arr)
 {
-    printf("su_DArray Debug: data=%p, length=%lu, capacity=%lu, elem_size=%lu, fixed=%d\n",
+    printf("su_DArray Debug: data=%p, length=" su_FMTU64 ", capacity=" su_FMTU64 ", elem_size=" su_FMTU64 " , fixed=%d\n",
            arr->data, arr->length, arr->capacity, arr->elem_size, arr->is_fixed_size);
 }
 

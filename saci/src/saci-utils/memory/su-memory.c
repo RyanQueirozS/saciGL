@@ -251,15 +251,15 @@ su_Bool su_mem_chunk_set(struct su_MemChunk* chunk, su_U64 idx, void* data, su_U
         su_LOG_ERRORF_M(
             su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
             su_LOG_CONTEXT_CORE_MEMORY,
-            "Could not set data in chunk, idx is %lu and there are %lu elements",
+            "Could not set data in chunk, idx is " su_FMTU64 " and there are " su_FMTU64 " elements",
             chunk->element_count, idx);
     }
     if (chunk->element_size_bytes != data_size && chunk->element_size_bytes != 0) {
         su_LOG_ERRORF_M(
             su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
             su_LOG_CONTEXT_CORE_MEMORY,
-            "Could not set data in chunk, data (%lu) is bigger than element "
-            "size (%lu) in chunk",
+            "Could not set data in chunk, data (" su_FMTU64 ") is bigger than element "
+            "size (" su_FMTU64 ") in chunk",
             chunk->element_size_bytes, idx);
     }
     const su_U64 dest_capacity = chunk->element_size_bytes * chunk->element_count;
@@ -282,8 +282,8 @@ const void* su_mem_chunk_get(struct su_MemChunk* chunk, su_U64 idx, su_U64 data_
         su_LOG_ERRORF_M(
             su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
             su_LOG_CONTEXT_CORE_MEMORY,
-            "Could not get data from chunk, data_size expected (%lu) is not "
-            "equal to the one recieved (%lu)",
+            "Could not get data from chunk, data_size expected (" su_FMTU64 ") is not "
+            "equal to the one recieved (" su_FMTU64 ")",
             chunk->element_count, idx);
     }
     if (idx < chunk->element_count && chunk->element_count) // has to have non-zero element_count
@@ -291,7 +291,7 @@ const void* su_mem_chunk_get(struct su_MemChunk* chunk, su_U64 idx, su_U64 data_
         su_LOG_ERRORF_M(
             su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
             su_LOG_CONTEXT_CORE_MEMORY,
-            "Could not get data from chunk, idx is %lu and there are %lu elements",
+            "Could not get data from chunk, idx is " su_FMTU64 " and there are " su_FMTU64 " elements",
             chunk->element_count, idx);
     }
     return (const void*)((char*)chunk->data + (idx * chunk->element_size_bytes));
@@ -307,7 +307,7 @@ void* su_mem_chunk_get_ptr(struct su_MemChunk* chunk, su_U64 idx)
         su_LOG_ERRORF_M(
             su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH,
             su_LOG_CONTEXT_CORE_MEMORY,
-            "Could not get data from chunk, idx is %lu and there are %lu elements",
+            "Could not get data from chunk, idx is " su_FMTU64 " and there are " su_FMTU64 " elements",
             chunk->element_count, idx);
     }
     return (void*)((char*)chunk->data + (idx * chunk->element_size_bytes));
@@ -321,11 +321,11 @@ void su_mem_print_info(void)
         size_total += su__mem_manager.context_array[i].size_now;
     }
     if (su__mem_manager_cfg.is_arena_based) {
-        printf("Allocated %lu memory and used %lu", capacity_total, size_total);
+        printf("Allocated " su_FMTU64 " memory and used " su_FMTU64, capacity_total, size_total);
         return;
     }
 
-    printf("Allocated %lu bytes of memory. Could not calculate memory used: Not using "
+    printf("Allocated " su_FMTU64 " bytes of memory. Could not calculate memory used: Not using "
            "pool based allocator",
            capacity_total);
 }
@@ -427,7 +427,7 @@ su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offse
     if (dest_offset > dest_capacity) {
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
                         su_LOG_CONTEXT_CORE_MEMORY,
-                        "Destination offset exceeds capacity (offset: %zu, capacity: %zu)",
+                        "Destination offset exceeds capacity (offset: " su_FMTU64 ", capacity: " su_FMTU64 ")",
                         dest_offset, dest_capacity);
         return su_FALSE;
     }
@@ -435,7 +435,7 @@ su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offse
     if (dest_offset + copy_length > dest_capacity) {
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
                         su_LOG_CONTEXT_CORE_MEMORY,
-                        "Copy would exceed destination capacity (offset: %zu, length: %zu, capacity: %zu)",
+                        "Copy would exceed destination capacity (offset: " su_FMTU64 ", length: " su_FMTU64 ", capacity: " su_FMTU64 ")",
                         dest_offset, copy_length, dest_capacity);
         return su_FALSE;
     }
@@ -443,7 +443,7 @@ su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offse
     if (src_offset > src_size) {
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
                         su_LOG_CONTEXT_CORE_MEMORY,
-                        "Source offset exceeds source size (offset: %zu, size: %zu)",
+                        "Source offset exceeds source size (offset: " su_FMTU64 ", size: " su_FMTU64 ")",
                         src_offset, src_size);
         return su_FALSE;
     }
@@ -451,7 +451,7 @@ su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offse
     if (src_offset + copy_length > src_size) {
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
                         su_LOG_CONTEXT_CORE_MEMORY,
-                        "Copy would exceed source bounds (offset: %zu, length: %zu, size: %zu)",
+                        "Copy would exceed source bounds (offset: " su_FMTU64 ", length: " su_FMTU64 ", size: " su_FMTU64 ")",
                         src_offset, copy_length, src_size);
         return su_FALSE;
     }
@@ -463,7 +463,7 @@ su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offse
         (dest_start < src_start && dest_start + copy_length > src_start)) {
         su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
                         su_LOG_CONTEXT_CORE_MEMORY,
-                        "Overlapping memory regions in safe memcpy (src: %p, dest: %p, length: %zu)",
+                        "Overlapping memory regions in safe memcpy (src: %p, dest: %p, length: " su_FMTU64 ")",
                         (void*)src_start, (void*)dest_start, copy_length);
         return su_FALSE;
     }
@@ -494,7 +494,7 @@ su_Bool su_mem_safe_copy(void* dest_ptr, su_U64 dest_capacity, su_U64 dest_offse
     }
 
     su_LOG_INFOF_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_CORE_MEMORY,
-                   "Safe memcpy completed successfully (dest: %p+%zu, src: %p+%zu, length: %zu)",
+                   "Safe memcpy completed successfully (dest: %p+" su_FMTU64 ", src: %p+" su_FMTU64 ", length: " su_FMTU64 ")",
                    dest_ptr, dest_offset, src_ptr, src_offset, copy_length);
 
     return su_TRUE;
@@ -533,7 +533,7 @@ su_Bool su__mem_alloc_arena(void* pool, const su_U64 capacity, const su_U64 size
             su_LOG_TYPE_USER,
             su_LOG_ERROR_SEVERITY_CRASH,
             su_LOG_CONTEXT_CORE_MEMORY_MANAGER,
-            "Could not allocate memory: capacity is %lu and asking for %lu",
+            "Could not allocate memory: capacity is " su_FMTU64 " and asking for " su_FMTU64,
             capacity, size);
         return su_FALSE;
     }
