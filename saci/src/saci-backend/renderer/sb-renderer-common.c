@@ -13,13 +13,121 @@ SA_INTERNAL void sb__init_instance_buffers(struct su_RendererConfig* cfg_out);
 
 SA_INTERNAL void sb__renderer_instance_fill_default(struct su_RendererConfig* cfg_out, const union sb_GFXInfo* gfx_info);
 
+SA_INTERNAL_CONST struct su_RendererConfig sb__instance_config_default = {
+    .name = "instance",
+    .vertex_data = {
+        .layout_array = (struct su_RendererCfgVertexLayout[3]){
+            {.name = "position", .type = su_TYPE_VEC3, .offset = 0, .location = 0},
+            {.name = "color", .type = su_TYPE_COLOR, .offset = 12, .location = 1},
+            {.name = "uv", .type = su_TYPE_UV, .offset = 28, .location = 2},
+        },
+        .layout_array_length = 3,
+        .element_size_internal = 36,
+    },
+    .index_data = {
+        .element_size_internal = su_SIZE_OF_TYPE[su_TYPE_U32],
+    },
+    .shaders = {
+        .frag = "#version "
+#ifndef __EMSCRIPTEN__
+                "330 core"
+#else
+                "300 es\n"
+                "precision mediump float;"
+#endif
+                "\n\n"
+                "in vec4 v_color;\n"
+                "in vec2 v_texcoord;\n\n"
+                "uniform sampler2D u_texture;\n"
+                "uniform bool u_use_texture;\n\n"
+                "out vec4 frag_color;\n\n"
+                "void main()\n"
+                "{\n"
+                "   if (u_use_texture) {\n"
+                "       vec4 texcolor = texture(u_texture, v_texcoord);\n"
+                "       frag_color = texcolor * v_color;\n"
+                "   } else {\n"
+                "       frag_color = v_color;\n"
+                "   }\n"
+                "}",
+        .vert = "#version "
+#ifndef __EMSCRIPTEN__
+                "330 core"
+#else
+                "300 es"
+#endif
+                "\n\n"
+                "layout (location = 0) in vec3 a_pos;\n"
+                "layout (location = 1) in vec4 a_color;\n"
+                "layout (location = 2) in vec2 a_texcoord;\n"
+                "layout (location = 3) in mat4 i_model_matrix;\n"
+                "layout (location = 7) in vec4 i_color;\n\n"
+                "uniform mat4 u_model_matrix;\n"
+                "uniform mat4 u_view_matrix;\n"
+                "uniform mat4 u_projection_matrix;\n"
+                "uniform int u_flags;\n"
+                "uniform vec4 u_lighting;\n\n"
+                "out vec4 v_color;\n"
+                "out vec2 v_texcoord;\n\n"
+                "void main()\n"
+                "{\n"
+                "   gl_Position = u_projection_matrix * u_view_matrix * u_model_matrix * i_model_matrix * vec4(a_pos, 1.0);\n"
+                "   v_color = a_color + i_color;\n"
+                "   v_texcoord = a_texcoord;\n"
+                "}",
+        .geom = NULL,
+    },
+    .uniform_array = (struct su_RendererCfgUniform[7]){
+        {.name = "u_texture", .type = su_TYPE_SAMPLER2D},
+        {.name = "u_use_texture", .type = su_TYPE_BOOL},
+        {.name = "u_model_matrix", .type = su_TYPE_MAT4},
+        {.name = "u_view_matrix", .type = su_TYPE_MAT4},
+        {.name = "u_projection_matrix", .type = su_TYPE_MAT4},
+        {.name = "u_flags", .type = su_TYPE_S32},
+        {.name = "u_lighting", .type = su_TYPE_VEC4},
+    },
+    .uniform_array_length = 7,
+    .sampler_array = NULL,
+    .batch = {
+        .capacity = 10,
+        .index_cfg = {
+            .capacity = 1000, // TODO
+        },
+        .vertex_cfg = {
+            .capacity = 1000, // TODO
+        },
+        .instance_cfg = {
+            .capacity = 1000,
+        },
+    },
+    .bound = {
+        .index_cfg = {
+            .capacity = 1000,
+        },
+        .instance_cfg = {
+            .capacity = 10,
+        },
+    },
+    .draw = {
+        .primitive = su_PRIMITIVES_TRIANGLES,
+        .cull_mode = su_RENDERER_CULL_MODE_BACK,
+        .front_face = su_RENDERER_FRONT_FACE_CCW,
+    },
+    .pipeline = {
+        .depth_test = su_TRUE,
+        .blend = {
+            .enabled = true,
+            .opts = 0,
+        },
+    },
+};
+
 // Header impl
 
 sb_Renderer* sb_renderer_new(const enum sb_RendererType type, const char* name)
 {
     struct su_RendererConfig cfg = {0};
     union sb_GFXInfo info = {0};
-    struct sb_RendererInterface interface = {0};
     const char* name_ptr = name;
 
     if (!name) {
@@ -32,7 +140,7 @@ sb_Renderer* sb_renderer_new(const enum sb_RendererType type, const char* name)
             break;
         case sb_RENDERER_INSTANCE:
             name_ptr = "instance";
-            cfg = sb_CFG_DEFAULT_INSTANCE;
+            cfg = sb__instance_config_default;
             break;
         }
     }

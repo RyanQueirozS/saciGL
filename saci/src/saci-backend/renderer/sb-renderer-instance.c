@@ -60,12 +60,14 @@ void sb_renderer_instanced_new(struct sb_Renderer* self, su_MemPool* mem, struct
 {
     su_LOG_ASSERT_M(self && mem && cfg && info, su_LOG_CONTEXT_RENDERER_INSTANCE, "Empty or null parameters for new isntance renderer");
 
-    struct sb_InstanceRenderer* rendr = malloc(sizeof(struct sb_InstanceRenderer));
+    struct sb_InstanceRenderer* rendr = su_mem_pool_alloc(mem, sizeof(struct sb_InstanceRenderer));
     self->rendr.instance_renderer = rendr;
     self->rendr.instance_renderer->gfx = *info;
     self->interface = &sc_INSTANCE_RENDERER_DEFAULT_INTERFACE;
 
+#ifndef __EMSCRIPTEN__
     sb_renderer_cfg_copy_and_cleanup(&rendr->cfg, cfg, mem);
+#endif
     sb__renderer_init_instance_batch(rendr);
     sb_gfx_create(&rendr->gfx, rendr->cfg);
     sb_renderer_init_bound(&rendr->bound, rendr->cfg, mem);
