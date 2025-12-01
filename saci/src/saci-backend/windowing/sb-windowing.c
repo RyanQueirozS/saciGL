@@ -83,7 +83,7 @@ su_Bool sb_window_should_close(union sb_Window window)
 void sb_window_set_pos_handler(union sb_Window window, su_WindowPosHandler window_pos_handler)
 {
 #ifdef __EMSCRIPTEN__
-    sb_window_emscripten_set_pos_handler(window, window_pos_handler);
+    (void)window, (void)window_pos_handler;
 #else
     sb_window_glfw_set_pos_handler(window, window_pos_handler);
 #endif

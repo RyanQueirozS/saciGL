@@ -4,7 +4,7 @@
 
 // Internal funcs
 
-SA_INTERNAL sb_MainLoopData sb__looper_get_frame_data(void);
+SA_INTERNAL sb_LoopFrameData sb__looper_get_frame_data(void);
 
 SA_INTERNAL void sb__looper_main_loop_wrapper(void);
 
@@ -53,9 +53,9 @@ su_Bool sb_looper_is_running(void)
 
 // Internal funcs
 
-SA_INTERNAL sb_MainLoopData sb__looper_get_frame_data(void)
+SA_INTERNAL sb_LoopFrameData sb__looper_get_frame_data(void)
 {
-    return (sb_MainLoopData){0};
+    return (sb_LoopFrameData){0};
 }
 
 SA_INTERNAL void sb__looper_main_loop_wrapper(void)

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "saci-main/saci.h"
 #include "saci-utils/math/su-math-color.h"
 
@@ -31,7 +32,8 @@ static saci_Cube cube_big_orbiting = {
     .flags = 0,
 };
 
-void loop_func(double delta) {
+void loop_func(saci_LoopFrameData frame_data) {
+    printf("oii\n");
     saci_begin();
 
     cube_middle.rotation = su_vec3_add(cube_middle.rotation, rotation);

@@ -5,6 +5,7 @@
 #include "saci-utils/math/su-math-types.h"
 
 #include "saci-utils/su-general.h"
+#include "saci-backend/windowing/sb-looper.h"
 
 typedef enum {
     saci_MODEL_FLAG_ROTATION_RTS = 1U << 0,
@@ -22,7 +23,8 @@ typedef struct saci_Cube {
     saci_ModelFlag flags;
 } saci_Cube;
 
-typedef void (*saci_LoopFunc)(const double delta);
+typedef sb_LoopFrameData saci_LoopFrameData;
+typedef void (*saci_LoopFunc)(saci_LoopFrameData loop_data);
 
 typedef struct {
     struct {

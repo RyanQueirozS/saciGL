@@ -18,17 +18,21 @@
 
 #ifndef SA_API
 
-#  ifdef _WIN32
+#  ifdef __EMSCRIPTEN__
+#    include <emscripten.h>
+#    define SA_API EMSCRIPTEN_KEEPALIVE
 
+#  elif defined(_WIN32)
 #    ifdef BUILD_SACI_LIB
 #      define SA_API __declspec(dllexport) // Export symbols when building the library
 #    else
 #      define SA_API __declspec(dllimport) // Import symbols when using the library
 #    endif
+
 #  else
 #    define SA_API // Non-Windows platforms don't need special decoration
 
-#  endif // _WIN32
+#  endif // Platform checks
 
 #endif // SA_API
 

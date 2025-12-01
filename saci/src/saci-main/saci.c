@@ -1,6 +1,7 @@
 #include "saci-main/saci.h"
 
 #include "saci-utils/math/su-math-mat.h"
+#include "saci-backend/windowing/sb-looper.h"
 #include "saci-utils/memory/su-memory.h"
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-log.h"
@@ -101,8 +102,6 @@ SA_INTERNAL struct saci_Context {
         sb_Renderer* renderer;
     }* renderer_info_array;
 
-    saci_LoopFunc loop_func;
-
     saci_Event event;
 
     su_U64 enable_flags;
@@ -177,7 +176,7 @@ void saci_set_background_color(const su_Color color)
 void saci_set_loop_func(saci_LoopFunc loop_func)
 {
     su_LOG_ASSERT_M(loop_func, su_LOG_CONTEXT_CORE_MAINLOOP, "Loop function is NULL");
-    saci_context.loop_func = loop_func;
+    sb_looper_set_main_loop(loop_func, (sb_MainLoopOpts){0});
 }
 
 const saci_Event* saci_get_event(void)
@@ -187,9 +186,7 @@ const saci_Event* saci_get_event(void)
 
 void saci_loop(void)
 {
-    while (!sb_window_should_close(saci_context.windowing.window)) {
-        saci_context.loop_func(saci__get_delta());
-    }
+    sb_looper_run();
 }
 
 // Doesn't actually draw it but instead pushes to shape draw call array
