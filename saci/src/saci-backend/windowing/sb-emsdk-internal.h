@@ -3,8 +3,6 @@
 
 #include "saci-backend/windowing/sb-windowing-common.h"
 
-#include <stdlib.h>
-
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-types-common.h"
 
@@ -22,6 +20,10 @@ SA_API void sb_window_emscripten_set_pos_handler(union sb_Window window,
 
 SA_API void sb_window_emscripten_set_size_handler(union sb_Window window,
                                                   sb_WindowSizeHandler handler);
+
+SA_API void sb_window_emscripten_set_loop_func(void* loop_func, int fps, su_Bool infinite_loop);
+
+SA_API void sb_window_emscripten_loop_cancel(void);
 
 SA_API void sb_event_emscripten_wait_for_timeout(double timeout);
 

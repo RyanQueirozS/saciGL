@@ -5,6 +5,13 @@
 
 #include "saci-utils/su-general.h"
 #include "saci-utils/su-types-common.h"
+#include "saci-utils/math/su-math-types.h"
+
+// Draw
+
+SA_API void sb_emsdk_clear_color(const su_Color color);
+
+// Shader
 
 SA_API su_ShaderId sb_emsdk_shader_compile_shader_vert(const char* source);
 

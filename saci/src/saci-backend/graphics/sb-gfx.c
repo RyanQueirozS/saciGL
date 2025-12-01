@@ -108,7 +108,11 @@ void sb_gfx_create(union sb_GFXInfo* info_out, const struct su_RendererConfig cf
 
 void sb_gfx_clear_color(const su_Color color)
 {
+#ifndef __EMSCRIPTEN__
     sb_gl_clear_color(color);
+#else
+    sb_emsdk_clear_color(color);
+#endif
 }
 
 void sb_gfx_clear_depth_buffer(void)

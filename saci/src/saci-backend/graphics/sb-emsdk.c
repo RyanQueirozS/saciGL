@@ -9,6 +9,15 @@ SA_INTERNAL su_ShaderId sb__shader_compile(const char* shader_source, su_U32 sha
 
 // Header IMPL
 
+// Draw
+
+SA_API void sb_emsdk_clear_color(const su_Color color)
+{
+    glClearColor(color.r, color.g, color.b, color.a);
+}
+
+// Shader
+
 su_ShaderId sb_emsdk_shader_compile_shader_vert(const char* source)
 {
     return sb__shader_compile(source, GL_VERTEX_SHADER);

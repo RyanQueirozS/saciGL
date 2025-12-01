@@ -93,6 +93,16 @@ void sb_window_emscripten_set_size_handler(union sb_Window window,
                                    sb__emscripten_window_resized);
 }
 
+void sb_window_emscripten_set_loop_func(void* loop_func, int fps, su_Bool infinite_loop)
+{
+    emscripten_set_main_loop(loop_func, fps, infinite_loop);
+}
+
+void sb_window_emscripten_loop_cancel(void)
+{
+    emscripten_cancel_main_loop();
+}
+
 void sb_event_emscripten_wait_for_timeout(double timeout)
 {
     // Not applicable in the same way
