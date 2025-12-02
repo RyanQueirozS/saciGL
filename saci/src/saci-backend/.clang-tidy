@@ -20,78 +20,103 @@ HeaderFilterRegex: '.*'
 FormatStyle: file
 CheckOptions:
   
+  # =======================================================================
+  # AVOID BAD FUNCTIONS
+  # =======================================================================
   - key: readability-avoid-bad-function.Functions
-  value: 'free:Use su_FREE_M instead, malloc:Use su_MALLOC_M instead, calloc:Use su_CALLOC_M instead'
+    value: 'free:Use su_FREE_M instead, malloc:Use su_MALLOC_M instead, calloc:Use su_CALLOC_M instead'
 
-  # Functions There needs to be a check for static functions
+  # =======================================================================
+  # FUNCTION NAMING
+  # =======================================================================
+  - key: readability-identifier-naming.GlobalFunctionPrefix
+    value: "sacib_"
+  - key: readability-identifier-naming.GlobalFunctionCase
+    value: lower_case
+
   - key: readability-identifier-naming.FunctionPrefix
-    value: "sb__"
+    value: "sacib__"
   - key: readability-identifier-naming.FunctionCase
     value: lower_case
-  - key: readability-identifier-naming.GlobalFunctionPrefix
-    value: "sb_"
 
-  # Variables
+  # =======================================================================
+  # VARIABLE NAMING
+  # =======================================================================
   - key: readability-identifier-naming.GlobalVariableCase
-    value: lower_case
+    value: UPPER_CASE
   - key: readability-identifier-naming.GlobalVariablePrefix
-    value: "sb_"
+    value: "sacib_g_"
+
+  - key: readability-identifier-naming.StaticVariablePrefix
+    value: "sacib__"
   - key: readability-identifier-naming.StaticVariableCase
     value: lower_case
-  - key: readability-identifier-naming.StaticVariablePrefix
-    value: "sb__"
+
   - key: readability-identifier-naming.StaticConstantPrefix
-    value: "sb__"
+    value: "SACIB__"
+  - key: readability-identifier-naming.StaticConstantCase
+    value: UPPER_CASE
+
   - key: readability-identifier-naming.ParameterCase
     value: lower_case
   - key: readability-identifier-naming.LocalVariableCase
     value: lower_case
 
-  # Constants
-  - key: readability-identifier-naming.ConstantCase
-    value: UPPER_CASE
+  # =======================================================================
+  # CONSTANT NAMING
+  # =======================================================================
+  - key: readability-identifier-naming.GlobalConstantPrefix
+    value: "SACIB_G_"
   - key: readability-identifier-naming.GlobalConstantCase
     value: UPPER_CASE
-  - key: readability-identifier-naming.GlobalConstantPrefix
-    value: "sb_"
+
+  - key: readability-identifier-naming.ConstantCase
+    value: UPPER_CASE
+
   - key: readability-identifier-naming.LocalConstantCase
     value: lower_case
+
   - key: readability-identifier-naming.ConstantParameterCase
     value: lower_case
   - key: readability-identifier-naming.ConstantPointerParameterCase
     value: lower_case
-  - key: readability-identifier-naming.StaticConstantPrefix
-    value: "sb__"
 
-  # Structs
+  # =======================================================================
+  # STRUCT NAMING
+  # =======================================================================
+  - key: readability-identifier-naming.StructPrefix
+    value: "sacib_"
   - key: readability-identifier-naming.StructCase
     value: CamelCase
-  - key: readability-identifier-naming.StructPrefix
-    value: "sb_"
+
   - key: readability-identifier-naming.MemberCase
     value: lower_case
 
-  # Enums
+  # =======================================================================
+  # ENUM NAMING
+  # =======================================================================
   - key: readability-identifier-naming.EnumCase
     value: CamelCase
   - key: readability-identifier-naming.EnumPrefix
-    value: "sb_"
+    value: "sacib_"
+
+  - key: readability-identifier-naming.EnumConstantPrefix
+    value: "SACIB_"
   - key: readability-identifier-naming.EnumConstantCase
     value: UPPER_CASE
-  - key: readability-identifier-naming.EnumConstantPrefix
-    value: "sb_"
 
-  # Typedefs
+  # =======================================================================
+  # TYPEDEF NAMING
+  # =======================================================================
   - key: readability-identifier-naming.TypedefCase
     value: CamelCase
   - key: readability-identifier-naming.TypedefPrefix
-    value: "sb_"
+    value: "Sacib"
 
-  # Macros
+  # =======================================================================
+  # MACRO NAMING
+  # =======================================================================
+  - key: readability-identifier-naming.MacroDefinitionPrefix
+    value: "SACIB_"
   - key: readability-identifier-naming.MacroDefinitionCase
     value: ALL_CAPS
-  - key: readability-identifier-naming.MacroDefinitionPrefix
-    value: "sb_"
-  # Function macros need a _m suffix
-  # - key: readability-identifier-naming.MacroDefinitionSuffix
-  #   value: "_m"
