@@ -4,8 +4,6 @@
 #include "./types.h"
 #include "./defines.h"
 
-#include <stdio.h>
-
 enum SaciLogType {
     SACI_LOG_TYPE_DEV = -1, // used ONLY for developers of the SACI lib
     SACI_LOG_TYPE_USER = 0, // used for the users of the SACI lib
@@ -125,20 +123,12 @@ typedef struct {
     char file[SACI_LOG_FILE_CHAR_COUNT];
 } SaciLogDummyCheck;
 
-SA_API const char* saci_log_severity_as_str(const enum SaciLogErrorSeverity severity);
-SA_API const char* saci_log_context_as_str(const enum SaciLogContext context);
-SA_API enum SaciLogType saci_log_get_current_type(void);
-SA_API void saci_log_set_type(enum SaciLogType type);
+SACI_API const char* saci_log_severity_as_str(const enum SaciLogErrorSeverity severity);
+SACI_API const char* saci_log_context_as_str(const enum SaciLogContext context);
+SACI_API enum SaciLogType saci_log_get_current_type(void);
+SACI_API void saci_log_set_type(enum SaciLogType type);
 
-SA_API const SaciLogError* saci_log_get_last_error(void);
-
-#define SACI_LOG_ERROR_MAX_COUNT 128
-#define SACI_LOG_WARNING_MAX_COUNT 128
-#define SACI_LOG_INFO_MAX_COUNT 128
-#define SACI_LOG_ASSERTION_MAX_COUNT 128
-#define SACI_LOG_DUMMY_CHECK_MAX_COUNT 128
-
-typedef struct SaciLogBuffer SaciLogBuffer; // Contains all of the above in the given counts
+SACI_API const SaciLogError* saci_log_get_last_error(void);
 
 typedef enum {
     SACI_LOG_EVENT_ERROR = 0,
@@ -164,72 +154,9 @@ typedef void (*SaciLogAssertionFailCallback)(const SaciLogAssertion*);
 typedef void (*SaciLogDummyCheckFailCallback)(const SaciLogDummyCheck*);
 typedef void (*SaciLogEventCallback)(const struct SaciLogEvent* log_event);
 
-SA_API void saci_log_set_event_callback(SaciLogEventCallback event_callback);
-SA_API void saci_log_set_crash_callback(SaciLogCrashCallback crash_callback);
-SA_API void saci_log_set_assertion_fail_callback(SaciLogAssertionFailCallback assertion_callback);
-SA_API void saci_log_set_dummy_check_fail_callback(SaciLogDummyCheckFailCallback dummy_check_callback);
-
-SA_API void saci_log_error(const enum SaciLogType type, const enum SaciLogErrorSeverity severity, const enum SaciLogContext context, const char* message, const char* file, const int line);
-
-SA_API void saci_log_warn(const enum SaciLogType type, const enum SaciLogWarnSeverity severity, const enum SaciLogContext context, const char* message, const char* file, const int line);
-
-SA_API void saci_log_info(const enum SaciLogType type, const enum SaciLogContext context, const char* message, const char* file, const int line);
-
-SA_API void saci_log_assert(const SaciBool condition, const enum SaciLogContext context, const char* message, const char* file, const int line);
-
-SA_API void saci_log_dummy_check(const SaciBool condition, const enum SaciLogContext context, const char* message, const char* file, const int line);
-
-// use when a condition fails or something that should happen happend
-#define SACI_LOG_ERROR_M(type, severity, context, message) \
-    su_log_error(type, severity, context, message, __FILE__, __LINE__)
-
-// The do while loop crashes if the severity is "su_LOG_ERROR_SEVERITY_CRASH"
-#define SACI_LOG_WARN_M(type, severity, context, message) \
-    su_log_warn(type, severity, context, message, __FILE__, __LINE__);
-
-#define SACI_LOG_INFO_M(type, context, message) \
-    su_log_info(type, context, message, __FILE__, __LINE__)
-
-// use to make sure simple stuff make sense (index < length etc). Think of it as asserting that the logic is working not that there is a expecific value and what not, that is done through checks and SACI_LOG_ERROR_M
-#define SACI_LOG_ASSERT_M(condition, context, message) \
-    su_log_assert(condition, context, message, __FILE__, __LINE__)
-
-#define SACI_LOG_DUMMY_CHECK_M(condition, context, message) \
-    su_log_dummy_check(condition, context, message, __FILE__, __LINE__)
-
-#define SACI_LOG_ERRORF_M(type, severity, context, ...)                            \
-    do {                                                                           \
-        char su_log_message[2048];                                                 \
-        snprintf(su_log_message, sizeof(su_log_message), __VA_ARGS__);             \
-        su_log_error(type, severity, context, su_log_message, __FILE__, __LINE__); \
-    } while (0)
-
-#define SACI_LOG_WARNF_M(type, severity, context, ...)                            \
-    do {                                                                          \
-        char su_log_message[2048];                                                \
-        snprintf(su_log_message, sizeof(su_log_message), __VA_ARGS__);            \
-        su_log_warn(type, severity, context, su_log_message, __FILE__, __LINE__); \
-    } while (0)
-
-#define SACI_LOG_INFOF_M(type, context, ...)                            \
-    do {                                                                \
-        char su_log_message[2048];                                      \
-        snprintf(su_log_message, sizeof(su_log_message), __VA_ARGS__);  \
-        su_log_info(type, context, su_log_message, __FILE__, __LINE__); \
-    } while (0)
-
-#define SACI_LOG_ASSERTF_M(condition, context, ...)                            \
-    do {                                                                       \
-        char su_log_message[2048];                                             \
-        snprintf(su_log_message, sizeof(su_log_message), __VA_ARGS__);         \
-        su_log_assert(condition, context, su_log_message, __FILE__, __LINE__); \
-    } while (0)
-
-#define SACI_LOG_DUMMY_CHECKF_M(condition, context, ...)                            \
-    do {                                                                            \
-        char su_log_message[2048];                                                  \
-        snprintf(su_log_message, sizeof(su_log_message), __VA_ARGS__);              \
-        su_log_dummy_check(condition, context, su_log_message, __FILE__, __LINE__); \
-    } while (0)
+SACI_API void saci_log_set_event_callback(SaciLogEventCallback event_callback);
+SACI_API void saci_log_set_crash_callback(SaciLogCrashCallback crash_callback);
+SACI_API void saci_log_set_assertion_fail_callback(SaciLogAssertionFailCallback assertion_callback);
+SACI_API void saci_log_set_dummy_check_fail_callback(SaciLogDummyCheckFailCallback dummy_check_callback);
 
 #endif // SACI_UTILS_SU_LOG_H

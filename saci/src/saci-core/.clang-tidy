@@ -32,12 +32,12 @@ CheckOptions:
   # FUNCTION NAMING
   # =======================================================================
   - key: readability-identifier-naming.GlobalFunctionPrefix
-    value: "sacic_"
+    value: "saci_"
   - key: readability-identifier-naming.GlobalFunctionCase
     value: lower_case
 
   - key: readability-identifier-naming.FunctionPrefix
-    value: "sacic__"
+    value: "saci__"
   - key: readability-identifier-naming.FunctionCase
     value: lower_case
 
@@ -45,17 +45,17 @@ CheckOptions:
   # VARIABLE NAMING
   # =======================================================================
   - key: readability-identifier-naming.GlobalVariableCase
-    value: UPPER_CASE
+    value: lower_case
   - key: readability-identifier-naming.GlobalVariablePrefix
-    value: "sacic_g_"
+    value: "saci_g_"
 
   - key: readability-identifier-naming.StaticVariablePrefix
-    value: "sacic__"
+    value: "saci__"
   - key: readability-identifier-naming.StaticVariableCase
     value: lower_case
 
   - key: readability-identifier-naming.StaticConstantPrefix
-    value: "SACIC__"
+    value: "SACI__"
   - key: readability-identifier-naming.StaticConstantCase
     value: UPPER_CASE
 
@@ -68,7 +68,7 @@ CheckOptions:
   # CONSTANT NAMING
   # =======================================================================
   - key: readability-identifier-naming.GlobalConstantPrefix
-    value: "SACIC_G_"
+    value: "SACI_G_"
   - key: readability-identifier-naming.GlobalConstantCase
     value: UPPER_CASE
 
@@ -87,7 +87,7 @@ CheckOptions:
   # STRUCT NAMING
   # =======================================================================
   - key: readability-identifier-naming.StructPrefix
-    value: "sacic_"
+    value: "saci_"
   - key: readability-identifier-naming.StructCase
     value: CamelCase
 
@@ -100,10 +100,10 @@ CheckOptions:
   - key: readability-identifier-naming.EnumCase
     value: CamelCase
   - key: readability-identifier-naming.EnumPrefix
-    value: "sacic_"
+    value: "saci_"
 
   - key: readability-identifier-naming.EnumConstantPrefix
-    value: "SACIC_"
+    value: "SACI_"
   - key: readability-identifier-naming.EnumConstantCase
     value: UPPER_CASE
 
@@ -113,13 +113,13 @@ CheckOptions:
   - key: readability-identifier-naming.TypedefCase
     value: CamelCase
   - key: readability-identifier-naming.TypedefPrefix
-    value: "Sacic"
+    value: "Saci"
 
   # =======================================================================
   # MACRO NAMING
   # =======================================================================
   - key: readability-identifier-naming.MacroDefinitionPrefix
-    value: "SACIC_"
+    value: "SACI_"
   - key: readability-identifier-naming.MacroDefinitionCase
     value: ALL_CAPS
 
