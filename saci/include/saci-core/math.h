@@ -16,25 +16,6 @@
 
 #define su_RAD_TO_DEG_M(x) ((x) * su_RAD2DEG_MULT)
 
-// Types
-
-typedef struct {
-    float x; /**< X compoonent */
-    float y; /**< Y compoonent */
-    float z; /**< Z compoonent */
-} SaciVec3;
-
-typedef struct {
-    float data[4][4]; /**< 4x4 matrix of floats */
-} SaciMat4;
-
-typedef struct {
-    float r; /**< Red compoonent */
-    float g; /**< Green compoonent */
-    float b; /**< Blue compoonent */
-    float a; /**< Alpha (transparency) compoonent */
-} SaciColor;
-
 // Preferences
 
 double saci_math_sqrt(double val);
@@ -46,28 +27,25 @@ double saci_math_tan(double val);
 #define SACI_VEC3_FMT "x:%f y:%f z:%f"
 #define SACI_VEC3_FMT_ARGS(v) (v).x, (v).y, (v).z
 
-SA_API SaciVec3 saci_vec3_subtract(SaciVec3 a, SaciVec3 b);
+SACI_API SaciVec3 saci_vec3_subtract(SaciVec3 a, SaciVec3 b);
 
-SA_API SaciVec3 saci_vec3_add(SaciVec3 a, SaciVec3 b);
+SACI_API SaciVec3 saci_vec3_add(SaciVec3 a, SaciVec3 b);
 
-SA_API SaciVec3 saci_vec3_scale(SaciVec3 v, float scalar);
+SACI_API SaciVec3 saci_vec3_scale(SaciVec3 v, float scalar);
 
-SA_API SaciVec3 saci_vec3_normalize(SaciVec3 v);
+SACI_API SaciVec3 saci_vec3_normalize(SaciVec3 v);
 
-SA_API SaciVec3 saci_vec3_cross(SaciVec3 a, SaciVec3 b);
+SACI_API SaciVec3 saci_vec3_cross(SaciVec3 a, SaciVec3 b);
 
-SA_API float saci_vec3_dot(SaciVec3 a, SaciVec3 b);
+SACI_API float saci_vec3_dot(SaciVec3 a, SaciVec3 b);
 
 // Color
 
-#define SACI_COLOR_8BIT_MAX (255.0f)
-#define SACI_COLOR_8BIT_INVERSE_MAX (1.0f / su_COLOR_8BIT_MAX)
+SACI_API SaciColor saci_color_from_hex(SaciU32 hex);
 
-SA_API SaciColor saci_color_from_hex(SaciU32 hex);
+SACI_API SaciColor saci_color_from_u8(SaciU8 r, SaciU8 g, SaciU8 b, SaciU8 a);
 
-SA_API SaciColor saci_color_from_u8(SaciU8 r, SaciU8 g, SaciU8 b, SaciU8 a);
-
-SA_API SaciU32 saci_color_to_hex(SaciColor color);
+SACI_API SaciU32 saci_color_to_hex(SaciColor color);
 
 // Mat4
 

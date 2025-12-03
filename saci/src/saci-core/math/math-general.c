@@ -1,28 +1,32 @@
-#include "saci-utils/math/su-math-general.h"
+#include "saci-core/math.h"
 
 #include <math.h>
 
-static double su__default_sqrt_s(double x) { // wrapps math.h sqrt func
+SACI_STATIC double saci__default_sqrt_s(double x)
+{ // wrapps math.h sqrt func
     return sqrt(x);
 }
 
-static double su__default_tan_s(double x) { // wrapps math.h tan func
+SACI_STATIC double saci__default_tan_s(double x)
+{ // wrapps math.h tan func
     return tan(x);
 }
 
-static struct su_MathPreferences su__math_preferences = {
-    .sqrt_function = su__default_sqrt_s,
-    .tan_function = su__default_tan_s,
+SACI_STATIC struct
+{
+    double (*sqrt_function)(double);
+    double (*tan_function)(double);
+} saci_g_math_preferences = {
+    .sqrt_function = saci__default_sqrt_s,
+    .tan_function = saci__default_tan_s,
 };
 
-struct su_MathPreferences su_math_get_preferences(void) {
-    return su__math_preferences;
+double saci_math_sqrt(double val)
+{
+    return saci_g_math_preferences.sqrt_function(val);
 }
 
-double su_math_sqrt(double val) {
-    return su__math_preferences.sqrt_function(val);
-}
-
-double su_math_tan(double val) {
-    return su__math_preferences.tan_function(val);
+double saci_math_tan(double val)
+{
+    return saci_g_math_preferences.tan_function(val);
 }

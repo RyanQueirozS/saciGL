@@ -83,8 +83,25 @@ typedef struct {
     float x; /**< X compoonent */
     float y; /**< Y compoonent */
     float z; /**< Z compoonent */
+} SaciVec3;
+
+typedef struct {
+    float x; /**< X compoonent */
+    float y; /**< Y compoonent */
+    float z; /**< Z compoonent */
     float w; /**< W compoonent */
 } SaciVec4;
+
+typedef struct {
+    float r; /**< Red compoonent */
+    float g; /**< Green compoonent */
+    float b; /**< Blue compoonent */
+    float a; /**< Alpha (transparency) compoonent */
+} SaciColor;
+
+typedef struct {
+    float data[4][4]; /**< 4x4 matrix of floats */
+} SaciMat4;
 
 /* === Types === */
 
@@ -164,7 +181,7 @@ static const SaciU64 SACI_G_TYPE_SIZE_TABLE[] = {
 };
 
 // TODO move to memory/
-typedef enum SaciReallocationKind {
+typedef enum {
     SACI_REALLOCATION_KIND_REALLOC = 0,
     SACI_REALLOCATION_KIND_MALLOC_FREE = 1,
     SACI_REALLOCATION_KIND_FIXED_SIZE = 2,
