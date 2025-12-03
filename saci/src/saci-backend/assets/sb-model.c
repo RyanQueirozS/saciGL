@@ -16,7 +16,7 @@ SA_INTERNAL char* sb_file_buffer_s = NULL; // buffer for the file reader functio
 SA_INTERNAL size_t sb_file_buffer_len_s = 0;
 
 SA_INTERNAL su_Bool sb__model_parse(const char* file_path,
-                                    su_Vec3** position_array_out, su_U64* positions_count_out,
+                                    SacicSuVec3** position_array_out, su_U64* positions_count_out,
                                     su_Uv** texcoord_array_out, su_U64* texcoord_count_out,
                                     struct sb_VertexIndex** index_array_out, su_U64* index_count_out);
 
@@ -39,7 +39,7 @@ struct sb_ModelMesh {
     su_U64 positions_count;
     struct sb_VertexIndex* index_array;
     su_Uv* uv_array;
-    su_Vec3* position_array;
+    SacicSuVec3* position_array;
 };
 #endif
 
@@ -124,13 +124,13 @@ void sb_model_get_separated_index_data(const struct sb_ModelMesh* model_mesh,
 }
 
 void sb_model_get_position_array(const struct sb_ModelMesh* model_mesh,
-                                 su_Vec3** position_array_out,
+                                 SacicSuVec3** position_array_out,
                                  su_U64* position_count_out)
 {
-    *position_array_out = malloc(sizeof(su_Vec3) * model_mesh->positions_count);
+    *position_array_out = malloc(sizeof(SacicSuVec3) * model_mesh->positions_count);
     *position_count_out = model_mesh->positions_count;
     memcpy(*position_array_out, model_mesh->position_array,
-           (sizeof(su_Vec3) * model_mesh->positions_count));
+           (sizeof(SacicSuVec3) * model_mesh->positions_count));
 }
 
 void sb_model_get_uv_array(const struct sb_ModelMesh* model_mesh,
@@ -162,7 +162,7 @@ void sb_model_vertex_index_get_data(const struct sb_VertexIndex* vertex_index,
 /* === Helper Implementation === */
 
 SA_INTERNAL su_Bool sb__model_parse(const char* file_path,
-                                    su_Vec3** position_array_out,
+                                    SacicSuVec3** position_array_out,
                                     su_U64* positions_count_out,
                                     su_Uv** uv_array_out,
                                     su_U64* uv_count_out,
@@ -200,7 +200,7 @@ SA_INTERNAL su_Bool sb__model_parse(const char* file_path,
                        "Could not load position array");
         return false;
     }
-    *position_array_out = su_CAST_M(su_Vec3*)(malloc(sizeof(su_Vec3) * (*positions_count_out)));
+    *position_array_out = su_CAST_M(SacicSuVec3*)(malloc(sizeof(SacicSuVec3) * (*positions_count_out)));
     if (!(*position_array_out)) {
         su_LOG_ERROR_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_MEDIUM,
                        su_LOG_CONTEXT_MODEL_LOADING, "Couldn't malloc positions");
@@ -210,7 +210,7 @@ SA_INTERNAL su_Bool sb__model_parse(const char* file_path,
         float pos_x = attribute.vertices[3 * i + 0];
         float pos_y = attribute.vertices[3 * i + 1];
         float pos_z = attribute.vertices[3 * i + 2];
-        (*position_array_out)[i] = su_CAST_M(su_Vec3){pos_x, pos_y, pos_z};
+        (*position_array_out)[i] = su_CAST_M(SacicSuVec3){pos_x, pos_y, pos_z};
     }
 
     *uv_count_out = attribute.num_texcoords;

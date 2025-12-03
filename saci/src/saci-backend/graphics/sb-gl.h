@@ -77,7 +77,7 @@ SA_API void sb_gl_set_vertex_attrib_posu_S32(su_U32 index, su_S32 size, su_U32 t
 SA_API void sb_gl_enable_vertex_attrib_array(su_U32 id);
 SA_API void sb_gl_vertex_attrib_divisor(su_U32 id, su_U32 div);
 SA_API su_S32 sb_gl_uniform_location(su_ShaderId program_id, const char* const name);
-SA_API void sb_gl_clear_color(const su_Color color);
+SA_API void sb_gl_clear_color(const Sacic_Color color);
 SA_API void sb_gl_clear_depth_buffer(void);
 SA_API void sb_gl_use_program(su_U32 program);
 SA_API void sb_gl_set_vertex_buffer_subdata(su_S64 offset, su_U64 size, const void* data);

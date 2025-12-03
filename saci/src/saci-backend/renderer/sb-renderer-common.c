@@ -359,7 +359,7 @@ union sb_GFXUniformValue sb_renderer_uniform_value_from_type(su_DataType type, c
         result.vec2 = *(const su_Vec2*)value;
         break;
     case su_TYPE_VEC3:
-        result.vec3 = *(const su_Vec3*)value;
+        result.vec3 = *(const SacicSuVec3*)value;
         break;
     case su_TYPE_VEC4:
         result.vec4 = *(const su_Vec4*)value;

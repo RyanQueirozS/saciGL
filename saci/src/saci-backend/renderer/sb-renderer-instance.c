@@ -267,7 +267,7 @@ SA_INTERNAL void sb__renderer_instance_push_mesh(struct sb_Renderer* self,
     su_Color default_color = {0, 0, 0, 0};
     su_Uv default_uv = {0, 0};
     for (su_U64 i = 0; i < su_darray_length(pos_array); ++i) {
-        su_Vec3 pos = *(su_Vec3*)su_darray_get(pos_array, i);
+        SacicSuVec3 pos = *(SacicSuVec3*)su_darray_get(pos_array, i);
         su_Color color = default_color;
         su_Uv uv = default_uv;
 

@@ -4,7 +4,7 @@
 #include "saci-utils/su-general.h"
 #include "saci-utils/math/su-math-types.h"
 
-SA_API void sb_graphics_clear_color(const su_Color color);
+SA_API void sb_graphics_clear_color(const Sacic_Color color);
 
 SA_API void sb_graphics_clear_depth_buffer(void);
 

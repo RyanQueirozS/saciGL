@@ -45,7 +45,7 @@ SA_API void sb_model_get_separated_index_data(const struct sb_ModelMesh* model_m
                                               su_U64* indice_count_out);
 
 SA_API void sb_model_get_position_array(const struct sb_ModelMesh* model_mesh,
-                                        su_Vec3** position_array_out,
+                                        SacicSuVec3** position_array_out,
                                         su_U64* position_count_out);
 
 SA_API void sb_model_get_uv_array(const struct sb_ModelMesh* model_mesh,

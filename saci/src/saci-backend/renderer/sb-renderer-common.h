@@ -12,7 +12,7 @@
 #  define sb_RENDERER_STRUCT
 
 struct sb_Vertex {
-    su_Vec3 pos;
+    SacicSuVec3 pos;
     su_Color color;
     su_Uv uv;
 };

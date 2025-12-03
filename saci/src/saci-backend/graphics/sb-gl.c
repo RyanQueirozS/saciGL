@@ -439,7 +439,7 @@ su_S32 sb_gl_uniform_location(su_ShaderId program_id, const char* const name)
     return sb__gl_funcs.gl.get_uniform_location(program_id, name);
 }
 
-void sb_gl_clear_color(const su_Color color)
+void sb_gl_clear_color(const Sacic_Color color)
 {
     sb__gl_funcs.gl.clear_color(color.r, color.g, color.b, color.a);
     sb__gl_funcs.gl.clear(sb_GL_COLOR_BUFFER_BIT);

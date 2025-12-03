@@ -18,115 +18,115 @@
 
 /* === Typedefs === */
 
-typedef uint64_t su_U64;
+typedef uint64_t SaciU64;
 
-typedef uint32_t su_U32;
+typedef uint32_t SaciU32;
 
-typedef uint16_t su_U16;
+typedef uint16_t SaciU16;
 
-typedef uint8_t su_U8;
+typedef uint8_t SaciU8;
 
-typedef int64_t su_S64;
+typedef int64_t SaciS64;
 
-typedef int32_t su_S32;
+typedef int32_t SaciS32;
 
-typedef int16_t su_S16;
+typedef int16_t SaciS16;
 
-typedef int8_t su_S8;
+typedef int8_t SaciS8;
 
-#define su_FMTU8 "%" PRIu8
-#define su_FMTU16 "%" PRIu16
-#define su_FMTU32 "%" PRIu32
-#define su_FMTU64 "%" PRIu64
+#define SACI_FMTU8 "%" PRIu8
+#define SACI_FMTU16 "%" PRIu16
+#define SACI_FMTU32 "%" PRIu32
+#define SACI_FMTU64 "%" PRIu64
 
-#define su_FMTS8 "%" PRId8
-#define su_FMTS16 "%" PRId16
-#define su_FMTS32 "%" PRId32
-#define su_FMTS64 "%" PRId64
+#define SACI_FMTS8 "%" PRId8
+#define SACI_FMTS16 "%" PRId16
+#define SACI_FMTS32 "%" PRId32
+#define SACI_FMTS64 "%" PRId64
 
 #if defined(__cplusplus) && __cplusplus < 201103L
 #  include <cstddef>
 typedef std::uintptr_t su_UintPtr;
 #else
-typedef uintptr_t su_UintPtr;
+typedef uintptr_t SaciUintPtr;
 #endif
 
 /* === Boolean Constants === */
 
-#define su_TRUE true
+#define SACI_TRUE true
 
-#define su_FALSE false
+#define SACI_FALSE false
 
-typedef bool su_Bool;
+typedef bool SaciBool;
 
 /* === Identifiers === */
 
-typedef su_U32 su_ShaderId;
+typedef SaciU32 SaciShaderId;
 
-typedef su_U32 su_TextureId;
+typedef SaciU32 SaciTextureId;
 
-typedef su_U32 su_BufferId;
+typedef SaciU32 SaciBufferId;
 
 /* === Vector Structures === */
 
 typedef struct {
     float u; /**< U compoonent */
     float v; /**< V compoonent */
-} su_Uv;
+} SaciUv;
 
 typedef struct {
     float x; /**< X compoonent */
     float y; /**< Y compoonent */
-} su_Vec2;
+} SaciVec2;
 
 typedef struct {
     float x; /**< X compoonent */
     float y; /**< Y compoonent */
     float z; /**< Z compoonent */
     float w; /**< W compoonent */
-} su_Vec4;
+} SaciVec4;
 
 /* === Types === */
 
 typedef enum {
-    su_TYPE_U8 = 1,  // unsigned int8
-    su_TYPE_U16 = 2, // unsigned int16
-    su_TYPE_U32 = 3, // unsigned int32
-    su_TYPE_U64 = 4, // unsigned int64
-    su_TYPE_S8 = 5,  // signed int8
-    su_TYPE_S16 = 6, // signed int16
-    su_TYPE_S32 = 7, // signed int32
-    su_TYPE_S64 = 8, // signed int64
+    SACI_TYPE_U8 = 1,  // unsigned int8
+    SACI_TYPE_U16 = 2, // unsigned int16
+    SACI_TYPE_U32 = 3, // unsigned int32
+    SACI_TYPE_U64 = 4, // unsigned int64
+    SACI_TYPE_S8 = 5,  // signed int8
+    SACI_TYPE_S16 = 6, // signed int16
+    SACI_TYPE_S32 = 7, // signed int32
+    SACI_TYPE_S64 = 8, // signed int64
 
-    su_TYPE_BOOL = 9, // boolean
+    SACI_TYPE_BOOL = 9, // boolean
 
-    su_TYPE_SHADERID = 10,  // unsgined int32
-    su_TYPE_TEXTUREID = 11, // unsgined int32
-    su_TYPE_BUFFERID = 12,  // unsigned int32
+    SACI_TYPE_SHADERID = 10,  // unsgined int32
+    SACI_TYPE_TEXTUREID = 11, // unsgined int32
+    SACI_TYPE_BUFFERID = 12,  // unsigned int32
 
-    su_TYPE_UV = 13,   // 2 floats (u, v)
-    su_TYPE_VEC2 = 14, // 2 floats (x, y)
-    su_TYPE_VEC3 = 15, // 3 floats (x, y, z)
-    su_TYPE_VEC4 = 16, // 4 floats (x, y, z, w)
+    SACI_TYPE_UV = 13,   // 2 floats (u, v)
+    SACI_TYPE_VEC2 = 14, // 2 floats (x, y)
+    SACI_TYPE_VEC3 = 15, // 3 floats (x, y, z)
+    SACI_TYPE_VEC4 = 16, // 4 floats (x, y, z, w)
 
-    su_TYPE_COLOR = 17, // 4 floats (r, g, b, a)
+    SACI_TYPE_COLOR = 17, // 4 floats (r, g, b, a)
 
-    su_TYPE_MAT2 = 18, // 2x2 matrix
-    su_TYPE_MAT3 = 19, // 3x3 matrix
-    su_TYPE_MAT4 = 20, // 4x4 matrix
+    SACI_TYPE_MAT2 = 18, // 2x2 matrix
+    SACI_TYPE_MAT3 = 19, // 3x3 matrix
+    SACI_TYPE_MAT4 = 20, // 4x4 matrix
 
-    su_TYPE_MAT2X3 = 21, // 2 columns, 3 rows
-    su_TYPE_MAT2X4 = 22, // 2 columns, 4 rows
-    su_TYPE_MAT3X2 = 23, // 3 columns, 2 rows
-    su_TYPE_MAT3X4 = 24, // 3 columns, 4 rows
-    su_TYPE_MAT4X2 = 25, // 4 columns, 2 rows
-    su_TYPE_MAT4X3 = 26, // 4 columns, 3 rows
+    SACI_TYPE_MAT2X3 = 21, // 2 columns, 3 rows
+    SACI_TYPE_MAT2X4 = 22, // 2 columns, 4 rows
+    SACI_TYPE_MAT3X2 = 23, // 3 columns, 2 rows
+    SACI_TYPE_MAT3X4 = 24, // 3 columns, 4 rows
+    SACI_TYPE_MAT4X2 = 25, // 4 columns, 2 rows
+    SACI_TYPE_MAT4X3 = 26, // 4 columns, 3 rows
 
-    su_TYPE_SAMPLER2D = 27,
-} su_DataType;
+    SACI_TYPE_SAMPLER2D = 27,
+} SaciDataType;
 
-#define su_TYPE_MAX 26
-static const su_U64 su_SIZE_OF_TYPE[] = {
+#define SACI_TYPE_MAX 26
+static const SaciU64 SACI_G_TYPE_SIZE_TABLE[] = {
     0, // index 0 (unused)
 
     1, // su_TYPE_U8        = 1
@@ -164,18 +164,18 @@ static const su_U64 su_SIZE_OF_TYPE[] = {
 };
 
 // TODO move to memory/
-typedef enum su_ReallocationKind {
-    su_REALLOCATION_KIND_REALLOC = 0,
-    su_REALLOCATION_KIND_MALLOC_FREE = 1,
-    su_REALLOCATION_KIND_FIXED_SIZE = 2,
-} su_ReallocationKind;
+typedef enum SaciReallocationKind {
+    SACI_REALLOCATION_KIND_REALLOC = 0,
+    SACI_REALLOCATION_KIND_MALLOC_FREE = 1,
+    SACI_REALLOCATION_KIND_FIXED_SIZE = 2,
+} SaciReallocationKind;
 
 /* === Rendering Specific === */
 
-// TODO move to types/su-types-backend.h
-typedef void* (*su_GLProc)(const char* name);
-typedef void* su_WindowPosHandler;
-typedef void* su_WindowSizeHandler;
-typedef void* su_EventMousePosHandler;
+// TODO move
+typedef void* (*SaciGLProc)(const char* name);
+typedef void* SaciWindowPosHandler;
+typedef void* SaciWindowSizeHandler;
+typedef void* SaciEventMousePosHandler;
 
 #endif // SACI_UTILS_SU_TYPES_H
