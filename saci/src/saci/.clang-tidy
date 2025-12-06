@@ -45,7 +45,7 @@ CheckOptions:
   # VARIABLE NAMING
   # =======================================================================
   - key: readability-identifier-naming.GlobalVariableCase
-    value: UPPER_CASE
+    value: lower_case
   - key: readability-identifier-naming.GlobalVariablePrefix
     value: "saci_g_"
 
@@ -87,7 +87,7 @@ CheckOptions:
   # STRUCT NAMING
   # =======================================================================
   - key: readability-identifier-naming.StructPrefix
-    value: "saci_"
+    value: "Saci"
   - key: readability-identifier-naming.StructCase
     value: CamelCase
 
@@ -100,7 +100,7 @@ CheckOptions:
   - key: readability-identifier-naming.EnumCase
     value: CamelCase
   - key: readability-identifier-naming.EnumPrefix
-    value: "saci_"
+    value: "Saci"
 
   - key: readability-identifier-naming.EnumConstantPrefix
     value: "SACI_"

@@ -11,15 +11,17 @@ Checks: >
   readability-function-size,
   readability-misleading-indentation,
   readability-simplify-boolean-expr,
-  readability-avoid-bad-function
+  readability-avoid-bad-function,
   readability-avoid-magic-numbers,
   readability-identifier-naming,
   -bugprone-easily-swappable-parameters
+
 WarningsAsErrors: ''
 HeaderFilterRegex: '.*'
 FormatStyle: file
+
 CheckOptions:
-  
+
   # =======================================================================
   # AVOID BAD FUNCTIONS
   # =======================================================================
@@ -30,12 +32,12 @@ CheckOptions:
   # FUNCTION NAMING
   # =======================================================================
   - key: readability-identifier-naming.GlobalFunctionPrefix
-    value: "sacib_"
+    value: "sacic_"
   - key: readability-identifier-naming.GlobalFunctionCase
     value: lower_case
 
   - key: readability-identifier-naming.FunctionPrefix
-    value: "sacib__"
+    value: "sacic__"
   - key: readability-identifier-naming.FunctionCase
     value: lower_case
 
@@ -45,15 +47,15 @@ CheckOptions:
   - key: readability-identifier-naming.GlobalVariableCase
     value: UPPER_CASE
   - key: readability-identifier-naming.GlobalVariablePrefix
-    value: "sacib_g_"
+    value: "sacic_g_"
 
   - key: readability-identifier-naming.StaticVariablePrefix
-    value: "sacib__"
+    value: "sacic__"
   - key: readability-identifier-naming.StaticVariableCase
     value: lower_case
 
   - key: readability-identifier-naming.StaticConstantPrefix
-    value: "SACIB__"
+    value: "SACIC__"
   - key: readability-identifier-naming.StaticConstantCase
     value: UPPER_CASE
 
@@ -66,7 +68,7 @@ CheckOptions:
   # CONSTANT NAMING
   # =======================================================================
   - key: readability-identifier-naming.GlobalConstantPrefix
-    value: "SACIB_G_"
+    value: "SACIC_G_"
   - key: readability-identifier-naming.GlobalConstantCase
     value: UPPER_CASE
 
@@ -85,7 +87,7 @@ CheckOptions:
   # STRUCT NAMING
   # =======================================================================
   - key: readability-identifier-naming.StructPrefix
-    value: "sacib_"
+    value: "sacic_"
   - key: readability-identifier-naming.StructCase
     value: CamelCase
 
@@ -98,10 +100,10 @@ CheckOptions:
   - key: readability-identifier-naming.EnumCase
     value: CamelCase
   - key: readability-identifier-naming.EnumPrefix
-    value: "sacib_"
+    value: "sacic_"
 
   - key: readability-identifier-naming.EnumConstantPrefix
-    value: "SACIB_"
+    value: "SACIC_"
   - key: readability-identifier-naming.EnumConstantCase
     value: UPPER_CASE
 
@@ -111,12 +113,13 @@ CheckOptions:
   - key: readability-identifier-naming.TypedefCase
     value: CamelCase
   - key: readability-identifier-naming.TypedefPrefix
-    value: "Sacib"
+    value: "Sacic"
 
   # =======================================================================
   # MACRO NAMING
   # =======================================================================
   - key: readability-identifier-naming.MacroDefinitionPrefix
-    value: "SACIB_"
+    value: "SACIC_"
   - key: readability-identifier-naming.MacroDefinitionCase
     value: ALL_CAPS
+
