@@ -1,6 +1,6 @@
-#include "saci-core/math.h"
+#include "saci_util/math.h"
 
-#include "saci-core/general_internal.h"
+#include "saci_util/general_internal.h"
 
 #define SACI_COLOR_8BIT_MAX (255.0f)
 #define SACI_COLOR_8BIT_INVERSE_MAX (1.0f / SACI_COLOR_8BIT_MAX)

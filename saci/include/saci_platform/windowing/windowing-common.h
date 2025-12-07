@@ -1,32 +1,32 @@
 #ifndef SACI_BACKEND_WINDOWING_SB_WINDOWING_COMMON_H
 #define SACI_BACKEND_WINDOWING_SB_WINDOWING_COMMON_H
 
-#include "saci-utils/su-types-common.h"
+#include "saci_util/types.h"
 
 union sb_Window;
 
-typedef void (*sb_WindowMousePosHandler)(union sb_Window*, int, int);
-typedef void (*sb_WindowSizeHandler)(union sb_Window*, int, int);
-typedef void (*sb_WindowPosHandler)(union sb_Window*, int, int);
+typedef void (*PSaciWindowMousePosHandler)(union sb_Window*, int, int);
+typedef void (*PSaciWindowSizeHandler)(union sb_Window*, int, int);
+typedef void (*PSaciWindowPosHandler)(union sb_Window*, int, int);
 
-union sb_Window {
+union PSaciWindow {
     struct {
         void* window;
         const char* title;
         int width, height;
     } glfw;
     struct {
-        su_U64 context;
+        SaciU64 context;
         const char* selector;
         int width, height;
         int target_width, target_height; // For canvas vs display size
-        sb_WindowMousePosHandler mouse_pos_handler;
-        sb_WindowSizeHandler size_handler;
-        su_Bool context_lost;
+        PSaciWindowMousePosHandler mouse_pos_handler;
+        PSaciWindowSizeHandler size_handler;
+        SaciBool context_lost;
     } emscripten;
 };
 
-union sb_WindowOpts {
+union PSaciWindowOpts {
     struct {
         void* monitor;
         void* window_share;

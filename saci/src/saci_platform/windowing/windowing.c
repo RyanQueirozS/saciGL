@@ -1,6 +1,6 @@
-#include "saci-backend/windowing/sb-windowing.h"
+#include "saci_platform/windowing/windowing.h"
 
-#include "../resources/sb-dependency-internal.h"
+#include "saci_platform/dependencies/sb-dependency.h"
 #include "saci-backend/graphics/sb-gfx.h"
 #include "saci-utils/su-log.h"
 

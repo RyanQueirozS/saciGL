@@ -1,8 +1,8 @@
-#include "saci-core/log.h"
+#include "saci_util/log.h"
 #include "./log_internal.h"
 
-#include "saci-core/types.h"
-#include "saci-core/defines.h"
+#include "saci_util/types.h"
+#include "saci_util/defines.h"
 
 #include <stdio.h>
 #include <stdlib.h>

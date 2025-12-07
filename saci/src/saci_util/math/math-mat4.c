@@ -1,6 +1,6 @@
-#include "saci-core/math.h"
+#include "saci_util/math.h"
 
-#include "saci-core/types.h"
+#include "saci_util/types.h"
 #include "../general_internal.h"
 
 // TODO remove math.h

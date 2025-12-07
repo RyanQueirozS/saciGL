@@ -1,9 +1,9 @@
 #ifndef SACI_CORE_LOG_LOG_INTERNAL_H
 #define SACI_CORE_LOG_LOG_INTERNAL_H
 
-#include "saci-core/log.h"
+#include "saci_util/log.h"
 
-#include "saci-core/defines.h"
+#include "saci_util/defines.h"
 
 #include <stdio.h>
 

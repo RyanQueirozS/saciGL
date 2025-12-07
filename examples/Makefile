@@ -9,13 +9,12 @@ endif
 ifneq (,$(findstring emcc,$(COMPILER)))
 	TARGET_PLATFORM = emscripten
 	CC = emcc
-	CXX = em++
 else
 	TARGET_PLATFORM = native
 endif
 
 # Base Compiler Flags
-CFLAGS_BASE = -Wall -Wextra -O0 -g \
+CFLAGS_BASE = -x c -std=c11 -Wall -Wextra -O0 -g \
 	-I../saci/include \
 	-I../saci/src \
 	-I../saci/deps/stb \
@@ -47,11 +46,11 @@ endif
 # Sources for the saci library (adjust paths if needed)
 # Exclude emsdk files for native build, exclude glfw files for emscripten build
 ifeq ($(TARGET_PLATFORM),emscripten)
-	SACI_SRC := $(shell find ../saci/src/saci-backend -name '*.c' ! -name 'sb-glfw.c' ! -name 'sb-dependency.c' ! -name 'sb-gl.c')
+	SACI_SRC := $(shell find ../saci/src/saci_platform -name '*.c' ! -name 'glfw.c' ! -name 'dependency.c' ! -name 'gl.c')
 else
-	SACI_SRC := $(shell find ../saci/src/saci-backend -name '*.c' ! -name 'sb-emsdk.c')
+	SACI_SRC := $(shell find ../saci/src/saci_platform -name '*.c' ! -name 'emsdk.c')
 endif
-SACI_SRC += $(shell find ../saci/src/saci-utils ../saci/src/saci-main -name '*.c')
+SACI_SRC += $(shell find ../saci/src/saci_utils ../saci/src/saci_main -name '*.c')
 
 # Example directories
 EXAMPLES = \
