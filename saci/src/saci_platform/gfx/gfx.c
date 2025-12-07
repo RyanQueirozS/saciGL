@@ -243,7 +243,7 @@ SACI_INTERNAL void psaci__gfx_gl_setup_vertex_attributes(
             layout.location,
             SACI_CAST_M(SaciS32)(SACI_G_TYPE_SIZE_TABLE[layout.type]),
             psaci_gl_type_to_gl(layout.type),
-            SACI_G_FALSE,
+            SACI_FALSE,
             cfg.vertex_data.element_size_internal,
             SACI_CAST_M(void*)(layout.offset));
         psaci_gl_enable_vertex_attrib_array(
@@ -272,7 +272,7 @@ SACI_INTERNAL void psaci__gfx_gl_setup_instance_buffers(
                 for (SaciU32 col = 0; col < 4; ++col) {
                     psaci_gl_set_vertex_attrib_pointer(
                         attrib.location + col, sizeof(SaciVec4),
-                        PSACI_GL_FLOAT, SACI_G_FALSE, (buffer_cfg.size_byte_internal),
+                        PSACI_GL_FLOAT, SACI_FALSE, (buffer_cfg.size_byte_internal),
                         (void*)(attrib.offset + sizeof(SaciVec4) * col));
                     psaci_gl_enable_vertex_attrib_array(attrib.location + col);
                     psaci_gl_vertex_attrib_divisor(attrib.location + col, 1);
@@ -281,7 +281,7 @@ SACI_INTERNAL void psaci__gfx_gl_setup_instance_buffers(
                 psaci_gl_set_vertex_attrib_pointer(
                     attrib.location, SACI_CAST_M(SaciS32)(SACI_G_TYPE_SIZE_TABLE[attrib.type]),
                     psaci_gl_type_to_gl(attrib.type),
-                    SACI_G_FALSE,
+                    SACI_FALSE,
                     buffer_cfg.size_byte_internal,
                     (void*)(attrib.offset));
                 psaci_gl_enable_vertex_attrib_array(attrib.location);
@@ -399,10 +399,10 @@ SACI_INTERNAL SaciBool psaci__has_texture(union PSaciTexture* texture_array, Sac
 {
     for (SaciU32 i = 0; i < array_length; ++i) {
         if (texture_array[i].gl.texture != 0) {
-            return SACI_G_TRUE;
+            return SACI_TRUE;
         }
     }
-    return SACI_G_FALSE;
+    return SACI_FALSE;
 }
 
 SACI_INTERNAL void psaci__gfx_gl_set_uniform_from_uniform_data(const struct PSaciGFXUniformData uniform_data)

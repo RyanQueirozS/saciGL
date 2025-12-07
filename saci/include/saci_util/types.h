@@ -55,9 +55,8 @@ typedef uintptr_t SaciUintPtr;
 
 typedef bool SaciBool;
 
-const SaciBool SACI_G_TRUE = true;
-
-const SaciBool SACI_G_FALSE = false;
+#define SACI_TRUE (SaciBool)1
+#define SACI_FALSE (SaciBool)0
 
 /* === Identifiers === */
 

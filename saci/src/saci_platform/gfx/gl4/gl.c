@@ -218,39 +218,39 @@ void psaci_gl_uniform_set_value(const SaciS32 location, SaciDataType type, const
         break;
 
     case SACI_TYPE_MAT2:
-        psaci_g_gl_funcs.gl.uniform_matrix_2fv(location, 1, SACI_G_FALSE, (const float*)value);
+        psaci_g_gl_funcs.gl.uniform_matrix_2fv(location, 1, SACI_FALSE, (const float*)value);
         break;
 
     case SACI_TYPE_MAT3:
-        psaci_g_gl_funcs.gl.uniform_matrix_3fv(location, 1, SACI_G_FALSE, (const float*)value);
+        psaci_g_gl_funcs.gl.uniform_matrix_3fv(location, 1, SACI_FALSE, (const float*)value);
         break;
 
     case SACI_TYPE_MAT4:
-        psaci_g_gl_funcs.gl.uniform_matrix_4fv(location, 1, SACI_G_FALSE, (const float*)value);
+        psaci_g_gl_funcs.gl.uniform_matrix_4fv(location, 1, SACI_FALSE, (const float*)value);
         break;
 
     case SACI_TYPE_MAT2X3:
-        psaci_g_gl_funcs.gl.uniform_matrix_2x3fv(location, 1, SACI_G_FALSE, (const float*)value);
+        psaci_g_gl_funcs.gl.uniform_matrix_2x3fv(location, 1, SACI_FALSE, (const float*)value);
         break;
 
     case SACI_TYPE_MAT2X4:
-        psaci_g_gl_funcs.gl.uniform_matrix_2x4fv(location, 1, SACI_G_FALSE, (const float*)value);
+        psaci_g_gl_funcs.gl.uniform_matrix_2x4fv(location, 1, SACI_FALSE, (const float*)value);
         break;
 
     case SACI_TYPE_MAT3X2:
-        psaci_g_gl_funcs.gl.uniform_matrix_3x2fv(location, 1, SACI_G_FALSE, (const float*)value);
+        psaci_g_gl_funcs.gl.uniform_matrix_3x2fv(location, 1, SACI_FALSE, (const float*)value);
         break;
 
     case SACI_TYPE_MAT3X4:
-        psaci_g_gl_funcs.gl.uniform_matrix_3x4fv(location, 1, SACI_G_FALSE, (const float*)value);
+        psaci_g_gl_funcs.gl.uniform_matrix_3x4fv(location, 1, SACI_FALSE, (const float*)value);
         break;
 
     case SACI_TYPE_MAT4X2:
-        psaci_g_gl_funcs.gl.uniform_matrix_4x2fv(location, 1, SACI_G_FALSE, (const float*)value);
+        psaci_g_gl_funcs.gl.uniform_matrix_4x2fv(location, 1, SACI_FALSE, (const float*)value);
         break;
 
     case SACI_TYPE_MAT4X3:
-        psaci_g_gl_funcs.gl.uniform_matrix_4x3fv(location, 1, SACI_G_FALSE, (const float*)value);
+        psaci_g_gl_funcs.gl.uniform_matrix_4x3fv(location, 1, SACI_FALSE, (const float*)value);
         break;
 
     default:
@@ -374,7 +374,7 @@ SaciShaderId psaci_gl_shader_create_shader_program(SaciShaderId vshader, SaciSha
     psaci_g_gl_funcs.gl.attach_shader(program_id, fshader);
     psaci_g_gl_funcs.gl.link_program(program_id);
 
-    SaciS32 success = SACI_G_FALSE;
+    SaciS32 success = SACI_FALSE;
     psaci_g_gl_funcs.gl.get_program_iv(program_id, GL_LINK_STATUS, &success);
     if (!success) {
         char gl_err_message[1024];
@@ -401,7 +401,7 @@ SaciShaderId psaci_gl_shader_create_shader_program_geom(SaciShaderId vshader, Sa
     psaci_g_gl_funcs.gl.attach_shader(program_id, gshader);
     psaci_g_gl_funcs.gl.link_program(program_id);
 
-    SaciS32 success = SACI_G_FALSE;
+    SaciS32 success = SACI_FALSE;
     psaci_g_gl_funcs.gl.get_program_iv(program_id, GL_LINK_STATUS, &success);
     if (!success) {
         char gl_err_message[1024];

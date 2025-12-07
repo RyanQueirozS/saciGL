@@ -1,187 +1,191 @@
 #include "saci_platform/windowing/windowing.h"
 
-#include "saci_platform/dependencies/sb-dependency.h"
-#include "saci-backend/graphics/sb-gfx.h"
-#include "saci-utils/su-log.h"
+#include "../dependencies/internal/dependency.h"
+
+#include "saci_util/internal/log.h"
+#include "saci_util/log.h"
+#include "saci_util/internal/general.h"
+
+#include "saci_platform/gfx/internal/gfx.h"
 
 #ifdef __EMSCRIPTEN__
-#  include "./sb-emsdk-internal.h"
+#  include "./internal/emsdk.h"
 #else
-#  include "./sb-glfw-internal.h"
+#  include "./internal/glfw.h"
 #endif
 
 /* === Internal Funcs === */
 
 #ifndef __EMSCRIPTEN__
-SA_INTERNAL int sb__windowing_init(void);
+SACI_INTERNAL int psaci__windowing_init(void);
 
-SA_INTERNAL void* sb__windowing_get_proc(void);
+SACI_INTERNAL void* psaci__windowing_get_proc(void);
 #endif
 
 /* === Main declaration=== */
 
-su_Bool sb_window_load(void)
+SaciBool psaci_window_load(void)
 {
     // Emscripten doesn't need to load any api at runtime, nor any proc
 #ifndef __EMSCRIPTEN__
-    sb_window_glfw_load_dependencies(sb_dependencies_get_windowing_api_funcs());
+    psaci_window_glfw_load_dependencies(psaci_dependencies_get_windowing_api_funcs());
 
-    int success = sb__windowing_init();
+    int success = psaci__windowing_init();
     if (!success) {
-        su_LOG_ERROR_M(su_LOG_TYPE_PROD, su_LOG_ERROR_SEVERITY_CRASH, su_LOG_CONTEXT_WINDOWING,
-                       "Couldn't load window api");
-        return su_FALSE;
+        SACI_LOG_ERROR_M(SACI_LOG_TYPE_PROD, SACI_LOG_ERROR_SEVERITY_CRASH, SACI_LOG_CONTEXT_WINDOWING,
+                         "Couldn't load window api");
+        return SACI_FALSE;
     }
-    su_LOG_INFO_M(su_LOG_TYPE_PROD, su_LOG_CONTEXT_WINDOWING, "Loaded window api");
+    SACI_LOG_INFO_M(SACI_LOG_TYPE_PROD, SACI_LOG_CONTEXT_WINDOWING, "Loaded window api");
 
-    sb_gfx_load_proc(su_CAST_M(void* (*)(const char*)) sb__windowing_get_proc());
+    psaci_gfx_load_proc(SACI_CAST_M(void* (*)(const char*)) psaci__windowing_get_proc());
 #endif
-    return su_TRUE;
+    return SACI_TRUE;
 }
 
-union sb_Window sb_window_create(int width, int height, const char* title,
-                                 union sb_WindowOpts opts)
+union PSaciWindow psaci_window_create(int width, int height, const char* title,
+                                      union PSaciWindowOpts opts)
 {
 #ifdef __EMSCRIPTEN__
     (void)title;
     return sb_window_emscripten_create(width, height, opts);
 #else
-    return sb_window_glfw_create(width, height, title, opts);
+    return psaci_window_glfw_create(width, height, title, opts);
 #endif
 }
 
-void sb_window_free(union sb_Window window)
+void psaci_window_free(union PSaciWindow window)
 {
 #ifdef __EMSCRIPTEN__
     sb_window_emscripten_free(window);
 #else
-    sb_window_glfw_free(window);
+    psaci_window_glfw_free(window);
 #endif
 }
 
-void sb_window_make_context(union sb_Window window)
+void psaci_window_make_context(union PSaciWindow window)
 {
 #ifdef __EMSCRIPTEN__
     sb_window_emscripten_make_context(window);
 #else
-    sb_window_glfw_make_context(window);
+    psaci_window_glfw_make_context(window);
 #endif
-    su_LOG_INFO_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_WINDOWING, "Making context current");
+    SACI_LOG_INFO_M(SACI_LOG_TYPE_USER, SACI_LOG_CONTEXT_WINDOWING, "Making context current");
 }
 
-su_Bool sb_window_should_close(union sb_Window window)
+SaciBool psaci_window_should_close(union PSaciWindow window)
 {
-    su_Bool should_close = su_FALSE;
+    SaciBool should_close = SACI_FALSE;
 #ifdef __EMSCRIPTEN__
     should_close = sb_window_emscripten_should_close(window);
 #else
-    should_close = sb_window_glfw_should_close(window);
+    should_close = psaci_window_glfw_should_close(window);
 #endif
     return should_close;
 }
 
-void sb_window_set_pos_handler(union sb_Window window, su_WindowPosHandler window_pos_handler)
+void psaci_window_set_pos_handler(union PSaciWindow window, PSaciWindowPosHandler window_pos_handler)
 {
 #ifdef __EMSCRIPTEN__
     (void)window, (void)window_pos_handler;
 #else
-    sb_window_glfw_set_pos_handler(window, window_pos_handler);
+    psaci_window_glfw_set_pos_handler(window, (void*)window_pos_handler); // TODO
 #endif
-    su_LOG_INFO_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_WINDOWING, "Set pos handler");
+    SACI_LOG_INFO_M(SACI_LOG_TYPE_USER, SACI_LOG_CONTEXT_WINDOWING, "Set pos handler");
 }
 
-void sb_window_set_size_handler(union sb_Window window, su_WindowSizeHandler window_size_handler)
+void psaci_window_set_size_handler(union PSaciWindow window, PSaciWindowSizeHandler window_size_handler)
 {
 #ifdef __EMSCRIPTEN__
     sb_window_emscripten_set_size_handler(window, window_size_handler);
 #else
-    sb_window_glfw_set_size_handler(window, window_size_handler);
+    psaci_window_glfw_set_size_handler(window, (void*)window_size_handler); // TODO
 #endif
-    su_LOG_INFO_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_WINDOWING, "Set window size handler");
+    SACI_LOG_INFO_M(SACI_LOG_TYPE_USER, SACI_LOG_CONTEXT_WINDOWING, "Set window size handler");
 }
 
-void sb_window_terminate(void)
+void psaci_window_terminate(void)
 {
 #ifndef __EMSCRIPTEN__
-    sb_window_glfw_terminate();
+    psaci_window_glfw_terminate();
 #endif
-    su_LOG_INFO_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_WINDOWING, "Terminated window");
+    SACI_LOG_INFO_M(SACI_LOG_TYPE_USER, SACI_LOG_CONTEXT_WINDOWING, "Terminated window");
 }
 
-void sb_window_swap_buffer(union sb_Window window)
+void psaci_window_swap_buffer(union PSaciWindow window)
 {
 #ifdef __EMSCRIPTEN__
     (void)window;
 #else
-    sb_window_glfw_swap_buffer(window);
+    psaci_window_glfw_swap_buffer(window);
 #endif
 }
 
 /* === Event === */
 
-void sb_event_poll(void)
+void psaci_event_poll(void)
 {
 #ifndef __EMSCRIPTEN__
-    sb_event_glfw_poll();
+    psaci_event_glfw_poll();
 #endif
 }
 
-void sb_event_wait(void)
+void psaci_event_wait(void)
 {
 #ifndef __EMSCRIPTEN__
-    sb_event_glfw_wait();
+    psaci_event_glfw_wait();
 #endif
 }
 
-void sb_event_wait_for_timeout(double timeout)
+void psaci_event_wait_for_timeout(double timeout)
 {
 #ifdef __EMSCRIPTEN__
     sb_event_emscripten_wait_for_timeout(timeout);
 #else
-    sb_event_glfw_wait_for_timeout(timeout);
+    psaci_event_glfw_wait_for_timeout(timeout);
 #endif
 }
 
-void sb_event_post_empty(void)
+void psaci_event_post_empty(void)
 {
 #ifdef __EMSCRIPTEN__
     sb_event_emscripten_post_empty();
 #else
-    sb_event_glfw_post_empty();
+    psaci_event_glfw_post_empty();
 #endif
 }
 
-void sb_event_set_mouse_pos_handler(union sb_Window window, su_EventMousePosHandler mouse_pos_handler)
+void psaci_event_set_mouse_pos_handler(union PSaciWindow window, SaciEventMousePosHandler mouse_pos_handler)
 {
 #ifdef __EMSCRIPTEN__
     sb_event_emscripten_set_mouse_pos_handler(window, mouse_pos_handler);
 #else
-    sb_event_glfw_set_mouse_pos_handler(window, mouse_pos_handler);
+    psaci_event_glfw_set_mouse_pos_handler(window, mouse_pos_handler);
 #endif
 }
 
-su_Bool sb_event_is_key_pressed(union sb_Window window, int keycode)
+SaciBool psaci_event_is_key_pressed(union PSaciWindow window, int keycode)
 {
 #ifdef __EMSCRIPTEN__
     (void)window;
     return sb_event_emscripten_is_key_pressed(keycode);
 #else
-    return sb_event_glfw_is_key_pressed(window, keycode);
+    return psaci_event_glfw_is_key_pressed(window, keycode);
 #endif
 }
 
 /* === Internal Funcs === */
 
 #ifndef __EMSCRIPTEN__
-int sb__windowing_init(void)
+int psaci__windowing_init(void)
 {
     int status = 0;
-    status = sb_window_glfw_init();
+    status = psaci_window_glfw_init();
     return status;
 }
 
-void* sb__windowing_get_proc(void)
+void* psaci__windowing_get_proc(void)
 {
-    return sb_window_glfw_get_proc();
+    return psaci_window_glfw_get_proc();
 }
 #endif

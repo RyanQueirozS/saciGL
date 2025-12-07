@@ -36,7 +36,7 @@ SaciShaderId psaci_emsdk_shader_create_shader_program(SaciShaderId vshader, Saci
     glAttachShader(program_id, fshader);
     glLinkProgram(program_id);
 
-    SaciS32 success = SACI_G_FALSE;
+    SaciS32 success = SACI_FALSE;
     glGetProgramiv(program_id, GL_LINK_STATUS, &success);
     if (!success) {
         char gl_err_message[1024];
