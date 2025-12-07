@@ -46,11 +46,11 @@ endif
 # Sources for the saci library (adjust paths if needed)
 # Exclude emsdk files for native build, exclude glfw files for emscripten build
 ifeq ($(TARGET_PLATFORM),emscripten)
-	SACI_SRC := $(shell find ../saci/src/saci_platform -name '*.c' ! -name 'glfw.c' ! -name 'dependency.c' ! -name 'gl.c')
+	SACI_SRC := $(shell find ../saci/src/saci_platform -name '*.c' ! -name 'glfw.c' ! -name 'dependency.c' ! -name 'gl4.c')
 else
-	SACI_SRC := $(shell find ../saci/src/saci_platform -name '*.c' ! -name 'emsdk.c')
+	SACI_SRC := $(shell find ../saci/src/saci_platform -name '*.c' ! -name 'emsdk.c' ! -name 'gles3.c')
 endif
-SACI_SRC += $(shell find ../saci/src/saci_utils ../saci/src/saci_main -name '*.c')
+SACI_SRC += $(shell find ../saci/src/saci_util ../saci/src/saci_main ../saci/src/saci_core -name '*.c')
 
 # Example directories
 EXAMPLES = \
