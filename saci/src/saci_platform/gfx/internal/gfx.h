@@ -1,37 +1,37 @@
 #ifndef SACI_BACKEND_SB_GFX_H
 #define SACI_BACKEND_SB_GFX_H
 
-#include "saci-utils/config/su-config.h"
-#include "saci-utils/memory/su-darray.h"
-#include "saci-utils/memory/su-string.h"
-#include "saci-utils/su-general.h"
-#include "saci-utils/su-types-common.h"
+#include "saci_platform/gfx/graphics.h"
 
-#include "saci-backend/sb-backend-common.h"
-#include "saci-utils/math/su-math-types.h"
+#include "saci_platform/config/config.h"
+#include "saci_util/memory.h"
+#include "saci_util/defines.h"
+#include "saci_util/internal/general.h"
+#include "saci_util/types.h"
+#include "saci_util/math.h"
 
-union sb_GFXUniformValue {
+union PSaciGFXUniformValue {
     // Scalar types
-    su_U8 u8;
-    su_U16 u16;
-    su_U32 u32;
-    su_U64 u64;
-    su_S8 s8;
-    su_S16 s16;
-    su_S32 s32;
-    su_S64 s64;
-    su_Bool boolean;
+    SaciU8 u8;
+    SaciU16 u16;
+    SaciU32 u32;
+    SaciU64 u64;
+    SaciS8 s8;
+    SaciS16 s16;
+    SaciS32 s32;
+    SaciS64 s64;
+    SaciBool boolean;
 
-    su_Uv uv;
-    su_Vec2 vec2;
-    su_Vec3 vec3;
-    su_Vec4 vec4;
+    SaciUv uv;
+    SaciVec2 vec2;
+    SaciVec3 vec3;
+    SaciVec4 vec4;
 
     // Color
-    su_Color color;
+    SaciColor color;
 
     // TODO NEED TO BE ADDED
-    su_Mat4 mat4;
+    SaciMat4 mat4;
 
     // float mat2[2][2];
     // float mat3[3][3];
@@ -43,73 +43,80 @@ union sb_GFXUniformValue {
     // float mat4x3[4][3];
 };
 
-union sb_GFXInfo {
+union PSaciGFXInfo {
     struct {
-        su_ShaderId shader_program;
-        su_BufferId ibo, vbo, vao;
-        su_BufferId instance_buffer; // needs to be a darray of buffers each named with a su_String
+        SaciShaderId shader_program;
+        SaciBufferId ibo, vbo, vao;
+        SaciBufferId instance_buffer; // needs to be a darray of buffers each named with a su_String
     } gl_data;
     // struct {} dx_data;
     // struct {} vk_data;
 };
 
-struct sb_GFXUniformData {
-    su_DataType type;
-    su_S32 location;
-    union sb_GFXUniformValue value;
+struct PSaciGFXUniformData {
+    SaciDataType type;
+    SaciS32 location;
+    union PSaciGFXUniformValue value;
 };
 
-struct sb_GFXInstanceData {
-    su_U32 location;
-    su_U32 data_size;
+struct PSaciGFXInstanceData {
+    SaciU32 location;
+    SaciU32 data_size;
     void* instance_data_structure;
 };
 
-struct sb_GFXDrawData {
-    su_DArray* vertex_array; // Darray<unkown_size_at_compiletime>
-    su_U64 vertex_struct_size;
+// TODO transform into a structure of arrays
+struct PSaciGFXDrawData {
+    struct {
+        void* array; // unkown_size_at_compiletime
+        SaciU64 struct_size;
+        SaciU64 count;
+    } vertex_data;
 
-    su_DArray* index_array; // DArray<unkown_size_at_compiletime>
-    su_U64 index_struct_size;
+    struct {
+        void* array;
+        SaciU64 struct_size;
+        SaciU64 count;
+    } index_data;
 
-    su_DArray* instance_data_array; // DArray<GFXInstanceData>
+    struct PSaciGFXInstanceData* instance_data_array;
+    SaciU64 instance_data_array_count;
 
-    su_DArray* uniform_data_array; // DArray<GFXUniformData>
+    struct PSaciGFXUniformData* uniform_data_array;
+    SaciU64 uniform_data_array_count;
 
-    union sb_Texture texture_array[SACI_MAX_TEXTURES];
-    su_U32 texture_array_loc[SACI_MAX_TEXTURES];
+    union PSaciTexture texture_array[SACI_MAX_TEXTURES];
+    SaciU32 texture_array_loc[SACI_MAX_TEXTURES];
 };
 
-void sb_gfx_load(void);
+void psaci_gfx_load(void);
 
-typedef void* (*sb_GfxProcAddress)(const char*);
+typedef void* (*PSaciGfxProcAddress)(const char*);
 #ifndef __EMSCRIPTEN__
-void sb_gfx_load_proc(sb_GfxProcAddress addrs);
+void psaci_gfx_load_proc(PSaciGfxProcAddress addrs);
 #endif
 
-void sb_gfx_init_shader(union sb_GFXInfo* info_out, const struct su_RendererConfig cfg);
+void psaci_gfx_init_shader(union PSaciGFXInfo* info_out, const struct PSaciRendererConfig cfg);
 
-void sb_gfx_create(union sb_GFXInfo* info_out, const struct su_RendererConfig cfg);
+void psaci_gfx_create(union PSaciGFXInfo* info_out, const struct PSaciRendererConfig cfg);
 
-void sb_gfx_clear_color(const su_Color color);
+void psaci_gfx_clear_color(const SaciColor color);
 
-void sb_gfx_clear_depth_buffer(void);
+void psaci_gfx_clear_depth_buffer(void);
 
-void sb_gfx_draw(const union sb_GFXInfo* gfx_info, const struct sb_GFXDrawData* data);
+void psaci_gfx_draw(const union PSaciGFXInfo* gfx_info, const struct PSaciGFXDrawData* data);
 
-su_S32 sb_gfx_get_uniform_loc(const union sb_GFXInfo* info, const su_String* name);
+SaciS32 psaci_gfx_get_uniform_loc(const union PSaciGFXInfo* info, const char* name);
 
-su_S32 sb_gfx_get_uniform_loc_cstr(const union sb_GFXInfo* info, const char* name);
+union PSaciTexture psaci_gfx_gen_texture(void);
+void psaci_gfx_upload_texture_2d(union PSaciTexture texture_id,
+                                 SaciS32 format,
+                                 int width, int height,
+                                 const void* data);
+void psaci_gfx_get_texture_size_2d(union PSaciTexture texture_id, int* width_out, int* height_out);
+void psaci_gfx_generate_mipmap_2d(union PSaciTexture texture_id);
+void psaci_gfx_delete_texture(union PSaciTexture texture_id);
 
-union sb_Texture sb_gfx_gen_texture(void);
-void sb_gfx_upload_texture_2d(union sb_Texture texture_id,
-                              su_S32 format,
-                              int width, int height,
-                              const void* data);
-void sb_gfx_get_texture_size_2d(union sb_Texture texture_id, int* width_out, int* height_out);
-void sb_gfx_generate_mipmap_2d(union sb_Texture texture_id);
-void sb_gfx_delete_texture(union sb_Texture texture_id);
-
-void sb_gfx_initialize_renderer_debugger(void* debug_func);
+void psaci_gfx_initialize_renderer_debugger(void* debug_func);
 
 #endif // SACI_BACKEND_SB_GFX_H

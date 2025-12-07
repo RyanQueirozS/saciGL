@@ -53,17 +53,15 @@ typedef uintptr_t SaciUintPtr;
 
 /* === Boolean Constants === */
 
-#define SACI_TRUE true
-
-#define SACI_FALSE false
-
 typedef bool SaciBool;
+
+const SaciBool SACI_G_TRUE = true;
+
+const SaciBool SACI_G_FALSE = false;
 
 /* === Identifiers === */
 
 typedef SaciU32 SaciShaderId;
-
-typedef SaciU32 SaciTextureId;
 
 typedef SaciU32 SaciBufferId;
 

@@ -1,109 +1,105 @@
 #ifndef SACI_BACKEND_SB_GL_H
 #define SACI_BACKEND_SB_GL_H
 
-#include "saci-utils/su-types-common.h"
-#include "saci-utils/su-general.h"
-#include "saci-utils/su-general.h"
-#include "saci-utils/su-types-common.h"
+#include "saci_util/defines.h"
+#include "saci_util/types.h"
 
-#include "saci-utils/math/su-math-types.h"
-
-enum sb_GLConstants {
-    sb_GL_TRIANGLES = 0x0004,
-    sb_GL_DEPTH_TEST = 0x0B71,
-    sb_GL_TEXTURE_2D = 0x0DE1,
-    sb_GL_TEXTURE_WIDTH = 0x1000,
-    sb_GL_TEXTURE_HEIGHT = 0x1001,
-    sb_GL_UNSIGNED_BYTE = 0x1401,
-    sb_GL_UNSIGNED_INT = 0x1405,
-    sb_GL_FLOAT = 0x1406,
-    sb_GL_TEXTURE_BINDING_2D = 0x8069,
-    sb_GL_DEBUG_OUTPUT_SYNCHRONOUS = 0x8242,
-    sb_GL_DEBUG_SOURCE_API = 0x8246,
-    sb_GL_DEBUG_SOURCE_WINDOW_SYSTEM = 0x8247,
-    sb_GL_DEBUG_SOURCE_SHADER_COMPILER = 0x8248,
-    sb_GL_DEBUG_SOURCE_THIRD_PARTY = 0x8249,
-    sb_GL_DEBUG_SOURCE_APPLICATION = 0x824A,
-    sb_GL_DEBUG_SOURCE_OTHER = 0x824B,
-    sb_GL_DEBUG_TYPE_ERROR = 0x824C,
-    sb_GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR = 0x824D,
-    sb_GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR = 0x824E,
-    sb_GL_DEBUG_TYPE_PORTABILITY = 0x824F,
-    sb_GL_DEBUG_TYPE_PERFORMANCE = 0x8250,
-    sb_GL_DEBUG_TYPE_OTHER = 0x8251,
-    sb_GL_DEBUG_TYPE_MARKER = 0x8268,
-    sb_GL_UNSIGNED_SHORT = 0x1403,
-    sb_GL_BYTE = 0x1400,
-    sb_GL_SHORT = 0x1402,
-    sb_GL_INT = 0x1404,
-    sb_GL_BOOL = 0x8B56,
-    sb_GL_GEOMETRY_SHADER = 0x8DD9,
-    sb_GL_COMPILE_STATUS = 0x8B81,
-    sb_GL_FRAGMENT_SHADER = 0x8B30,
-    sb_GL_VERTEX_SHADER = 0x8B31,
-    sb_GL_SAMPLER_2D = 0x8B5E,
-    sb_GL_DEBUG_SEVERITY_NOTIFICATION = 0x826B,
-    sb_GL_TEXTURE0 = 0x84C0,
-    sb_GL_ARRAY_BUFFER = 0x8892,
-    sb_GL_ELEMENT_ARRAY_BUFFER = 0x8893,
-    sb_GL_STATIC_DRAW = 0x88E4,
-    sb_GL_DYNAMIC_DRAW = 0x88E8,
-    sb_GL_UNIFORM_BUFFER = 0x8A11,
-    sb_GL_DEBUG_SEVERITY_HIGH = 0x9146,
-    sb_GL_DEBUG_SEVERITY_MEDIUM = 0x9147,
-    sb_GL_COLOR_BUFFER_BIT = 0x00004000,
-    sb_GL_DEPTH_BUFFER_BIT = 0x00000100,
-    sb_GL_DEBUG_SEVERITY_LOW = 0x9148,
-    sb_GL_DEBUG_OUTPUT = 0x92E0,
+enum PSaciGLConstants {
+    PSACI_GL_TRIANGLES = 0x0004,
+    PSACI_GL_DEPTH_TEST = 0x0B71,
+    PSACI_GL_TEXTURE_2D = 0x0DE1,
+    PSACI_GL_TEXTURE_WIDTH = 0x1000,
+    PSACI_GL_TEXTURE_HEIGHT = 0x1001,
+    PSACI_GL_UNSIGNED_BYTE = 0x1401,
+    PSACI_GL_UNSIGNED_INT = 0x1405,
+    PSACI_GL_FLOAT = 0x1406,
+    PSACI_GL_TEXTURE_BINDING_2D = 0x8069,
+    PSACI_GL_DEBUG_OUTPUT_SYNCHRONOUS = 0x8242,
+    PSACI_GL_DEBUG_SOURCE_API = 0x8246,
+    PSACI_GL_DEBUG_SOURCE_WINDOW_SYSTEM = 0x8247,
+    PSACI_GL_DEBUG_SOURCE_SHADER_COMPILER = 0x8248,
+    PSACI_GL_DEBUG_SOURCE_THIRD_PARTY = 0x8249,
+    PSACI_GL_DEBUG_SOURCE_APPLICATION = 0x824A,
+    PSACI_GL_DEBUG_SOURCE_OTHER = 0x824B,
+    PSACI_GL_DEBUG_TYPE_ERROR = 0x824C,
+    PSACI_GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR = 0x824D,
+    PSACI_GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR = 0x824E,
+    PSACI_GL_DEBUG_TYPE_PORTABILITY = 0x824F,
+    PSACI_GL_DEBUG_TYPE_PERFORMANCE = 0x8250,
+    PSACI_GL_DEBUG_TYPE_OTHER = 0x8251,
+    PSACI_GL_DEBUG_TYPE_MARKER = 0x8268,
+    PSACI_GL_UNSIGNED_SHORT = 0x1403,
+    PSACI_GL_BYTE = 0x1400,
+    PSACI_GL_SHORT = 0x1402,
+    PSACI_GL_INT = 0x1404,
+    PSACI_GL_BOOL = 0x8B56,
+    PSACI_GL_GEOMETRY_SHADER = 0x8DD9,
+    PSACI_GL_COMPILE_STATUS = 0x8B81,
+    PSACI_GL_FRAGMENT_SHADER = 0x8B30,
+    PSACI_GL_VERTEX_SHADER = 0x8B31,
+    PSACI_GL_SAMPLER_2D = 0x8B5E,
+    PSACI_GL_DEBUG_SEVERITY_NOTIFICATION = 0x826B,
+    PSACI_GL_TEXTURE0 = 0x84C0,
+    PSACI_GL_ARRAY_BUFFER = 0x8892,
+    PSACI_GL_ELEMENT_ARRAY_BUFFER = 0x8893,
+    PSACI_GL_STATIC_DRAW = 0x88E4,
+    PSACI_GL_DYNAMIC_DRAW = 0x88E8,
+    PSACI_GL_UNIFORM_BUFFER = 0x8A11,
+    PSACI_GL_DEBUG_SEVERITY_HIGH = 0x9146,
+    PSACI_GL_DEBUG_SEVERITY_MEDIUM = 0x9147,
+    PSACI_GL_COLOR_BUFFER_BIT = 0x00004000,
+    PSACI_GL_DEPTH_BUFFER_BIT = 0x00000100,
+    PSACI_GL_DEBUG_SEVERITY_LOW = 0x9148,
+    PSACI_GL_DEBUG_OUTPUT = 0x92E0,
 };
 
-SA_API su_U32 sb_gl_type_to_gl(const su_DataType data_type);
+SACI_API SaciU32 psaci_gl_type_to_gl(const SaciDataType data_type);
 
-SA_API void sb_gl_load(void);
-SA_API void sb_gl_enable(su_U32);
-SA_API void sb_gl_uniform_set_value(const su_S32 location, su_DataType type, const void* value);
-SA_API su_U32 sb_gl_create_index_buffer_dynamic(su_U64 indice_amount, su_U32* indices);
-SA_API su_U32 sb_gl_create_index_buffer_static(su_U64 indice_amount, su_U32* indices);
-SA_API su_U32 sb_gl_create_vertex_buffer_dynamic(su_U64 size, const void* data);
-SA_API su_U32 sb_gl_create_vertex_buffer_static(su_U64 size, const void* data);
-SA_API void sb_gl_set_vertex_attrib_pointer(su_U32 index, int size, su_U32 type, su_Bool normalized,
-                                            su_U64 stride, void* ptr);
-SA_API void sb_gl_create_vertex_array(su_U64 amount, su_U32* arrays);
-SA_API void sb_gl_resize_vertex_buffer(su_U32 vao_id, su_U32 vbo_id, su_U64 new_size);
-SA_API void sb_gl_bind_vertex_array(su_U32 array);
-SA_API void sb_gl_bind_vertex_buffer(su_U32 vbo);
-SA_API void sb_gl_bind_index_buffer(su_U32 ibo);
-SA_API void sb_gl_set_vertex_attrib_posu_S32(su_U32 index, su_S32 size, su_U32 type, su_Bool normalized, su_U64 stride, void* ptr);
-SA_API void sb_gl_enable_vertex_attrib_array(su_U32 id);
-SA_API void sb_gl_vertex_attrib_divisor(su_U32 id, su_U32 div);
-SA_API su_S32 sb_gl_uniform_location(su_ShaderId program_id, const char* const name);
-SA_API void sb_gl_clear_color(const Sacic_Color color);
-SA_API void sb_gl_clear_depth_buffer(void);
-SA_API void sb_gl_use_program(su_U32 program);
-SA_API void sb_gl_set_vertex_buffer_subdata(su_S64 offset, su_U64 size, const void* data);
-SA_API void sb_gl_set_index_buffer_subdata(su_S64 offset, su_U64 size, const void* data);
-SA_API void sb_gl_draw_elements(su_U32 primitives, su_U64 count, su_U32 type, void* data, su_U64 instance_count);
+SACI_API void psaci_gl_load(void);
+SACI_API void psaci_gl_enable(SaciU32);
+SACI_API void psaci_gl_uniform_set_value(const SaciS32 location, SaciDataType type, const void* value);
+SACI_API SaciU32 psaci_gl_create_index_buffer_dynamic(SaciU64 indice_amount, SaciU32* indices);
+SACI_API SaciU32 psaci_gl_create_index_buffer_static(SaciU64 indice_amount, SaciU32* indices);
+SACI_API SaciU32 psaci_gl_create_vertex_buffer_dynamic(SaciU64 size, const void* data);
+SACI_API SaciU32 psaci_gl_create_vertex_buffer_static(SaciU64 size, const void* data);
+SACI_API void psaci_gl_set_vertex_attrib_pointer(SaciU32 index, int size, SaciU32 type, SaciBool normalized,
+                                                 SaciU64 stride, void* ptr);
+SACI_API void psaci_gl_create_vertex_array(SaciU64 amount, SaciU32* arrays);
+SACI_API void psaci_gl_resize_vertex_buffer(SaciU32 vao_id, SaciU32 vbo_id, SaciU64 new_size);
+SACI_API void psaci_gl_bind_vertex_array(SaciU32 array);
+SACI_API void psaci_gl_bind_vertex_buffer(SaciU32 vbo);
+SACI_API void psaci_gl_bind_index_buffer(SaciU32 ibo);
+SACI_API void psaci_gl_set_vertex_attrib_pos(SaciU32 index, SaciS32 size, SaciU32 type, SaciBool normalized, SaciU64 stride, void* ptr);
+SACI_API void psaci_gl_enable_vertex_attrib_array(SaciU32 id);
+SACI_API void psaci_gl_vertex_attrib_divisor(SaciU32 id, SaciU32 div);
+SACI_API SaciS32 psaci_gl_uniform_location(SaciShaderId program_id, const char* const name);
+SACI_API void psaci_gl_clear_color(const SaciColor color);
+SACI_API void psaci_gl_clear_depth_buffer(void);
+SACI_API void psaci_gl_use_program(SaciU32 program);
+SACI_API void psaci_gl_set_vertex_buffer_subdata(SaciS64 offset, SaciU64 size, const void* data);
+SACI_API void psaci_gl_set_index_buffer_subdata(SaciS64 offset, SaciU64 size, const void* data);
+SACI_API void psaci_gl_draw_elements(SaciU32 primitives, SaciU64 count, SaciU32 type, void* data, SaciU64 instance_count);
 
 // Textures
-SA_API void sb_gl_generate_textures(su_S32 count, su_U32* tex_out);
-SA_API void sb_gl_generate_mipmap_2d(const su_U32 tex);
-SA_API void sb_gl_upload_texture_2d(const su_U32 tex, su_S32 format, su_S32 width, su_S32 height, const void* data);
-SA_API void sb_gl_get_texture_size_2d(const su_U32 tex, su_S32* width_out, su_S32* height_out);
-SA_API void sb_gl_delete_texture(su_S32 count, su_U32* tex_array_out);
-SA_API void sb_gl_bind_texture_2d(enum sb_GLConstants texture_loc, const su_U32 tex);
+SACI_API void psaci_gl_generate_textures(SaciS32 count, SaciU32* tex_out);
+SACI_API void psaci_gl_generate_mipmap_2d(const SaciU32 tex);
+SACI_API void psaci_gl_upload_texture_2d(const SaciU32 tex, SaciS32 format, SaciS32 width, SaciS32 height, const void* data);
+SACI_API void psaci_gl_get_texture_size_2d(const SaciU32 tex, SaciS32* width_out, SaciS32* height_out);
+SACI_API void psaci_gl_delete_texture(SaciS32 count, SaciU32* tex_array_out);
+SACI_API void psaci_gl_bind_texture_2d(enum PSaciGLConstants texture_loc, const SaciU32 tex);
 
 // TODO bind program
 
-SA_API void sb_gl_initialized_debugger(void* debug_func);
+SACI_API void psaci_gl_initialized_debugger(void* debug_func);
 
 /* === Shader === */
 
-SA_API su_ShaderId sb_gl_shader_compile_shader_vert(const char* source);
-SA_API su_ShaderId sb_gl_shader_compile_shader_frag(const char* source);
-SA_API su_ShaderId sb_gl_shader_compile_shader_geom(const char* source);
-SA_API su_ShaderId sb_gl_shader_create_shader_program(su_ShaderId vshader, su_ShaderId fshader);
-SA_API su_ShaderId sb_gl_shader_create_shader_program_geom(su_ShaderId vshader, su_ShaderId fshader,
-                                                           su_ShaderId gshader);
-SA_API su_ShaderId sb_gl_shader_create_shader_program_source(const char* v, const char* f, const char* g);
+SACI_API SaciShaderId psaci_gl_shader_compile_shader_vert(const char* source);
+SACI_API SaciShaderId psaci_gl_shader_compile_shader_frag(const char* source);
+SACI_API SaciShaderId psaci_gl_shader_compile_shader_geom(const char* source);
+SACI_API SaciShaderId psaci_gl_shader_create_shader_program(SaciShaderId vshader, SaciShaderId fshader);
+SACI_API SaciShaderId psaci_gl_shader_create_shader_program_geom(SaciShaderId vshader, SaciShaderId fshader,
+                                                                 SaciShaderId gshader);
+SACI_API SaciShaderId psaci_gl_shader_create_shader_program_source(const char* v, const char* f, const char* g);
 
 #endif // SACI_BACKEND_SB_GL_H

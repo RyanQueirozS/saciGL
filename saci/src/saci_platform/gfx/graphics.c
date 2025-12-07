@@ -1,12 +1,12 @@
-#include "saci-backend/graphics/sb-graphics.h"
-#include "./sb-gfx.h"
+#include "saci_platform/gfx/graphics.h"
+#include "./internal/gfx.h"
 
-SA_API void sb_graphics_clear_color(const Sacic_Color color)
+SACI_API void psaci_graphics_clear_color(const SaciColor color)
 {
-    sb_gfx_clear_color(color);
+    psaci_gfx_clear_color(color);
 }
 
-SA_API void sb_graphics_clear_depth_buffer(void)
+SACI_API void psaci_sb_graphics_clear_depth_buffer(void)
 {
-    sb_gfx_clear_depth_buffer();
+    psaci_gfx_clear_depth_buffer();
 }
