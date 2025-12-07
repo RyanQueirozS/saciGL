@@ -1,6 +1,6 @@
 #include "saci_util/memory.h"
 
-#include "saci_util/log/log_internal.h"
+#include "saci_util/internal/log.h"
 
 #include <stdlib.h>
 

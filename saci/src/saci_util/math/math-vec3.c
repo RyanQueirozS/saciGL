@@ -1,6 +1,6 @@
 #include "saci_util/math.h"
 
-#include "../general_internal.h"
+#include "saci_util/internal/general.h"
 
 SaciVec3 saci_vec3_subtract(SaciVec3 a, SaciVec3 b)
 {

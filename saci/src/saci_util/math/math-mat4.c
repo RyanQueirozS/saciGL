@@ -1,9 +1,9 @@
 #include "saci_util/math.h"
 
 #include "saci_util/types.h"
-#include "../general_internal.h"
+#include "saci_util/internal/general.h"
 
-// TODO remove math.h
+// TODO remove <math.h> use the math.h from saci
 #include <math.h>
 #include <string.h>
 

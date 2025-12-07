@@ -1,5 +1,5 @@
 #include "saci_util/log.h"
-#include "./log_internal.h"
+#include "saci_util/internal/log.h"
 
 #include "saci_util/types.h"
 #include "saci_util/defines.h"
@@ -239,8 +239,10 @@ const char* saci_log_context_as_str(const enum SaciLogContext context)
         return "INPUT_MOUSE";
     case SACI_LOG_CONTEXT_INPUT_GAMEPAD:
         return "INPUT_GAMEPAD";
-    case SACI_LOG_CONTEXT_LIB_OPENGL:
-        return "LIB_OPENGL";
+    case SACI_LOG_CONTEXT_LIB_OPENGL4:
+        return "LIB_OPENGL4";
+    case SACI_LOG_CONTEXT_LIB_OPENGLES3:
+        return "LIB_OPENGLES3";
     case SACI_LOG_CONTEXT_LIB_STBI:
         return "LIB_STBI";
     case SACI_LOG_CONTEXT_LIB_GLFW:
