@@ -1,20 +1,22 @@
 Checks: >
   -*,
-  clang-analyzer-*,
-  cert-*,
+  -bugprone-easily-swappable-parameters
   bugprone-*,
-  portability-*,
+  cert-*,
+  clang-analyzer-*,
+  cppcoreguidelines-pro-type-cstyle-cast,
+  google-readability-casting
   modernize-*,
+  portability-*,
+  readability-avoid-bad-function,
+  readability-avoid-magic-numbers,
   readability-braces-around-statements,
   readability-else-after-return,
   readability-function-cognitive-complexity,
   readability-function-size,
+  readability-identifier-naming,
   readability-misleading-indentation,
   readability-simplify-boolean-expr,
-  readability-avoid-bad-function,
-  readability-avoid-magic-numbers,
-  readability-identifier-naming,
-  -bugprone-easily-swappable-parameters
 
 WarningsAsErrors: ''
 HeaderFilterRegex: '.*'

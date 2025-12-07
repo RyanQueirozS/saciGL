@@ -6,6 +6,7 @@
 #include "saci_util/defines.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef struct SaciLogBuffer SaciLogBuffer; // Contains all of the above in the given counts
 

@@ -1,47 +1,48 @@
-#include "./sb-emsdk.h"
+#include "../internal/gles3.h"
 
 #include <GLES3/gl3.h>
 
-#include "saci-utils/su-log.h"
+#include "saci_util/internal/log.h"
+#include "saci_util/log.h"
 
 // Internal
-SA_INTERNAL su_ShaderId sb__shader_compile(const char* shader_source, su_U32 shader_type);
+SACI_INTERNAL SaciShaderId psaci__shader_compile(const char* shader_source, SaciU32 shader_type);
 
 // Header IMPL
 
 // Draw
 
-SA_API void sb_emsdk_clear_color(const su_Color color)
+SACI_API void psaci_emsdk_clear_color(const SaciColor color)
 {
     glClearColor(color.r, color.g, color.b, color.a);
 }
 
 // Shader
 
-su_ShaderId sb_emsdk_shader_compile_shader_vert(const char* source)
+SaciShaderId psaci_emsdk_shader_compile_shader_vert(const char* source)
 {
-    return sb__shader_compile(source, GL_VERTEX_SHADER);
+    return psaci__shader_compile(source, GL_VERTEX_SHADER);
 }
 
-su_ShaderId sb_emsdk_shader_compile_shader_frag(const char* source)
+SaciShaderId psaci_emsdk_shader_compile_shader_frag(const char* source)
 {
-    return sb__shader_compile(source, GL_FRAGMENT_SHADER);
+    return psaci__shader_compile(source, GL_FRAGMENT_SHADER);
 }
 
-su_ShaderId sb_emsdk_shader_create_shader_program(su_ShaderId vshader, su_ShaderId fshader)
+SaciShaderId psaci_emsdk_shader_create_shader_program(SaciShaderId vshader, SaciShaderId fshader)
 {
-    su_ShaderId program_id = glCreateProgram();
+    SaciShaderId program_id = glCreateProgram();
     glAttachShader(program_id, vshader);
     glAttachShader(program_id, fshader);
     glLinkProgram(program_id);
 
-    su_S32 success = su_FALSE;
+    SaciS32 success = SACI_G_FALSE;
     glGetProgramiv(program_id, GL_LINK_STATUS, &success);
     if (!success) {
         char gl_err_message[1024];
         int size_returned = 0;
         glGetProgramInfoLog(program_id, 2048, &size_returned, gl_err_message);
-        su_LOG_ERRORF_M(su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_CRASH, su_LOG_CONTEXT_LIB_OPENGL, "Shader program couldn't be loaded: %s", gl_err_message);
+        SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_CRASH, SACI_LOG_CONTEXT_LIB_OPENGLES3, "Shader program couldn't be loaded: %s", gl_err_message);
         return 0;
     }
     glDetachShader(program_id, vshader);
@@ -49,24 +50,24 @@ su_ShaderId sb_emsdk_shader_create_shader_program(su_ShaderId vshader, su_Shader
     glDeleteShader(vshader);
     glDeleteShader(fshader);
 
-    su_LOG_INFOF_M(su_LOG_TYPE_PROD, su_LOG_CONTEXT_LIB_OPENGL,
-                   "Shader program %d loaded successfully", program_id);
+    SACI_LOG_INFOF_M(SACI_LOG_TYPE_PROD, SACI_LOG_CONTEXT_LIB_OPENGLES3,
+                     "Shader program %d loaded successfully", program_id);
     return program_id;
 }
 
-su_ShaderId sb_emsdk_shader_create_program_code(const char* v, const char* f)
+SaciShaderId psaci_emsdk_shader_create_program_code(const char* v, const char* f)
 {
-    su_ShaderId program = 0;
-    su_ShaderId f_shader = sb_emsdk_shader_compile_shader_frag(f);
-    su_ShaderId v_shader = sb_emsdk_shader_compile_shader_vert(v);
-    program = sb_emsdk_shader_create_shader_program(v_shader, f_shader);
+    SaciShaderId program = 0;
+    SaciShaderId f_shader = psaci_emsdk_shader_compile_shader_frag(f);
+    SaciShaderId v_shader = psaci_emsdk_shader_compile_shader_vert(v);
+    program = psaci_emsdk_shader_create_shader_program(v_shader, f_shader);
     return program;
 }
 
 // Internal
-su_ShaderId sb__shader_compile(const char* shader_source, su_U32 shader_type)
+SaciShaderId psaci__shader_compile(const char* shader_source, SaciU32 shader_type)
 {
-    su_ShaderId shader_id = glCreateShader(shader_type);
+    SaciShaderId shader_id = glCreateShader(shader_type);
 
     glShaderSource(shader_id, 1, &shader_source, NULL);
     glCompileShader(shader_id);
@@ -88,7 +89,7 @@ su_ShaderId sb__shader_compile(const char* shader_source, su_U32 shader_type)
             if (shader_type == GL_FRAGMENT_SHADER) {
                 log_message = "Fragment shader couldn't be loaded";
             }
-            su_LOG_ERROR_M(su_LOG_TYPE_PROD, su_LOG_ERROR_SEVERITY_CRASH, su_LOG_CONTEXT_LIB_OPENGL, log_message);
+            SACI_LOG_ERROR_M(SACI_LOG_TYPE_PROD, SACI_LOG_ERROR_SEVERITY_CRASH, SACI_LOG_CONTEXT_LIB_OPENGLES3, log_message);
         }
         return 0;
     }
@@ -101,7 +102,7 @@ su_ShaderId sb__shader_compile(const char* shader_source, su_U32 shader_type)
         if (shader_type == GL_FRAGMENT_SHADER) {
             log_message = "Fragment shader loaded succesfully";
         }
-        su_LOG_INFO_M(su_LOG_TYPE_PROD, su_LOG_CONTEXT_LIB_OPENGL, log_message);
+        SACI_LOG_INFO_M(SACI_LOG_TYPE_PROD, SACI_LOG_CONTEXT_LIB_OPENGLES3, log_message);
     }
 
     return shader_id;
