@@ -1,624 +1,634 @@
-#ifndef __EMSCRIPTEN__
-#  include "saci-utils/config/su-config-manager.h"
-#  include "saci-utils/config/su-lua.h"
+#include "saci_platform/config/internal/config_manager.h"
+#include "saci_platform/config/config.h"
+#include "saci_platform/config/internal/config.h"
 
-#  include <saci-utils/memory/su-memory.h>
-#  include <stdio.h>
-#  include <string.h>
-#  include "saci-utils/su-general.h"
-#  include "saci-utils/su-log.h"
+#include "saci_util/memory.h"
+#include "saci_util/defines.h"
+#include "saci_util/log.h"
+
+#include "saci_util/internal/general.h"
+#include "saci_util/internal/log.h"
+
+#include <stdio.h>
+#include <string.h>
 
 // Platform-specific default library paths
-#  ifdef _WIN32 // Windows
-#    define su_DEFAULT_OPENGL_PATH "C:\\Windows\\System32\\opengl32.dll"
-#    define su_DEFAULT_GLFW_PATH "C:\\Program Files\\GLFW\\lib\\glfw3.dll"
-#    define su_DEFAULT_GLAD_PATH "C:\\Program Files\\GLAD\\lib\\glad.dll"
-#  elif defined(__linux__) // Linux
-#    define su_DEFAULT_OPENGL_PATH "/usr/lib/x86_64-linux-gnu/libGL.so"
-#    define su_DEFAULT_GLFW_PATH "/usr/local/lib/libglfw.so"
-#    define su_DEFAULT_GLAD_PATH "/usr/local/lib/libglad.so"
-#  elif defined(__APPLE__) // macOS
-#    define su_DEFAULT_OPENGL_PATH "/System/Library/Frameworks/OpenGL.framework/OpenGL"
-#    define su_DEFAULT_GLFW_PATH "/usr/local/lib/libglfw.dylib"
-#    define su_DEFAULT_GLAD_PATH "/usr/local/lib/libglad.dylib"
-#  else
-#    error "Unknown platform. Define paths for this platform."
-#  endif
+#ifdef _WIN32 // Windows
+#  define su_DEFAULT_OPENGL_PATH "C:\\Windows\\System32\\opengl32.dll"
+#  define su_DEFAULT_GLFW_PATH "C:\\Program Files\\GLFW\\lib\\glfw3.dll"
+#  define su_DEFAULT_GLAD_PATH "C:\\Program Files\\GLAD\\lib\\glad.dll"
+#elif defined(__linux__) // Linux
+#  define su_DEFAULT_OPENGL_PATH "/usr/lib/x86_64-linux-gnu/libGL.so"
+#  define su_DEFAULT_GLFW_PATH "/usr/local/lib/libglfw.so"
+#  define su_DEFAULT_GLAD_PATH "/usr/local/lib/libglad.so"
+#elif defined(__APPLE__) // macOS
+#  define su_DEFAULT_OPENGL_PATH "/System/Library/Frameworks/OpenGL.framework/OpenGL"
+#  define su_DEFAULT_GLFW_PATH "/usr/local/lib/libglfw.dylib"
+#  define su_DEFAULT_GLAD_PATH "/usr/local/lib/libglad.dylib"
+#else
+#  error "Unknown platform. Define paths for this platform."
+#endif
 
 /* === Internal === */
 
-struct su_SymbolTable {
+struct PSaciSymbolTable {
     const char* name;
     void** func_out;
 };
 
-SA_INTERNAL su_Bool su__cfg_manager_load_render_api(su_LuaState* lua_state);
+SACI_INTERNAL SaciBool psaci__cfg_manager_load_render_api(PSaciLuaState* lua_state);
 
-SA_INTERNAL su_Bool su__cfg_manager_load_render_loader(su_LuaState* lua_state);
+SACI_INTERNAL SaciBool psaci__cfg_manager_load_render_loader(PSaciLuaState* lua_state);
 
-SA_INTERNAL su_Bool su__cfg_manager_load_window_api(su_LuaState* lua_state);
+SACI_INTERNAL SaciBool psaci__cfg_manager_load_window_api(PSaciLuaState* lua_state);
 
-SA_INTERNAL su_MemPool* su__cfg_manager_get_renderer_pool(su_LuaState* cfg_state);
+SACI_INTERNAL SaciMemPool* psaci__cfg_manager_get_renderer_pool(PSaciLuaState* cfg_state);
 
-SA_INTERNAL void su__load_renderer_vertex_data(su_LuaState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool);
-SA_INTERNAL void su__load_renderer_index_data(su_LuaState* lua, struct su_RendererConfig* cfg_out);
-SA_INTERNAL void su__load_renderer_shaders(su_LuaState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool);
-SA_INTERNAL void su__load_renderer_uniforms(su_LuaState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool);
-SA_INTERNAL void su__load_renderer_samplers(su_LuaState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool);
-SA_INTERNAL void su__load_renderer_batch(su_LuaState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool);
-SA_INTERNAL void su__load_renderer_bound(su_LuaState* lua, struct su_RendererConfig* cfg_out);
-SA_INTERNAL void su__load_renderer_draw(su_LuaState* lua, struct su_RendererConfig* cfg_out);
-SA_INTERNAL void su__load_renderer_pipeline(su_LuaState* lua, struct su_RendererConfig* cfg_out);
+SACI_INTERNAL void psaci__load_renderer_vertex_data(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool);
+SACI_INTERNAL void psaci__load_renderer_index_data(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out);
+SACI_INTERNAL void psaci__load_renderer_shaders(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool);
+SACI_INTERNAL void psaci__load_renderer_uniforms(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool);
+SACI_INTERNAL void psaci__load_renderer_samplers(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool);
+SACI_INTERNAL void psaci__load_renderer_batch(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool);
+SACI_INTERNAL void psaci__load_renderer_bound(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out);
+SACI_INTERNAL void psaci__load_renderer_draw(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out);
+SACI_INTERNAL void psaci__load_renderer_pipeline(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out);
 
 /* === Header impl === */
 
-SA_INTERNAL struct su_ConfigManager su__cfg_manager = su_CFG_MANAGER_DEFAULT;
+SACI_INTERNAL struct PSaciConfigManager psaci_g_cfg_manager = PSACI_G_CFG_MANAGER_DEFAULT;
 
-void su_cfg_manager_load_default(void)
+void psaci_cfg_manager_load_default(void)
 {
-    su__cfg_manager = su_CFG_MANAGER_DEFAULT;
+    psaci_g_cfg_manager = PSACI_G_CFG_MANAGER_DEFAULT;
 }
 
-void su_cfg_manager_set(const struct su_ConfigManager cfg_manager)
+void psaci_cfg_manager_set(const struct PSaciConfigManager cfg_manager)
 {
-    su__cfg_manager = cfg_manager;
+    psaci_g_cfg_manager = cfg_manager;
 }
 
-su_Bool su_cfg_manager_fetch(const char* path)
+SaciBool psaci_cfg_manager_fetch(const char* path)
 {
-    su_LuaState* lua_state = su_lua_load(path);
+    PSaciLuaState* lua_state = psaci_lua_load(path);
     if (!lua_state) {
-        su_LOG_WARN_M(su_LOG_TYPE_USER, su_LOG_WARN_SEVERITY_MEDIUM, su_LOG_CONTEXT_CORE_CONFIG, "Could not load config");
+        SACI_LOG_WARN_M(SACI_LOG_TYPE_USER, SACI_LOG_WARN_SEVERITY_MEDIUM, SACI_LOG_CONTEXT_CORE_CONFIG, "Could not load config");
         return false;
     }
-    su__cfg_manager.cfg_file_path = (char*)path;
+    psaci_g_cfg_manager.cfg_file_path = (char*)path;
 
-    if (!su_lua_push_global_table(lua_state, "Saci_base")) {
-        su_lua_close(lua_state);
-        return false;
-    }
-
-    if (!su__cfg_manager_load_render_api(lua_state)) {
-        su_lua_pop(lua_state, 1);
-        su_lua_close(lua_state);
+    if (!psaci_lua_push_global_table(lua_state, "Saci_base")) {
+        psaci_lua_close(lua_state);
         return false;
     }
 
-    if (!su__cfg_manager_load_render_loader(lua_state)) {
-        su_lua_pop(lua_state, 1);
-        su_lua_close(lua_state);
+    if (!psaci__cfg_manager_load_render_api(lua_state)) {
+        psaci_lua_pop(lua_state, 1);
+        psaci_lua_close(lua_state);
         return false;
     }
 
-    if (!su__cfg_manager_load_window_api(lua_state)) {
-        su_lua_pop(lua_state, 1);
-        su_lua_close(lua_state);
+    if (!psaci__cfg_manager_load_render_loader(lua_state)) {
+        psaci_lua_pop(lua_state, 1);
+        psaci_lua_close(lua_state);
         return false;
     }
 
-    su_lua_pop(lua_state, 1); // pop Saci_base table
-    su_lua_close(lua_state);
+    if (!psaci__cfg_manager_load_window_api(lua_state)) {
+        psaci_lua_pop(lua_state, 1);
+        psaci_lua_close(lua_state);
+        return false;
+    }
+
+    psaci_lua_pop(lua_state, 1); // pop Saci_base table
+    psaci_lua_close(lua_state);
 
     return true;
 }
 
-SA_API enum su_RenderApi su_cfg_manager_get_renderer_api(void)
+enum PSaciRenderApi psaci_cfg_manager_get_renderer_api(void)
 {
-    return su__cfg_manager.render_api_data.api;
+    return psaci_g_cfg_manager.render_api_data.api;
 }
 
-const char* su_cfg_manager_get_renderer_api_path(void)
+const char* psaci_cfg_manager_get_renderer_api_path(void)
 {
-    return su__cfg_manager.render_api_data.path_to_api;
+    return psaci_g_cfg_manager.render_api_data.path_to_api;
 }
 
-SA_API enum su_RenderApiLoader su_cfg_manager_get_renderer_api_loader(void)
+enum PSaciRenderApiLoader psaci_cfg_manager_get_renderer_api_loader(void)
 {
-    return su__cfg_manager.render_api_loader_data.api_loader;
+    return psaci_g_cfg_manager.render_api_loader_data.api_loader;
 }
 
-const char* su_cfg_manager_get_renderer_api_loader_path(void)
+const char* psaci_cfg_manager_get_renderer_api_loader_path(void)
 {
-    return su__cfg_manager.render_api_loader_data.path_to_api;
+    return psaci_g_cfg_manager.render_api_loader_data.path_to_api;
 }
 
-SA_API enum su_WindowApi su_cfg_manager_get_window_api(void)
+enum PSaciWindowApi psaci_cfg_manager_get_window_api(void)
 {
-    return su__cfg_manager.windowing_api_data.api;
+    return psaci_g_cfg_manager.windowing_api_data.api;
 }
 
-const char* su_cfg_manager_get_window_api_path(void)
+const char* psaci_cfg_manager_get_window_api_path(void)
 {
-    return su__cfg_manager.windowing_api_data.path_to_api;
+    return psaci_g_cfg_manager.windowing_api_data.path_to_api;
 }
 
-void su_cfg_manager_get_renderer(const char* name, struct su_RendererConfig* cfg_out)
+void psaci_cfg_manager_get_renderer(const char* name, struct PSaciRendererConfig* cfg_out)
 {
-    su_LuaState* lua = su_lua_load(su__cfg_manager.cfg_file_path);
+    PSaciLuaState* lua = psaci_lua_load(psaci_g_cfg_manager.cfg_file_path);
     if (!lua) {
-        su_LOG_WARN_M(su_LOG_TYPE_USER, su_LOG_WARN_SEVERITY_MEDIUM,
-                      su_LOG_CONTEXT_CORE_CONFIG, "Could not load config");
+        SACI_LOG_WARN_M(SACI_LOG_TYPE_USER, SACI_LOG_WARN_SEVERITY_MEDIUM,
+                        SACI_LOG_CONTEXT_CORE_CONFIG, "Could not load config");
         return;
     }
 
-    su_LOG_INFOF_M(su_LOG_TYPE_USER, su_LOG_CONTEXT_CORE_CONFIG, "Loaded config at %s", name);
+    SACI_LOG_INFOF_M(SACI_LOG_TYPE_USER, SACI_LOG_CONTEXT_CORE_CONFIG, "Loaded config at %s", name);
 
-    if (!su_lua_push_global_table(lua, "Saci_Backend") ||
-        !su_lua_push_field_table(lua, "renderers") ||
-        !su_lua_push_field_table(lua, name)) {
-        su_lua_close(lua);
+    if (!psaci_lua_push_global_table(lua, "Saci_Backend") ||
+        !psaci_lua_push_field_table(lua, "renderers") ||
+        !psaci_lua_push_field_table(lua, name)) {
+        psaci_lua_close(lua);
         return;
     }
 
-    su_MemPool* pool = su__cfg_manager_get_renderer_pool(lua);
+    SaciMemPool* pool = psaci__cfg_manager_get_renderer_pool(lua);
 
-    su__load_renderer_vertex_data(lua, cfg_out, pool);
-    su__load_renderer_index_data(lua, cfg_out);
-    su__load_renderer_shaders(lua, cfg_out, pool);
-    su__load_renderer_uniforms(lua, cfg_out, pool);
-    su__load_renderer_samplers(lua, cfg_out, pool);
-    su__load_renderer_batch(lua, cfg_out, pool);
-    su__load_renderer_bound(lua, cfg_out);
-    su__load_renderer_draw(lua, cfg_out);
-    su__load_renderer_pipeline(lua, cfg_out);
+    psaci__load_renderer_vertex_data(lua, cfg_out, pool);
+    psaci__load_renderer_index_data(lua, cfg_out);
+    psaci__load_renderer_shaders(lua, cfg_out, pool);
+    psaci__load_renderer_uniforms(lua, cfg_out, pool);
+    psaci__load_renderer_samplers(lua, cfg_out, pool);
+    psaci__load_renderer_batch(lua, cfg_out, pool);
+    psaci__load_renderer_bound(lua, cfg_out);
+    psaci__load_renderer_draw(lua, cfg_out);
+    psaci__load_renderer_pipeline(lua, cfg_out);
 
-    su_lua_close(lua);
+    psaci_lua_close(lua);
 }
 
-SA_API su_U64 su_cfg_manager_render_cfg_size(const struct su_RendererConfig* cfg)
+SaciU64 psaci_cfg_manager_render_cfg_size(const struct PSaciRendererConfig* cfg)
 {
-    su_U64 total_size = 0;
+    SaciU64 total_size = 0;
     return total_size;
 }
 
-SA_API void su_cfg_manager_cleanup_renderer_cfg(struct su_RendererConfig* cfg)
+void psaci_cfg_manager_cleanup_renderer_cfg(struct PSaciRendererConfig* cfg)
 {
 }
 
 /* === Internal Impl === */
 
-SA_INTERNAL enum su_RenderApi su__parse_render_api(const char* api_str)
+SACI_INTERNAL enum PSaciRenderApi psaci__parse_render_api(const char* api_str)
 {
     if (!api_str) {
         exit(1);
     }
     if (strcmp(api_str, "OpenGL") == 0) {
-        return su_RENDERER_API_OPENGL;
+        return PSACI_RENDERER_API_OPENGL;
     }
     if (strcmp(api_str, "Vulkan") == 0) {
-        return su_RENDERER_API_VULKAN;
+        return PSACI_RENDERER_API_VULKAN;
     }
     exit(1);
 }
 
-SA_INTERNAL enum su_RenderApiLoader su__parse_render_loader(const char* loader_str)
+SACI_INTERNAL enum PSaciRenderApiLoader psaci__parse_render_loader(const char* loader_str)
 {
     if (!loader_str) {
         exit(1);
     }
-    if (strcmp(loader_str, "GLAD") == 0)
-        return su_RENDERER_LOADER_GLAD;
+    if (strcmp(loader_str, "GLAD") == 0) {
+        return PSACI_RENDERER_LOADER_GLAD;
+    }
     exit(1);
 }
 
-SA_INTERNAL enum su_WindowApi su__parse_window_api(const char* api_str)
+SACI_INTERNAL enum PSaciWindowApi psaci__parse_window_api(const char* api_str)
 {
     if (!api_str) {
         exit(1);
     }
     if (strcmp(api_str, "GLFW") == 0) {
-        return su_WINDOW_API_GLFW;
+        return PSACI_WINDOW_API_GLFW;
     }
     exit(1);
 }
 
-SA_INTERNAL su_Bool su__cfg_manager_load_render_api(su_LuaState* lua_state)
+SACI_INTERNAL SaciBool psaci__cfg_manager_load_render_api(PSaciLuaState* lua_state)
 {
-    if (!su_lua_push_field_table(lua_state, "render_api")) {
+    if (!psaci_lua_push_field_table(lua_state, "render_api")) {
         return false;
     }
 
-    const char* api_str = su_lua_get_str(lua_state, "api");
-    const char* path_str = su_lua_get_str(lua_state, "path");
+    const char* api_str = psaci_lua_get_str(lua_state, "api");
+    const char* path_str = psaci_lua_get_str(lua_state, "path");
 
-    su__cfg_manager.render_api_data.api = su__parse_render_api(api_str);
+    psaci_g_cfg_manager.render_api_data.api = psaci__parse_render_api(api_str);
 
-    su__cfg_manager.render_api_data.path_to_api = path_str ? strdup(path_str) : NULL;
+    psaci_g_cfg_manager.render_api_data.path_to_api = path_str ? strdup(path_str) : NULL;
 
-    su_lua_pop(lua_state, 1); // pop render_api table
+    psaci_lua_pop(lua_state, 1); // pop render_api table
     return true;
 }
 
-SA_INTERNAL su_Bool su__cfg_manager_load_render_loader(su_LuaState* lua_state)
+SACI_INTERNAL SaciBool psaci__cfg_manager_load_render_loader(PSaciLuaState* lua_state)
 {
-    if (!su_lua_push_field_table(lua_state, "render_loader")) {
+    if (!psaci_lua_push_field_table(lua_state, "render_loader")) {
         return false;
     }
 
-    const char* api_str = su_lua_get_str(lua_state, "api");
-    const char* path_str = su_lua_get_str(lua_state, "path");
+    const char* api_str = psaci_lua_get_str(lua_state, "api");
+    const char* path_str = psaci_lua_get_str(lua_state, "path");
 
-    su__cfg_manager.render_api_loader_data.api_loader = su__parse_render_loader(api_str);
+    psaci_g_cfg_manager.render_api_loader_data.api_loader = psaci__parse_render_loader(api_str);
 
-    free(su__cfg_manager.render_api_loader_data.path_to_api);
-    su__cfg_manager.render_api_loader_data.path_to_api = path_str ? strdup(path_str) : NULL;
+    free(psaci_g_cfg_manager.render_api_loader_data.path_to_api);
+    psaci_g_cfg_manager.render_api_loader_data.path_to_api = path_str ? strdup(path_str) : NULL;
 
-    su_lua_pop(lua_state, 1); // pop render_loader table
+    psaci_lua_pop(lua_state, 1); // pop render_loader table
     return true;
 }
 
-SA_INTERNAL su_Bool su__cfg_manager_load_window_api(su_LuaState* lua_state)
+SACI_INTERNAL SaciBool psaci__cfg_manager_load_window_api(PSaciLuaState* lua_state)
 {
-    if (!su_lua_push_field_table(lua_state, "window_api")) {
+    if (!psaci_lua_push_field_table(lua_state, "window_api")) {
         return false;
     }
 
-    const char* api_str = su_lua_get_str(lua_state, "api");
-    const char* path_str = su_lua_get_str(lua_state, "path");
+    const char* api_str = psaci_lua_get_str(lua_state, "api");
+    const char* path_str = psaci_lua_get_str(lua_state, "path");
 
-    su__cfg_manager.windowing_api_data.api = su__parse_window_api(api_str);
+    psaci_g_cfg_manager.windowing_api_data.api = psaci__parse_window_api(api_str);
 
-    free(su__cfg_manager.windowing_api_data.path_to_api);
-    su__cfg_manager.windowing_api_data.path_to_api = path_str ? strdup(path_str) : NULL;
+    free(psaci_g_cfg_manager.windowing_api_data.path_to_api);
+    psaci_g_cfg_manager.windowing_api_data.path_to_api = path_str ? strdup(path_str) : NULL;
 
-    su_lua_pop(lua_state, 1); // pop window_api table
+    psaci_lua_pop(lua_state, 1); // pop window_api table
     return true;
 }
 
 // Returns a memory pool with preallocated memory to use in the renderer cfg.
-SA_INTERNAL su_MemPool* su__cfg_manager_get_renderer_pool(su_LuaState* cfg_state)
+SACI_INTERNAL SaciMemPool* psaci__cfg_manager_get_renderer_pool(PSaciLuaState* cfg_state)
 {
-    su_U64 total_size = 0;
+    SaciU64 total_size = 0;
 
-    if (su_lua_push_field_table(cfg_state, "vertex")) {
-        if (su_lua_push_field_array(cfg_state, "layout")) {
-            su_U64 count = su_lua_get_array_length(cfg_state);
-            total_size += count * sizeof(struct su_RendererCfgVertexLayout);
+    if (psaci_lua_push_field_table(cfg_state, "vertex")) {
+        if (psaci_lua_push_field_array(cfg_state, "layout")) {
+            SaciU64 count = psaci_lua_get_array_length(cfg_state);
+            total_size += count * sizeof(struct PSaciRendererCfgVertexLayout);
 
-            for (su_U64 i = 0; i < count; ++i) {
-                if (su_lua_push_array_entry(cfg_state, i)) {
-                    const char* name = su_lua_get_str(cfg_state, "name");
+            for (SaciU64 i = 0; i < count; ++i) {
+                if (psaci_lua_push_array_entry(cfg_state, i)) {
+                    const char* name = psaci_lua_get_str(cfg_state, "name");
                     if (name) {
                         total_size += (strlen(name) + 1) * sizeof(char);
                     }
-                    su_lua_pop(cfg_state, 1);
+                    psaci_lua_pop(cfg_state, 1);
                 }
             }
-            su_lua_pop(cfg_state, 1); // pop layout array
+            psaci_lua_pop(cfg_state, 1); // pop layout array
         }
-        su_lua_pop(cfg_state, 1); // pop vertex table
+        psaci_lua_pop(cfg_state, 1); // pop vertex table
     }
 
-    if (su_lua_push_field_table(cfg_state, "shaders")) {
-        const char* frag = su_lua_get_str(cfg_state, "frag");
-        const char* vert = su_lua_get_str(cfg_state, "vert");
-        const char* geom = su_lua_get_str(cfg_state, "geom");
+    if (psaci_lua_push_field_table(cfg_state, "shaders")) {
+        const char* frag = psaci_lua_get_str(cfg_state, "frag");
+        const char* vert = psaci_lua_get_str(cfg_state, "vert");
+        const char* geom = psaci_lua_get_str(cfg_state, "geom");
 
-        if (frag)
+        if (frag) {
             total_size += (strlen(frag) + 1) * sizeof(char);
-        if (vert)
+        }
+        if (vert) {
             total_size += (strlen(vert) + 1) * sizeof(char);
-        if (geom)
+        }
+        if (geom) {
             total_size += (strlen(geom) + 1) * sizeof(char);
+        }
 
-        su_lua_pop(cfg_state, 1); // pop shaders table
+        psaci_lua_pop(cfg_state, 1); // pop shaders table
     }
 
-    if (su_lua_push_field_array(cfg_state, "uniforms")) {
-        su_U64 count = su_lua_get_array_length(cfg_state);
-        total_size += count * sizeof(struct su_RendererCfgUniform);
+    if (psaci_lua_push_field_array(cfg_state, "uniforms")) {
+        SaciU64 count = psaci_lua_get_array_length(cfg_state);
+        total_size += count * sizeof(struct PSaciRendererCfgUniform);
 
-        for (su_U64 i = 0; i < count; ++i) {
-            if (su_lua_push_array_entry(cfg_state, i)) {
-                const char* name = su_lua_get_str(cfg_state, "name");
+        for (SaciU64 i = 0; i < count; ++i) {
+            if (psaci_lua_push_array_entry(cfg_state, i)) {
+                const char* name = psaci_lua_get_str(cfg_state, "name");
                 if (name) {
                     total_size += (strlen(name) + 1) * sizeof(char);
                 }
-                su_lua_pop(cfg_state, 1);
+                psaci_lua_pop(cfg_state, 1);
             }
         }
-        su_lua_pop(cfg_state, 1); // pop uniforms array
+        psaci_lua_pop(cfg_state, 1); // pop uniforms array
     }
 
-    if (su_lua_push_field_array(cfg_state, "samplers")) {
-        su_U64 count = su_lua_get_array_length(cfg_state);
-        total_size += count * sizeof(struct su_RendererCfgSampler);
+    if (psaci_lua_push_field_array(cfg_state, "samplers")) {
+        SaciU64 count = psaci_lua_get_array_length(cfg_state);
+        total_size += count * sizeof(struct PSaciRendererCfgSampler);
 
-        for (su_U64 i = 0; i < count; ++i) {
-            if (su_lua_push_array_entry(cfg_state, i)) {
-                const char* name = su_lua_get_str(cfg_state, "name");
+        for (SaciU64 i = 0; i < count; ++i) {
+            if (psaci_lua_push_array_entry(cfg_state, i)) {
+                const char* name = psaci_lua_get_str(cfg_state, "name");
                 if (name) {
                     total_size += (strlen(name) + 1) * sizeof(char);
                 }
-                su_lua_pop(cfg_state, 1);
+                psaci_lua_pop(cfg_state, 1);
             }
         }
-        su_lua_pop(cfg_state, 1); // pop samplers array
+        psaci_lua_pop(cfg_state, 1); // pop samplers array
     }
 
-    if (su_lua_push_field_table(cfg_state, "batch")) {
-        if (su_lua_push_field_table(cfg_state, "instances")) {
-            if (su_lua_push_field_array(cfg_state, "buffers")) {
-                su_U64 buffer_count = su_lua_get_array_length(cfg_state);
-                total_size += buffer_count * sizeof(struct su_RendererCfgInstanceBuffer);
+    if (psaci_lua_push_field_table(cfg_state, "batch")) {
+        if (psaci_lua_push_field_table(cfg_state, "instances")) {
+            if (psaci_lua_push_field_array(cfg_state, "buffers")) {
+                SaciU64 buffer_count = psaci_lua_get_array_length(cfg_state);
+                total_size += buffer_count * sizeof(struct PSaciRendererCfgInstanceBuffer);
 
-                for (su_U64 b = 0; b < buffer_count; ++b) {
-                    if (su_lua_push_array_entry(cfg_state, b)) {
-                        const char* buff_name = su_lua_get_str(cfg_state, "name");
+                for (SaciU64 b = 0; b < buffer_count; ++b) {
+                    if (psaci_lua_push_array_entry(cfg_state, b)) {
+                        const char* buff_name = psaci_lua_get_str(cfg_state, "name");
                         if (buff_name) {
                             total_size += (strlen(buff_name) + 1) * sizeof(char);
                         }
 
                         // Handle layout array inside each buffer
-                        if (su_lua_push_field_array(cfg_state, "layout")) {
-                            su_U64 layout_count = su_lua_get_array_length(cfg_state);
-                            total_size += layout_count * sizeof(struct su_RendererCfgInstanceBufferLayout);
+                        if (psaci_lua_push_field_array(cfg_state, "layout")) {
+                            SaciU64 layout_count = psaci_lua_get_array_length(cfg_state);
+                            total_size += layout_count * sizeof(struct PSaciRendererCfgInstanceBufferLayout);
 
-                            for (su_U64 l = 0; l < layout_count; ++l) {
-                                if (su_lua_push_array_entry(cfg_state, l)) {
-                                    const char* layout_name = su_lua_get_str(cfg_state, "name");
+                            for (SaciU64 l = 0; l < layout_count; ++l) {
+                                if (psaci_lua_push_array_entry(cfg_state, l)) {
+                                    const char* layout_name = psaci_lua_get_str(cfg_state, "name");
                                     if (layout_name) {
                                         total_size += (strlen(layout_name) + 1) * sizeof(char);
                                     }
-                                    su_lua_pop(cfg_state, 1);
+                                    psaci_lua_pop(cfg_state, 1);
                                 }
                             }
-                            su_lua_pop(cfg_state, 1); // pop layout array
+                            psaci_lua_pop(cfg_state, 1); // pop layout array
                         }
 
-                        su_lua_pop(cfg_state, 1); // pop buffer entry
+                        psaci_lua_pop(cfg_state, 1); // pop buffer entry
                     }
                 }
 
-                su_lua_pop(cfg_state, 1); // pop buffers array
+                psaci_lua_pop(cfg_state, 1); // pop buffers array
             }
-            su_lua_pop(cfg_state, 1); // pop instances table
+            psaci_lua_pop(cfg_state, 1); // pop instances table
         }
-        su_lua_pop(cfg_state, 1); // pop batch table
+        psaci_lua_pop(cfg_state, 1); // pop batch table
     }
 
-    return su_mem_create_pool(su_MEM_CONTEXT_CONFIG, total_size);
+    return saci_mem_create_pool(SACI_MEM_CONTEXT_CONFIG, total_size);
 }
 
-void su__load_renderer_vertex_data(su_LuaState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool)
+void psaci__load_renderer_vertex_data(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool)
 {
-    if (!su_lua_push_field_table(lua, "vertex"))
+    if (!psaci_lua_push_field_table(lua, "vertex")) {
         return;
+    }
 
-    if (su_lua_push_field_array(lua, "layout")) {
-        su_U64 count = su_lua_get_array_length(lua);
+    if (psaci_lua_push_field_array(lua, "layout")) {
+        SaciU64 count = psaci_lua_get_array_length(lua);
         cfg_out->vertex_data.layout_array_length = count;
-        cfg_out->vertex_data.layout_array = su_mem_pool_alloc(pool, count * sizeof(struct su_RendererCfgVertexLayout));
+        cfg_out->vertex_data.layout_array = saci_mem_pool_alloc(pool, count * sizeof(struct PSaciRendererCfgVertexLayout));
         cfg_out->vertex_data.element_size_internal = 0;
 
-        for (su_U64 i = 0; i < count; ++i) {
-            if (su_lua_push_array_entry(lua, i)) {
-                struct su_RendererCfgVertexLayout layout = {
-                    .type = su_CAST_M(su_DataType)(su_lua_get_enum(lua, "type")),
-                    .offset = su_lua_get_uint64(lua, "offset"),
-                    .location = su_lua_get_uint32(lua, "location"),
+        for (SaciU64 i = 0; i < count; ++i) {
+            if (psaci_lua_push_array_entry(lua, i)) {
+                struct PSaciRendererCfgVertexLayout layout = {
+                    .type = SACI_CAST_M(SaciDataType)(psaci_lua_get_enum(lua, "type")),
+                    .offset = psaci_lua_get_uint64(lua, "offset"),
+                    .location = psaci_lua_get_uint32(lua, "location"),
                 };
 
-                const char* name_str = su_lua_get_str(lua, "name");
+                const char* name_str = psaci_lua_get_str(lua, "name");
                 if (name_str) {
-                    su_U64 size = (strlen(name_str) + 1) * sizeof(char);
-                    layout.name = su_mem_pool_alloc(pool, size);
-                    su_mem_safe_copy(layout.name, size, 0, name_str, size, 0, size);
+                    SaciU64 size = (strlen(name_str) + 1) * sizeof(char);
+                    layout.name = saci_mem_pool_alloc(pool, size);
+                    saci_mem_safe_copy(layout.name, size, 0, name_str, size, 0, size);
                 }
 
                 cfg_out->vertex_data.layout_array[i] = layout;
-                su_lua_pop(lua, 1);
+                psaci_lua_pop(lua, 1);
             }
         }
 
-        su_lua_pop(lua, 1);
+        psaci_lua_pop(lua, 1);
     }
 
-    su_lua_pop(lua, 1);
+    psaci_lua_pop(lua, 1);
 }
 
-void su__load_renderer_index_data(su_LuaState* lua, struct su_RendererConfig* cfg_out)
+void psaci__load_renderer_index_data(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out)
 {
-    if (su_lua_push_field_table(lua, "index")) {
-        cfg_out->index_data.element_size_internal = su_SIZE_OF_TYPE[su_lua_get_enum(lua, "element_type")];
-        su_lua_pop(lua, 1);
+    if (psaci_lua_push_field_table(lua, "index")) {
+        cfg_out->index_data.element_size_internal = SACI_G_TYPE_SIZE_TABLE[psaci_lua_get_enum(lua, "element_type")];
+        psaci_lua_pop(lua, 1);
     }
 }
 
-void su__load_renderer_shaders(su_LuaState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool)
+void psaci__load_renderer_shaders(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool)
 {
-    if (!su_lua_push_field_table(lua, "shaders"))
+    if (!psaci_lua_push_field_table(lua, "shaders")) {
         return;
+    }
 
-    const char* frag = su_lua_get_str(lua, "frag");
+    const char* frag = psaci_lua_get_str(lua, "frag");
     if (frag) {
-        su_U64 size = (strlen(frag) + 1) * sizeof(char);
-        cfg_out->shaders.frag = su_mem_pool_alloc(pool, size);
-        su_mem_safe_copy(cfg_out->shaders.frag, size, 0, frag, size, 0, size);
+        SaciU64 size = (strlen(frag) + 1) * sizeof(char);
+        cfg_out->shaders.frag = saci_mem_pool_alloc(pool, size);
+        saci_mem_safe_copy(cfg_out->shaders.frag, size, 0, frag, size, 0, size);
     }
 
-    const char* vert = su_lua_get_str(lua, "vert");
+    const char* vert = psaci_lua_get_str(lua, "vert");
     if (vert) {
-        su_U64 size = (strlen(vert) + 1) * sizeof(char);
-        cfg_out->shaders.vert = su_mem_pool_alloc(pool, size);
-        su_mem_safe_copy(cfg_out->shaders.vert, size, 0, vert, size, 0, size);
+        SaciU64 size = (strlen(vert) + 1) * sizeof(char);
+        cfg_out->shaders.vert = saci_mem_pool_alloc(pool, size);
+        saci_mem_safe_copy(cfg_out->shaders.vert, size, 0, vert, size, 0, size);
     }
 
-    const char* geom = su_lua_get_str(lua, "geom");
+    const char* geom = psaci_lua_get_str(lua, "geom");
     if (geom) {
-        su_U64 size = (strlen(geom) + 1) * sizeof(char);
-        cfg_out->shaders.geom = su_mem_pool_alloc(pool, size);
-        su_mem_safe_copy(cfg_out->shaders.geom, size, 0, geom, size, 0, size);
+        SaciU64 size = (strlen(geom) + 1) * sizeof(char);
+        cfg_out->shaders.geom = saci_mem_pool_alloc(pool, size);
+        saci_mem_safe_copy(cfg_out->shaders.geom, size, 0, geom, size, 0, size);
     }
 
-    su_lua_pop(lua, 1);
+    psaci_lua_pop(lua, 1);
 }
 
-void su__load_renderer_uniforms(su_LuaState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool)
+void psaci__load_renderer_uniforms(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool)
 {
-    if (su_lua_push_field_array(lua, "uniforms")) {
-        su_U64 count = su_lua_get_array_length(lua);
+    if (psaci_lua_push_field_array(lua, "uniforms")) {
+        SaciU64 count = psaci_lua_get_array_length(lua);
         cfg_out->uniform_array_length = count;
-        cfg_out->uniform_array = su_mem_pool_alloc(pool, count * sizeof(struct su_RendererCfgUniform));
+        cfg_out->uniform_array = saci_mem_pool_alloc(pool, count * sizeof(struct PSaciRendererCfgUniform));
 
-        for (su_U64 i = 0; i < count; i++) {
-            if (su_lua_push_array_entry(lua, i)) {
-                struct su_RendererCfgUniform uniform = {
-                    .type = su_CAST_M(su_DataType)(su_lua_get_enum(lua, "type")),
-                    .location = su_CAST_M(su_S32)(su_lua_get_uint32(lua, "location")),
+        for (SaciU64 i = 0; i < count; i++) {
+            if (psaci_lua_push_array_entry(lua, i)) {
+                struct PSaciRendererCfgUniform uniform = {
+                    .type = SACI_CAST_M(SaciDataType)(psaci_lua_get_enum(lua, "type")),
+                    .location = SACI_CAST_M(SaciS32)(psaci_lua_get_uint32(lua, "location")),
                 };
-                const char* name_str = su_lua_get_str(lua, "name");
+                const char* name_str = psaci_lua_get_str(lua, "name");
                 if (name_str) {
-                    su_U64 name_str_size = (strlen(name_str) + 1) * sizeof(char);
-                    uniform.name = su_mem_pool_alloc(pool, name_str_size);
-                    su_mem_safe_copy(uniform.name, name_str_size, 0, name_str, name_str_size, 0, name_str_size);
+                    SaciU64 name_str_size = (strlen(name_str) + 1) * sizeof(char);
+                    uniform.name = saci_mem_pool_alloc(pool, name_str_size);
+                    saci_mem_safe_copy(uniform.name, name_str_size, 0, name_str, name_str_size, 0, name_str_size);
                 }
                 cfg_out->uniform_array[i] = uniform;
-                su_lua_pop(lua, 1);
+                psaci_lua_pop(lua, 1);
             }
         }
-        su_lua_pop(lua, 1);
+        psaci_lua_pop(lua, 1);
     }
 }
 
-void su__load_renderer_samplers(su_LuaState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool)
+void psaci__load_renderer_samplers(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool)
 {
-    if (su_lua_push_field_array(lua, "samplers")) {
-        su_U64 count = su_lua_get_array_length(lua);
+    if (psaci_lua_push_field_array(lua, "samplers")) {
+        SaciU64 count = psaci_lua_get_array_length(lua);
         cfg_out->sampler_array_length = count;
-        cfg_out->sampler_array = su_mem_pool_alloc(pool, count * sizeof(struct su_RendererCfgSampler));
+        cfg_out->sampler_array = saci_mem_pool_alloc(pool, count * sizeof(struct PSaciRendererCfgSampler));
 
-        for (su_U64 i = 0; i < count; ++i) {
-            if (su_lua_push_array_entry(lua, i)) {
-                struct su_RendererCfgSampler sampler = {
-                    .type = su_CAST_M(su_DataType)(su_lua_get_enum(lua, "type")),
-                    .binding = su_CAST_M(su_S32)(su_lua_get_uint32(lua, "binding")),
+        for (SaciU64 i = 0; i < count; ++i) {
+            if (psaci_lua_push_array_entry(lua, i)) {
+                struct PSaciRendererCfgSampler sampler = {
+                    .type = SACI_CAST_M(SaciDataType)(psaci_lua_get_enum(lua, "type")),
+                    .binding = SACI_CAST_M(SaciS32)(psaci_lua_get_uint32(lua, "binding")),
                 };
-                const char* name_str = su_lua_get_str(lua, "name");
+                const char* name_str = psaci_lua_get_str(lua, "name");
                 if (name_str) {
-                    su_U64 name_str_size = (strlen(name_str) + 1) * sizeof(char);
-                    sampler.name = su_mem_pool_alloc(pool, name_str_size);
-                    su_mem_safe_copy(sampler.name, name_str_size, 0, name_str, name_str_size, 0, name_str_size);
+                    SaciU64 name_str_size = (strlen(name_str) + 1) * sizeof(char);
+                    sampler.name = saci_mem_pool_alloc(pool, name_str_size);
+                    saci_mem_safe_copy(sampler.name, name_str_size, 0, name_str, name_str_size, 0, name_str_size);
                 }
-                su_lua_pop(lua, 1);
+                psaci_lua_pop(lua, 1);
             }
         }
-        su_lua_pop(lua, 1);
+        psaci_lua_pop(lua, 1);
     }
 }
 
-void su__load_renderer_batch(su_LuaState* lua, struct su_RendererConfig* cfg_out, su_MemPool* pool)
+void psaci__load_renderer_batch(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool)
 {
-    if (!su_lua_push_field_table(lua, "batch"))
+    if (!psaci_lua_push_field_table(lua, "batch")) {
         return;
-
-    cfg_out->batch.capacity = su_lua_get_uint64(lua, "capacity");
-
-    if (su_lua_push_field_table(lua, "index")) {
-        cfg_out->batch.index_cfg.capacity = su_lua_get_uint64(lua, "capacity");
-        su_lua_pop(lua, 1); // pop index
     }
 
-    if (su_lua_push_field_table(lua, "vertex")) {
-        cfg_out->batch.vertex_cfg.capacity = su_lua_get_uint64(lua, "capacity");
-        su_lua_pop(lua, 1); // pop vertex
+    cfg_out->batch.capacity = psaci_lua_get_uint64(lua, "capacity");
+
+    if (psaci_lua_push_field_table(lua, "index")) {
+        cfg_out->batch.index_cfg.capacity = psaci_lua_get_uint64(lua, "capacity");
+        psaci_lua_pop(lua, 1); // pop index
     }
 
-    if (su_lua_push_field_table(lua, "instances")) {
-        cfg_out->batch.instance_cfg.capacity = su_lua_get_uint64(lua, "capacity");
+    if (psaci_lua_push_field_table(lua, "vertex")) {
+        cfg_out->batch.vertex_cfg.capacity = psaci_lua_get_uint64(lua, "capacity");
+        psaci_lua_pop(lua, 1); // pop vertex
+    }
 
-        if (su_lua_push_field_array(lua, "buffers")) { // FIXED: should be push_field_array
-            su_U64 buffer_count = su_lua_get_array_length(lua);
+    if (psaci_lua_push_field_table(lua, "instances")) {
+        cfg_out->batch.instance_cfg.capacity = psaci_lua_get_uint64(lua, "capacity");
+
+        if (psaci_lua_push_field_array(lua, "buffers")) { // FIXED: should be push_field_array
+            SaciU64 buffer_count = psaci_lua_get_array_length(lua);
             cfg_out->instance_data.buffer_array_length = buffer_count;
-            cfg_out->instance_data.buffer_array = su_mem_pool_alloc(pool, sizeof(struct su_RendererCfgInstanceBuffer) * buffer_count);
+            cfg_out->instance_data.buffer_array = saci_mem_pool_alloc(pool, sizeof(struct PSaciRendererCfgInstanceBuffer) * buffer_count);
 
-            for (su_U64 b = 0; b < buffer_count; ++b) {
-                if (su_lua_push_array_entry(lua, b)) {
-                    struct su_RendererCfgInstanceBuffer buffer = {0};
+            for (SaciU64 b = 0; b < buffer_count; ++b) {
+                if (psaci_lua_push_array_entry(lua, b)) {
+                    struct PSaciRendererCfgInstanceBuffer buffer = {0};
 
-                    const char* name_str = su_lua_get_str(lua, "name");
+                    const char* name_str = psaci_lua_get_str(lua, "name");
                     if (name_str) {
-                        su_U64 name_size = (strlen(name_str) + 1);
-                        buffer.name = su_mem_pool_alloc(pool, name_size);
-                        su_mem_safe_copy(buffer.name, name_size, 0, name_str, name_size, 0, name_size);
+                        SaciU64 name_size = (strlen(name_str) + 1);
+                        buffer.name = saci_mem_pool_alloc(pool, name_size);
+                        saci_mem_safe_copy(buffer.name, name_size, 0, name_str, name_size, 0, name_size);
                     }
 
-                    if (su_lua_push_field_array(lua, "layout")) {
-                        su_U64 layout_count = su_lua_get_array_length(lua);
+                    if (psaci_lua_push_field_array(lua, "layout")) {
+                        SaciU64 layout_count = psaci_lua_get_array_length(lua);
                         buffer.layout_array_length = layout_count;
-                        buffer.layout_array = su_mem_pool_alloc(pool, layout_count * sizeof(struct su_RendererCfgInstanceBufferLayout));
+                        buffer.layout_array = saci_mem_pool_alloc(pool, layout_count * sizeof(struct PSaciRendererCfgInstanceBufferLayout));
                         buffer.size_byte_internal = 0;
 
-                        for (su_U64 l = 0; l < layout_count; ++l) {
-                            if (su_lua_push_array_entry(lua, l)) {
-                                struct su_RendererCfgInstanceBufferLayout layout = {
-                                    .type = su_CAST_M(su_DataType)(su_lua_get_enum(lua, "type")),
-                                    .offset = su_lua_get_uint64(lua, "offset"),
-                                    .location = su_lua_get_uint32(lua, "location"),
+                        for (SaciU64 l = 0; l < layout_count; ++l) {
+                            if (psaci_lua_push_array_entry(lua, l)) {
+                                struct PSaciRendererCfgInstanceBufferLayout layout = {
+                                    .type = SACI_CAST_M(SaciDataType)(psaci_lua_get_enum(lua, "type")),
+                                    .offset = psaci_lua_get_uint64(lua, "offset"),
+                                    .location = psaci_lua_get_uint32(lua, "location"),
                                 };
 
-                                const char* layout_name_str = su_lua_get_str(lua, "name");
+                                const char* layout_name_str = psaci_lua_get_str(lua, "name");
                                 if (layout_name_str) {
-                                    su_U64 layout_name_size = (strlen(layout_name_str) + 1);
-                                    layout.name = su_mem_pool_alloc(pool, layout_name_size);
-                                    su_mem_safe_copy(layout.name, layout_name_size, 0, layout_name_str, layout_name_size, 0, layout_name_size);
+                                    SaciU64 layout_name_size = (strlen(layout_name_str) + 1);
+                                    layout.name = saci_mem_pool_alloc(pool, layout_name_size);
+                                    saci_mem_safe_copy(layout.name, layout_name_size, 0, layout_name_str, layout_name_size, 0, layout_name_size);
                                 }
 
-                                buffer.size_byte_internal += su_SIZE_OF_TYPE[layout.type];
+                                buffer.size_byte_internal += SACI_G_TYPE_SIZE_TABLE[layout.type];
                                 buffer.layout_array[l] = layout;
 
-                                su_lua_pop(lua, 1); // pop array entry
+                                psaci_lua_pop(lua, 1); // pop array entry
                             }
                         }
 
-                        su_lua_pop(lua, 1); // pop layout array
+                        psaci_lua_pop(lua, 1); // pop layout array
                     }
 
                     cfg_out->instance_data.buffer_array[b] = buffer;
 
-                    su_lua_pop(lua, 1); // pop buffer entry
+                    psaci_lua_pop(lua, 1); // pop buffer entry
                 }
             }
 
-            su_lua_pop(lua, 1); // pop buffers array
+            psaci_lua_pop(lua, 1); // pop buffers array
         }
 
-        su_lua_pop(lua, 1); // pop instances
+        psaci_lua_pop(lua, 1); // pop instances
     }
 
-    su_lua_pop(lua, 1); // pop batch
+    psaci_lua_pop(lua, 1); // pop batch
 }
 
-void su__load_renderer_bound(su_LuaState* lua, struct su_RendererConfig* cfg_out)
+void psaci__load_renderer_bound(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out)
 {
-    if (su_lua_push_field_table(lua, "bound")) {
-        cfg_out->bound.index_cfg.capacity = su_lua_get_uint64(lua, "index_capacity");
-        cfg_out->bound.instance_cfg.capacity = su_lua_get_uint64(lua, "instance_capacity");
-        su_lua_pop(lua, 1);
+    if (psaci_lua_push_field_table(lua, "bound")) {
+        cfg_out->bound.index_cfg.capacity = psaci_lua_get_uint64(lua, "index_capacity");
+        cfg_out->bound.instance_cfg.capacity = psaci_lua_get_uint64(lua, "instance_capacity");
+        psaci_lua_pop(lua, 1);
     }
 }
 
-void su__load_renderer_draw(su_LuaState* lua, struct su_RendererConfig* cfg_out)
+void psaci__load_renderer_draw(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out)
 {
-    if (su_lua_push_field_table(lua, "draw")) {
-        cfg_out->draw = (struct su_RendererCfgDraw){
-            .primitive = su_CAST_M(enum su_RendererPrimitives)(su_lua_get_enum(lua, "primitives")),
-            .cull_mode = su_CAST_M(enum su_RendererCullMode)(su_lua_get_enum(lua, "cull_mode")),
-            .front_face = su_CAST_M(enum su_RendererFrontFace)(su_lua_get_enum(lua, "front_face")),
+    if (psaci_lua_push_field_table(lua, "draw")) {
+        cfg_out->draw = (struct PSaciRendererCfgDraw){
+            .primitive = SACI_CAST_M(enum PSaciRendererPrimitives)(psaci_lua_get_enum(lua, "primitives")),
+            .cull_mode = SACI_CAST_M(enum PSaciRendererCullMode)(psaci_lua_get_enum(lua, "cull_mode")),
+            .front_face = SACI_CAST_M(enum PSaciRendererFrontFace)(psaci_lua_get_enum(lua, "front_face")),
         };
-        su_lua_pop(lua, 1);
+        psaci_lua_pop(lua, 1);
     }
 }
 
-void su__load_renderer_pipeline(su_LuaState* lua, struct su_RendererConfig* cfg_out)
+void psaci__load_renderer_pipeline(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out)
 {
-    if (su_lua_push_field_table(lua, "pipeline")) {
-        cfg_out->pipeline.depth_test = su_lua_get_bool(lua, "depth_test");
-        if (su_lua_push_field_table(lua, "blend")) {
-            cfg_out->pipeline.blend.enabled = su_lua_get_bool(lua, "enabled");
-            su_lua_pop(lua, 1);
+    if (psaci_lua_push_field_table(lua, "pipeline")) {
+        cfg_out->pipeline.depth_test = psaci_lua_get_bool(lua, "depth_test");
+        if (psaci_lua_push_field_table(lua, "blend")) {
+            cfg_out->pipeline.blend.enabled = psaci_lua_get_bool(lua, "enabled");
+            psaci_lua_pop(lua, 1);
         }
-        su_lua_pop(lua, 1);
+        psaci_lua_pop(lua, 1);
     }
 }
-#endif // __EMSCRIPTEN__

@@ -47,7 +47,7 @@ struct PSaciRendererCfgInstanceBuffer {
     char* name;
     SaciU64 size_byte_internal;
     SaciU64 layout_array_length;
-    struct su_RendererCfgInstanceBufferLayout* layout_array;
+    struct PSaciRendererCfgInstanceBufferLayout* layout_array;
 };
 
 struct PSaciRendererCfgBatch {
@@ -110,14 +110,14 @@ struct PSaciRendererConfig {
         char* geom;
     } shaders;
     SaciU64 uniform_array_length;
-    struct su_RendererCfgUniform* uniform_array;
+    struct PSaciRendererCfgUniform* uniform_array;
     SaciU64 sampler_array_length;
-    struct su_RendererCfgSampler* sampler_array;
+    struct PSaciRendererCfgSampler* sampler_array;
 
     struct PSaciRendererCfgVertexData {
         SaciU64 element_size_internal;
         SaciU64 layout_array_length;
-        struct su_RendererCfgVertexLayout* layout_array;
+        struct PSaciRendererCfgVertexLayout* layout_array;
     } vertex_data;
 
     struct {
@@ -126,7 +126,7 @@ struct PSaciRendererConfig {
 
     struct {
         SaciU64 buffer_array_length;
-        struct su_RendererCfgInstanceBuffer* buffer_array;
+        struct PSaciRendererCfgInstanceBuffer* buffer_array;
     } instance_data;
 
     struct PSaciRendererCfgBatch batch;
