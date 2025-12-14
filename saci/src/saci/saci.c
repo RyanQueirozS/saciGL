@@ -1,20 +1,17 @@
-#include "saci-main/saci.h"
+#include "saci/saci.h"
 
-#include "saci-utils/math/su-math-mat.h"
-#include "saci-backend/windowing/sb-looper.h"
-#include "saci-utils/memory/su-memory.h"
-#include "saci-utils/su-general.h"
-#include "saci-utils/su-log.h"
-#include "saci-utils/su-types-common.h"
+#include "saci_util/math.h"
+#include "saci_util/darray.h"
+#include "saci_util/memory.h"
+#include "saci_util/internal/general.h"
+#include "saci_util/log.h"
+#include "saci_util/internal/log.h"
+#include "saci_util/types.h"
 
-#include "saci-backend/graphics/sb-gfx.h"
-#include "saci-backend/graphics/sb-graphics.h"
-#include "saci-backend/renderer/sb-renderer.h"
-
-#ifndef __EMSCRIPTEN__
-#  include "saci-backend/resources/sb-dependency.h"
-#  include "saci-utils/config/su-config-manager.h"
-#endif
+#include "saci_core/runtime/looper.h"
+#include "saci_core/runtime/windowing.h"
+#include "saci_core/runtime/event.h"
+#include "saci_core/renderer/renderer.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,96 +25,84 @@
 
 // Helper
 
-struct saci_Transform {
-    su_Vec3 pos;
-    su_Vec3 rotation;
-    su_Vec3 dimentions;
+struct SaciTransform {
+    SaciVec3 pos;
+    SaciVec3 rotation;
+    SaciVec3 dimentions;
 };
 
-su_DArray* saci_cube_pos;
+SaciDArray* saci_g_cube_pos;
 
-su_DArray* saci_cube_index;
+SaciDArray* saci_g_cube_index;
 
-SA_INTERNAL double saci__get_delta(void);
+SACI_INTERNAL double saci__get_delta(void);
 
-SA_INTERNAL void saci__init_windowing(
-    union sb_Window* window_out,
-    su_S32 x,
-    su_S32 y,
-    const char* name);
+SACI_INTERNAL void saci__init_memory(void);
 
-SA_INTERNAL void saci__init_memory(void);
+SACI_INTERNAL void saci__reset_memory(void);
 
-SA_INTERNAL void saci__reset_memory(void);
+SACI_INTERNAL SaciMat4 saci__mat4_create_transform_from_flag(
+    struct SaciTransform transform,
+    SaciU64 flag_var);
 
-SA_INTERNAL su_Mat4 saci__mat4_create_transform_from_flag(
-    struct saci_Transform transform,
-    su_U64 flag_var);
+SACI_INTERNAL void saci__begin_renderer(CSaciRenderer* rendr);
 
-SA_INTERNAL void saci__begin_renderer(sb_Renderer* rendr);
-
-SA_INTERNAL void saci__handle_events(void);
+SACI_INTERNAL void saci__handle_events(void);
 
 /* === Header impl === */
 
-enum saci_ContextRendererLocation {
-    saci_RENDERER_LOCATION_INSTANCE = 2,
+enum SaciContextRendererLocation {
+    SACI_RENDERER_LOCATION_INSTANCE = 2,
 };
 
-enum saci_ShapeType {
-    saci_SHAPE_CUBE = 1,
+enum SaciShapeType {
+    SACI_SHAPE_CUBE = 1,
 };
 
-typedef struct sb_GFXInstanceData saci_InstanceData;
 typedef struct {
-    su_Mat4 transform;
-    su_Color color;
-} saci_ShapeInstance;
+    SaciMat4 transform;
+    SaciColor color;
+} SaciShapeInstance;
 
-struct saci_ShapeDrawCall {
-    su_DArray* instance_data_array; // saci_InstanceData
+struct SaciShapeDrawCall {
+    SaciDArray* instance_data_array; // SaciInstanceData
 };
 
-enum saci__UniformDefaults {
-    saci__UNIFORM_DEFAULT_MODEL_MATRIX = 0,
-    saci__UNIFORM_DEFAULT_VIEW_MATRIX = 1,
-    saci__UNIFORM_DEFAULT_PROJ_MATRIX = 2,
-    saci__UNIFORM_DEFAULT_FLAGS = 3,
+enum {
+    SACI_UNIFORM_DEFAULT_MODEL_MATRIX = 0,
+    SACI_UNIFORM_DEFAULT_VIEW_MATRIX = 1,
+    SACI_UNIFORM_DEFAULT_PROJ_MATRIX = 2,
+    SACI_UNIFORM_DEFAULT_FLAGS = 3,
 };
 
-SA_INTERNAL struct saci_Context {
+SACI_INTERNAL struct {
 
     // Each index is a shape
-    struct saci_ShapeDrawCall* shape_instance_data_array;
+    struct SaciShapeDrawCall* shape_instance_data_array;
 
-    struct saci_Windowing {
-        su_Color bg_color;
-        union sb_Window window;
-        int x, y;
-        float width, height;
-    } windowing;
+    struct CSaciWindowingCtx* windowing_ctx;
 
-    struct saci_RendererInfo {
-        su_S32* uniform_location_array;
-        sb_Renderer* renderer;
+    struct SaciRendererInfo {
+        SaciS32* uniform_location_array;
+        CSaciRenderer* renderer;
     }* renderer_info_array;
 
-    saci_Event event;
+    SaciEvent event;
 
-    su_U64 enable_flags;
-} saci_context = {0};
+    SaciU64 enable_flags;
+} saci_g_contextn = {0};
 
 void saci_init(void)
 {
 #ifndef __EMSCRIPTEN__
-    if (!su_cfg_manager_fetch(SACI_DEFAULT_CONFIG_PATH)) {
-        su_cfg_manager_load_default();
-    }
-    sb_dependecies_load();
+    // if (!su_cfg_manager_fetch(SACI_DEFAULT_CONFIG_PATH)) {
+    //     su_cfg_manager_load_default();
+    // }
+    // sb_dependecies_load();
 #endif
-    sb_gfx_load();
-    sb_gfx_initialize_renderer_debugger(NULL); // default debugger
-    su_Vec3 cube_vertices[] = {
+    // sb_gfx_load();
+    // sb_gfx_initialize_renderer_debugger(NULL); // default debugger
+    SaciVec3 cube_vertices[] = {
         {-1, -1, -1},
         {-1, -1, 1},
         {-1, 1, -1},
@@ -134,198 +119,196 @@ void saci_init(void)
         2, 3, 7, 2, 7, 6,
         0, 4, 5, 0, 5, 1};
 
-    saci_cube_pos = su_darray_create(8, sizeof(su_Vec3), su_TRUE);
-    saci_cube_index = su_darray_create(36, sizeof(su_U32), su_TRUE);
+    saci_g_cube_pos = saci_darray_create(8, sizeof(SaciVec3), SACI_TRUE);
+    saci_g_cube_index = saci_darray_create(36, sizeof(SaciU32), SACI_TRUE);
     for (int i = 0; i < 8; ++i) {
-        su_LOG_ASSERT_M(su_darray_push(saci_cube_pos, &cube_vertices[i]), su_LOG_CONTEXT_MAIN_SHAPES_INIT, "Could not initialize cube model mesh vertices");
+        SACI_LOG_ASSERT_M(saci_darray_push(saci_g_cube_pos, &cube_vertices[i]), SACI_LOG_CONTEXT_MAIN_SHAPES_INIT, "Could not initialize cube model mesh vertices");
     }
     for (int i = 0; i < 36; ++i) {
-        su_LOG_ASSERT_M(su_darray_push(saci_cube_index, &indices[i]), su_LOG_CONTEXT_CORE_INIT, "Could not initialize cube model mesh indices");
+        SACI_LOG_ASSERT_M(saci_darray_push(saci_g_cube_index, &indices[i]), SACI_LOG_CONTEXT_CORE_INIT, "Could not initialize cube model mesh indices");
     }
 
-    saci_context.windowing.width = 800,
-    saci_context.windowing.height = 600;
-    saci__init_windowing(&saci_context.windowing.window,
-                         (int)saci_context.windowing.width,
-                         (int)saci_context.windowing.height, "test");
+    // saci_g_contextn.windowing.width = 800,
+    // saci_g_contextn.windowing.height = 600;
+    // saci__init_windowing(&saci_g_contextn.windowing.window,
+    //                      (int)saci_g_contextn.windowing.width,
+    //                      (int)saci_g_contextn.windowing.height, "test");
     saci__init_memory();
 }
 
-void saci_enable(saci_RenderingFlags render_flag, su_Bool enable)
+void saci_enable(SaciRenderingFlags render_flag, SaciBool enable)
 {
     if (enable) {
-        saci_context.enable_flags |= render_flag;
+        saci_g_contextn.enable_flags |= render_flag;
     } else {
-        saci_context.enable_flags &= ~render_flag;
+        saci_g_contextn.enable_flags &= ~render_flag;
     }
 }
 
 void saci_begin(void)
 {
     saci__handle_events();
-    sb_graphics_clear_color(saci_context.windowing.bg_color);
-    sb_graphics_clear_depth_buffer();
-    saci__begin_renderer(saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer);
+    saci__begin_renderer(saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].renderer);
 }
 
-void saci_set_background_color(const su_Color color)
+void saci_set_background_color(const SaciColor color)
 {
-    saci_context.windowing.bg_color = color;
+    // saci_g_contextn.windowing.bg_color = color;
 }
 
-void saci_set_loop_func(saci_LoopFunc loop_func)
+void saci_set_loop_func(SaciMainLoopFunc loop_func)
 {
-    su_LOG_ASSERT_M(loop_func, su_LOG_CONTEXT_CORE_MAINLOOP, "Loop function is NULL");
-    sb_looper_set_main_loop(loop_func, (sb_MainLoopOpts){0});
+    SACI_LOG_ASSERT_M(loop_func, SACI_LOG_CONTEXT_CORE_MAINLOOP, "Loop function is NULL");
+    csaci_looper_set_main_loop(loop_func, (CSaciMainLoopOpts){0});
 }
 
-const saci_Event* saci_get_event(void)
+const SaciEvent* saci_get_event(void)
 {
     return NULL;
 }
 
 void saci_loop(void)
 {
-    sb_looper_run();
+    csaci_looper_run();
 }
 
 // Doesn't actually draw it but instead pushes to shape draw call array
-void saci_draw_cube(const saci_Cube cube)
+void saci_draw_cube(const SaciCube cube)
 {
-    su_Mat4 transform = saci__mat4_create_transform_from_flag(
-        (struct saci_Transform){
+    SaciMat4 transform = saci__mat4_create_transform_from_flag(
+        (struct SaciTransform){
             cube.pos_center,
             cube.rotation,
             cube.dimentions,
         },
         cube.flags);
-    saci_ShapeInstance instance = {
+    SaciShapeInstance instance = {
         .color = cube.fill_color,
         .transform = transform,
     };
-    saci_InstanceData instance_data = {
-        .data_size = sizeof(saci_ShapeInstance),
-        .location = 3,
-        .instance_data_structure = malloc(sizeof(saci_ShapeInstance)), // TODO, this needs to be prefilled, perhaps be stored as a static var
-    };
-    memcpy(instance_data.instance_data_structure, &instance, sizeof(saci_ShapeInstance));
-    if (!su_darray_push(saci_context.shape_instance_data_array[saci_SHAPE_CUBE].instance_data_array,
-                        &instance_data)) {
-        su_LOG_ERROR_M(
-            su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
-            su_LOG_CONTEXT_MAIN_SHAPES_DRAW, "Could not push cube transform");
-    }
+    // SaciInstanceData instance_data = {
+    //     .data_size = sizeof(SaciShapeInstance),
+    //     .location = 3,
+    //     .instance_data_structure = malloc(sizeof(SaciShapeInstance)), // TODO, this needs to be prefilled, perhaps be stored as a static var
+    // };
+    // memcpy(instance_data.instance_data_structure, &instance, sizeof(SaciShapeInstance));
+    // if (!saci_darray_push(saci_g_contextn.shape_instance_data_array[SACI_SHAPE_CUBE].instance_data_array,
+    //                       &instance_data)) {
+    //     SACI_LOG_ERROR_M(
+    //         SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
+    //         SACI_LOG_CONTEXT_MAIN_SHAPES_DRAW, "Could not push cube transform");
+    // }
 }
 
 void saci_present(void)
 {
-    su_Mat4 proj = su_mat4_perspective(90, saci_context.windowing.width / saci_context.windowing.height, 1, 100);
-    su_Mat4 view = su_mat4_look_at((su_Vec3){0.0f, 2.0f, -20.0f},
-                                   (su_Vec3){0.0f, 0.0f, 0.0f},
-                                   (su_Vec3){0.0f, 1.0f, 0.0f});
-    sb_renderer_set_uniform(
-        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
-        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_MODEL_MATRIX],
-        &su_IDENTITY_MAT4,
-        su_TYPE_MAT4);
-    sb_renderer_set_uniform(
-        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
-        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_VIEW_MATRIX],
-        &view,
-        su_TYPE_MAT4);
-    sb_renderer_set_uniform(
-        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
-        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_PROJ_MATRIX],
-        &proj,
-        su_TYPE_MAT4);
-    sb_renderer_bind_index_buffer(
-        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
-        saci_cube_index);
-    sb_renderer_set_instance_data_array(
-        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
-        saci_context.shape_instance_data_array[saci_SHAPE_CUBE].instance_data_array);
-    sb_renderer_push_mesh(
-        saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer,
-        saci_cube_pos,
-        NULL,
-        NULL);
-    sb_renderer_draw(saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer);
-    sb_window_swap_buffer(saci_context.windowing.window);
+    // SaciMat4 proj = saci_mat4_perspective(90, saci_g_contextn.windowing.width / saci_g_contextn.windowing.height, 1, 100);
+    SaciMat4 view = saci_mat4_look_at((SaciVec3){0.0f, 2.0f, -20.0f},
+                                      (SaciVec3){0.0f, 0.0f, 0.0f},
+                                      (SaciVec3){0.0f, 1.0f, 0.0f});
+    // csaci_renderer_set_uniform(
+    //     saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].renderer,
+    //     saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_MODEL_MATRIX],
+    //     &su_IDENTITY_MAT4,
+    //     su_TYPE_MAT4);
+    // csaci_renderer_set_uniform(
+    //     saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].renderer,
+    //     saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_VIEW_MATRIX],
+    //     &view,
+    //     su_TYPE_MAT4);
+    // csaci_renderer_set_uniform(
+    //     saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].renderer,
+    //     saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_PROJ_MATRIX],
+    //     &proj,
+    //     su_TYPE_MAT4);
+    // csaci_renderer_bind_index_buffer(
+    //     saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].renderer,
+    //     saci_g_cube_index);
+    // csaci_renderer_set_instance_data_array(
+    //     saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].renderer,
+    //     saci_g_contextn.shape_instance_data_array[SACI_SHAPE_CUBE].instance_data_array);
+    // csaci_renderer_push_mesh(
+    //     saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].renderer,
+    //     saci_g_cube_pos,
+    //     NULL,
+    //     NULL);
+    // csaci_renderer_draw(saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].renderer);
+    // sb_window_swap_buffer(saci_g_contextn.windowing.window);
 }
 
 void saci_free(void)
 {
-    su_mem_print_info();
+    saci_mem_print_info();
 }
 
 // Helper
 
-SA_INTERNAL void saci__init_windowing(
-    union sb_Window* window_out,
-    su_S32 x,
-    su_S32 y,
-    const char* name)
-{
-    su_LOG_ASSERT_M(sb_window_load(), su_LOG_CONTEXT_CORE_INIT, "Could not load window");
+// SACI_INTERNAL void saci__init_windowing(
+//     union sb_Window* window_out,
+//     SaciS32 x,
+//     SaciS32 y,
+//     const char* name)
+// {
+// SACI_LOG_ASSERT_M(sb_window_load(), SACI_LOG_CONTEXT_CORE_INIT, "Could not load window");
+//
+// *window_out = sb_window_create(
+//     x,
+//     y,
+//     name,
+//     (union sb_WindowOpts){0});
+// sb_window_make_context(*window_out);
+// }
 
-    *window_out = sb_window_create(
-        x,
-        y,
-        name,
-        (union sb_WindowOpts){0});
-    sb_window_make_context(*window_out);
-}
-
-SA_INTERNAL void saci__init_memory(void)
+SACI_INTERNAL void saci__init_memory(void)
 {
-    saci_context.renderer_info_array = calloc(
+    saci_g_contextn.renderer_info_array = calloc(
         SACI_RENDERER_AMOUNT,
-        sizeof(struct saci_RendererInfo*));
-    struct sb_Renderer* instance_rendr = sb_renderer_new(sb_RENDERER_INSTANCE, "instance");
-    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].renderer = instance_rendr;
-    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array = malloc(sizeof(su_S32) * 5);
-    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_MODEL_MATRIX] =
-        sb_renderer_get_uniform_id(instance_rendr, "u_model_matrix");
-    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_VIEW_MATRIX] =
-        sb_renderer_get_uniform_id(instance_rendr, "u_view_matrix");
-    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_PROJ_MATRIX] =
-        sb_renderer_get_uniform_id(instance_rendr, "u_projection_matrix");
-    saci_context.renderer_info_array[sb_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_FLAGS] =
-        sb_renderer_get_uniform_id(instance_rendr, "u_flags");
+        sizeof(struct SaciRendererInfo*));
+    struct CSaciRenderer* instance_rendr = csaci_renderer_new(CSACI_RENDERER_INSTANCE, "instance");
+    saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].renderer = instance_rendr;
+    saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array = malloc(sizeof(SaciS32) * 5);
+    saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[SACI_UNIFORM_DEFAULT_MODEL_MATRIX] =
+        csaci_renderer_get_uniform_id(instance_rendr, "u_model_matrix");
+    saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[SACI_UNIFORM_DEFAULT_VIEW_MATRIX] =
+        csaci_renderer_get_uniform_id(instance_rendr, "u_view_matrix");
+    saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[SACI_UNIFORM_DEFAULT_PROJ_MATRIX] =
+        csaci_renderer_get_uniform_id(instance_rendr, "u_projection_matrix");
+    saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[SACI_UNIFORM_DEFAULT_FLAGS] =
+        csaci_renderer_get_uniform_id(instance_rendr, "u_flags");
 
-    const su_S32 saci_shape_amount = 10; /// TODO
-    saci_context.shape_instance_data_array = calloc(
-        su_CAST_M(su_U64)(saci_shape_amount),
-        sizeof(struct saci_ShapeDrawCall));
-    for (su_S32 i = 0; i < saci_shape_amount; ++i) {
-        saci_context.shape_instance_data_array[i].instance_data_array = su_darray_create(1024, sizeof(saci_InstanceData), su_TRUE);
+    const SaciS32 saci_shape_amount = 10; /// TODO
+    saci_g_contextn.shape_instance_data_array = calloc(
+        SACI_CAST_M(SaciU64)(saci_shape_amount),
+        sizeof(struct SaciShapeDrawCall));
+    for (SaciS32 i = 0; i < saci_shape_amount; ++i) {
+        // saci_g_contextn.shape_instance_data_array[i].instance_data_array = saci_darray_create(1024, sizeof(SaciInstanceData), SACI_TRUE);
     }
 }
 
-SA_INTERNAL void saci__reset_memory(void)
+SACI_INTERNAL void saci__reset_memory(void)
 {
-    const su_S32 saci_shape_amount = 10; /// TODO
-    for (su_S32 i = 0; i < saci_shape_amount; ++i) {
-        if (!su_darray_clear(saci_context.shape_instance_data_array[i].instance_data_array)) {
-            su_LOG_ERROR_M(
-                su_LOG_TYPE_USER, su_LOG_ERROR_SEVERITY_HIGH,
-                su_LOG_CONTEXT_MAIN_SHAPES_DRAW, "Could not reset shape instance");
+    const SaciS32 saci_shape_amount = 10; /// TODO
+    for (SaciS32 i = 0; i < saci_shape_amount; ++i) {
+        if (!saci_darray_clear(saci_g_contextn.shape_instance_data_array[i].instance_data_array)) {
+            SACI_LOG_ERROR_M(
+                SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
+                SACI_LOG_CONTEXT_MAIN_SHAPES_DRAW, "Could not reset shape instance");
         }
     }
 }
 
-SA_INTERNAL su_Mat4 saci__mat4_create_transform_from_flag(
-    struct saci_Transform transform,
-    su_U64 flag_var)
+SACI_INTERNAL SaciMat4 saci__mat4_create_transform_from_flag(
+    struct SaciTransform transform,
+    SaciU64 flag_var)
 {
-    su_Mat4 transform_mat = su_IDENTITY_MAT4;
-    if (!su_HAS_FLAG(flag_var, saci_MODEL_FLAG_ROTATION_RTS)) { // Most likelly
-        transform_mat = su_mat4_model_matrix_trs(
+    SaciMat4 transform_mat = SACI_G_IDENTITY_MAT4;
+    if (!SACI_HAS_FLAG(flag_var, SACI_MODEL_FLAG_ROTATION_RTS)) { // Most likelly
+        transform_mat = saci_mat4_model_matrix_trs(
             transform.pos,
             transform.rotation,
             transform.dimentions);
     } else {
-        transform_mat = su_mat4_model_matrix_rts(
+        transform_mat = saci_mat4_model_matrix_rts(
             transform.pos,
             transform.rotation,
             transform.dimentions);
@@ -333,36 +316,36 @@ SA_INTERNAL su_Mat4 saci__mat4_create_transform_from_flag(
     return transform_mat;
 }
 
-SA_INTERNAL void saci__begin_renderer(sb_Renderer* rendr)
+SACI_INTERNAL void saci__begin_renderer(CSaciRenderer* rendr)
 {
     saci__reset_memory();
-    sb_renderer_begin(rendr);
+    csaci_renderer_begin(rendr);
 }
 
-SA_INTERNAL void saci__handle_events(void)
+SACI_INTERNAL void saci__handle_events(void)
 {
-    memset(saci_context.event.keyboard.key_was_pressed, 0,
-           sizeof(saci_context.event.keyboard.key_was_pressed));
-
-    memset(saci_context.event.keyboard.key_was_released, 0,
-           sizeof(saci_context.event.keyboard.key_was_released));
-
-    memset(saci_context.event.mouse.button_was_pressed, 0,
-           sizeof(saci_context.event.mouse.button_was_pressed));
-
-    memset(saci_context.event.mouse.button_was_released, 0,
-           sizeof(saci_context.event.mouse.button_was_released));
-
-    memset(saci_context.event.controller.button_was_pressed, 0,
-           sizeof(saci_context.event.controller.button_was_pressed));
-
-    memset(saci_context.event.controller.button_was_released, 0,
-           sizeof(saci_context.event.controller.button_was_released));
-
-    sb_event_poll();
+    // memset(saci_g_contextn.event.keyboard.key_was_pressed, 0,
+    //        sizeof(saci_g_contextn.event.keyboard.key_was_pressed));
+    //
+    // memset(saci_g_contextn.event.keyboard.key_was_released, 0,
+    //        sizeof(saci_g_contextn.event.keyboard.key_was_released));
+    //
+    // memset(saci_g_contextn.event.mouse.button_was_pressed, 0,
+    //        sizeof(saci_g_contextn.event.mouse.button_was_pressed));
+    //
+    // memset(saci_g_contextn.event.mouse.button_was_released, 0,
+    //        sizeof(saci_g_contextn.event.mouse.button_was_released));
+    //
+    // memset(saci_g_contextn.event.controller.button_was_pressed, 0,
+    //        sizeof(saci_g_contextn.event.controller.button_was_pressed));
+    //
+    // memset(saci_g_contextn.event.controller.button_was_released, 0,
+    //        sizeof(saci_g_contextn.event.controller.button_was_released));
+    //
+    // sb_event_poll();
 }
 
-SA_INTERNAL double saci__get_delta(void)
+SACI_INTERNAL double saci__get_delta(void)
 {
     return 0.0; // TODO
 }

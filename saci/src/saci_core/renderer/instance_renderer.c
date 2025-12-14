@@ -5,6 +5,7 @@
 #include "saci_util/log.h"
 #include "saci_util/math.h"
 #include "saci_util/memory.h"
+#include "saci_util/darray.h"
 #include "saci_util/types.h"
 
 #include "saci_platform/gfx/internal/gfx.h"
@@ -34,7 +35,7 @@ SACI_INTERNAL void csaci__renderer_instance_push_mesh(struct CSaciRenderer* rend
 
 SACI_INTERNAL void csaci__renderer_draw_instance_batch(const struct CSaciRenderer* rendr);
 
-SACI_INTERNAL const struct CSaciRendererInterface sc_INSTANCE_RENDERER_DEFAULT_INTERFACE =
+SACI_INTERNAL const struct CSaciRendererInterface CSACI_G_INSTANCE_RENDERER_DEFAULT_INTERFACE =
     {
         .new = csaci_renderer_instanced_new,
         .begin = csaci__renderer_instance_begin,
@@ -63,7 +64,7 @@ void csaci_renderer_instanced_new(struct CSaciRenderer* self, SaciMemPool* mem, 
     struct CSaciInstanceRenderer* rendr = saci_mem_pool_alloc(mem, sizeof(struct CSaciInstanceRenderer));
     self->rendr.instance_renderer = rendr;
     self->rendr.instance_renderer->gfx = *info;
-    self->interface = &sc_INSTANCE_RENDERER_DEFAULT_INTERFACE;
+    self->interface = &CSACI_G_INSTANCE_RENDERER_DEFAULT_INTERFACE;
 
 #ifndef __EMSCRIPTEN__
     psaci_cfg_manager_cleanup_renderer_cfg(&rendr->cfg);
@@ -227,7 +228,7 @@ SACI_INTERNAL void csaci__renderer_instance_bind_index_buffer(
         return;
     }
     SACI_LOG_INFOF_M(SACI_LOG_TYPE_USER, SACI_LOG_CONTEXT_RENDERER_INSTANCE,
-                     "Bound " SACI_FMTU64 " indices", su_darray_length(new_indices));
+                     "Bound " SACI_FMTU64 " indices", saci_darray_length(data));
 
     if (count > self->rendr.instance_renderer->bound.index_amount) {
         SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
@@ -254,17 +255,17 @@ SACI_INTERNAL void csaci__renderer_instance_push_mesh(struct CSaciRenderer* self
     struct PSaciGFXDrawData* batch = &(rendr->batch_array)[rendr->batch_info.in_use];
     for (SaciU64 i = 0; i < count; ++i) {
     }
-    // if (!su_darray_append(batch->index_array, self->bound.index_array)) {
+    // if (!saci_darray_append(batch->index_array, self->bound.index_array)) {
     //     SACI_LOG_ERROR_M(
     //         SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
     //         SACI_LOG_CONTEXT_RENDERER_INSTANCE, "Could not push index to batch");
     // }
-    // if (!su_darray_append(batch->uniform_data_array, self->bound.uniform_data_array)) {
+    // if (!saci_darray_append(batch->uniform_data_array, self->bound.uniform_data_array)) {
     //     SACI_LOG_ERROR_M(
     //         SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
     //         SACI_LOG_CONTEXT_RENDERER_INSTANCE, "Could not push uniform to batch");
     // }
-    // if (!su_darray_append(batch->instance_data_array, self->bound_extra.bound_instance_data_array)) {
+    // if (!saci_darray_append(batch->instance_data_array, self->bound_extra.bound_instance_data_array)) {
     //     SACI_LOG_ERROR_M(
     //         SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
     //         SACI_LOG_CONTEXT_RENDERER_INSTANCE, "Could not push instances to batch");
@@ -281,8 +282,8 @@ SACI_INTERNAL void csaci__renderer_draw_instance_batch(const struct CSaciRendere
         "Flushing %d instance batches",
         rendr->batch_info.in_use);
 
-    // for (SaciU64 i = 0; i < su_darray_length(rendr->bound_extra.bound_instance_data_array); ++i) {
-    //     const struct PSaciGFXInstanceData* data = su_darray_get(rendr->bound_extra.bound_instance_data_array, i);
+    // for (SaciU64 i = 0; i < saci_darray_length(rendr->bound_extra.bound_instance_data_array); ++i) {
+    //     const struct PSaciGFXInstanceData* data = saci_darray_get(rendr->bound_extra.bound_instance_data_array, i);
     //     if (data->data_size == sizeof(su_Color))
     //         continue;
     //     printf(su_MAT4_FMT, su_MAT4_FMT_ARGS(*(su_Mat4*)data->instance_data_structure));
@@ -314,47 +315,47 @@ SACI_INTERNAL void csaci__renderer_init_instance_batch(struct CSaciInstanceRende
 
     for (SaciU8 i = 0; i < cfg.batch.capacity; ++i) {
         struct PSaciGFXDrawData* batch = &(rendr->batch_array[i]);
-        batch->index_array =
-            su_darray_create_ctx_void(saci_mem_chunk_get_ptr(index_chunk, i),
-                                      index_size,
-                                      cfg.batch.index_cfg.capacity,
-                                      cfg.index_data.element_size_internal);
+        batch->index_data.array =
+            saci_darray_create_ctx_void(saci_mem_chunk_get_ptr(index_chunk, i),
+                                        index_size,
+                                        cfg.batch.index_cfg.capacity,
+                                        cfg.index_data.element_size_internal);
 
-        batch->vertex_array =
-            su_darray_create_ctx_void(saci_mem_chunk_get_ptr(vertex_chunk, i),
-                                      vertex_size,
-                                      cfg.batch.vertex_cfg.capacity,
-                                      cfg.vertex_data.element_size_internal);
+        batch->vertex_data.array =
+            saci_darray_create_ctx_void(saci_mem_chunk_get_ptr(vertex_chunk, i),
+                                        vertex_size,
+                                        cfg.batch.vertex_cfg.capacity,
+                                        cfg.vertex_data.element_size_internal);
 
         batch->instance_data_array =
-            su_darray_create_ctx_void(saci_mem_chunk_get_ptr(instance_chunk, i),
-                                      instance_size,
-                                      cfg.batch.instance_cfg.capacity,
-                                      sizeof(struct PSaciGFXInstanceData));
+            saci_darray_create_ctx_void(saci_mem_chunk_get_ptr(instance_chunk, i),
+                                        instance_size,
+                                        cfg.batch.instance_cfg.capacity,
+                                        sizeof(struct PSaciGFXInstanceData));
 
         batch->uniform_data_array =
-            su_darray_create_ctx_void(saci_mem_chunk_get_ptr(uniform_chunk, i),
-                                      uniform_size,
-                                      cfg.uniform_array_length,
-                                      sizeof(struct PSaciGFXUniformData));
+            saci_darray_create_ctx_void(saci_mem_chunk_get_ptr(uniform_chunk, i),
+                                        uniform_size,
+                                        cfg.uniform_array_length,
+                                        sizeof(struct PSaciGFXUniformData));
 
-        SACI_LOG_ASSERT_M(batch->index_array && batch->vertex_array &&
+        SACI_LOG_ASSERT_M(batch->index_data.array && batch->vertex_data.array &&
                               batch->instance_data_array && batch->uniform_data_array,
                           SACI_LOG_CONTEXT_RENDERER_INSTANCE, "Could not create batch's arrays");
 
-        batch->index_struct_size = cfg.index_data.element_size_internal;
-        batch->vertex_struct_size = cfg.vertex_data.element_size_internal;
+        batch->index_data.struct_size = cfg.index_data.element_size_internal;
+        batch->vertex_data.struct_size = cfg.vertex_data.element_size_internal;
 
         for (SaciU8 j = 0; j < SACI_MAX_TEXTURES; ++j) {
-            rendr->batch_array[i].texture_array[j].gl_texture.texture = 0;
-            rendr->batch_array[i].texture_array[j].gl_texture.is_empty = SACI_TRUE;
+            rendr->batch_array[i].texture_array[j].gl.texture = 0;
+            rendr->batch_array[i].texture_array[j].gl.is_empty = SACI_TRUE;
         }
     }
 }
 
 SACI_INTERNAL void csaci__renderer_init_bound_extra(struct CSaciInstanceBoundExtra* bound_extra, const struct PSaciRendererConfig cfg, SaciMemPool* pool)
 {
-    SaciU64 size = cfg.bound.instance_cfg.capacity * sizeof(struct PSaciGFXInstanceData) + su_SIZE_OF_DARRAY;
+    SaciU64 size = cfg.bound.instance_cfg.capacity * sizeof(struct PSaciGFXInstanceData) + SACI_SIZE_OF_DARRAY;
     void* mem = saci_mem_pool_alloc(pool, size);
-    bound_extra->bound_instance_data_array = su_darray_create_ctx_void(mem, size, cfg.bound.instance_cfg.capacity, sizeof(struct PSaciGFXInstanceData));
+    bound_extra->bound_instance_data_array = saci_darray_create_ctx_void(mem, size, cfg.bound.instance_cfg.capacity, sizeof(struct PSaciGFXInstanceData));
 }
