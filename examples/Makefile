@@ -50,7 +50,7 @@ ifeq ($(TARGET_PLATFORM),emscripten)
 else
 	SACI_SRC := $(shell find ../saci/src/saci_platform -name '*.c' ! -name 'emsdk.c' ! -name 'gles3.c')
 endif
-SACI_SRC += $(shell find ../saci/src/saci_util ../saci/src/saci_main ../saci/src/saci_core -name '*.c')
+SACI_SRC += $(shell find ../saci/src/saci_util ../saci/src/saci ../saci/src/saci_core -name '*.c')
 
 # Example directories
 EXAMPLES = \

@@ -1,45 +1,45 @@
 #include "saci/saci.h"
 
-#include "saci-utils/math.h"
-#include "saci-utils/types.h"
+#include "saci_util/math.h"
+#include "saci_util/types.h"
 
 #include <stdio.h>
 
-static su_Vec3 rotation = {0.02, 0.02, 0.02};
-static su_Vec3 rotation1 = {0.03, 0.01, 0.06};
-static su_Vec3 rotation2 = {0.001, 0.02, 0.03};
+static SaciVec3 rotation = {0.02, 0.02, 0.02};
+static SaciVec3 rotation1 = {0.03, 0.01, 0.06};
+static SaciVec3 rotation2 = {0.001, 0.02, 0.03};
 
-static saci_Cube cube_middle = {
-    .dimentions = (su_Vec3){1, 1, 1},
-    .pos_center = (su_Vec3){1, 0, 0},
-    .rotation = (su_Vec3){0, 0, 0},
-    .fill_color = (su_Color){1, 0, 0, 1},
+static SaciCube cube_middle = {
+    .dimentions = (SaciVec3){1, 1, 1},
+    .pos_center = (SaciVec3){1, 0, 0},
+    .rotation = (SaciVec3){0, 0, 0},
+    .fill_color = (SaciColor){1, 0, 0, 1},
     .flags = 0,
 };
 
-static saci_Cube cube_small_left = {
-    .dimentions = (su_Vec3){0.5, 0.5, 0.5},
-    .pos_center = (su_Vec3){8, 3, 0},
-    .rotation = (su_Vec3){0, 0, 0},
-    .fill_color = (su_Color){0, 0, 1, 1},
-    .flags = saci_MODEL_FLAG_ROTATION_RTS,
+static SaciCube cube_small_left = {
+    .dimentions = (SaciVec3){0.5, 0.5, 0.5},
+    .pos_center = (SaciVec3){8, 3, 0},
+    .rotation = (SaciVec3){0, 0, 0},
+    .fill_color = (SaciColor){0, 0, 1, 1},
+    .flags = SACI_MODEL_FLAG_ROTATION_RTS,
 };
 
-static saci_Cube cube_big_orbiting = {
-    .dimentions = (su_Vec3){2, 2, 2},
-    .pos_center = (su_Vec3){5, 0, 0},
-    .rotation = (su_Vec3){0, 0, 0},
-    .fill_color = (su_Color){0, 1, 0, 1},
+static SaciCube cube_big_orbiting = {
+    .dimentions = (SaciVec3){2, 2, 2},
+    .pos_center = (SaciVec3){5, 0, 0},
+    .rotation = (SaciVec3){0, 0, 0},
+    .fill_color = (SaciColor){0, 1, 0, 1},
     .flags = 0,
 };
 
-void loop_func(saci_LoopFrameData frame_data) {
+void loop_func(SaciLoopFrameData frame_data) {
     printf("oii\n");
     saci_begin();
 
-    cube_middle.rotation = su_vec3_add(cube_middle.rotation, rotation);
-    cube_small_left.rotation = su_vec3_add(cube_small_left.rotation, rotation1);
-    cube_big_orbiting.rotation = su_vec3_add(cube_big_orbiting.rotation, rotation2);
+    cube_middle.rotation = saci_vec3_add(cube_middle.rotation, rotation);
+    cube_small_left.rotation = saci_vec3_add(cube_small_left.rotation, rotation1);
+    cube_big_orbiting.rotation = saci_vec3_add(cube_big_orbiting.rotation, rotation2);
 
     saci_draw_cube(cube_middle);
 
@@ -52,7 +52,7 @@ void loop_func(saci_LoopFrameData frame_data) {
 
 int main(void) {
     saci_init();
-    saci_set_background_color(su_color_from_u8(25, 70, 125, 255));
+    saci_set_background_color(saci_color_from_u8(25, 70, 125, 255));
 
     saci_set_loop_func(loop_func);
 

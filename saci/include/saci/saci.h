@@ -7,6 +7,7 @@
 #include "saci_core/runtime/event.h"
 
 typedef CSaciMainLoopFunc SaciMainLoopFunc;
+typedef CSaciLoopFrameData SaciLoopFrameData;
 typedef CSaciEvent SaciEvent;
 
 typedef enum {
