@@ -1,12 +1,10 @@
+#include "saci_platform/dependencies/dependency.h"
+
 #include <stdio.h>
 #define DYLILO_IMPL
-#include "dylilo/dylilo.h"
+#include <dylilo/dylilo.h>
 
-#include "saci_platform/dependencies/dependency.h"
 #include "saci_platform/dependencies/internal/dependency.h"
-
-// TODO remove use of config here
-#include "saci_platform/config/internal/config_manager.h"
 
 #include "saci_util/defines.h"
 #include "saci_util/internal/general.h"
@@ -20,6 +18,10 @@ struct PSaciDependencySymbolTable {
     void** func_out;
 };
 
+SACI_INTERNAL const char* psaci__dependencies_get_renderer_api_path(void);
+SACI_INTERNAL const char* psaci__dependencies_get_renderer_loader_path(void);
+SACI_INTERNAL const char* psaci__dependencies_get_windowing_api_path(void);
+
 SACI_INTERNAL void psaci__dependencies_load_handles(void);
 SACI_INTERNAL void psaci__dependencies_load_symbols(void);
 SACI_INTERNAL void psaci__dependecies_validate(void);
@@ -28,9 +30,19 @@ SACI_INTERNAL void psaci__load_symbols(DyliloHandle handle,
                                        size_t count);
 
 SACI_INTERNAL struct {
+    const char* cfg_file_path;
+
     struct PSaciWindowingApiFuncs windowing_funcs;
     struct PSaciRenderApiFuncs render_funcs;
     struct PSaciRenderApiLoaderFuncs render_loader_funcs;
+
+    enum PSaciWindowApi windowing_api;
+    enum PSaciRenderApi render_api;
+    enum PSaciRenderApiLoader render_api_loader;
+    const char* windowing_path;
+    const char* render_path;
+    const char* render_loader_path;
+
     DyliloHandle window_handle;
     DyliloHandle render_handle;
     DyliloHandle render_loader_handle;
@@ -104,7 +116,7 @@ SACI_INTERNAL struct PSaciDependencySymbolTable psaci_g_gl_symbols[] = {
 };
 
 SACI_INTERNAL struct PSaciDependencySymbolTable psaci_g_glad_symbols[] = {
-    {"gladLoadGL", (void**)&psaci_g_dependency_handler.render_loader_funcs.gl.load_opengl},
+    {"gladLoadGL", (void**)&psaci_g_dependency_handler.render_loader_funcs.glad.load_opengl},
 };
 
 SACI_INTERNAL struct PSaciDependencySymbolTable psaci_g_glfw_symbols[] = {
@@ -129,13 +141,33 @@ SACI_INTERNAL struct PSaciDependencySymbolTable psaci_g_glfw_symbols[] = {
 
 /* === HEADER IMPL ===  */
 
-void psaci_dependecies_load(void)
+void psaci_dependencies_load(const struct PSaciDependencyLoaderContext dependency_context)
 {
+    psaci_g_dependency_handler.windowing_api = dependency_context.windowing_api_data.api;
+    psaci_g_dependency_handler.render_api = dependency_context.render_api_data.api;
+    psaci_g_dependency_handler.render_api_loader = dependency_context.render_api_loader_data.api_loader;
     psaci__dependencies_load_handles();
+    // TODO dupe strings for paths
     psaci__dependecies_validate();
     psaci__dependencies_load_symbols();
 }
 
+enum PSaciRenderApiLoader psaci_dependencies_get_render_loader(void)
+{
+    return psaci_g_dependency_handler.render_api_loader;
+}
+
+enum PSaciRenderApi psaci_dependencies_get_render_api(void)
+{
+    return psaci_g_dependency_handler.render_api;
+}
+
+enum PSaciWindowApi psaci_dependencies_get_windowing_api(void)
+{
+    return psaci_g_dependency_handler.windowing_api;
+}
+
+// Internal
 struct PSaciWindowingApiFuncs psaci_dependencies_get_windowing_api_funcs(void)
 {
     return psaci_g_dependency_handler.windowing_funcs;
@@ -151,41 +183,119 @@ struct PSaciRenderApiLoaderFuncs psaci_dependencies_get_render_loader_api_funcs(
     return psaci_g_dependency_handler.render_loader_funcs;
 }
 
+SACI_API const char* psaci_dependencies_get_cfg_file_path(void)
+{
+    return psaci_g_dependency_handler.cfg_file_path;
+}
+
 /* === HELPER IMPL === */
 
 SACI_INTERNAL void psaci__dependencies_load_symbols(void)
 {
-    switch (psaci_cfg_manager_get_renderer_api()) {
-    case PSACI_RENDERER_API_OPENGL:
+    switch (psaci_dependencies_get_render_api()) {
+    case PSACI_RENDERER_API_OPENGL4:
         psaci__load_symbols(psaci_g_dependency_handler.render_handle,
                             psaci_g_gl_symbols,
                             SACI_ARRLEN_M(psaci_g_gl_symbols));
         break;
+    case PSACI_RENDERER_API_OPENGLES3:
+        // Loaded at compile time
+        break;
     default:
-        SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH, SACI_LOG_CONTEXT_CORE_CONFIG, "Symbol table is not prepared for this rendering api");
+        SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
+                         SACI_LOG_CONTEXT_CORE_CONFIG,
+                         "Symbol table is not prepared for this rendering api");
         exit(1);
     }
 
-    switch (psaci_cfg_manager_get_renderer_api_loader()) {
+    switch (psaci_dependencies_get_render_loader()) {
     case PSACI_RENDERER_LOADER_GLAD:
         psaci__load_symbols(psaci_g_dependency_handler.render_loader_handle,
                             psaci_g_glad_symbols,
                             SACI_ARRLEN_M(psaci_g_glad_symbols));
         break;
+    case PSACI_RENDERER_LOADER_EMSCRIPTEN:
+        // Loaded at compile time
+        break;
     default:
-        SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH, SACI_LOG_CONTEXT_CORE_CONFIG, "Symbol table is not prepared for this rendering api loader");
+        SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
+                         SACI_LOG_CONTEXT_CORE_CONFIG,
+                         "Symbol table is not prepared for this rendering api loader");
         exit(1);
     }
 
-    switch (psaci_cfg_manager_get_window_api()) {
+    switch (psaci_dependencies_get_windowing_api()) {
     case PSACI_WINDOW_API_GLFW:
         psaci__load_symbols(psaci_g_dependency_handler.window_handle,
                             psaci_g_glfw_symbols,
                             SACI_ARRLEN_M(psaci_g_glfw_symbols));
         break;
+    case PSACI_WINDOW_API_EMSCRIPTEN:
+        // Loaded at compile time
+        break;
     default:
-        SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH, SACI_LOG_CONTEXT_CORE_CONFIG, "Symbol table is not prepared for this windowing api");
+        SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
+                         SACI_LOG_CONTEXT_CORE_CONFIG,
+                         "Symbol table is not prepared for this windowing api");
         exit(1);
+    }
+}
+
+SACI_INTERNAL const char* psaci__dependencies_get_renderer_api_path(void)
+{
+    return psaci_g_dependency_handler.render_path;
+}
+
+SACI_INTERNAL const char* psaci__dependencies_get_renderer_loader_path(void)
+{
+    return psaci_g_dependency_handler.render_loader_path;
+}
+
+SACI_INTERNAL const char* psaci__dependencies_get_windowing_api_path(void)
+{
+    return psaci_g_dependency_handler.windowing_path;
+}
+
+SACI_INTERNAL void psaci__dependencies_load_handles(void)
+{
+    /* Render API */
+    switch (psaci_dependencies_get_render_api()) {
+    case PSACI_RENDERER_API_OPENGL4:
+        psaci_g_dependency_handler.render_handle = dylilo_load_lib(
+            (char*)psaci__dependencies_get_renderer_api_path(),
+            DYLILO_FLAGS_DEFAULT);
+        SACI_LOG_INFO_M(SACI_LOG_TYPE_PROD, SACI_LOG_CONTEXT_DEPENDENCIES,
+                        "Renderer API is OPENGL4, loading symbols");
+        break;
+    case PSACI_RENDERER_API_OPENGLES3:
+        SACI_LOG_INFO_M(SACI_LOG_TYPE_PROD, SACI_LOG_CONTEXT_DEPENDENCIES,
+                        "Renderer API set through EMSCRIPTEN, no need to load at runtime");
+        break;
+    default:
+        SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_CRASH,
+                         SACI_LOG_CONTEXT_CORE_CONFIG, "Invalid renderer api");
+    }
+
+    /* Render API Loader */
+    switch (psaci_dependencies_get_render_loader()) {
+    case PSACI_RENDERER_LOADER_GLAD:
+        psaci_g_dependency_handler.render_loader_handle = dylilo_load_lib(
+            (char*)psaci__dependencies_get_renderer_loader_path(),
+            DYLILO_FLAGS_DEFAULT);
+        break;
+    default:
+        SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_CRASH, SACI_LOG_CONTEXT_CORE_CONFIG, "Invalid api loader");
+    }
+
+    /* Windowing API */
+    switch (psaci_dependencies_get_windowing_api()) {
+    case PSACI_WINDOW_API_GLFW:
+        psaci_g_dependency_handler.window_handle = dylilo_load_lib(
+            (char*)psaci__dependencies_get_windowing_api_path(),
+            DYLILO_FLAGS_DEFAULT);
+        break;
+    default:
+        SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_CRASH, SACI_LOG_CONTEXT_CORE_CONFIG, "Invalid windowing api");
     }
 }
 
@@ -200,48 +310,44 @@ SACI_INTERNAL void psaci__load_symbols(DyliloHandle handle,
     }
 }
 
-SACI_INTERNAL void psaci__dependencies_load_handles(void)
-{
-    /* Render API */
-    switch (psaci_cfg_manager_get_renderer_api()) {
-    case PSACI_RENDERER_API_OPENGL:
-        psaci_g_dependency_handler.render_handle = dylilo_load_lib(
-            (char*)psaci_cfg_manager_get_renderer_api_path(),
-            DYLILO_FLAGS_DEFAULT);
-        break;
-    default:
-        SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_CRASH, SACI_LOG_CONTEXT_CORE_CONFIG, "Invalid renderer api");
-    }
-
-    /* Render API Loader */
-    switch (psaci_cfg_manager_get_renderer_api_loader()) {
-    case PSACI_RENDERER_LOADER_GLAD:
-        psaci_g_dependency_handler.render_loader_handle = dylilo_load_lib(
-            (char*)psaci_cfg_manager_get_renderer_api_loader_path(),
-            DYLILO_FLAGS_DEFAULT);
-        break;
-    default:
-        SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_CRASH, SACI_LOG_CONTEXT_CORE_CONFIG, "Invalid api loader");
-    }
-
-    /* Windowing API */
-    switch (psaci_cfg_manager_get_window_api()) {
-    case PSACI_WINDOW_API_GLFW:
-        psaci_g_dependency_handler.window_handle = dylilo_load_lib(
-            (char*)psaci_cfg_manager_get_window_api_path(),
-            DYLILO_FLAGS_DEFAULT);
-        break;
-    default:
-        SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_CRASH, SACI_LOG_CONTEXT_CORE_CONFIG, "Invalid windowing api");
-    }
-}
-
 SACI_INTERNAL void psaci__dependecies_validate(void)
 {
+    switch (psaci_dependencies_get_render_api()) {
+    case PSACI_RENDERER_API_OPENGL4:
+        SACI_LOG_ASSERT_M(psaci_g_dependency_handler.render_funcs.gl.buffer_data,
+                          SACI_LOG_CONTEXT_DEPENDENCIES, "Could not load OPENGL4 funcs");
+        break;
+    case PSACI_RENDERER_API_OPENGLES3:
+        // OpenglES3 funcs are compiled and not loaded at runtime.
+        break;
+    case PSACI_RENDERER_API_VULKAN:
+        break;
+    }
+    switch (psaci_dependencies_get_windowing_api()) {
+    case PSACI_WINDOW_API_GLFW:
+        SACI_LOG_ASSERT_M(psaci_g_dependency_handler.windowing_funcs.glfw.create_window,
+                          SACI_LOG_CONTEXT_DEPENDENCIES, "Could not load GLFW funcs");
+        break;
+    case PSACI_WINDOW_API_EMSCRIPTEN:
+        // Loaded at compile time, no need to check.
+        break;
+    }
+    switch (psaci_dependencies_get_render_loader()) {
+    case PSACI_RENDERER_LOADER_GLAD:
+        SACI_LOG_ASSERT_M(psaci_g_dependency_handler.render_loader_funcs.glad.load_opengl,
+                          SACI_LOG_CONTEXT_DEPENDENCIES, "Could not load GLAD funcs");
+    case PSACI_RENDERER_LOADER_EMSCRIPTEN:
+        // Loaded at compiletime.
+        break;
+    }
+
     SACI_LOG_ASSERT_M(psaci_g_dependency_handler.render_handle, SACI_LOG_CONTEXT_CORE_CONFIG,
                       "Could not load Render API handle");
     SACI_LOG_ASSERT_M(psaci_g_dependency_handler.render_loader_handle, SACI_LOG_CONTEXT_CORE_CONFIG,
                       "Could not load Render API Loader handle");
     SACI_LOG_ASSERT_M(psaci_g_dependency_handler.window_handle, SACI_LOG_CONTEXT_CORE_CONFIG,
                       "Could not load Windowing API handle");
+    free(psaci_g_dependency_handler.render_loader_handle); // TODO update dylilo
+    free(psaci_g_dependency_handler.render_handle);        // TODO update dylilo
+    free(psaci_g_dependency_handler.window_handle);        // TODO update dylilo
 }

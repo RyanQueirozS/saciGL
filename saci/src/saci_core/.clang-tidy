@@ -47,7 +47,7 @@ CheckOptions:
   # VARIABLE NAMING
   # =======================================================================
   - key: readability-identifier-naming.GlobalVariableCase
-    value: UPPER_CASE
+    value: lower_case
   - key: readability-identifier-naming.GlobalVariablePrefix
     value: "csaci_g_"
 

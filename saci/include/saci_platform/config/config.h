@@ -2,19 +2,7 @@
 #define SACI_PLATFORM_CONFIG_CONFIG_H
 
 #include "saci_util/types.h"
-
-enum PSaciRenderApi {
-    PSACI_RENDERER_API_OPENGL = 0,
-    PSACI_RENDERER_API_VULKAN,
-};
-
-enum PSaciRenderApiLoader {
-    PSACI_RENDERER_LOADER_GLAD = 0,
-};
-
-enum PSaciWindowApi {
-    PSACI_WINDOW_API_GLFW = 0,
-};
+#include "saci_util/defines.h"
 
 struct PSaciRendererCfgUniform {
     char* name; // Debug
@@ -134,5 +122,11 @@ struct PSaciRendererConfig {
     struct PSaciRendererCfgDraw draw;
     struct PSaciRendererCfgPipeline pipeline;
 };
+
+SACI_API void psaci_cfg_get_renderer(const char* name, struct PSaciRendererConfig* cfg_out, const char* cfg_file_path);
+
+SACI_API SaciU64 psaci_cfg_render_cfg_size(const struct PSaciRendererConfig* cfg);
+
+SACI_API void psaci_cfg_cleanup_renderer_cfg(struct PSaciRendererConfig* cfg);
 
 #endif // SACI_PLATFORM_CONFIG_CONFIG_H

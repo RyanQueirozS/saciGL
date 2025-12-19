@@ -55,7 +55,7 @@ enum PSaciGLConstants {
 
 SACI_API SaciU32 psaci_gl_type_to_gl(const SaciDataType data_type);
 
-SACI_API void psaci_gl_load(void);
+SACI_API SaciBool psaci_gl_load(void);
 SACI_API void psaci_gl_enable(SaciU32);
 SACI_API void psaci_gl_uniform_set_value(const SaciS32 location, SaciDataType type, const void* value);
 SACI_API SaciU32 psaci_gl_create_index_buffer_dynamic(SaciU64 indice_amount, SaciU32* indices);

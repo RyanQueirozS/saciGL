@@ -89,7 +89,7 @@ struct PSaciGFXDrawData {
     SaciU32 texture_array_loc[SACI_MAX_TEXTURES];
 };
 
-void psaci_gfx_load(void);
+SaciBool psaci_gfx_load(void);
 
 typedef void* (*PSaciGfxProcAddress)(const char*);
 #ifndef __EMSCRIPTEN__

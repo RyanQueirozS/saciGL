@@ -12,48 +12,9 @@ typedef void* CSaciVertex;
 typedef void* CSaciUniformData;
 
 // TODO
-#ifdef SB_RENDERER_STRUCT_EXPOSE
-#  ifndef SB_RENDERER_STRUCT
-#    define SB_RENDERER_STRUCT
-
-struct sb_vertex {
-    sa_vec3 pos;
-    sa_color color;
-    sa_uv uv;
-};
-
-// The fields are structured in a way that enforces minimum memory change over time
-struct sb_renderer {
-    sa_textureId bound_texture_id;
-    sa_u32 bound_index_array_length;
-    sa_u32 bound_index_array_capacity;
-    sa_u64 bound_uniform_struct_size;
-
-    sa_shaderId shader_program;
-    sa_bufferId ibo, ubo, vbo, vao;
-
-    sa_u32 batch_index_capacity;
-    sa_u32 batch_vertex_capacity;
-    sa_u8 batch_array_capacity;
-    sa_u8 batch_in_use;
-
-    struct sb_renderBatch {
-        sa_u64 uniform_struct_block_size;
-        sa_textureId texture;
-        sa_u32 index_array_length;
-        sa_u32 vertex_array_length;
-        sa_u32* index_array;
-        struct sb_vertex* vertex_array;
-        sa_u8* uniform_struct_block;
-    }* batch_array;
-
-    sa_u8* uniform_struct_block;
-
-    sa_u32* bound_index_array_buffer;
-};
-
-#  endif // SB_RENDERER_STRUCT
-#endif   // SB_RENDERER_STRUCT_EXPOSE
+#ifdef CSACI_RENDERER_STRUCT_EXPOSE
+// Should have the complete renderer structure
+#endif // CSACI_RENDERER_STRUCT_EXPOSE
 
 enum CSaciRendererType {
     CSACI_RENDERER_STATIC,

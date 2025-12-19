@@ -197,8 +197,6 @@ const char* saci_log_context_as_str(const enum SaciLogContext context)
         return "CORE_CONFIG";
     case SACI_LOG_CONTEXT_CORE_MEMORY:
         return "CORE_MEMORY";
-    case SACI_LOG_CONTEXT_CORE_DARRAY:
-        return "CORE_DARRAY";
     case SACI_LOG_CONTEXT_CORE_MEMORY_MANAGER:
         return "CORE_MEMORY_MANAGER";
     case SACI_LOG_CONTEXT_RENDERER:
@@ -231,6 +229,10 @@ const char* saci_log_context_as_str(const enum SaciLogContext context)
         return "SCENE_LOADING";
     case SACI_LOG_CONTEXT_WINDOWING:
         return "WINDOWING";
+    case SACI_LOG_CONTEXT_WINDOWING_RUNTIME:
+        return "WINDOWING_RUNTIME";
+    case SACI_LOG_CONTEXT_DEPENDENCIES:
+        return "DEPENDENCIES";
     case SACI_LOG_CONTEXT_INPUT:
         return "INPUT";
     case SACI_LOG_CONTEXT_INPUT_KEYBOARD:

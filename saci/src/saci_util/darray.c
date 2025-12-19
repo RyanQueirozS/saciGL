@@ -18,6 +18,9 @@ typedef struct SaciDArray {
     SaciBool is_fixed_size;
 } SaciDArray;
 
+//  TODO remove
+#define SACI_LOG_CONTEXT_CORE_DARRAY 0
+
 SaciDArray* saci_darray_create(SaciU64 capacity, SaciU64 elem_size, SaciBool fixed_size)
 {
     SACI_LOG_DUMMY_CHECK_M(capacity > 0, SACI_LOG_CONTEXT_CORE_DARRAY, "Capacity must be greater than zero");

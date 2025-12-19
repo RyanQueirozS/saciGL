@@ -4,10 +4,10 @@
 #include "saci_util/internal/log.h"
 
 #include "saci_platform/gfx/internal/gfx.h"
+#include "saci_platform/dependencies/internal/dependency.h"
 
 #ifndef __EMSCRIPTEN__
 #  include "saci_platform/config/config.h"
-#  include "saci_platform/config/internal/config_manager.h"
 #endif
 
 #include <stdio.h>
@@ -148,9 +148,7 @@ CSaciRenderer* csaci_renderer_new(const enum CSaciRendererType type, const char*
             break;
         }
     }
-#ifndef __EMSCRIPTEN__
-    psaci_cfg_manager_get_renderer(name_ptr, &cfg);
-#endif
+    psaci_cfg_get_renderer(name_ptr, &cfg, psaci_dependencies_get_cfg_file_path());
     csaci_init_shaders(&cfg, &info);
     csaci__renderer_instance_fill_default(&cfg, &info);
     SaciMemPool* pool = csaci_renderer_get_pool_from_cfg(&cfg, type);
@@ -529,9 +527,7 @@ void csaci_renderer_cfg_copy_and_cleanup(struct PSaciRendererConfig* dest, struc
         }
     }
 
-#ifndef __EMSCRIPTEN__
-    psaci_cfg_manager_cleanup_renderer_cfg(dest);
-#endif
+    psaci_cfg_cleanup_renderer_cfg(dest);
 }
 
 // Internal

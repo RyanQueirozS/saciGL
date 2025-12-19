@@ -9,8 +9,8 @@
 #include "saci_util/types.h"
 
 #include "saci_platform/gfx/internal/gfx.h"
-#include "saci_platform/config/internal/config_manager.h"
 
+#include "saci_platform/dependencies/dependency.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -66,9 +66,7 @@ void csaci_renderer_instanced_new(struct CSaciRenderer* self, SaciMemPool* mem, 
     self->rendr.instance_renderer->gfx = *info;
     self->interface = &CSACI_G_INSTANCE_RENDERER_DEFAULT_INTERFACE;
 
-#ifndef __EMSCRIPTEN__
-    psaci_cfg_manager_cleanup_renderer_cfg(&rendr->cfg);
-#endif
+    psaci_cfg_cleanup_renderer_cfg(&rendr->cfg);
     csaci__renderer_init_instance_batch(rendr);
     psaci_gfx_create(&rendr->gfx, rendr->cfg);
     csaci_renderer_init_bound(&rendr->bound, rendr->cfg, mem);
@@ -133,10 +131,12 @@ SACI_INTERNAL void csaci__renderer_instance_begin(const struct CSaciRenderer* se
     self->rendr.instance_renderer->bound.texture.gl.texture = 0;
     self->rendr.instance_renderer->bound.texture.gl.is_empty = SACI_TRUE;
 #else
-    switch (psaci_cfg_manager_get_renderer_api()) {
-    case PSACI_RENDERER_API_OPENGL:
+    switch (psaci_dependencies_get_render_api()) {
+    case PSACI_RENDERER_API_OPENGL4:
         self->rendr.instance_renderer->bound.texture.gl.texture = 0;
         self->rendr.instance_renderer->bound.texture.gl.is_empty = SACI_TRUE;
+    case PSACI_RENDERER_API_OPENGLES3:
+        break;
     case PSACI_RENDERER_API_VULKAN:
         break;
     }
@@ -146,10 +146,12 @@ SACI_INTERNAL void csaci__renderer_instance_begin(const struct CSaciRenderer* se
     for (SaciU8 i = 0; i < self->rendr.instance_renderer->cfg.batch.capacity; ++i) {
         struct PSaciGFXDrawData* batch = &(self->rendr.instance_renderer->batch_array[i]);
         for (int j = 0; j < SACI_MAX_TEXTURES; ++j) {
-            switch (psaci_cfg_manager_get_renderer_api()) {
-            case PSACI_RENDERER_API_OPENGL:
+            switch (psaci_dependencies_get_render_api()) {
+            case PSACI_RENDERER_API_OPENGL4:
                 batch->texture_array[j].gl.texture = 0;
                 batch->texture_array[j].gl.is_empty = SACI_TRUE;
+            case PSACI_RENDERER_API_OPENGLES3:
+                break;
             case PSACI_RENDERER_API_VULKAN:
                 break;
             }

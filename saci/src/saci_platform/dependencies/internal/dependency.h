@@ -102,7 +102,7 @@ struct PSaciRenderApiFuncs {
 struct PSaciRenderApiLoaderFuncs {
     struct {
         SaciS32 (*load_opengl)(void* (*)(const char*));
-    } gl;
+    } glad;
 };
 
 SACI_API struct PSaciWindowingApiFuncs psaci_dependencies_get_windowing_api_funcs(void);
@@ -110,5 +110,7 @@ SACI_API struct PSaciWindowingApiFuncs psaci_dependencies_get_windowing_api_func
 SACI_API struct PSaciRenderApiFuncs psaci_dependencies_get_render_api_funcs(void);
 
 SACI_API struct PSaciRenderApiLoaderFuncs psaci_dependencies_get_render_loader_api_funcs(void);
+
+SACI_API const char* psaci_dependencies_get_cfg_file_path(void);
 
 #endif // SACI_BACKEND_RESOURCES_SB_DEPENDENCY_INTERNAL_H

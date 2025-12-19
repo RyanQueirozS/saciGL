@@ -1,4 +1,3 @@
-#include "saci_platform/config/internal/config_manager.h"
 #include "saci_platform/config/config.h"
 #include "saci_platform/config/internal/config.h"
 
@@ -9,25 +8,7 @@
 #include "saci_util/internal/general.h"
 #include "saci_util/internal/log.h"
 
-#include <stdio.h>
 #include <string.h>
-
-// Platform-specific default library paths
-#ifdef _WIN32 // Windows
-#  define su_DEFAULT_OPENGL_PATH "C:\\Windows\\System32\\opengl32.dll"
-#  define su_DEFAULT_GLFW_PATH "C:\\Program Files\\GLFW\\lib\\glfw3.dll"
-#  define su_DEFAULT_GLAD_PATH "C:\\Program Files\\GLAD\\lib\\glad.dll"
-#elif defined(__linux__) // Linux
-#  define su_DEFAULT_OPENGL_PATH "/usr/lib/x86_64-linux-gnu/libGL.so"
-#  define su_DEFAULT_GLFW_PATH "/usr/local/lib/libglfw.so"
-#  define su_DEFAULT_GLAD_PATH "/usr/local/lib/libglad.so"
-#elif defined(__APPLE__) // macOS
-#  define su_DEFAULT_OPENGL_PATH "/System/Library/Frameworks/OpenGL.framework/OpenGL"
-#  define su_DEFAULT_GLFW_PATH "/usr/local/lib/libglfw.dylib"
-#  define su_DEFAULT_GLAD_PATH "/usr/local/lib/libglad.dylib"
-#else
-#  error "Unknown platform. Define paths for this platform."
-#endif
 
 /* === Internal === */
 
@@ -35,12 +16,6 @@ struct PSaciSymbolTable {
     const char* name;
     void** func_out;
 };
-
-SACI_INTERNAL SaciBool psaci__cfg_manager_load_render_api(PSaciLuaState* lua_state);
-
-SACI_INTERNAL SaciBool psaci__cfg_manager_load_render_loader(PSaciLuaState* lua_state);
-
-SACI_INTERNAL SaciBool psaci__cfg_manager_load_window_api(PSaciLuaState* lua_state);
 
 SACI_INTERNAL SaciMemPool* psaci__cfg_manager_get_renderer_pool(PSaciLuaState* cfg_state);
 
@@ -56,89 +31,9 @@ SACI_INTERNAL void psaci__load_renderer_pipeline(PSaciLuaState* lua, struct PSac
 
 /* === Header impl === */
 
-SACI_INTERNAL struct PSaciConfigManager psaci_g_cfg_manager = PSACI_G_CFG_MANAGER_DEFAULT;
-
-void psaci_cfg_manager_load_default(void)
+void psaci_cfg_get_renderer(const char* name, struct PSaciRendererConfig* cfg_out, const char* cfg_file_path)
 {
-    psaci_g_cfg_manager = PSACI_G_CFG_MANAGER_DEFAULT;
-}
-
-void psaci_cfg_manager_set(const struct PSaciConfigManager cfg_manager)
-{
-    psaci_g_cfg_manager = cfg_manager;
-}
-
-SaciBool psaci_cfg_manager_fetch(const char* path)
-{
-    PSaciLuaState* lua_state = psaci_lua_load(path);
-    if (!lua_state) {
-        SACI_LOG_WARN_M(SACI_LOG_TYPE_USER, SACI_LOG_WARN_SEVERITY_MEDIUM, SACI_LOG_CONTEXT_CORE_CONFIG, "Could not load config");
-        return false;
-    }
-    psaci_g_cfg_manager.cfg_file_path = (char*)path;
-
-    if (!psaci_lua_push_global_table(lua_state, "Saci_base")) {
-        psaci_lua_close(lua_state);
-        return false;
-    }
-
-    if (!psaci__cfg_manager_load_render_api(lua_state)) {
-        psaci_lua_pop(lua_state, 1);
-        psaci_lua_close(lua_state);
-        return false;
-    }
-
-    if (!psaci__cfg_manager_load_render_loader(lua_state)) {
-        psaci_lua_pop(lua_state, 1);
-        psaci_lua_close(lua_state);
-        return false;
-    }
-
-    if (!psaci__cfg_manager_load_window_api(lua_state)) {
-        psaci_lua_pop(lua_state, 1);
-        psaci_lua_close(lua_state);
-        return false;
-    }
-
-    psaci_lua_pop(lua_state, 1); // pop Saci_base table
-    psaci_lua_close(lua_state);
-
-    return true;
-}
-
-enum PSaciRenderApi psaci_cfg_manager_get_renderer_api(void)
-{
-    return psaci_g_cfg_manager.render_api_data.api;
-}
-
-const char* psaci_cfg_manager_get_renderer_api_path(void)
-{
-    return psaci_g_cfg_manager.render_api_data.path_to_api;
-}
-
-enum PSaciRenderApiLoader psaci_cfg_manager_get_renderer_api_loader(void)
-{
-    return psaci_g_cfg_manager.render_api_loader_data.api_loader;
-}
-
-const char* psaci_cfg_manager_get_renderer_api_loader_path(void)
-{
-    return psaci_g_cfg_manager.render_api_loader_data.path_to_api;
-}
-
-enum PSaciWindowApi psaci_cfg_manager_get_window_api(void)
-{
-    return psaci_g_cfg_manager.windowing_api_data.api;
-}
-
-const char* psaci_cfg_manager_get_window_api_path(void)
-{
-    return psaci_g_cfg_manager.windowing_api_data.path_to_api;
-}
-
-void psaci_cfg_manager_get_renderer(const char* name, struct PSaciRendererConfig* cfg_out)
-{
-    PSaciLuaState* lua = psaci_lua_load(psaci_g_cfg_manager.cfg_file_path);
+    PSaciLuaState* lua = psaci_lua_load(cfg_file_path);
     if (!lua) {
         SACI_LOG_WARN_M(SACI_LOG_TYPE_USER, SACI_LOG_WARN_SEVERITY_MEDIUM,
                         SACI_LOG_CONTEXT_CORE_CONFIG, "Could not load config");
@@ -169,106 +64,17 @@ void psaci_cfg_manager_get_renderer(const char* name, struct PSaciRendererConfig
     psaci_lua_close(lua);
 }
 
-SaciU64 psaci_cfg_manager_render_cfg_size(const struct PSaciRendererConfig* cfg)
+SaciU64 psaci_cfg_render_cfg_size(const struct PSaciRendererConfig* cfg)
 {
     SaciU64 total_size = 0;
     return total_size;
 }
 
-void psaci_cfg_manager_cleanup_renderer_cfg(struct PSaciRendererConfig* cfg)
+void psaci_cfg_cleanup_renderer_cfg(struct PSaciRendererConfig* cfg)
 {
 }
 
 /* === Internal Impl === */
-
-SACI_INTERNAL enum PSaciRenderApi psaci__parse_render_api(const char* api_str)
-{
-    if (!api_str) {
-        exit(1);
-    }
-    if (strcmp(api_str, "OpenGL") == 0) {
-        return PSACI_RENDERER_API_OPENGL;
-    }
-    if (strcmp(api_str, "Vulkan") == 0) {
-        return PSACI_RENDERER_API_VULKAN;
-    }
-    exit(1);
-}
-
-SACI_INTERNAL enum PSaciRenderApiLoader psaci__parse_render_loader(const char* loader_str)
-{
-    if (!loader_str) {
-        exit(1);
-    }
-    if (strcmp(loader_str, "GLAD") == 0) {
-        return PSACI_RENDERER_LOADER_GLAD;
-    }
-    exit(1);
-}
-
-SACI_INTERNAL enum PSaciWindowApi psaci__parse_window_api(const char* api_str)
-{
-    if (!api_str) {
-        exit(1);
-    }
-    if (strcmp(api_str, "GLFW") == 0) {
-        return PSACI_WINDOW_API_GLFW;
-    }
-    exit(1);
-}
-
-SACI_INTERNAL SaciBool psaci__cfg_manager_load_render_api(PSaciLuaState* lua_state)
-{
-    if (!psaci_lua_push_field_table(lua_state, "render_api")) {
-        return false;
-    }
-
-    const char* api_str = psaci_lua_get_str(lua_state, "api");
-    const char* path_str = psaci_lua_get_str(lua_state, "path");
-
-    psaci_g_cfg_manager.render_api_data.api = psaci__parse_render_api(api_str);
-
-    psaci_g_cfg_manager.render_api_data.path_to_api = path_str ? strdup(path_str) : NULL;
-
-    psaci_lua_pop(lua_state, 1); // pop render_api table
-    return true;
-}
-
-SACI_INTERNAL SaciBool psaci__cfg_manager_load_render_loader(PSaciLuaState* lua_state)
-{
-    if (!psaci_lua_push_field_table(lua_state, "render_loader")) {
-        return false;
-    }
-
-    const char* api_str = psaci_lua_get_str(lua_state, "api");
-    const char* path_str = psaci_lua_get_str(lua_state, "path");
-
-    psaci_g_cfg_manager.render_api_loader_data.api_loader = psaci__parse_render_loader(api_str);
-
-    free(psaci_g_cfg_manager.render_api_loader_data.path_to_api);
-    psaci_g_cfg_manager.render_api_loader_data.path_to_api = path_str ? strdup(path_str) : NULL;
-
-    psaci_lua_pop(lua_state, 1); // pop render_loader table
-    return true;
-}
-
-SACI_INTERNAL SaciBool psaci__cfg_manager_load_window_api(PSaciLuaState* lua_state)
-{
-    if (!psaci_lua_push_field_table(lua_state, "window_api")) {
-        return false;
-    }
-
-    const char* api_str = psaci_lua_get_str(lua_state, "api");
-    const char* path_str = psaci_lua_get_str(lua_state, "path");
-
-    psaci_g_cfg_manager.windowing_api_data.api = psaci__parse_window_api(api_str);
-
-    free(psaci_g_cfg_manager.windowing_api_data.path_to_api);
-    psaci_g_cfg_manager.windowing_api_data.path_to_api = path_str ? strdup(path_str) : NULL;
-
-    psaci_lua_pop(lua_state, 1); // pop window_api table
-    return true;
-}
 
 // Returns a memory pool with preallocated memory to use in the renderer cfg.
 SACI_INTERNAL SaciMemPool* psaci__cfg_manager_get_renderer_pool(PSaciLuaState* cfg_state)

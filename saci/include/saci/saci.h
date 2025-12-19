@@ -16,7 +16,7 @@ typedef enum {
 
 typedef enum {
     SACI_RENDERING_FLAG_BLEND = 1U << 0,
-} SaciRenderingFlags;
+} SaciFlags;
 
 typedef struct SaciCube {
     SaciVec3 pos_center;
@@ -28,7 +28,7 @@ typedef struct SaciCube {
 
 SACI_API void saci_init(void);
 
-SACI_API void saci_enable(SaciRenderingFlags flag, SaciBool enable);
+SACI_API void saci_enable(SaciFlags flag, SaciBool enable);
 
 SACI_API void saci_begin(void);
 
@@ -44,6 +44,6 @@ SACI_API void saci_draw_cube(const SaciCube cube);
 
 SACI_API void saci_present(void);
 
-SACI_API void saci_free(void);
+SACI_API void saci_end(void);
 
 #endif // SACI_MAIN_SACI_H

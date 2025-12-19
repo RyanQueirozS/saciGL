@@ -15,6 +15,7 @@ union PSaciWindow {
         void* window;
         const char* title;
         int width, height;
+        int x, y;
     } glfw;
     struct {
         SaciU64 context;

@@ -34,7 +34,6 @@ static SaciCube cube_big_orbiting = {
 };
 
 void loop_func(SaciLoopFrameData frame_data) {
-    printf("oii\n");
     saci_begin();
 
     cube_middle.rotation = saci_vec3_add(cube_middle.rotation, rotation);

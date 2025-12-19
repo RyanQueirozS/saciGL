@@ -7,6 +7,7 @@
 #include "saci_util/internal/general.h"
 #include "saci_util/internal/log.h"
 #include "saci_util/log.h"
+#include "saci_util/types.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -165,9 +166,10 @@ SaciU32 psaci_gl_type_to_gl(const SaciDataType data_type)
     }
 }
 
-void psaci_gl_load(void)
+SaciBool psaci_gl_load(void)
 {
     psaci_g_gl_funcs = psaci_dependencies_get_render_api_funcs();
+    return psaci_g_gl_funcs.gl.enable != NULL;
 }
 
 void psaci_gl_enable(SaciU32 flag)

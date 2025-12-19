@@ -2,11 +2,11 @@
 
 #include "./internal/gfx.h"
 
-#include "../dependencies/internal/dependency.h"
+#include "saci_platform/dependencies/dependency.h"
+#include "saci_platform/dependencies/internal/dependency.h"
 
 #ifndef __EMSCRIPTEN__
 #  include "saci_platform/config/config.h"
-#  include "saci_platform/config/internal/config_manager.h"
 #endif
 
 #include "saci_util/memory.h"
@@ -32,9 +32,6 @@ SACI_STATIC struct SaciMemPool* psaci_g_instance_draw_data_pool = NULL; // Used 
 // Init
 SACI_INTERNAL void psaci__gfx_gl_init_info(union PSaciGFXInfo* info_out, const struct PSaciRendererConfig cfg);
 
-// Dependency
-SACI_INTERNAL SaciShaderId psaci__gfx_emsdk_shader_create_program(const char* f, const char* v);
-
 // Draw
 SACI_INTERNAL void psaci__gfx_join_instance_data(const struct PSaciGFXDrawData* draw_data, void** instance_data_array_out, SaciU64* instance_data_array_size_out);
 SACI_INTERNAL void psaci__gfx_gl_draw(const union PSaciGFXInfo* gfx_info, const struct PSaciGFXDrawData* data);
@@ -43,28 +40,34 @@ SACI_INTERNAL SaciBool psaci__has_texture(union PSaciTexture* texture_array, Sac
 
 /* === Header Impl === */
 
-void psaci_gfx_load(void)
+SaciBool psaci_gfx_load(void)
 {
 #ifndef __EMSCRIPTEN__
     psaci_g_render_loader_funcs = psaci_dependencies_get_render_loader_api_funcs();
-    psaci_g_render_api = psaci_cfg_manager_get_renderer_api();
-    psaci_g_render_api = PSACI_RENDERER_API_OPENGL;
+    psaci_g_render_api = psaci_dependencies_get_render_api();
+
     switch (psaci_g_render_api) {
-    case PSACI_RENDERER_API_OPENGL:
-        psaci_gl_load();
+    case PSACI_RENDERER_API_OPENGL4:
+        return psaci_gl_load();
+    case PSACI_RENDERER_API_OPENGLES3:
+        // TODO
         break;
     case PSACI_RENDERER_API_VULKAN:
         break;
     }
 #endif
+    return SACI_FALSE;
 }
 
 #ifndef __EMSCRIPTEN__
 void psaci_gfx_load_proc(PSaciGfxProcAddress addrs)
 {
     switch (psaci_g_render_api) {
-    case PSACI_RENDERER_API_OPENGL:
-        psaci_g_render_loader_funcs.gl.load_opengl(addrs);
+    case PSACI_RENDERER_API_OPENGL4:
+        psaci_g_render_loader_funcs.glad.load_opengl(addrs);
+        break;
+    case PSACI_RENDERER_API_OPENGLES3:
+        // TODO
         break;
     case PSACI_RENDERER_API_VULKAN:
         break;
@@ -78,12 +81,15 @@ void psaci_gfx_init_shader(union PSaciGFXInfo* info_out, const struct PSaciRende
     SACI_LOG_ASSERT_M(cfg.shaders.frag, SACI_LOG_CONTEXT_GFX, "Frag shader is empty or NULL");
 #ifndef __EMSCRIPTEN__
     switch (psaci_g_render_api) {
-    case PSACI_RENDERER_API_OPENGL:
+    case PSACI_RENDERER_API_OPENGL4:
         {
             info_out->gl_data.shader_program = psaci_gl_shader_create_shader_program_source(
                 cfg.shaders.vert, cfg.shaders.frag, cfg.shaders.geom);
             break;
         }
+    case PSACI_RENDERER_API_OPENGLES3:
+        // TODO
+        break;
     case PSACI_RENDERER_API_VULKAN:
         break;
     }
@@ -97,8 +103,11 @@ void psaci_gfx_create(union PSaciGFXInfo* info_out, const struct PSaciRendererCo
 {
     psaci_g_instance_draw_data_pool = saci_mem_create_pool(SACI_MEM_CONTEXT_GFX, sizeof(SaciMat4) * 10000); // TODO remove the magic numbers and perhaps redo the whole chunk stuff
     switch (psaci_g_render_api) {
-    case PSACI_RENDERER_API_OPENGL:
+    case PSACI_RENDERER_API_OPENGL4:
         psaci__gfx_gl_init_info(info_out, cfg);
+        break;
+    case PSACI_RENDERER_API_OPENGLES3:
+        // TODO
         break;
     case PSACI_RENDERER_API_VULKAN:
         break;
@@ -122,8 +131,11 @@ void psaci_gfx_clear_depth_buffer(void)
 void psaci_gfx_draw(const union PSaciGFXInfo* gfx_info, const struct PSaciGFXDrawData* data)
 {
     switch (psaci_g_render_api) {
-    case PSACI_RENDERER_API_OPENGL:
+    case PSACI_RENDERER_API_OPENGL4:
         psaci__gfx_gl_draw(gfx_info, data);
+        break;
+    case PSACI_RENDERER_API_OPENGLES3:
+        // TODO
         break;
     case PSACI_RENDERER_API_VULKAN:
         break;
@@ -134,8 +146,11 @@ SaciS32 psaci_gfx_get_uniform_loc(const union PSaciGFXInfo* info, const char* na
 {
     SaciS32 location = 0;
     switch (psaci_g_render_api) {
-    case PSACI_RENDERER_API_OPENGL:
+    case PSACI_RENDERER_API_OPENGL4:
         location = psaci_gl_uniform_location(info->gl_data.shader_program, name);
+        break;
+    case PSACI_RENDERER_API_OPENGLES3:
+        // TODO
         break;
     case PSACI_RENDERER_API_VULKAN:
         break;
@@ -156,9 +171,12 @@ void psaci_gfx_upload_texture_2d(union PSaciTexture texture,
                                  const void* data)
 {
     switch (psaci_g_render_api) {
-    case PSACI_RENDERER_API_OPENGL:
+    case PSACI_RENDERER_API_OPENGL4:
         psaci_gl_upload_texture_2d(texture.gl.texture,
                                    format, width, height, data);
+        break;
+    case PSACI_RENDERER_API_OPENGLES3:
+        // TODO
         break;
     case PSACI_RENDERER_API_VULKAN:
         break;
@@ -168,9 +186,12 @@ void psaci_gfx_upload_texture_2d(union PSaciTexture texture,
 void psaci_gfx_get_texture_size_2d(union PSaciTexture texture, SaciS32* width_out, SaciS32* height_out)
 {
     switch (psaci_g_render_api) {
-    case PSACI_RENDERER_API_OPENGL:
+    case PSACI_RENDERER_API_OPENGL4:
         psaci_gl_get_texture_size_2d(texture.gl.texture,
                                      width_out, height_out);
+    case PSACI_RENDERER_API_OPENGLES3:
+        // TODO
+        break;
         break;
     case PSACI_RENDERER_API_VULKAN:
         break;
@@ -180,9 +201,11 @@ void psaci_gfx_get_texture_size_2d(union PSaciTexture texture, SaciS32* width_ou
 void psaci_gfx_generate_mipmap_2d(union PSaciTexture texture)
 {
     switch (psaci_g_render_api) {
-
-    case PSACI_RENDERER_API_OPENGL:
+    case PSACI_RENDERER_API_OPENGL4:
         psaci_gl_generate_mipmap_2d(texture.gl.texture);
+        break;
+    case PSACI_RENDERER_API_OPENGLES3:
+        // TODO
         break;
     case PSACI_RENDERER_API_VULKAN:
         break;
@@ -192,8 +215,11 @@ void psaci_gfx_generate_mipmap_2d(union PSaciTexture texture)
 void psaci_gfx_delete_texture(union PSaciTexture texture)
 {
     switch (psaci_g_render_api) {
-    case PSACI_RENDERER_API_OPENGL:
+    case PSACI_RENDERER_API_OPENGL4:
         psaci_gl_delete_texture(1, &texture.gl.texture);
+        break;
+    case PSACI_RENDERER_API_OPENGLES3:
+        // TODO
         break;
     case PSACI_RENDERER_API_VULKAN:
         break;
@@ -203,8 +229,10 @@ void psaci_gfx_delete_texture(union PSaciTexture texture)
 void psaci_gfx_initialize_renderer_debugger(void* debug_func)
 {
     switch (psaci_g_render_api) {
-    case PSACI_RENDERER_API_OPENGL:
+    case PSACI_RENDERER_API_OPENGL4:
         psaci_gl_initialized_debugger(debug_func);
+        break;
+    case PSACI_RENDERER_API_OPENGLES3:
         break;
     case PSACI_RENDERER_API_VULKAN:
         break;
@@ -304,11 +332,6 @@ SACI_INTERNAL void psaci__gfx_gl_init_info(
     psaci__gfx_gl_create_main_buffers(info_out, cfg);
     psaci__gfx_gl_setup_vertex_attributes(cfg, info_out->gl_data.vao, info_out->gl_data.vbo);
     psaci__gfx_gl_setup_instance_buffers(info_out, cfg);
-}
-
-SACI_INTERNAL SaciShaderId psaci__gfx_emsdk_shader_create_program(const char* f, const char* v)
-{
-    SACI_TODO_M;
 }
 
 SACI_INTERNAL void psaci__gfx_join_instance_data(const struct PSaciGFXDrawData* draw_data, void** instance_data_array_out, SaciU64* instance_data_array_size_out)
