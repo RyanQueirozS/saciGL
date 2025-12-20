@@ -31,16 +31,11 @@ SACI_INTERNAL void psaci__load_renderer_pipeline(PSaciLuaState* lua, struct PSac
 
 /* === Header impl === */
 
+// expects path_to_value
+
 void psaci_cfg_get_renderer(const char* name, struct PSaciRendererConfig* cfg_out, const char* cfg_file_path)
 {
     PSaciLuaState* lua = psaci_lua_load(cfg_file_path);
-    if (!lua) {
-        SACI_LOG_WARN_M(SACI_LOG_TYPE_USER, SACI_LOG_WARN_SEVERITY_MEDIUM,
-                        SACI_LOG_CONTEXT_CORE_CONFIG, "Could not load config");
-        return;
-    }
-
-    SACI_LOG_INFOF_M(SACI_LOG_TYPE_USER, SACI_LOG_CONTEXT_CORE_CONFIG, "Loaded config at %s", name);
 
     if (!psaci_lua_push_global_table(lua, "Saci_Backend") ||
         !psaci_lua_push_field_table(lua, "renderers") ||

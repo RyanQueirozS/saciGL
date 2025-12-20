@@ -1,5 +1,5 @@
 /**
- * @file su-types.h
+ * @file types.h
  * @brief This header defines common types and structures used in the saciCORE and
  * saciLIB.
  *
@@ -46,7 +46,7 @@ typedef int8_t SaciS8;
 
 #if defined(__cplusplus) && __cplusplus < 201103L
 #  include <cstddef>
-typedef std::uintptr_t su_UintPtr;
+typedef std::uintptr_t SACI_UintPtr;
 #else
 typedef uintptr_t SaciUintPtr;
 #endif
@@ -103,78 +103,93 @@ typedef struct {
 /* === Types === */
 
 typedef enum {
-    SACI_TYPE_U8 = 1,  // unsigned int8
-    SACI_TYPE_U16 = 2, // unsigned int16
-    SACI_TYPE_U32 = 3, // unsigned int32
-    SACI_TYPE_U64 = 4, // unsigned int64
-    SACI_TYPE_S8 = 5,  // signed int8
-    SACI_TYPE_S16 = 6, // signed int16
-    SACI_TYPE_S32 = 7, // signed int32
-    SACI_TYPE_S64 = 8, // signed int64
+    SACI_TYPE_UNKOWN = 0,
+    SACI_TYPE_VOIDPTR = 1,
+    SACI_TYPE_U8 = 2,  // unsigned int8
+    SACI_TYPE_U16 = 3, // unsigned int16
+    SACI_TYPE_U32 = 4, // unsigned int33
+    SACI_TYPE_U64 = 5, // unsigned int64
+    SACI_TYPE_S8 = 6,  // signed int8
+    SACI_TYPE_S16 = 7, // signed int16
+    SACI_TYPE_S32 = 8, // signed int32
+    SACI_TYPE_S64 = 9, // signed int64
 
-    SACI_TYPE_BOOL = 9, // boolean
+    SACI_TYPE_CHAR = 10,
+    SACI_TYPE_STRING = 11,
 
-    SACI_TYPE_SHADERID = 10,  // unsgined int32
-    SACI_TYPE_TEXTUREID = 11, // unsgined int32
-    SACI_TYPE_BUFFERID = 12,  // unsigned int32
+    SACI_TYPE_FLOAT = 12,
+    SACI_TYPE_DOUBLE = 13,
 
-    SACI_TYPE_UV = 13,   // 2 floats (u, v)
-    SACI_TYPE_VEC2 = 14, // 2 floats (x, y)
-    SACI_TYPE_VEC3 = 15, // 3 floats (x, y, z)
-    SACI_TYPE_VEC4 = 16, // 4 floats (x, y, z, w)
+    SACI_TYPE_BOOL = 14, // boolean
 
-    SACI_TYPE_COLOR = 17, // 4 floats (r, g, b, a)
+    SACI_TYPE_SHADERID = 15,  // unsgined int32
+    SACI_TYPE_TEXTUREID = 16, // unsgined int32
+    SACI_TYPE_BUFFERID = 17,  // unsigned int34
 
-    SACI_TYPE_MAT2 = 18, // 2x2 matrix
-    SACI_TYPE_MAT3 = 19, // 3x3 matrix
-    SACI_TYPE_MAT4 = 20, // 4x4 matrix
+    SACI_TYPE_UV = 18,   // 2 floats (u, v)
+    SACI_TYPE_VEC2 = 19, // 2 floats (x, y)
+    SACI_TYPE_VEC3 = 20, // 3 floats (x, y, z)
+    SACI_TYPE_VEC4 = 21, // 4 floats (x, y, z, w)
 
-    SACI_TYPE_MAT2X3 = 21, // 2 columns, 3 rows
-    SACI_TYPE_MAT2X4 = 22, // 2 columns, 4 rows
-    SACI_TYPE_MAT3X2 = 23, // 3 columns, 2 rows
-    SACI_TYPE_MAT3X4 = 24, // 3 columns, 4 rows
-    SACI_TYPE_MAT4X2 = 25, // 4 columns, 2 rows
-    SACI_TYPE_MAT4X3 = 26, // 4 columns, 3 rows
+    SACI_TYPE_COLOR = 22, // 4 floats (r, g, b, a)
 
-    SACI_TYPE_SAMPLER2D = 27,
+    SACI_TYPE_MAT2 = 23, // 2x2 matrix
+    SACI_TYPE_MAT3 = 24, // 3x3 matrix
+    SACI_TYPE_MAT4 = 25, // 4x4 matrix
+
+    SACI_TYPE_MAT2X3 = 26, // 2 columns, 3 rows
+    SACI_TYPE_MAT2X4 = 27, // 2 columns, 4 rows
+    SACI_TYPE_MAT3X2 = 28, // 3 columns, 2 rows
+    SACI_TYPE_MAT3X4 = 29, // 3 columns, 4 rows
+    SACI_TYPE_MAT4X2 = 30, // 4 columns, 2 rows
+    SACI_TYPE_MAT4X3 = 31, // 4 columns, 3 rows
+
+    SACI_TYPE_SAMPLER2D = 32,
 } SaciDataType;
 
-#define SACI_TYPE_MAX 26
-static const SaciU64 SACI_G_TYPE_SIZE_TABLE[] = {
-    0, // index 0 (unused)
+#define SACI_TYPE_MAX 32
+static const SaciU64 SACI_G_TYPE_SIZE_TABLE[SACI_TYPE_MAX] = {
+    0, // UNKOWN
+    0, // VOIDPTR
 
-    1, // su_TYPE_U8        = 1
-    2, // su_TYPE_U16       = 2
-    4, // su_TYPE_U32       = 3
-    8, // su_TYPE_U64       = 4
-    1, // su_TYPE_S8        = 5
-    2, // su_TYPE_S16       = 6
-    4, // su_TYPE_S32       = 7
-    8, // su_TYPE_S64       = 8
+    1, // SACI_TYPE_U8         = 1
+    2, // SACI_TYPE_U16        = 2
+    4, // SACI_TYPE_U32        = 3
+    8, // SACI_TYPE_U64        = 4
+    1, // SACI_TYPE_S8         = 5
+    2, // SACI_TYPE_S16        = 6
+    4, // SACI_TYPE_S32        = 7
+    8, // SACI_TYPE_S64        = 8
 
-    1, // su_TYPE_BOOL      = 9
+    4, // SACI_TYPE_FLOAT      = 9
+    8, // SACI_TYPE_DOUBLE     = 10
 
-    4, // su_TYPE_SHADERID  = 10
-    4, // su_TYPE_TEXTUREID = 11
-    4, // su_TYPE_BUFFERID  = 12
+    1, // SACI_TYPE_CHAR       = 11
+    0, // SACI_TYPE_STRING     = 12
 
-    8,  // su_TYPE_UV        = 13 (2 floats)
-    8,  // su_TYPE_VEC2      = 14 (2 floats)
-    12, // su_TYPE_VEC3      = 15 (3 floats)
-    16, // su_TYPE_VEC4      = 16 (4 floats)
+    1, // SACI_TYPE_BOOL       = 13
 
-    16, // su_TYPE_COLOR     = 17 (4 floats, e.g. RGBA)
+    4, // SACI_TYPE_SHADERID   = 14
+    4, // SACI_TYPE_TEXTUREID  = 15
+    4, // SACI_TYPE_BUFFERID   = 16
 
-    16, // su_TYPE_MAT2      = 18 (2x2 floats = 4 floats)
-    36, // su_TYPE_MAT3      = 19 (3x3 = 9 floats)
-    64, // su_TYPE_MAT4      = 20 (4x4 = 16 floats)
+    8,  // SACI_TYPE_UV        = 17 (2 floats)
+    8,  // SACI_TYPE_VEC2      = 18 (2 floats)
+    12, // SACI_TYPE_VEC3      = 19 (3 floats)
+    16, // SACI_TYPE_VEC4      = 20 (4 floats)
 
-    24, // su_TYPE_MAT2X3    = 21 (2 columns * 3 rows = 6 floats)
-    32, // su_TYPE_MAT2X4    = 22 (2 * 4 = 8 floats)
-    24, // su_TYPE_MAT3X2    = 23 (3 * 2 = 6 floats)
-    48, // su_TYPE_MAT3X4    = 24 (3 * 4 = 12 floats)
-    32, // su_TYPE_MAT4X2    = 25 (4 * 2 = 8 floats)
-    48  // su_TYPE_MAT4X3    = 26 (4 * 3 = 12 floats)
+    16, // SACI_TYPE_COLOR     = 21 (4 floats, e.g. RGBA)
+
+    16, // SACI_TYPE_MAT2      = 22 (2x2 floats = 4 floats)
+    36, // SACI_TYPE_MAT3      = 23 (3x3 = 9 floats)
+    64, // SACI_TYPE_MAT4      = 24 (4x4 = 16 floats)
+
+    24, // SACI_TYPE_MAT2X3    = 25 (2 columns * 3 rows = 6 floats)
+    32, // SACI_TYPE_MAT2X4    = 26 (2 * 4 = 8 floats)
+    24, // SACI_TYPE_MAT3X2    = 27 (3 * 2 = 6 floats)
+    48, // SACI_TYPE_MAT3X4    = 28 (3 * 4 = 12 floats)
+    32, // SACI_TYPE_MAT4X2    = 29 (4 * 2 = 8 floats)
+    48  // SACI_TYPE_MAT4X3    = 30 (4 * 3 = 12 floats)
 };
 
 // TODO move to memory/

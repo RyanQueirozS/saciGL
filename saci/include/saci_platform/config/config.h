@@ -123,6 +123,18 @@ struct PSaciRendererConfig {
     struct PSaciRendererCfgPipeline pipeline;
 };
 
+typedef struct {
+    SaciDataType type;
+    union {
+        double number;
+        int boolean;
+        char* string;   /* Caller must free */
+        void* userdata; /* Lua-owned */
+    } data;
+} PSaciCfgValue;
+
+SACI_API PSaciCfgValue psaci_cfg_get_value(const char* file_path, const char* path_to_value);
+
 SACI_API void psaci_cfg_get_renderer(const char* name, struct PSaciRendererConfig* cfg_out, const char* cfg_file_path);
 
 SACI_API SaciU64 psaci_cfg_render_cfg_size(const struct PSaciRendererConfig* cfg);
