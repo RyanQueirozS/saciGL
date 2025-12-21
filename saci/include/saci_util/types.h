@@ -144,11 +144,13 @@ typedef enum {
     SACI_TYPE_MAT4X2 = 30, // 4 columns, 2 rows
     SACI_TYPE_MAT4X3 = 31, // 4 columns, 3 rows
 
-    SACI_TYPE_SAMPLER2D = 32,
+    SACI_TYPE_NULL = 32,
+
+    SACI_TYPE_SAMPLER2D = 33,
 } SaciDataType;
 
-#define SACI_TYPE_MAX 32
-static const SaciU64 SACI_G_TYPE_SIZE_TABLE[SACI_TYPE_MAX] = {
+#define SACI_TYPE_MAX SACI_TYPE_SAMPLER2D
+static const SaciU64 SACI_G_TYPE_SIZE_TABLE[SACI_TYPE_MAX + 1] = {
     0, // UNKOWN
     0, // VOIDPTR
 
@@ -189,7 +191,9 @@ static const SaciU64 SACI_G_TYPE_SIZE_TABLE[SACI_TYPE_MAX] = {
     24, // SACI_TYPE_MAT3X2    = 27 (3 * 2 = 6 floats)
     48, // SACI_TYPE_MAT3X4    = 28 (3 * 4 = 12 floats)
     32, // SACI_TYPE_MAT4X2    = 29 (4 * 2 = 8 floats)
-    48  // SACI_TYPE_MAT4X3    = 30 (4 * 3 = 12 floats)
+    48, // SACI_TYPE_MAT4X3    = 30 (4 * 3 = 12 floats)
+
+    0, // SACI_TYPE_NULL
 };
 
 // TODO move to memory/
