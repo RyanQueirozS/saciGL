@@ -4,6 +4,8 @@
 #include "saci_util/types.h"
 #include "saci_util/defines.h"
 
+#include <lua5.4/lua.h>
+
 struct PSaciRendererCfgUniform {
     char* name; // Debug
     SaciDataType type;
@@ -131,9 +133,29 @@ typedef struct {
         char* string;   /* Caller must free */
         void* userdata; /* Lua-owned */
     } data;
-} PSaciCfgValue;
+} PSaciLuaValue;
 
-SACI_API PSaciCfgValue psaci_cfg_get_value(const char* file_path, const char* path_to_value);
+typedef lua_State PSaciLuaState;
+
+typedef void (*PSaciLuaArrayItter)(PSaciLuaState* lua, SaciU64 idx, void* user_data);
+
+SACI_API PSaciLuaState* psaci_lua_load(const char* file_path);
+
+SACI_API void psaci_lua_close(PSaciLuaState* state);
+
+SACI_API void psaci_lua_dump_stack(PSaciLuaState* l);
+
+SACI_API void psaci_lua_pop(PSaciLuaState* lua, int pops);
+
+SACI_API SaciBool psaci_lua_push_to_stack(PSaciLuaState* lua, const char* path_to_value);
+
+SACI_API SaciBool psaci_lua_push_array_entry_to_stack(PSaciLuaState* lua, const SaciU64 idx);
+
+SACI_API SaciBool psaci_lua_array_itter(PSaciLuaState* lua, const char* path_to_array, PSaciLuaArrayItter array_itter, void* user_data);
+
+SACI_API SaciBool psaci_lua_get_value_in_stack(PSaciLuaState* lua, PSaciLuaValue* value_out, const SaciDataType expected_type);
+
+SACI_API SaciU64 psaci_lua_get_array_length_in_stack(PSaciLuaState* lua);
 
 SACI_API void psaci_cfg_get_renderer(const char* name, struct PSaciRendererConfig* cfg_out, const char* cfg_file_path);
 

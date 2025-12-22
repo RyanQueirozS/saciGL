@@ -1,3 +1,4 @@
+// TODO remove the if(!lua) and use dummy checks
 #include "saci_platform/config/config.h"
 
 #include <lua5.4/lauxlib.h>
@@ -14,7 +15,7 @@
 #define PSACI_G_PATH_BUFFER_MAX_WORDS (int)32
 #define PSACI_G_PATH_BUFFER_WORD_MAX_LETERS (int)128
 
-// Only used here, but it saves a lot of annoying uselessly-used space
+// Type only used here, but it saves a lot of annoying uselessly-used space
 typedef char PSaciCfgPathBufferArray[PSACI_G_PATH_BUFFER_MAX_WORDS][PSACI_G_PATH_BUFFER_WORD_MAX_LETERS];
 
 SACI_STATIC PSaciCfgPathBufferArray psaci_g_path_buffer = {0};
@@ -25,12 +26,16 @@ SACI_INTERNAL void psaci__lua_path_to_buffer(
     int* words_out);
 
 SACI_INTERNAL SaciDataType psaci__lua_get_datatype_with_lua_type(int lua_type);
-SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(PSaciLuaState* lua, PSaciCfgLuaValue* value_out);
+SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(PSaciLuaState* lua, PSaciLuaValue* value_out);
 SACI_INTERNAL SaciBool psaci__lua_traverse_to_path(PSaciLuaState* lua, const PSaciCfgPathBufferArray path_buffer, const int word_count);
 
-// config.h
+// lua.h
 
-// TODO reduce complexity
+void psaci_lua_pop(PSaciLuaState* lua, int pops)
+{
+    lua_pop(lua, pops);
+}
+
 SaciBool psaci_lua_push_to_stack(PSaciLuaState* lua, const char* path_to_value)
 {
     if (!lua) {
@@ -73,22 +78,41 @@ SaciBool psaci_lua_push_array_entry_to_stack(PSaciLuaState* lua, const SaciU64 i
     return SACI_TRUE;
 }
 
-PSaciCfgLuaValue psaci_lua_get_value_in_stack(PSaciLuaState* lua)
+SaciBool psaci_lua_array_itter(PSaciLuaState* lua, const char* path_to_array, PSaciLuaArrayItter array_itter, void* user_data)
 {
-    PSaciCfgLuaValue value = {0};
+    psaci_lua_push_to_stack(lua, path_to_array);
+    const SaciU64 length = psaci_lua_get_array_length_in_stack(lua);
+    if (!length) {
+        return SACI_TRUE;
+    }
+    for (SaciU64 i = 0; i < length; ++i) {
+        array_itter(lua, i, user_data);
+    }
+    return SACI_TRUE;
+}
+
+SaciBool psaci_lua_get_value_in_stack(PSaciLuaState* lua, PSaciLuaValue* value_out, const SaciDataType expected_type)
+{
     if (!lua) {
-        return value;
+        return SACI_FALSE;
     }
 
-    value.type = psaci__lua_get_datatype_with_lua_type(lua_type(lua, -1));
-    if (!psaci__lua_get_value_through_type(lua, &value)) {
+    SaciDataType type = psaci__lua_get_datatype_with_lua_type(lua_type(lua, -1));
+    if (type != expected_type) {
+        SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
+                          SACI_LOG_CONTEXT_CORE_CONFIG,
+                          "Type in config (%d) does not match what is expected (%d)",
+                          type, expected_type);
+    }
+    value_out->type = type;
+    if (!psaci__lua_get_value_through_type(lua, value_out)) {
         SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
                          SACI_LOG_CONTEXT_CORE_CONFIG,
                          "Could not find type for value in lua stack");
-        return (PSaciCfgLuaValue){0}; // Empty result to not cause any errors with the caller of the func
+        return SACI_FALSE;
     }
 
-    return value;
+    return SACI_TRUE;
 }
 
 SaciU64 psaci_lua_get_array_length_in_stack(PSaciLuaState* lua)
@@ -219,7 +243,7 @@ SACI_INTERNAL SaciDataType psaci__lua_get_datatype_with_lua_type(int ltype)
     }
 }
 
-SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(PSaciLuaState* lua, PSaciCfgLuaValue* value_out)
+SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(PSaciLuaState* lua, PSaciLuaValue* value_out)
 {
     switch (lua_type(lua, -1)) {
     case LUA_TNUMBER:
