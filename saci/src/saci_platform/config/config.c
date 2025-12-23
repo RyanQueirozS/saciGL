@@ -1,5 +1,4 @@
 #include "saci_platform/config/config.h"
-#include "saci_platform/config/internal/config.h"
 
 #include "saci_util/memory.h"
 #include "saci_util/defines.h"
@@ -16,6 +15,13 @@ struct PSaciSymbolTable {
     const char* name;
     void** func_out;
 };
+
+// Iterables for the get_renderer_pool function
+SACI_INTERNAL void psaci__cfg_lua_iterable_vertex_layout(PSaciLuaState* lua, SaciU64 idx, void* user_data);
+SACI_INTERNAL void psaci__cfg_lua_iterable_uniform_name(PSaciLuaState* lua, SaciU64 idx, void* user_data);
+SACI_INTERNAL void psaci__cfg_lua_iterable_sampler_name(PSaciLuaState* lua, SaciU64 idx, void* user_data);
+SACI_INTERNAL void psaci__cfg_lua_iterable_batch_instance_buffers_name(PSaciLuaState* lua, SaciU64 idx, void* user_data);
+SACI_INTERNAL void psaci__cfg_lua_iterable_batch_instance_buffer_layout_name(PSaciLuaState* lua, SaciU64 idx, void* user_data);
 
 SACI_INTERNAL SaciMemPool* psaci__cfg_manager_get_renderer_pool(PSaciLuaState* cfg_state);
 
@@ -36,13 +42,6 @@ SACI_INTERNAL void psaci__load_renderer_pipeline(PSaciLuaState* lua, struct PSac
 void psaci_cfg_get_renderer(const char* name, struct PSaciRendererConfig* cfg_out, const char* cfg_file_path)
 {
     PSaciLuaState* lua = psaci_lua_load(cfg_file_path);
-
-    if (!psaci_lua_push_global_table(lua, "Saci_Backend") ||
-        !psaci_lua_push_field_table(lua, "renderers") ||
-        !psaci_lua_push_field_table(lua, name)) {
-        psaci_lua_close(lua);
-        return;
-    }
 
     SaciMemPool* pool = psaci__cfg_manager_get_renderer_pool(lua);
 
@@ -71,119 +70,111 @@ void psaci_cfg_cleanup_renderer_cfg(struct PSaciRendererConfig* cfg)
 
 /* === Internal Impl === */
 
+struct PSaciCfgArrayEntry {
+    const char* path;
+    PSaciLuaArrayIter iter;
+};
+
+const struct PSaciCfgArrayEntry psaci_g_cfg_renderer_pool_length_table[] = {
+    {"vertex.layout", psaci__cfg_lua_iterable_vertex_layout},
+    {"uniforms", psaci__cfg_lua_iterable_uniform_name},
+    {"samplers", psaci__cfg_lua_iterable_sampler_name},
+    {"batch.instances.buffers", psaci__cfg_lua_iterable_batch_instance_buffers_name},
+};
+
+SACI_INTERNAL void psaci__cfg_lua_get_length_name(
+    PSaciLuaState* lua,
+    SaciU64* total_size,
+    SaciU64 struct_size)
+{
+    struct PSaciLuaValue val = {0};
+    if (!psaci_lua_get_value(lua, "name", &val, SACI_TYPE_STRING)) {
+        return;
+    }
+    *total_size += SACI_STRSIZE_M(val.data.string) + struct_size;
+}
+
+void psaci__cfg_lua_iterable_vertex_layout(
+    PSaciLuaState* lua,
+    SaciU64 idx,
+    void* user_data)
+{
+    (void)idx;
+    psaci__cfg_lua_get_length_name(lua, (SaciU64*)user_data, sizeof(struct PSaciRendererCfgVertexLayout));
+}
+
+void psaci__cfg_lua_iterable_uniform_name(
+    PSaciLuaState* lua,
+    SaciU64 idx,
+    void* user_data)
+{
+    (void)idx;
+    psaci__cfg_lua_get_length_name(lua, (SaciU64*)user_data, sizeof(struct PSaciRendererCfgUniform));
+}
+
+void psaci__cfg_lua_iterable_sampler_name(
+    PSaciLuaState* lua,
+    SaciU64 idx,
+    void* user_data)
+{
+    (void)idx;
+    psaci__cfg_lua_get_length_name(lua, (SaciU64*)user_data, sizeof(struct PSaciRendererCfgSampler));
+}
+
+void psaci__cfg_lua_iterable_batch_instance_buffers_name(
+    PSaciLuaState* lua,
+    SaciU64 idx,
+    void* user_data)
+{
+    (void)idx;
+
+    psaci_lua_array_iter(lua, "layout", psaci__cfg_lua_iterable_batch_instance_buffer_layout_name, user_data, NULL);
+
+    SaciU64* total_size = (SaciU64*)user_data;
+    struct PSaciLuaValue val = {0};
+
+    if (!psaci_lua_get_value(lua, "name", &val, SACI_TYPE_STRING)) {
+        return;
+    }
+    *total_size += sizeof(struct PSaciRendererCfgInstanceBuffer);
+}
+
+void psaci__cfg_lua_iterable_batch_instance_buffer_layout_name(
+    PSaciLuaState* lua,
+    SaciU64 idx,
+    void* user_data)
+{
+    (void)idx;
+
+    SaciU64* total_size = (SaciU64*)user_data;
+    struct PSaciLuaValue val = {0};
+
+    if (!psaci_lua_get_value(lua, "name", &val, SACI_TYPE_STRING)) {
+        return;
+    }
+    *total_size += sizeof(struct PSaciRendererCfgInstanceBufferLayout) + SACI_STRSIZE_M(val.data.string);
+}
+
 // Returns a memory pool with preallocated memory to use in the renderer cfg.
-SACI_INTERNAL SaciMemPool* psaci__cfg_manager_get_renderer_pool(PSaciLuaState* cfg_state)
+SaciMemPool* psaci__cfg_manager_get_renderer_pool(PSaciLuaState* lua)
 {
     SaciU64 total_size = 0;
+    struct PSaciLuaValue val = {0};
 
-    if (psaci_lua_push_field_table(cfg_state, "vertex")) {
-        if (psaci_lua_push_field_array(cfg_state, "layout")) {
-            SaciU64 count = psaci_lua_get_array_length(cfg_state);
-            total_size += count * sizeof(struct PSaciRendererCfgVertexLayout);
-
-            for (SaciU64 i = 0; i < count; ++i) {
-                if (psaci_lua_push_array_entry(cfg_state, i)) {
-                    const char* name = psaci_lua_get_str(cfg_state, "name");
-                    if (name) {
-                        total_size += (strlen(name) + 1) * sizeof(char);
-                    }
-                    psaci_lua_pop(cfg_state, 1);
-                }
-            }
-            psaci_lua_pop(cfg_state, 1); // pop layout array
-        }
-        psaci_lua_pop(cfg_state, 1); // pop vertex table
+    for (SaciU64 i = 0; i < SACI_ARRLEN_M(psaci_g_cfg_renderer_pool_length_table); ++i) {
+        struct PSaciCfgArrayEntry entry = psaci_g_cfg_renderer_pool_length_table[i];
+        SaciU64 array_length = 0;
+        psaci_lua_array_iter(lua, entry.path, entry.iter, &total_size, &array_length);
     }
 
-    if (psaci_lua_push_field_table(cfg_state, "shaders")) {
-        const char* frag = psaci_lua_get_str(cfg_state, "frag");
-        const char* vert = psaci_lua_get_str(cfg_state, "vert");
-        const char* geom = psaci_lua_get_str(cfg_state, "geom");
-
-        if (frag) {
-            total_size += (strlen(frag) + 1) * sizeof(char);
-        }
-        if (vert) {
-            total_size += (strlen(vert) + 1) * sizeof(char);
-        }
-        if (geom) {
-            total_size += (strlen(geom) + 1) * sizeof(char);
-        }
-
-        psaci_lua_pop(cfg_state, 1); // pop shaders table
+    if (psaci_lua_get_value(lua, "shader.frag", &val, SACI_TYPE_STRING)) {
+        total_size += SACI_STRSIZE_M(val.data.string);
     }
-
-    if (psaci_lua_push_field_array(cfg_state, "uniforms")) {
-        SaciU64 count = psaci_lua_get_array_length(cfg_state);
-        total_size += count * sizeof(struct PSaciRendererCfgUniform);
-
-        for (SaciU64 i = 0; i < count; ++i) {
-            if (psaci_lua_push_array_entry(cfg_state, i)) {
-                const char* name = psaci_lua_get_str(cfg_state, "name");
-                if (name) {
-                    total_size += (strlen(name) + 1) * sizeof(char);
-                }
-                psaci_lua_pop(cfg_state, 1);
-            }
-        }
-        psaci_lua_pop(cfg_state, 1); // pop uniforms array
+    if (psaci_lua_get_value(lua, "shader.vert", &val, SACI_TYPE_STRING)) {
+        total_size += SACI_STRSIZE_M(val.data.string);
     }
-
-    if (psaci_lua_push_field_array(cfg_state, "samplers")) {
-        SaciU64 count = psaci_lua_get_array_length(cfg_state);
-        total_size += count * sizeof(struct PSaciRendererCfgSampler);
-
-        for (SaciU64 i = 0; i < count; ++i) {
-            if (psaci_lua_push_array_entry(cfg_state, i)) {
-                const char* name = psaci_lua_get_str(cfg_state, "name");
-                if (name) {
-                    total_size += (strlen(name) + 1) * sizeof(char);
-                }
-                psaci_lua_pop(cfg_state, 1);
-            }
-        }
-        psaci_lua_pop(cfg_state, 1); // pop samplers array
-    }
-
-    if (psaci_lua_push_field_table(cfg_state, "batch")) {
-        if (psaci_lua_push_field_table(cfg_state, "instances")) {
-            if (psaci_lua_push_field_array(cfg_state, "buffers")) {
-                SaciU64 buffer_count = psaci_lua_get_array_length(cfg_state);
-                total_size += buffer_count * sizeof(struct PSaciRendererCfgInstanceBuffer);
-
-                for (SaciU64 b = 0; b < buffer_count; ++b) {
-                    if (psaci_lua_push_array_entry(cfg_state, b)) {
-                        const char* buff_name = psaci_lua_get_str(cfg_state, "name");
-                        if (buff_name) {
-                            total_size += (strlen(buff_name) + 1) * sizeof(char);
-                        }
-
-                        // Handle layout array inside each buffer
-                        if (psaci_lua_push_field_array(cfg_state, "layout")) {
-                            SaciU64 layout_count = psaci_lua_get_array_length(cfg_state);
-                            total_size += layout_count * sizeof(struct PSaciRendererCfgInstanceBufferLayout);
-
-                            for (SaciU64 l = 0; l < layout_count; ++l) {
-                                if (psaci_lua_push_array_entry(cfg_state, l)) {
-                                    const char* layout_name = psaci_lua_get_str(cfg_state, "name");
-                                    if (layout_name) {
-                                        total_size += (strlen(layout_name) + 1) * sizeof(char);
-                                    }
-                                    psaci_lua_pop(cfg_state, 1);
-                                }
-                            }
-                            psaci_lua_pop(cfg_state, 1); // pop layout array
-                        }
-
-                        psaci_lua_pop(cfg_state, 1); // pop buffer entry
-                    }
-                }
-
-                psaci_lua_pop(cfg_state, 1); // pop buffers array
-            }
-            psaci_lua_pop(cfg_state, 1); // pop instances table
-        }
-        psaci_lua_pop(cfg_state, 1); // pop batch table
+    if (psaci_lua_get_value(lua, "shader.geom", &val, SACI_TYPE_STRING)) {
+        total_size += SACI_STRSIZE_M(val.data.string);
     }
 
     return saci_mem_create_pool(SACI_MEM_CONTEXT_CONFIG, total_size);
@@ -191,40 +182,40 @@ SACI_INTERNAL SaciMemPool* psaci__cfg_manager_get_renderer_pool(PSaciLuaState* c
 
 void psaci__load_renderer_vertex_data(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool)
 {
-    if (!psaci_lua_push_field_table(lua, "vertex")) {
-        return;
-    }
-
-    if (psaci_lua_push_field_array(lua, "layout")) {
-        SaciU64 count = psaci_lua_get_array_length(lua);
-        cfg_out->vertex_data.layout_array_length = count;
-        cfg_out->vertex_data.layout_array = saci_mem_pool_alloc(pool, count * sizeof(struct PSaciRendererCfgVertexLayout));
-        cfg_out->vertex_data.element_size_internal = 0;
-
-        for (SaciU64 i = 0; i < count; ++i) {
-            if (psaci_lua_push_array_entry(lua, i)) {
-                struct PSaciRendererCfgVertexLayout layout = {
-                    .type = SACI_CAST_M(SaciDataType)(psaci_lua_get_enum(lua, "type")),
-                    .offset = psaci_lua_get_uint64(lua, "offset"),
-                    .location = psaci_lua_get_uint32(lua, "location"),
-                };
-
-                const char* name_str = psaci_lua_get_str(lua, "name");
-                if (name_str) {
-                    SaciU64 size = (strlen(name_str) + 1) * sizeof(char);
-                    layout.name = saci_mem_pool_alloc(pool, size);
-                    saci_mem_safe_copy(layout.name, size, 0, name_str, size, 0, size);
-                }
-
-                cfg_out->vertex_data.layout_array[i] = layout;
-                psaci_lua_pop(lua, 1);
-            }
-        }
-
-        psaci_lua_pop(lua, 1);
-    }
-
-    psaci_lua_pop(lua, 1);
+    // if (!psaci_lua_push_field_table(lua, "vertex")) {
+    //     return;
+    // }
+    //
+    // if (psaci_lua_push_field_array(lua, "layout")) {
+    //     SaciU64 count = psaci_lua_get_array_length(lua);
+    //     cfg_out->vertex_data.layout_array_length = count;
+    //     cfg_out->vertex_data.layout_array = saci_mem_pool_alloc(pool, count * sizeof(struct PSaciRendererCfgVertexLayout));
+    //     cfg_out->vertex_data.element_size_internal = 0;
+    //
+    //     for (SaciU64 i = 0; i < count; ++i) {
+    //         if (psaci_lua_push_array_entry(lua, i)) {
+    //             struct PSaciRendererCfgVertexLayout layout = {
+    //                 .type = SACI_CAST_M(SaciDataType)(psaci_lua_get_enum(lua, "type")),
+    //                 .offset = psaci_lua_get_uint64(lua, "offset"),
+    //                 .location = psaci_lua_get_uint32(lua, "location"),
+    //             };
+    //
+    //             const char* name_str = psaci_lua_get_str(lua, "name");
+    //             if (name_str) {
+    //                 SaciU64 size = (strlen(name_str) + 1) * sizeof(char);
+    //                 layout.name = saci_mem_pool_alloc(pool, size);
+    //                 saci_mem_safe_copy(layout.name, size, 0, name_str, size, 0, size);
+    //             }
+    //
+    //             cfg_out->vertex_data.layout_array[i] = layout;
+    //             psaci_lua_pop(lua, 1);
+    //         }
+    //     }
+    //
+    //     psaci_lua_pop(lua, 1);
+    // }
+    //
+    // psaci_lua_pop(lua, 1);
 }
 
 void psaci__load_renderer_index_data(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out)

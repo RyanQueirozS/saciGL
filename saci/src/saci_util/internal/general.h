@@ -63,12 +63,15 @@
 
 #define SACI_TEXTURE_INVALID (UINT32_MAX)
 
-#define SACI_HAS_FLAG(var, flag) (((var) & (flag)) == (flag))
+#define SACI_HAS_FLAG_M(var, flag) (((var) & (flag)) == (flag))
 
-#define SACI_ADD_FLAG(var, flag) ((var) |= (flag))
+#define SACI_ADD_FLAG_M(var, flag) ((var) |= (flag))
 
-#define SACI_REMOVE_FLAG(var, flag) ((var) &= ~(flag))
+#define SACI_REMOVE_FLAG_M(var, flag) ((var) &= ~(flag))
 
-#define SACI_TOGGLE_FLAG(var, flag) ((var) ^= (flag))
+#define SACI_TOGGLE_FLAG_M(var, flag) ((var) ^= (flag))
+
+// For some reason, strlen does not count the '\0' char. Why???
+#define SACI_STRSIZE_M(str) ((strlen(str) + 1) * sizeof(char))
 
 #endif // SACI_UTILS_SU_GENERAL_H

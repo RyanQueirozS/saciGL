@@ -125,7 +125,7 @@ struct PSaciRendererConfig {
     struct PSaciRendererCfgPipeline pipeline;
 };
 
-typedef struct {
+struct PSaciLuaValue {
     SaciDataType type;
     union {
         double number;
@@ -133,11 +133,11 @@ typedef struct {
         char* string;   /* Caller must free */
         void* userdata; /* Lua-owned */
     } data;
-} PSaciLuaValue;
+};
 
 typedef lua_State PSaciLuaState;
 
-typedef void (*PSaciLuaArrayItter)(PSaciLuaState* lua, SaciU64 idx, void* user_data);
+typedef void (*PSaciLuaArrayIter)(PSaciLuaState* lua, SaciU64 idx, void* user_data);
 
 SACI_API PSaciLuaState* psaci_lua_load(const char* file_path);
 
@@ -151,9 +151,10 @@ SACI_API SaciBool psaci_lua_push_to_stack(PSaciLuaState* lua, const char* path_t
 
 SACI_API SaciBool psaci_lua_push_array_entry_to_stack(PSaciLuaState* lua, const SaciU64 idx);
 
-SACI_API SaciBool psaci_lua_array_itter(PSaciLuaState* lua, const char* path_to_array, PSaciLuaArrayItter array_itter, void* user_data);
+SACI_API SaciBool psaci_lua_array_iter(PSaciLuaState* lua, const char* path_to_array, PSaciLuaArrayIter array_iter, void* user_data, SaciU64* array_length_out);
 
-SACI_API SaciBool psaci_lua_get_value_in_stack(PSaciLuaState* lua, PSaciLuaValue* value_out, const SaciDataType expected_type);
+// Already pops the data for the "path_to_value"
+SACI_API SaciBool psaci_lua_get_value(PSaciLuaState* lua, const char* path_to_value, struct PSaciLuaValue* value_out, const SaciDataType expected_type);
 
 SACI_API SaciU64 psaci_lua_get_array_length_in_stack(PSaciLuaState* lua);
 

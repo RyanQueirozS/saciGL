@@ -26,7 +26,7 @@ SACI_INTERNAL void psaci__lua_path_to_buffer(
     int* words_out);
 
 SACI_INTERNAL SaciDataType psaci__lua_get_datatype_with_lua_type(int lua_type);
-SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(PSaciLuaState* lua, PSaciLuaValue* value_out);
+SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(PSaciLuaState* lua, struct PSaciLuaValue* value_out);
 SACI_INTERNAL SaciBool psaci__lua_traverse_to_path(PSaciLuaState* lua, const PSaciCfgPathBufferArray path_buffer, const int word_count);
 
 // lua.h
@@ -78,23 +78,56 @@ SaciBool psaci_lua_push_array_entry_to_stack(PSaciLuaState* lua, const SaciU64 i
     return SACI_TRUE;
 }
 
-SaciBool psaci_lua_array_itter(PSaciLuaState* lua, const char* path_to_array, PSaciLuaArrayItter array_itter, void* user_data)
+SaciBool psaci_lua_array_iter(PSaciLuaState* lua, const char* path_to_array, PSaciLuaArrayIter array_iter, void* user_data, SaciU64* array_length_out)
 {
-    psaci_lua_push_to_stack(lua, path_to_array);
+    int word_count = 0;
+    if (path_to_array) {
+        psaci__lua_path_to_buffer(path_to_array, psaci_g_path_buffer, &word_count);
+
+        if (!word_count) {
+            SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
+                              SACI_LOG_CONTEXT_CORE_CONFIG,
+                              "Empty path to array %s", path_to_array);
+            return SACI_FALSE;
+        }
+
+        psaci__lua_traverse_to_path(lua, psaci_g_path_buffer, word_count);
+    }
+
     const SaciU64 length = psaci_lua_get_array_length_in_stack(lua);
     if (!length) {
         return SACI_TRUE;
     }
-    for (SaciU64 i = 0; i < length; ++i) {
-        array_itter(lua, i, user_data);
+    if (array_length_out) {
+        *array_length_out = length;
     }
+    for (SaciU64 i = 0; i < length; ++i) {
+        psaci_lua_push_array_entry_to_stack(lua, i);
+        array_iter(lua, i, user_data);
+        psaci_lua_pop(lua, 1);
+    }
+    psaci_lua_pop(lua, word_count);
     return SACI_TRUE;
 }
 
-SaciBool psaci_lua_get_value_in_stack(PSaciLuaState* lua, PSaciLuaValue* value_out, const SaciDataType expected_type)
+SaciBool psaci_lua_get_value(PSaciLuaState* lua, const char* path_to_value, struct PSaciLuaValue* value_out, const SaciDataType expected_type)
 {
     if (!lua) {
         return SACI_FALSE;
+    }
+
+    int word_count = 0;
+    if (path_to_value) {
+        psaci__lua_path_to_buffer(path_to_value, psaci_g_path_buffer, &word_count);
+
+        if (!word_count) {
+            SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
+                              SACI_LOG_CONTEXT_CORE_CONFIG,
+                              "Empty path to value %s", path_to_value);
+            return SACI_FALSE;
+        }
+
+        psaci__lua_traverse_to_path(lua, psaci_g_path_buffer, word_count);
     }
 
     SaciDataType type = psaci__lua_get_datatype_with_lua_type(lua_type(lua, -1));
@@ -110,6 +143,10 @@ SaciBool psaci_lua_get_value_in_stack(PSaciLuaState* lua, PSaciLuaValue* value_o
                          SACI_LOG_CONTEXT_CORE_CONFIG,
                          "Could not find type for value in lua stack");
         return SACI_FALSE;
+    }
+
+    if (path_to_value) {
+        psaci_lua_pop(lua, word_count);
     }
 
     return SACI_TRUE;
@@ -243,7 +280,7 @@ SACI_INTERNAL SaciDataType psaci__lua_get_datatype_with_lua_type(int ltype)
     }
 }
 
-SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(PSaciLuaState* lua, PSaciLuaValue* value_out)
+SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(PSaciLuaState* lua, struct PSaciLuaValue* value_out)
 {
     switch (lua_type(lua, -1)) {
     case LUA_TNUMBER:
