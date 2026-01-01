@@ -145,13 +145,15 @@ SACI_API void psaci_lua_close(PSaciLuaState* state);
 
 SACI_API void psaci_lua_dump_stack(PSaciLuaState* l);
 
+SACI_API void psaci_lua_clear_stack(PSaciLuaState* lua);
+
 SACI_API void psaci_lua_pop(PSaciLuaState* lua, int pops);
 
 SACI_API SaciBool psaci_lua_push_to_stack(PSaciLuaState* lua, const char* path_to_value);
 
 SACI_API SaciBool psaci_lua_push_array_entry_to_stack(PSaciLuaState* lua, const SaciU64 idx);
 
-SACI_API SaciBool psaci_lua_array_iter(PSaciLuaState* lua, const char* path_to_array, PSaciLuaArrayIter array_iter, void* user_data, SaciU64* array_length_out);
+SACI_API SaciBool psaci_lua_array_iter(PSaciLuaState* lua, const char* path_to_array, PSaciLuaArrayIter array_iter, void* user_data);
 
 // Already pops the data for the "path_to_value"
 SACI_API SaciBool psaci_lua_get_value(PSaciLuaState* lua, const char* path_to_value, struct PSaciLuaValue* value_out, const SaciDataType expected_type);

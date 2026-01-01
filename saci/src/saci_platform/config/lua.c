@@ -31,6 +31,11 @@ SACI_INTERNAL SaciBool psaci__lua_traverse_to_path(PSaciLuaState* lua, const PSa
 
 // lua.h
 
+void psaci_lua_clear_stack(PSaciLuaState* lua)
+{
+    lua_settop(lua, 0);
+}
+
 void psaci_lua_pop(PSaciLuaState* lua, int pops)
 {
     lua_pop(lua, pops);
