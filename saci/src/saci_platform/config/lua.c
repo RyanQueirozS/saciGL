@@ -1,6 +1,8 @@
 // TODO remove the if(!lua) and use dummy checks
 #include "saci_platform/config/config.h"
 
+#include "saci_util/internal/general.h"
+
 #include <lua5.4/lauxlib.h>
 #include <lua5.4/lualib.h>
 #include <lua5.4/lua.h>
@@ -83,7 +85,7 @@ SaciBool psaci_lua_push_array_entry_to_stack(PSaciLuaState* lua, const SaciU64 i
     return SACI_TRUE;
 }
 
-SaciBool psaci_lua_array_iter(PSaciLuaState* lua, const char* path_to_array, PSaciLuaArrayIter array_iter, void* user_data, SaciU64* array_length_out)
+SaciBool psaci_lua_array_iter(PSaciLuaState* lua, const char* path_to_array, PSaciLuaArrayIter array_iter, void* user_data)
 {
     int word_count = 0;
     if (path_to_array) {
@@ -102,9 +104,6 @@ SaciBool psaci_lua_array_iter(PSaciLuaState* lua, const char* path_to_array, PSa
     const SaciU64 length = psaci_lua_get_array_length_in_stack(lua);
     if (!length) {
         return SACI_TRUE;
-    }
-    if (array_length_out) {
-        *array_length_out = length;
     }
     for (SaciU64 i = 0; i < length; ++i) {
         psaci_lua_push_array_entry_to_stack(lua, i);
@@ -166,7 +165,29 @@ SaciU64 psaci_lua_get_array_length_in_stack(PSaciLuaState* lua)
     return lua_rawlen(lua, -1);
 }
 
-// internal/config.h
+SaciU64 psaci_lua_get_array_length(PSaciLuaState* lua, const char* path_to_array)
+{
+    if (!lua) {
+        return SACI_FALSE;
+    }
+
+    int word_count = 0;
+    if (path_to_array) {
+        psaci__lua_path_to_buffer(path_to_array, psaci_g_path_buffer, &word_count);
+
+        if (!word_count) {
+            SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
+                              SACI_LOG_CONTEXT_CORE_CONFIG,
+                              "Empty path to value %s", path_to_array);
+            return SACI_FALSE;
+        }
+
+        psaci__lua_traverse_to_path(lua, psaci_g_path_buffer, word_count);
+    }
+    SaciU64 arr_len = psaci_lua_get_array_length_in_stack(lua);
+    psaci_lua_pop(lua, word_count);
+    return arr_len;
+}
 
 PSaciLuaState* psaci_lua_load(const char* file_path)
 {
@@ -220,6 +241,17 @@ void psaci_lua_dump_stack(PSaciLuaState* l)
         }
     }
     printf("---------------------------\n");
+}
+
+// internal/lua.h
+
+void psaci_lua_get_length_name(PSaciLuaState* lua, SaciU64* total_size, SaciU64 struct_size)
+{
+    struct PSaciLuaValue val = {0};
+    if (!psaci_lua_get_value(lua, "name", &val, SACI_TYPE_STRING)) {
+        return;
+    }
+    *total_size += SACI_STRSIZE_M(val.data.string) + struct_size;
 }
 
 // Internal

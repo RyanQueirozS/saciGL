@@ -43,6 +43,8 @@ SACI_API SaciBool psaci_lua_get_value(PSaciLuaState* lua, const char* path_to_va
 
 SACI_API SaciU64 psaci_lua_get_array_length_in_stack(PSaciLuaState* lua);
 
+SACI_API SaciU64 psaci_lua_get_array_length(PSaciLuaState* lua, const char* path_to_array);
+
 /* === Renderer CFG === */
 
 // TODO evaluate if these should be exposed
@@ -132,7 +134,7 @@ struct PSaciRendererCfgPipeline {
     struct PSaciRendererCfgBlend blend;
 };
 
-struct PSaciRendererConfig {
+struct PSaciConfigRenderer {
     char* name; // Debug
     struct {
         char* frag;
@@ -165,10 +167,10 @@ struct PSaciRendererConfig {
     struct PSaciRendererCfgPipeline pipeline;
 };
 
-SACI_API void psaci_cfg_get_renderer(const char* name, struct PSaciRendererConfig* cfg_out, const char* cfg_file_path);
+SACI_API void psaci_cfg_renderer_get(const char* name, struct PSaciConfigRenderer* cfg_out, const char* cfg_file_path);
 
-SACI_API SaciU64 psaci_cfg_render_cfg_size(const struct PSaciRendererConfig* cfg);
+SACI_API SaciU64 psaci_cfg_renderer_cfg_size(const struct PSaciConfigRenderer* cfg);
 
-SACI_API void psaci_cfg_cleanup_renderer_cfg(struct PSaciRendererConfig* cfg);
+SACI_API void psaci_cfg_renderer_cleanup_cfg(struct PSaciConfigRenderer* cfg);
 
 #endif // SACI_PLATFORM_CONFIG_CONFIG_H

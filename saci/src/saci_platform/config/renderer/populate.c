@@ -1,228 +1,47 @@
 #include "saci_platform/config/config.h"
 
-#include "saci_util/memory.h"
-#include "saci_util/defines.h"
-#include "saci_util/log.h"
+#include "saci_platform/config/internal/prealloc.h"
+#include "saci_platform/config/internal/lua.h"
 
+#include "saci_util/defines.h"
 #include "saci_util/internal/general.h"
-#include "saci_util/internal/log.h"
 
 #include <string.h>
 
-/* === Internal === */
+/* = Internal = */
 
-/* === Iterables get_renderer_pool Func === */
-SACI_INTERNAL void psaci__cfg_iterable_vertex_layout_size(PSaciLuaState*, SaciU64 idx, void* user_data);
-SACI_INTERNAL void psaci__cfg_iterable_uniform_size(PSaciLuaState*, SaciU64 idx, void* user_data);
-SACI_INTERNAL void psaci__cfg_iterable_sampler_size(PSaciLuaState*, SaciU64 idx, void* user_data);
-SACI_INTERNAL void psaci__cfg_iterable_batch_instance_buffers_size(PSaciLuaState*, SaciU64 idx, void* user_data);
-SACI_INTERNAL void psaci__cfg_iterable_batch_instance_buffer_layout_name(PSaciLuaState*, SaciU64 idx, void* user_data);
+/* == Iterable Funcs == */
 
-SACI_INTERNAL SaciMemPool* psaci__cfg_get_renderer_pool(PSaciLuaState*, const char* name);
+SACI_INTERNAL void psaci__cfg_renderer_iterable_vertex_layout(PSaciLuaState*, SaciU64 idx, void* user_data);
+SACI_INTERNAL void psaci__cfg_renderer_iterable_vertex_data(PSaciLuaState*, SaciU64 idx, void* user_data);
 
-/* === Preallocate Funcs === */
-struct PSaciCfgRendererPreallocEntity {
-    const char* path_to_value;
-    SaciU64* length_ptr;
-    void** data_ptr;
-    const SaciU64 STRUCT_SIZE;
+/* == Populate Funcs == */
+
+SACI_INTERNAL void psaci__cfg_renderer_populate_iterable_fields(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out);
+
+/* = renderer_populate.h Implementation = */
+
+void psaci_cfg_renderer_populate_fields(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out)
+{
+    psaci__cfg_renderer_populate_iterable_fields(lua, cfg_out);
+}
+
+/* = Internal Implementation = */
+
+/* == Internal Iterable Funcs == */
+
+SACI_INTERNAL_CONST struct PSaciCfgArrayIterablePathTable PSACI_G_CFG_RENDERER_FILL_TABLE[] = {
+    {"vertex.layout", psaci__cfg_renderer_iterable_vertex_data},
 };
 
-SACI_INTERNAL void psaci__cfg_load_preallocate_component_array(PSaciLuaState* lua, SaciMemPool* pool, struct PSaciCfgRendererPreallocEntity prealloc_entity);
-SACI_INTERNAL void psaci__cfg_load_preallocate_system(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool);
-
-/* === Iterables Load Funcs === */
-
-// All user_data in this section is PSaciCfgLoadRendererPool
-SACI_INTERNAL void psaci__cfg_iterable_load_vertex_data(PSaciLuaState*, SaciU64 idx, void* user_data);
-
-/* === Load Funcs === */
-SACI_INTERNAL void psaci__cfg_load_iterable_fields(PSaciLuaState*, struct PSaciRendererConfig* cfg_out);
-
-SACI_INTERNAL void psaci__cfg_load_renderer_vertex_data(PSaciLuaState*, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool);
-SACI_INTERNAL void psaci__cfg_load_renderer_index_data(PSaciLuaState*, struct PSaciRendererConfig* cfg_out);
-SACI_INTERNAL void psaci__cfg_load_renderer_shaders(PSaciLuaState*, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool);
-SACI_INTERNAL void psaci__cfg_load_renderer_uniforms(PSaciLuaState*, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool);
-SACI_INTERNAL void psaci__cfg_load_renderer_samplers(PSaciLuaState*, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool);
-SACI_INTERNAL void psaci__cfg_load_renderer_batch(PSaciLuaState*, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool);
-SACI_INTERNAL void psaci__cfg_load_renderer_bound(PSaciLuaState*, struct PSaciRendererConfig* cfg_out);
-SACI_INTERNAL void psaci__cfg_load_renderer_draw(PSaciLuaState*, struct PSaciRendererConfig* cfg_out);
-SACI_INTERNAL void psaci__cfg_load_renderer_pipeline(PSaciLuaState*, struct PSaciRendererConfig* cfg_out);
-
-/* === config.h Impl === */
-
-void psaci_cfg_get_renderer(const char* name, struct PSaciRendererConfig* cfg_out, const char* cfg_file_path)
+void psaci__cfg_renderer_iterable_vertex_data(PSaciLuaState* lua, SaciU64 idx, void* user_data)
 {
-    PSaciLuaState* lua = psaci_lua_load(cfg_file_path);
+    struct PSaciConfigRenderer* cfg = (struct PSaciConfigRenderer*)user_data;
 
-    SaciMemPool* pool = psaci__cfg_get_renderer_pool(lua, name);
-
-    cfg_out->name = saci_mem_pool_cpy_str(name, pool);
-
-    psaci__cfg_load_iterable_fields(lua, cfg_out);
-
-    psaci__cfg_load_renderer_vertex_data(lua, cfg_out, pool);
-    psaci__cfg_load_renderer_index_data(lua, cfg_out);
-    psaci__cfg_load_renderer_shaders(lua, cfg_out, pool);
-    psaci__cfg_load_renderer_uniforms(lua, cfg_out, pool);
-    psaci__cfg_load_renderer_samplers(lua, cfg_out, pool);
-    psaci__cfg_load_renderer_batch(lua, cfg_out, pool);
-    psaci__cfg_load_renderer_bound(lua, cfg_out);
-    psaci__cfg_load_renderer_draw(lua, cfg_out);
-    psaci__cfg_load_renderer_pipeline(lua, cfg_out);
-
-    psaci_lua_close(lua);
-}
-
-SaciU64 psaci_cfg_render_cfg_size(const struct PSaciRendererConfig* cfg)
-{
-    SaciU64 total_size = 0;
-    return total_size;
-}
-
-void psaci_cfg_cleanup_renderer_cfg(struct PSaciRendererConfig* cfg)
-{
-}
-
-/* === Internal Impl === */
-
-SACI_INTERNAL void psaci__cfg_lua_get_length_name(
-    PSaciLuaState* lua,
-    SaciU64* total_size,
-    SaciU64 struct_size)
-{
-    struct PSaciLuaValue val = {0};
-    if (!psaci_lua_get_value(lua, "name", &val, SACI_TYPE_STRING)) {
-        return;
+    struct PSaciLuaValue name = {0};
+    if (psaci_lua_get_value(lua, "name", &name, SACI_TYPE_STRING)) {
+        strcpy(cfg->vertex_data.layout_array[idx].name, name.data.string);
     }
-    *total_size += SACI_STRSIZE_M(val.data.string) + struct_size;
-}
-
-void psaci__cfg_iterable_vertex_layout_size(
-    PSaciLuaState* lua,
-    SaciU64 idx,
-    void* user_data)
-{
-    (void)idx;
-    psaci__cfg_lua_get_length_name(lua, (SaciU64*)user_data, sizeof(struct PSaciRendererCfgVertexLayout));
-}
-
-void psaci__cfg_iterable_uniform_size(
-    PSaciLuaState* lua,
-    SaciU64 idx,
-    void* user_data)
-{
-    (void)idx;
-    psaci__cfg_lua_get_length_name(lua, (SaciU64*)user_data, sizeof(struct PSaciRendererCfgUniform));
-}
-
-void psaci__cfg_iterable_sampler_size(
-    PSaciLuaState* lua,
-    SaciU64 idx,
-    void* user_data)
-{
-    (void)idx;
-    psaci__cfg_lua_get_length_name(lua, (SaciU64*)user_data, sizeof(struct PSaciRendererCfgSampler));
-}
-
-void psaci__cfg_iterable_batch_instance_buffers_size(
-    PSaciLuaState* lua,
-    SaciU64 idx,
-    void* user_data)
-{
-    (void)idx;
-
-    psaci_lua_array_iter(lua, "layout", psaci__cfg_iterable_batch_instance_buffer_layout_name, user_data);
-
-    SaciU64* total_size = (SaciU64*)user_data;
-    struct PSaciLuaValue val = {0};
-
-    if (!psaci_lua_get_value(lua, "name", &val, SACI_TYPE_STRING)) {
-        return;
-    }
-    *total_size += sizeof(struct PSaciRendererCfgInstanceBuffer);
-}
-
-void psaci__cfg_iterable_batch_instance_buffer_layout_name(
-    PSaciLuaState* lua,
-    SaciU64 idx,
-    void* user_data)
-{
-    (void)idx;
-
-    SaciU64* total_size = (SaciU64*)user_data;
-    struct PSaciLuaValue val = {0};
-
-    if (!psaci_lua_get_value(lua, "name", &val, SACI_TYPE_STRING)) {
-        return;
-    }
-    *total_size += sizeof(struct PSaciRendererCfgInstanceBufferLayout) + SACI_STRSIZE_M(val.data.string);
-}
-
-struct PSaciCfgArrayEntry {
-    const char* path;
-    PSaciLuaArrayIter iter;
-};
-
-SACI_INTERNAL_CONST struct PSaciCfgArrayEntry PSACI_G_CFG_RENDERER_POOL_LENGTH_TABLE[4] = {
-    {"vertex.layout", psaci__cfg_iterable_vertex_layout_size},
-    {"uniforms", psaci__cfg_iterable_uniform_size},
-    {"samplers", psaci__cfg_iterable_sampler_size},
-    {"batch.instances.buffers", psaci__cfg_iterable_batch_instance_buffers_size},
-};
-
-// Returns a memory pool with preallocated memory to use in the renderer cfg.
-SaciMemPool* psaci__cfg_get_renderer_pool(PSaciLuaState* lua, const char* name)
-{
-    if (!lua) {
-        return NULL;
-    }
-    SaciU64 total_size = 0;
-    total_size += SACI_STRSIZE_M(name);
-
-    struct PSaciLuaValue val = {0};
-
-    for (SaciU64 i = 0; i < SACI_ARRLEN_M(PSACI_G_CFG_RENDERER_POOL_LENGTH_TABLE); ++i) {
-        struct PSaciCfgArrayEntry entry = PSACI_G_CFG_RENDERER_POOL_LENGTH_TABLE[i];
-        psaci_lua_array_iter(lua, entry.path, entry.iter, &total_size);
-    }
-
-    if (psaci_lua_get_value(lua, "shader.frag", &val, SACI_TYPE_STRING)) {
-        total_size += SACI_STRSIZE_M(val.data.string);
-    }
-    if (psaci_lua_get_value(lua, "shader.vert", &val, SACI_TYPE_STRING)) {
-        total_size += SACI_STRSIZE_M(val.data.string);
-    }
-    if (psaci_lua_get_value(lua, "shader.geom", &val, SACI_TYPE_STRING)) {
-        total_size += SACI_STRSIZE_M(val.data.string);
-    }
-
-    return saci_mem_create_pool(SACI_MEM_CONTEXT_CONFIG, total_size);
-}
-
-void psaci__cfg_load_preallocate_component_array(PSaciLuaState* lua, SaciMemPool* pool, struct PSaciCfgRendererPreallocEntity prealloc_entity)
-{
-    psaci_lua_push_to_stack(lua, prealloc_entity.path_to_value);
-    *prealloc_entity.length_ptr = psaci_lua_get_array_length_in_stack(lua);
-    psaci_lua_clear_stack(lua);
-
-    *prealloc_entity.data_ptr = saci_mem_pool_alloc(pool, prealloc_entity.STRUCT_SIZE * (*prealloc_entity.length_ptr));
-}
-
-void psaci__cfg_load_preallocate_system(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool)
-{
-    struct PSaciCfgRendererPreallocEntity prealloc_table[1] = {
-        {"vertex.data.layout", &cfg_out->vertex_data.layout_array_length, (void**)&cfg_out->vertex_data.layout_array, sizeof(struct PSaciRendererCfgVertexLayout)},
-    };
-    for (SaciU64 i = 0; i < SACI_ARRLEN_M(prealloc_table); ++i) {
-        psaci__cfg_load_preallocate_component_array(lua, pool, prealloc_table[i]);
-    }
-}
-
-void psaci__cfg_iterable_load_vertex_data(PSaciLuaState* lua, SaciU64 idx, void* user_data)
-{
-    (void)idx;
-
     // psaci_lua_get_value(lua, "name");
     // if (psaci_lua_push_field_array(lua, "layout")) {
     //     SaciU64 count = psaci_lua_get_array_length(lua);
@@ -256,19 +75,17 @@ void psaci__cfg_iterable_load_vertex_data(PSaciLuaState* lua, SaciU64 idx, void*
     // psaci_lua_pop(lua, 1);
 }
 
-SACI_INTERNAL_CONST struct PSaciCfgArrayEntry PSACI_G_CFG_RENDERER_FILL_TABLE[] = {
-    {"vertex.layout", psaci__cfg_iterable_load_vertex_data},
-};
+/* == Internal Populate Funcs == */
 
-void psaci__cfg_load_iterable_fields(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out)
+SACI_INTERNAL void psaci__cfg_renderer_populate_iterable_fields(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out)
 {
     for (SaciU64 i = 0; i < SACI_ARRLEN_M(PSACI_G_CFG_RENDERER_FILL_TABLE); ++i) {
-        struct PSaciCfgArrayEntry entry = PSACI_G_CFG_RENDERER_FILL_TABLE[i];
+        struct PSaciCfgArrayIterablePathTable entry = PSACI_G_CFG_RENDERER_FILL_TABLE[i];
         psaci_lua_array_iter(lua, entry.path, entry.iter, &cfg_out);
     }
 }
 
-void psaci__cfg_load_renderer_index_data(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out)
+void psaci__cfg_load_renderer_index_data(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out)
 {
     // if (psaci_lua_push_field_table(lua, "index")) {
     //     cfg_out->index_data.element_size_internal = SACI_G_TYPE_SIZE_TABLE[psaci_lua_get_enum(lua, "element_type")];
@@ -276,7 +93,7 @@ void psaci__cfg_load_renderer_index_data(PSaciLuaState* lua, struct PSaciRendere
     // }
 }
 
-void psaci__cfg_load_renderer_shaders(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool)
+void psaci__cfg_load_renderer_shaders(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out, SaciMemPool* pool)
 {
     // if (!psaci_lua_push_field_table(lua, "shaders")) {
     //     return;
@@ -306,7 +123,7 @@ void psaci__cfg_load_renderer_shaders(PSaciLuaState* lua, struct PSaciRendererCo
     // psaci_lua_pop(lua, 1);
 }
 
-void psaci__cfg_load_renderer_uniforms(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool)
+void psaci__cfg_load_renderer_uniforms(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out, SaciMemPool* pool)
 {
     // if (psaci_lua_push_field_array(lua, "uniforms")) {
     //     SaciU64 count = psaci_lua_get_array_length(lua);
@@ -333,7 +150,7 @@ void psaci__cfg_load_renderer_uniforms(PSaciLuaState* lua, struct PSaciRendererC
     // }
 }
 
-void psaci__cfg_load_renderer_samplers(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool)
+void psaci__cfg_load_renderer_samplers(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out, SaciMemPool* pool)
 {
     // if (psaci_lua_push_field_array(lua, "samplers")) {
     //     SaciU64 count = psaci_lua_get_array_length(lua);
@@ -359,7 +176,7 @@ void psaci__cfg_load_renderer_samplers(PSaciLuaState* lua, struct PSaciRendererC
     // }
 }
 
-void psaci__cfg_load_renderer_batch(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out, SaciMemPool* pool)
+void psaci__cfg_load_renderer_batch(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out, SaciMemPool* pool)
 {
     // if (!psaci_lua_push_field_table(lua, "batch")) {
     //     return;
@@ -442,7 +259,7 @@ void psaci__cfg_load_renderer_batch(PSaciLuaState* lua, struct PSaciRendererConf
     // psaci_lua_pop(lua, 1); // pop batch
 }
 
-void psaci__cfg_load_renderer_bound(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out)
+void psaci__cfg_load_renderer_bound(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out)
 {
     // if (psaci_lua_push_field_table(lua, "bound")) {
     //     cfg_out->bound.index_cfg.capacity = psaci_lua_get_uint64(lua, "index_capacity");
@@ -451,7 +268,7 @@ void psaci__cfg_load_renderer_bound(PSaciLuaState* lua, struct PSaciRendererConf
     // }
 }
 
-void psaci__cfg_load_renderer_draw(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out)
+void psaci__cfg_load_renderer_draw(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out)
 {
     // if (psaci_lua_push_field_table(lua, "draw")) {
     //     cfg_out->draw = (struct PSaciRendererCfgDraw){
@@ -463,7 +280,7 @@ void psaci__cfg_load_renderer_draw(PSaciLuaState* lua, struct PSaciRendererConfi
     // }
 }
 
-void psaci__cfg_load_renderer_pipeline(PSaciLuaState* lua, struct PSaciRendererConfig* cfg_out)
+void psaci__cfg_load_renderer_pipeline(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out)
 {
     // if (psaci_lua_push_field_table(lua, "pipeline")) {
     //     cfg_out->pipeline.depth_test = psaci_lua_get_bool(lua, "depth_test");
