@@ -30,7 +30,12 @@ void psaci_cfg_renderer_prealloc(PSaciLuaState* lua, struct PSaciConfigRenderer*
     }
     *pool_out = psaci__cfg_renderer_get_pool(lua, renderer_name);
     struct PSaciCfgPreallocArrayEntity prealloc_table[1] = {
-        {"vertex.layout", &cfg_out->vertex_data.layout_array_length, (void**)&cfg_out->vertex_data.layout_array, sizeof(struct PSaciRendererCfgVertexLayout)},
+        {
+            "vertex.layout",
+            &cfg_out->vertex_attributes.element_array_length,
+            (void**)&cfg_out->vertex_attributes.element_array,
+            sizeof(struct PSaciRendererCfgVertexAttributes),
+        },
     };
 
     for (SaciU64 i = 0; i < SACI_ARRLEN_M(prealloc_table); ++i) {
@@ -48,7 +53,7 @@ void psaci__cfg_renderer_iterable_vertex_layout_size(
     void* user_data)
 {
     (void)idx;
-    psaci_lua_get_length_name(lua, (SaciU64*)user_data, sizeof(struct PSaciRendererCfgVertexLayout));
+    psaci_lua_get_length_name(lua, (SaciU64*)user_data, sizeof(struct PSaciRendererCfgVertexAttributes));
 }
 
 void psaci__cfg_renderer_iterable_uniform_size(

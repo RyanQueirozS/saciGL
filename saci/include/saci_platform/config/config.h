@@ -61,7 +61,7 @@ struct PSaciRendererCfgSampler {
     SaciU64 unit;
 };
 
-struct PSaciRendererCfgVertexLayout {
+struct PSaciRendererCfgVertexElement {
     char* name;
     SaciDataType type;
     SaciU64 offset;
@@ -146,11 +146,11 @@ struct PSaciConfigRenderer {
     SaciU64 sampler_array_length;
     struct PSaciRendererCfgSampler* sampler_array;
 
-    struct PSaciRendererCfgVertexData {
+    struct PSaciRendererCfgVertexAttributes {
         SaciU64 element_size_internal;
-        SaciU64 layout_array_length;
-        struct PSaciRendererCfgVertexLayout* layout_array;
-    } vertex_data;
+        SaciU64 element_array_length;
+        struct PSaciRendererCfgVertexElement* element_array;
+    } vertex_attributes;
 
     struct {
         SaciU64 element_size_internal;

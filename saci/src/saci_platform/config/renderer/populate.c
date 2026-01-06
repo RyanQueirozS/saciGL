@@ -5,19 +5,28 @@
 
 #include "saci_util/defines.h"
 #include "saci_util/internal/general.h"
+#include "saci_util/internal/log.h"
 
+#include <saci_util/internal/sorting_algorithms.h>
+#include <saci_util/log.h>
+#include <saci_util/types.h>
 #include <string.h>
+#include <time.h>
 
 /* = Internal = */
 
+/* == Iterable Func Helpers == */
+
 /* == Iterable Funcs == */
 
-SACI_INTERNAL void psaci__cfg_renderer_iterable_vertex_layout(PSaciLuaState*, SaciU64 idx, void* user_data);
-SACI_INTERNAL void psaci__cfg_renderer_iterable_vertex_data(PSaciLuaState*, SaciU64 idx, void* user_data);
+SACI_INTERNAL void psaci__cfg_renderer_iterable_vertex_attribute(PSaciLuaState*, SaciU64 idx, void* user_data);
 
 /* == Populate Funcs == */
 
+SACI_INTERNAL void psaci__cfg_renderer_populate_vertex_attributes(PSaciLuaState* lua, struct PSaciRendererCfgVertexAttributes* attribute_out);
+
 SACI_INTERNAL void psaci__cfg_renderer_populate_iterable_fields(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out);
+SACI_INTERNAL void psaci__cfg_renderer_populate_empty_fields(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out);
 
 /* = renderer_populate.h Implementation = */
 
@@ -30,59 +39,93 @@ void psaci_cfg_renderer_populate_fields(PSaciLuaState* lua, struct PSaciConfigRe
 
 /* == Internal Iterable Funcs == */
 
-SACI_INTERNAL_CONST struct PSaciCfgArrayIterablePathTable PSACI_G_CFG_RENDERER_FILL_TABLE[] = {
-    {"vertex.layout", psaci__cfg_renderer_iterable_vertex_data},
-};
-
-void psaci__cfg_renderer_iterable_vertex_data(PSaciLuaState* lua, SaciU64 idx, void* user_data)
+void psaci__cfg_renderer_iterable_vertex_attribute(PSaciLuaState* lua, SaciU64 idx, void* user_data)
 {
     struct PSaciConfigRenderer* cfg = (struct PSaciConfigRenderer*)user_data;
+    struct PSaciLuaValue val = {0};
+    struct {
+        SaciBool has_name, has_type, has_offset, has_location;
+        const char* name;
+        SaciU64 type, offset;
+        SaciU32 location;
+    } fields = {0};
 
-    struct PSaciLuaValue name = {0};
-    if (psaci_lua_get_value(lua, "name", &name, SACI_TYPE_STRING)) {
-        strcpy(cfg->vertex_data.layout_array[idx].name, name.data.string);
+    if (psaci_lua_get_value(lua, "name", &val, SACI_TYPE_STRING)) {
+        fields.has_name = SACI_TRUE;
+        fields.name = val.data.string;
     }
-    // psaci_lua_get_value(lua, "name");
-    // if (psaci_lua_push_field_array(lua, "layout")) {
-    //     SaciU64 count = psaci_lua_get_array_length(lua);
-    //     cfg_out->vertex_data.layout_array_length = count;
-    //     cfg_out->vertex_data.layout_array = saci_mem_pool_alloc(pool, count * sizeof(struct PSaciRendererCfgVertexLayout));
-    //     cfg_out->vertex_data.element_size_internal = 0;
-    //
-    //     for (SaciU64 i = 0; i < count; ++i) {
-    //         if (psaci_lua_push_array_entry(lua, i)) {
-    //             struct PSaciRendererCfgVertexLayout layout = {
-    //                 .type = SACI_CAST_M(SaciDataType)(psaci_lua_get_enum(lua, "type")),
-    //                 .offset = psaci_lua_get_uint64(lua, "offset"),
-    //                 .location = psaci_lua_get_uint32(lua, "location"),
-    //             };
-    //
-    //             const char* name_str = psaci_lua_get_str(lua, "name");
-    //             if (name_str) {
-    //                 SaciU64 size = (strlen(name_str) + 1) * sizeof(char);
-    //                 layout.name = saci_mem_pool_alloc(pool, size);
-    //                 saci_mem_safe_copy(layout.name, size, 0, name_str, size, 0, size);
-    //             }
-    //
-    //             cfg_out->vertex_data.layout_array[i] = layout;
-    //             psaci_lua_pop(lua, 1);
-    //         }
-    //     }
-    //
-    //     psaci_lua_pop(lua, 1);
-    // }
-    //
-    // psaci_lua_pop(lua, 1);
+    if (psaci_lua_get_value(lua, "type", &val, SACI_TYPE_DOUBLE)) {
+        fields.has_type = SACI_TRUE;
+        fields.type = (SaciU64)val.data.number;
+    }
+    if (psaci_lua_get_value(lua, "offset", &val, SACI_TYPE_DOUBLE)) {
+        fields.has_offset = SACI_TRUE;
+        fields.offset = (SaciU64)val.data.number;
+    }
+    if (psaci_lua_get_value(lua, "location", &val, SACI_TYPE_DOUBLE)) {
+        fields.has_location = SACI_TRUE;
+        fields.location = (SaciU32)val.data.number;
+    }
+
+    if (!fields.has_type || !fields.has_location) {
+        SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER,
+                         SACI_LOG_ERROR_SEVERITY_HIGH,
+                         SACI_LOG_CONTEXT_CORE_CONFIG,
+                         "Could not parse vertex attribute: Missing types (type or location)");
+        return;
+    }
+    if (fields.has_name) {
+        strcpy(cfg->vertex_attributes.element_array[idx].name, fields.name);
+    }
+    // Fields like "type", "offset" and "location" are already set through the default
+    // renderer implementation and MIGHT or MIGHT NOT be properly overwritten if
+    // the fields.X is intentionally 0, that is the reason we also check here
+    if (fields.has_type) {
+        cfg->vertex_attributes.element_array[idx].type = (SaciDataType)fields.type;
+    }
+    if (fields.has_offset) {
+        cfg->vertex_attributes.element_array[idx].offset = fields.offset;
+    }
+    if (fields.has_location) {
+        cfg->vertex_attributes.element_array[idx].location = fields.location;
+    }
 }
 
 /* == Internal Populate Funcs == */
 
+SACI_INTERNAL_CONST struct PSaciCfgArrayIterablePathTable PSACI_G_CFG_RENDERER_POPULATE_TABLE[1] = {
+    {"vertex.layout", psaci__cfg_renderer_iterable_vertex_attribute},
+};
+
+SACI_INTERNAL void psaci__cfg_renderer_populate_vertex_attributes(PSaciLuaState* lua, struct PSaciRendererCfgVertexAttributes* attribute_out)
+{
+    if (!saci_bubble_sort_ptr(attribute_out->element_array,
+                              sizeof(struct PSaciRendererCfgVertexElement),
+                              attribute_out->element_array_length,
+                              offsetof(struct PSaciRendererCfgVertexElement, location))) {
+        SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_CRASH,
+                         SACI_LOG_CONTEXT_CORE_CONFIG,
+                         "NULL vertex attribute array while parsing config file");
+    }
+    SaciU64 size_total = 0;
+    for (SaciU64 i = 0; i < attribute_out->element_array_length; ++i) {
+        attribute_out->element_array[i].offset = size_total;
+        size_total += SACI_G_TYPE_SIZE_TABLE[attribute_out->element_array[i].type];
+    }
+    attribute_out->element_size_internal = size_total;
+}
+
 SACI_INTERNAL void psaci__cfg_renderer_populate_iterable_fields(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out)
 {
-    for (SaciU64 i = 0; i < SACI_ARRLEN_M(PSACI_G_CFG_RENDERER_FILL_TABLE); ++i) {
-        struct PSaciCfgArrayIterablePathTable entry = PSACI_G_CFG_RENDERER_FILL_TABLE[i];
+    for (SaciU64 i = 0; i < SACI_ARRLEN_M(PSACI_G_CFG_RENDERER_POPULATE_TABLE); ++i) {
+        struct PSaciCfgArrayIterablePathTable entry = PSACI_G_CFG_RENDERER_POPULATE_TABLE[i];
         psaci_lua_array_iter(lua, entry.path, entry.iter, &cfg_out);
     }
+}
+
+SACI_INTERNAL void psaci__cfg_renderer_populate_empty_fields(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out)
+{
+    psaci__cfg_renderer_populate_vertex_attributes(lua, &cfg_out->vertex_attributes);
 }
 
 void psaci__cfg_load_renderer_index_data(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_out)
