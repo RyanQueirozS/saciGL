@@ -8,8 +8,18 @@
 
 /* === Lua CFG === */
 
+enum PSaciLuaType {
+    PSACI_LUA_TYPE_NIL,
+    PSACI_LUA_TYPE_NUMBER,
+    PSACI_LUA_TYPE_BOOLEAN,
+    PSACI_LUA_TYPE_STRING,
+    PSACI_LUA_TYPE_TABLE,
+    PSACI_LUA_TYPE_USERDATA,
+    PSACI_LUA_TYPE_FUNTION,
+};
+
 struct PSaciLuaValue {
-    SaciDataType type;
+    enum PSaciLuaType type;
     union {
         double number;
         int boolean;
@@ -39,7 +49,9 @@ SACI_API SaciBool psaci_lua_push_array_entry_to_stack(PSaciLuaState* lua, const 
 SACI_API SaciBool psaci_lua_array_iter(PSaciLuaState* lua, const char* path_to_array, PSaciLuaArrayIter array_iter, void* user_data);
 
 // Already pops the data for the "path_to_value"
-SACI_API SaciBool psaci_lua_get_value(PSaciLuaState* lua, const char* path_to_value, struct PSaciLuaValue* value_out, const SaciDataType expected_type);
+SACI_API SaciBool psaci_lua_get_value(PSaciLuaState* lua, const char* path_to_value, struct PSaciLuaValue* value_out, const enum PSaciLuaType expected_type);
+
+SACI_API SaciBool psaci_lua_has_value(PSaciLuaState* lua, const char* path_to_value, enum PSaciLuaType expected_type);
 
 SACI_API SaciU64 psaci_lua_get_array_length_in_stack(PSaciLuaState* lua);
 
@@ -49,9 +61,8 @@ SACI_API SaciU64 psaci_lua_get_array_length(PSaciLuaState* lua, const char* path
 
 // TODO evaluate if these should be exposed
 struct PSaciRendererCfgUniform {
-    char* name; // Debug
+    char* name; // NOT Debug
     SaciDataType type;
-    SaciS32 location;
 };
 
 struct PSaciRendererCfgSampler {

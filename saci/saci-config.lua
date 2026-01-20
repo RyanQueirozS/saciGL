@@ -79,7 +79,7 @@ end
 
 local config = load_env_table("../.env")
 
-Saci_base = {
+Saci = {
 	render_api = {
 		api = "OpenGL",
 		path = config.OPENGL_PATH,
@@ -94,22 +94,39 @@ Saci_base = {
 	},
 }
 
-Saci_Backend = {
+SaciCore = {
 	renderers = {
 		instance = {
-			vertex = {
-				layout = {
-					{ name = "position", type = Saci_Types.VEC3, offset = 0, location = 0 },
-					{ name = "color", type = Saci_Types.COLOR, offset = 12, location = 1 },
-					{ name = "uv", type = Saci_Types.VEC2, offset = 28, location = 2 },
+			buffers = {
+				{
+					name = "buffer 1",
+					layout = {
+						{
+							name = "modelMatrix",
+							type = Saci_Types.MAT4, -- 64 bytes
+							location = 3,
+						},
+						{
+							name = "color",
+							type = Saci_Types.VEC4, -- 16 bytes
+							location = 7,
+						},
+					},
 				},
 			},
-			index = {
-				element_type = Saci_Types.U32,
+		},
+		vertex = {
+			layout = {
+				{ name = "position", type = Saci_Types.VEC3,  offset = 0,  location = 0 },
+				{ name = "color",    type = Saci_Types.COLOR, offset = 12, location = 1 },
+				{ name = "uv",       type = Saci_Types.VEC2,  offset = 28, location = 2 },
 			},
-
-			shaders = {
-				frag = [[
+		},
+		index = {
+			element_type = Saci_Types.U32,
+		},
+		shaders = {
+			frag = [[
                 #version 330 core
 
                 in vec4 v_color;
@@ -129,7 +146,7 @@ Saci_Backend = {
                         frag_color = v_color;
                     }
                 }]],
-				vert = [[
+			vert = [[
                 #version 330 core
 
                 layout (location = 0) in vec3 a_pos;
@@ -152,93 +169,73 @@ Saci_Backend = {
                     v_color = a_color + i_color;
                     v_texcoord = a_texcoord;
                 }]],
-				geom = nil,
+			geom = nil,
+		},
+		uniforms = {
+			{
+				name = "u_texture",
+				type = Saci_Types.SAMPLER_2D,
+				location = 0,
 			},
-			uniforms = {
-				{
-					name = "u_texture",
-					type = Saci_Types.SAMPLER_2D,
-					location = 0,
-				},
-				{
-					name = "u_use_texture",
-					type = Saci_Types.BOOL,
-					location = 1,
-				},
-				{
-					name = "u_model_matrix",
-					type = Saci_Types.MAT4,
-					location = 2,
-				},
-				{
-					name = "u_view_matrix",
-					type = Saci_Types.MAT4,
-					location = 3,
-				},
-				{
-					name = "u_projection_matrix",
-					type = Saci_Types.MAT4,
-					location = 4,
-				},
-				{
-					name = "u_flags",
-					type = Saci_Types.S32,
-					location = 5,
-				},
-				{
-					name = "u_lighting",
-					type = Saci_Types.VEC4,
-					location = 6,
-				},
+			{
+				name = "u_use_texture",
+				type = Saci_Types.BOOL,
+				location = 1,
 			},
-			samplers = {
-				{ name = "", type = Saci_Types.SAMPLER_2D, binding = 0, unit = 0 },
+			{
+				name = "u_model_matrix",
+				type = Saci_Types.MAT4,
+				location = 2,
 			},
-			batch = {
-				capacity = 10,
+			{
+				name = "u_view_matrix",
+				type = Saci_Types.MAT4,
+				location = 3,
+			},
+			{
+				name = "u_projection_matrix",
+				type = Saci_Types.MAT4,
+				location = 4,
+			},
+			{
+				name = "u_flags",
+				type = Saci_Types.S32,
+				location = 5,
+			},
+			{
+				name = "u_lighting",
+				type = Saci_Types.VEC4,
+				location = 6,
+			},
+		},
+		samplers = {
+			{ name = "", type = Saci_Types.SAMPLER_2D, binding = 0, unit = 0 },
+		},
+		batch = {
+			capacity = 10,
 
-				index = {
-					capacity = 1000,
-				},
-				vertex = {
-					capacity = 1000,
-				},
-				instances = {
-					capacity = 1000,
-					buffers = {
-						{
-							name = "buffer 1",
-							layout = {
-								{
-									name = "modelMatrix",
-									type = Saci_Types.MAT4, -- 64 bytes
-									offset = 0,
-									location = 3,
-								},
-								{
-									name = "color",
-									type = Saci_Types.VEC4, -- 16 bytes
-									offset = 64,
-									location = 7,
-								},
-							},
-						},
-					},
-				},
+			index = {
+				capacity = 1000,
 			},
-			bound = {
-				index_capacity = 1000,
-				instance_capacity = 10,
+			vertex = {
+				capacity = 1000,
 			},
-			draw = {
-				primitive = Saci_Primites.TRIANGLES,
-				cull_mode = Saci_CullMode.BACK,
-				front_face = Saci_FrontFace.CCW,
+			instances = {
+				capacity = 1000,
 			},
-			pipeline = {
-				depth_test = true,
-				blend = { enabled = true },
-			},
+		},
+		bound = {
+			index_capacity = 1000,
+			instance_capacity = 10,
+		},
+		draw = {
+			primitive = Saci_Primites.TRIANGLES,
+			cull_mode = Saci_CullMode.BACK,
+			front_face = Saci_FrontFace.CCW,
+		},
+		pipeline = {
+			depth_test = true,
+			blend = { enabled = true },
 		},
 	},
 }
