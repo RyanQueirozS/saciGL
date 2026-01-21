@@ -63,6 +63,7 @@ SACI_API SaciU64 psaci_lua_get_array_length(PSaciLuaState* lua, const char* path
 struct PSaciRendererCfgUniform {
     char* name; // NOT Debug
     SaciDataType type;
+    SaciS32 location_internal;
 };
 
 struct PSaciRendererCfgSampler {
@@ -182,6 +183,21 @@ SACI_API void psaci_cfg_renderer_get(const char* name, struct PSaciConfigRendere
 
 SACI_API SaciU64 psaci_cfg_renderer_cfg_size(const struct PSaciConfigRenderer* cfg);
 
-SACI_API void psaci_cfg_renderer_cleanup_cfg(struct PSaciConfigRenderer* cfg);
+SACI_API void psaci_cfg_renderer_cleanup(struct PSaciConfigRenderer* cfg);
+
+enum {
+    PSACI_CONFIG_RENDERER_PRINT_OPT_SHADERS = 1 << 0,
+    PSACI_CONFIG_RENDERER_PRINT_OPT_UNIFORMS = 1 << 1,
+    PSACI_CONFIG_RENDERER_PRINT_OPT_SAMPLERS = 1 << 2,
+    PSACI_CONFIG_RENDERER_PRINT_OPT_VERTEX_ATTRIB = 1 << 3,
+    PSACI_CONFIG_RENDERER_PRINT_OPT_INDEX_DATA = 1 << 4,
+    PSACI_CONFIG_RENDERER_PRINT_OPT_INSTANCE_DATA = 1 << 5,
+    PSACI_CONFIG_RENDERER_PRINT_OPT_BATCH = 1 << 6,
+    PSACI_CONFIG_RENDERER_PRINT_OPT_BOUND = 1 << 7,
+    PSACI_CONFIG_RENDERER_PRINT_OPT_DRAW_DATA = 1 << 8,
+    PSACI_CONFIG_RENDERER_PRINT_OPT_PIPELINE = 1 << 9,
+};
+
+SACI_API void psaci_cfg_renderer_print(const struct PSaciConfigRenderer* cfg, int print_opts);
 
 #endif // SACI_PLATFORM_CONFIG_CONFIG_H
