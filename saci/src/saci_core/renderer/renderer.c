@@ -13,19 +13,19 @@
 #include <stdio.h>
 
 // Internal
-SACI_INTERNAL void csaci__init_instance_buffers(struct PSaciRendererConfig* cfg_out);
+SACI_INTERNAL void csaci__init_instance_buffers(struct PSaciConfigRenderer* cfg_out);
 
-SACI_INTERNAL void csaci__renderer_instance_fill_default(struct PSaciRendererConfig* cfg_out, const union PSaciGFXInfo* gfx_info);
+SACI_INTERNAL void csaci__renderer_instance_fill_default(struct PSaciConfigRenderer* cfg_out, const union PSaciGFXInfo* gfx_info);
 
-SACI_INTERNAL_CONST struct PSaciRendererConfig CSACI_G_INSTANCE_CONFIG_DEFAULT = {
+SACI_INTERNAL_CONST struct PSaciConfigRenderer CSACI_G_INSTANCE_CONFIG_DEFAULT = {
     .name = "instance",
-    .vertex_data = {
-        .layout_array = (struct PSaciRendererCfgVertexLayout[3]){
+    .vertex_attributes = {
+        .element_array = (struct PSaciRendererCfgVertexElement[3]){
             {.name = "position", .type = SACI_TYPE_VEC3, .offset = 0, .location = 0},
             {.name = "color", .type = SACI_TYPE_COLOR, .offset = 12, .location = 1},
             {.name = "uv", .type = SACI_TYPE_UV, .offset = 28, .location = 2},
         },
-        .layout_array_length = 3,
+        .element_array_length = 3,
         .element_size_internal = 36,
     },
     .index_data = {
@@ -130,7 +130,7 @@ SACI_INTERNAL_CONST struct PSaciRendererConfig CSACI_G_INSTANCE_CONFIG_DEFAULT =
 
 CSaciRenderer* csaci_renderer_new(const enum CSaciRendererType type, const char* name)
 {
-    struct PSaciRendererConfig cfg = {0};
+    struct PSaciConfigRenderer cfg = {0};
     union PSaciGFXInfo info = {0};
     const char* name_ptr = name;
 
@@ -148,7 +148,7 @@ CSaciRenderer* csaci_renderer_new(const enum CSaciRendererType type, const char*
             break;
         }
     }
-    psaci_cfg_get_renderer(name_ptr, &cfg, psaci_dependencies_get_cfg_file_path());
+    psaci_cfg_renderer_get(name_ptr, &cfg, psaci_dependencies_get_cfg_file_path());
     csaci_init_shaders(&cfg, &info);
     csaci__renderer_instance_fill_default(&cfg, &info);
     SaciMemPool* pool = csaci_renderer_get_pool_from_cfg(&cfg, type);
@@ -164,7 +164,7 @@ CSaciRenderer* csaci_renderer_new(const enum CSaciRendererType type, const char*
         break;
     case CSACI_RENDERER_INSTANCE:
         rendr->interface = &CSACI_G_RENDERER_INSTANCE_INTERFACE_DEFAULT_INITIALIZER;
-        rendr->interface->new(rendr, pool, &cfg, &info);
+        rendr->interface->new (rendr, pool, &cfg, &info);
         break;
     }
     return rendr;
@@ -218,7 +218,7 @@ void csaci_renderer_free(struct CSaciRenderer* rendr)
     rendr->interface->free(rendr);
 }
 
-void csaci_renderer_init_bound(struct CSaciRendererBound* bound_out, const struct PSaciRendererConfig cfg, SaciMemPool* mem)
+void csaci_renderer_init_bound(struct CSaciRendererBound* bound_out, const struct PSaciConfigRenderer cfg, SaciMemPool* mem)
 {
     // bound_out->index_array = su_darray_create(
     //     cfg.bound.index_cfg.capacity,
@@ -232,15 +232,15 @@ void csaci_renderer_init_bound(struct CSaciRendererBound* bound_out, const struc
     //     SACI_FALSE);
 }
 
-void csaci_init_uniforms(struct PSaciRendererConfig* cfg_out, const union PSaciGFXInfo* gfx_info)
+void csaci_init_uniforms(struct PSaciConfigRenderer* cfg_out, const union PSaciGFXInfo* gfx_info)
 {
     SACI_INTERNAL struct PSaciRendererCfgUniform csaci__uniform_array[6] = {
-        {.name = NULL, .location = 0, .type = SACI_TYPE_MAT4},
-        {.name = NULL, .location = 0, .type = SACI_TYPE_MAT4},
-        {.name = NULL, .location = 0, .type = SACI_TYPE_MAT4},
-        {.name = NULL, .location = 0, .type = SACI_TYPE_S32},
-        {.name = NULL, .location = 0, .type = SACI_TYPE_VEC4},
-        {.name = NULL, .location = 0, .type = SACI_TYPE_VEC4},
+        {.name = NULL, .location_internal = 0, .type = SACI_TYPE_MAT4},
+        {.name = NULL, .location_internal = 0, .type = SACI_TYPE_MAT4},
+        {.name = NULL, .location_internal = 0, .type = SACI_TYPE_MAT4},
+        {.name = NULL, .location_internal = 0, .type = SACI_TYPE_S32},
+        {.name = NULL, .location_internal = 0, .type = SACI_TYPE_VEC4},
+        {.name = NULL, .location_internal = 0, .type = SACI_TYPE_VEC4},
     };
 
     if (!csaci__uniform_array[0].name) {
@@ -252,7 +252,7 @@ void csaci_init_uniforms(struct PSaciRendererConfig* cfg_out, const union PSaciG
         csaci__uniform_array[5].name = "u_use_texture";
 
         for (SaciU64 i = 0; i < SACI_ARRLEN_M(csaci__uniform_array); ++i) {
-            csaci__uniform_array[i].location = psaci_gfx_get_uniform_loc(gfx_info, csaci__uniform_array[i].name);
+            csaci__uniform_array[i].location_internal = psaci_gfx_get_uniform_loc(gfx_info, csaci__uniform_array[i].name);
         }
     }
 
@@ -270,7 +270,7 @@ void csaci_init_uniforms(struct PSaciRendererConfig* cfg_out, const union PSaciG
     }
 }
 
-void csaci_init_samplers(struct PSaciRendererConfig* cfg_out, const union PSaciGFXInfo* gfx_info)
+void csaci_init_samplers(struct PSaciConfigRenderer* cfg_out, const union PSaciGFXInfo* gfx_info)
 {
     SACI_INTERNAL struct PSaciRendererCfgSampler csaci__sampler_array[1] = {
         {.name = NULL, .binding = 0, .type = SACI_TYPE_SAMPLER2D}};
@@ -292,24 +292,7 @@ void csaci_init_samplers(struct PSaciRendererConfig* cfg_out, const union PSaciG
     }
 }
 
-void csaci_init_vertex_layout(struct PSaciRendererConfig* cfg_out)
-{
-    SACI_STATIC struct PSaciRendererCfgVertexLayout csaci__v_layout[3] = {
-        {.name = "pos", .type = SACI_TYPE_VEC3, .location = 0, .offset = 0},
-        {.name = "color", .type = SACI_TYPE_VEC4, .location = 1, .offset = 12},
-        {.name = "uv", .type = SACI_TYPE_UV, .location = 2, .offset = 38},
-    };
-    SaciU64 size_of_elements =
-        SACI_G_TYPE_SIZE_TABLE[csaci__v_layout[0].type] +
-        SACI_G_TYPE_SIZE_TABLE[csaci__v_layout[1].type] +
-        SACI_G_TYPE_SIZE_TABLE[csaci__v_layout[2].type];
-
-    cfg_out->vertex_data.layout_array = csaci__v_layout;
-    cfg_out->vertex_data.layout_array_length = SACI_ARRLEN_M(csaci__v_layout);
-    cfg_out->vertex_data.element_size_internal = size_of_elements;
-}
-
-void csaci_init_shaders(struct PSaciRendererConfig* cfg, union PSaciGFXInfo* info_out)
+void csaci_init_shaders(struct PSaciConfigRenderer* cfg, union PSaciGFXInfo* info_out)
 {
     psaci_gfx_init_shader(info_out, *cfg);
 }
@@ -390,10 +373,10 @@ union PSaciGFXUniformValue csaci_renderer_uniform_value_from_type(SaciDataType t
     return result;
 }
 
-SaciMemPool* csaci_renderer_get_pool_from_cfg(const struct PSaciRendererConfig* cfg, enum CSaciRendererType type)
+SaciMemPool* csaci_renderer_get_pool_from_cfg(const struct PSaciConfigRenderer* cfg, enum CSaciRendererType type)
 {
     SaciU64 total_size = 0,
-            vertex_size = cfg->vertex_data.element_size_internal,
+            vertex_size = cfg->vertex_attributes.element_size_internal,
             index_size = cfg->index_data.element_size_internal,
             batch_capacity = cfg->batch.capacity;
 
@@ -433,7 +416,7 @@ SaciMemPool* csaci_renderer_get_pool_from_cfg(const struct PSaciRendererConfig* 
     return saci_mem_create_pool(SACI_MEM_CONTEXT_RENDERER, total_size);
 }
 
-void csaci_renderer_cfg_copy_and_cleanup(struct PSaciRendererConfig* dest, struct PSaciRendererConfig* src, SaciMemPool* pool)
+void csaci_renderer_cfg_copy_and_cleanup(struct PSaciConfigRenderer* dest, struct PSaciConfigRenderer* src, SaciMemPool* pool)
 {
     if (!src || !dest || !pool) {
         return;
@@ -447,8 +430,8 @@ void csaci_renderer_cfg_copy_and_cleanup(struct PSaciRendererConfig* dest, struc
         dest->uniform_array_length = src->uniform_array_length;
         dest->sampler_array_length = src->sampler_array_length;
 
-        dest->vertex_data.element_size_internal = src->vertex_data.element_size_internal;
-        dest->vertex_data.layout_array_length = src->vertex_data.layout_array_length;
+        dest->vertex_attributes.element_size_internal = src->vertex_attributes.element_size_internal;
+        dest->vertex_attributes.element_array_length = src->vertex_attributes.element_array_length;
 
         dest->index_data.element_size_internal = src->index_data.element_size_internal;
 
@@ -486,16 +469,16 @@ void csaci_renderer_cfg_copy_and_cleanup(struct PSaciRendererConfig* dest, struc
         }
     }
     {
-        if (src->vertex_data.layout_array_length > 0 && src->vertex_data.layout_array) {
-            dest->vertex_data.layout_array = (struct PSaciRendererCfgVertexLayout*)
-                saci_mem_pool_alloc(pool, sizeof(struct PSaciRendererCfgVertexLayout) * src->vertex_data.layout_array_length);
+        if (src->vertex_attributes.element_array_length > 0 && src->vertex_attributes.element_array) {
+            dest->vertex_attributes.element_array = (struct PSaciRendererCfgVertexElement*)
+                saci_mem_pool_alloc(pool, sizeof(struct PSaciRendererCfgVertexElement) * src->vertex_attributes.element_array_length);
 
-            for (SaciU64 i = 0; i < src->vertex_data.layout_array_length; ++i) {
-                dest->vertex_data.layout_array[i] = src->vertex_data.layout_array[i];
-                dest->vertex_data.layout_array[i].name = saci_mem_pool_cpy_str(src->vertex_data.layout_array[i].name, pool);
+            for (SaciU64 i = 0; i < src->vertex_attributes.element_array_length; ++i) {
+                dest->vertex_attributes.element_array[i] = src->vertex_attributes.element_array[i];
+                dest->vertex_attributes.element_array[i].name = saci_mem_pool_cpy_str(src->vertex_attributes.element_array[i].name, pool);
             }
         } else {
-            dest->vertex_data.layout_array = NULL;
+            dest->vertex_attributes.element_array = NULL;
         }
     }
     {
@@ -527,12 +510,12 @@ void csaci_renderer_cfg_copy_and_cleanup(struct PSaciRendererConfig* dest, struc
         }
     }
 
-    psaci_cfg_cleanup_renderer_cfg(dest);
+    psaci_cfg_renderer_cleanup(dest);
 }
 
 // Internal
 
-SACI_INTERNAL void csaci__renderer_instance_fill_default(struct PSaciRendererConfig* cfg_out, const union PSaciGFXInfo* gfx_info)
+SACI_INTERNAL void csaci__renderer_instance_fill_default(struct PSaciConfigRenderer* cfg_out, const union PSaciGFXInfo* gfx_info)
 {
     csaci_init_uniforms(cfg_out, gfx_info);
     csaci_init_samplers(cfg_out, gfx_info);
@@ -540,7 +523,7 @@ SACI_INTERNAL void csaci__renderer_instance_fill_default(struct PSaciRendererCon
     csaci__init_instance_buffers(cfg_out);
 }
 
-SACI_INTERNAL void csaci__init_instance_buffers(struct PSaciRendererConfig* cfg_out)
+SACI_INTERNAL void csaci__init_instance_buffers(struct PSaciConfigRenderer* cfg_out)
 {
     if (!cfg_out->instance_data.buffer_array) {
         // TODO remove magic numbers, have this as a constant value somewhere else

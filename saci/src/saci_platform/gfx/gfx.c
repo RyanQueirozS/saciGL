@@ -30,7 +30,7 @@ SACI_STATIC enum PSaciRenderApi sb__render_api = PSACI_RENDERER_API_OPENGL;
 SACI_STATIC struct SaciMemPool* psaci_g_instance_draw_data_pool = NULL; // Used in sb__gfx_join_instance_data
 
 // Init
-SACI_INTERNAL void psaci__gfx_gl_init_info(union PSaciGFXInfo* info_out, const struct PSaciRendererConfig cfg);
+SACI_INTERNAL void psaci__gfx_gl_init_info(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer cfg);
 
 // Draw
 SACI_INTERNAL void psaci__gfx_join_instance_data(const struct PSaciGFXDrawData* draw_data, void** instance_data_array_out, SaciU64* instance_data_array_size_out);
@@ -75,7 +75,7 @@ void psaci_gfx_load_proc(PSaciGfxProcAddress addrs)
 }
 #endif
 
-void psaci_gfx_init_shader(union PSaciGFXInfo* info_out, const struct PSaciRendererConfig cfg)
+void psaci_gfx_init_shader(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer cfg)
 {
     SACI_LOG_ASSERT_M(cfg.shaders.vert, SACI_LOG_CONTEXT_GFX, "Vertex shader is empty or NULL");
     SACI_LOG_ASSERT_M(cfg.shaders.frag, SACI_LOG_CONTEXT_GFX, "Frag shader is empty or NULL");
@@ -99,7 +99,7 @@ void psaci_gfx_init_shader(union PSaciGFXInfo* info_out, const struct PSaciRende
 #endif
 }
 
-void psaci_gfx_create(union PSaciGFXInfo* info_out, const struct PSaciRendererConfig cfg)
+void psaci_gfx_create(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer cfg)
 {
     psaci_g_instance_draw_data_pool = saci_mem_create_pool(SACI_MEM_CONTEXT_GFX, sizeof(SaciMat4) * 10000); // TODO remove the magic numbers and perhaps redo the whole chunk stuff
     switch (psaci_g_render_api) {
@@ -243,10 +243,10 @@ void psaci_gfx_initialize_renderer_debugger(void* debug_func)
 
 SACI_INTERNAL void psaci__gfx_gl_create_main_buffers(
     union PSaciGFXInfo* info_out,
-    const struct PSaciRendererConfig cfg)
+    const struct PSaciConfigRenderer cfg)
 {
     info_out->gl_data.vbo = psaci_gl_create_vertex_buffer_dynamic(
-        cfg.batch.vertex_cfg.capacity * cfg.vertex_data.element_size_internal,
+        cfg.batch.vertex_cfg.capacity * cfg.vertex_attributes.element_size_internal,
         NULL);
 
     info_out->gl_data.ibo = psaci_gl_create_index_buffer_dynamic(
@@ -257,22 +257,22 @@ SACI_INTERNAL void psaci__gfx_gl_create_main_buffers(
 }
 
 SACI_INTERNAL void psaci__gfx_gl_setup_vertex_attributes(
-    const struct PSaciRendererConfig cfg,
+    const struct PSaciConfigRenderer cfg,
     SaciBufferId vao,
     SaciBufferId vbo)
 {
     psaci_gl_bind_vertex_array(vao);
     psaci_gl_bind_vertex_buffer(vbo);
 
-    for (SaciU64 i = 0; i < cfg.vertex_data.layout_array_length; ++i) {
-        const struct PSaciRendererCfgVertexLayout layout = cfg.vertex_data.layout_array[i];
+    for (SaciU64 i = 0; i < cfg.vertex_attributes.element_array_length; ++i) {
+        const struct PSaciRendererCfgVertexElement layout = cfg.vertex_attributes.element_array[i];
 
         psaci_gl_set_vertex_attrib_pointer(
             layout.location,
             SACI_CAST_M(SaciS32)(SACI_G_TYPE_SIZE_TABLE[layout.type]),
             psaci_gl_type_to_gl(layout.type),
             SACI_FALSE,
-            cfg.vertex_data.element_size_internal,
+            cfg.vertex_attributes.element_size_internal,
             SACI_CAST_M(void*)(layout.offset));
         psaci_gl_enable_vertex_attrib_array(
             SACI_CAST_M(SaciU64)(layout.location));
@@ -281,7 +281,7 @@ SACI_INTERNAL void psaci__gfx_gl_setup_vertex_attributes(
 
 SACI_INTERNAL void psaci__gfx_gl_setup_instance_buffers(
     union PSaciGFXInfo* info_out,
-    const struct PSaciRendererConfig cfg)
+    const struct PSaciConfigRenderer cfg)
 {
     if (!cfg.instance_data.buffer_array_length) {
         return;
@@ -322,7 +322,7 @@ SACI_INTERNAL void psaci__gfx_gl_setup_instance_buffers(
 
 SACI_INTERNAL void psaci__gfx_gl_init_info(
     union PSaciGFXInfo* info_out,
-    const struct PSaciRendererConfig cfg)
+    const struct PSaciConfigRenderer cfg)
 {
     SACI_LOG_ASSERT_M(cfg.shaders.vert, SACI_LOG_CONTEXT_GFX, "GL vert shader is empty");
     SACI_LOG_ASSERT_M(cfg.shaders.frag, SACI_LOG_CONTEXT_GFX, "GL frag shader is empty");

@@ -3,7 +3,6 @@
 
 #include "saci_util/internal/log.h"
 #include "saci_util/log.h"
-#include "saci_util/math.h"
 #include "saci_util/memory.h"
 #include "saci_util/darray.h"
 #include "saci_util/types.h"
@@ -11,6 +10,7 @@
 #include "saci_platform/gfx/internal/gfx.h"
 
 #include "saci_platform/dependencies/dependency.h"
+#include <saci_platform/config/config.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -53,11 +53,11 @@ SACI_INTERNAL const struct CSaciRendererInterface CSACI_G_INSTANCE_RENDERER_DEFA
 
 SACI_INTERNAL void csaci__renderer_init_instance_batch(struct CSaciInstanceRenderer* rendr);
 
-SACI_INTERNAL void csaci__renderer_init_bound_extra(struct CSaciInstanceBoundExtra* bound_extra, const struct PSaciRendererConfig cfg, SaciMemPool* mem);
+SACI_INTERNAL void csaci__renderer_init_bound_extra(struct CSaciInstanceBoundExtra* bound_extra, const struct PSaciConfigRenderer cfg, SaciMemPool* mem);
 
 /* --- PUBLIC FUNCS --- */
 
-void csaci_renderer_instanced_new(struct CSaciRenderer* self, SaciMemPool* mem, struct PSaciRendererConfig* cfg, union PSaciGFXInfo* info)
+void csaci_renderer_instanced_new(struct CSaciRenderer* self, SaciMemPool* mem, struct PSaciConfigRenderer* cfg, union PSaciGFXInfo* info)
 {
     SACI_LOG_ASSERT_M(self && mem && cfg && info, SACI_LOG_CONTEXT_RENDERER_INSTANCE, "Empty or null parameters for new isntance renderer");
 
@@ -66,7 +66,7 @@ void csaci_renderer_instanced_new(struct CSaciRenderer* self, SaciMemPool* mem, 
     self->rendr.instance_renderer->gfx = *info;
     self->interface = &CSACI_G_INSTANCE_RENDERER_DEFAULT_INTERFACE;
 
-    psaci_cfg_cleanup_renderer_cfg(&rendr->cfg);
+    psaci_cfg_renderer_cleanup(&rendr->cfg);
     csaci__renderer_init_instance_batch(rendr);
     psaci_gfx_create(&rendr->gfx, rendr->cfg);
     csaci_renderer_init_bound(&rendr->bound, rendr->cfg, mem);
@@ -298,10 +298,10 @@ SACI_INTERNAL void csaci__renderer_draw_instance_batch(const struct CSaciRendere
 
 SACI_INTERNAL void csaci__renderer_init_instance_batch(struct CSaciInstanceRenderer* rendr)
 {
-    struct PSaciRendererConfig cfg = rendr->cfg;
+    struct PSaciConfigRenderer cfg = rendr->cfg;
 
     const SaciU64 index_size = cfg.index_data.element_size_internal * cfg.batch.index_cfg.capacity;
-    const SaciU64 vertex_size = cfg.vertex_data.element_size_internal * cfg.batch.vertex_cfg.capacity;
+    const SaciU64 vertex_size = cfg.vertex_attributes.element_size_internal * cfg.batch.vertex_cfg.capacity;
     const SaciU64 instance_size = cfg.batch.instance_cfg.capacity * sizeof(struct PSaciGFXInstanceData);
     const SaciU64 uniform_size = cfg.uniform_array_length * sizeof(struct PSaciGFXUniformData);
     const SaciU64 batch_capacity = cfg.batch.capacity;
@@ -327,7 +327,7 @@ SACI_INTERNAL void csaci__renderer_init_instance_batch(struct CSaciInstanceRende
             saci_darray_create_ctx_void(saci_mem_chunk_get_ptr(vertex_chunk, i),
                                         vertex_size,
                                         cfg.batch.vertex_cfg.capacity,
-                                        cfg.vertex_data.element_size_internal);
+                                        cfg.vertex_attributes.element_size_internal);
 
         batch->instance_data_array =
             saci_darray_create_ctx_void(saci_mem_chunk_get_ptr(instance_chunk, i),
@@ -346,7 +346,7 @@ SACI_INTERNAL void csaci__renderer_init_instance_batch(struct CSaciInstanceRende
                           SACI_LOG_CONTEXT_RENDERER_INSTANCE, "Could not create batch's arrays");
 
         batch->index_data.struct_size = cfg.index_data.element_size_internal;
-        batch->vertex_data.struct_size = cfg.vertex_data.element_size_internal;
+        batch->vertex_data.struct_size = cfg.vertex_attributes.element_size_internal;
 
         for (SaciU8 j = 0; j < SACI_MAX_TEXTURES; ++j) {
             rendr->batch_array[i].texture_array[j].gl.texture = 0;
@@ -355,7 +355,7 @@ SACI_INTERNAL void csaci__renderer_init_instance_batch(struct CSaciInstanceRende
     }
 }
 
-SACI_INTERNAL void csaci__renderer_init_bound_extra(struct CSaciInstanceBoundExtra* bound_extra, const struct PSaciRendererConfig cfg, SaciMemPool* pool)
+SACI_INTERNAL void csaci__renderer_init_bound_extra(struct CSaciInstanceBoundExtra* bound_extra, const struct PSaciConfigRenderer cfg, SaciMemPool* pool)
 {
     SaciU64 size = cfg.bound.instance_cfg.capacity * sizeof(struct PSaciGFXInstanceData) + SACI_SIZE_OF_DARRAY;
     void* mem = saci_mem_pool_alloc(pool, size);

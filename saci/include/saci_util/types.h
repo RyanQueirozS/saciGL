@@ -46,7 +46,7 @@ typedef int8_t SaciS8;
 
 #if defined(__cplusplus) && __cplusplus < 201103L
 #  include <cstddef>
-typedef std::uintptr_t SACI_UintPtr;
+typedef std::uintptr_t SaciUintPtr;
 #else
 typedef uintptr_t SaciUintPtr;
 #endif

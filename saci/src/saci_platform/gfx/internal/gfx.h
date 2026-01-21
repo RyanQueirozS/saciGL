@@ -96,9 +96,9 @@ typedef void* (*PSaciGfxProcAddress)(const char*);
 void psaci_gfx_load_proc(PSaciGfxProcAddress addrs);
 #endif
 
-void psaci_gfx_init_shader(union PSaciGFXInfo* info_out, const struct PSaciRendererConfig cfg);
+void psaci_gfx_init_shader(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer cfg);
 
-void psaci_gfx_create(union PSaciGFXInfo* info_out, const struct PSaciRendererConfig cfg);
+void psaci_gfx_create(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer cfg);
 
 void psaci_gfx_clear_color(const SaciColor color);
 

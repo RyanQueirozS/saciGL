@@ -100,7 +100,7 @@ struct CSaciInstanceBoundExtra {
 
 struct CSaciInstanceRenderer {
     union PSaciGFXInfo gfx;
-    struct PSaciRendererConfig cfg;
+    struct PSaciConfigRenderer cfg;
     struct CSaciInstanceBoundExtra bound_extra;
     SaciBufferId instance_transform_vbo;
     SaciBufferId instance_color_vbo;
@@ -118,7 +118,7 @@ typedef void (*CSaciRendererDrawFunction)(CSaciRenderer*);
 typedef void (*CSaciRendererFreeFunction)(CSaciRenderer*);
 
 struct CSaciRendererInterface {
-    void (*new)(struct CSaciRenderer* self, SaciMemPool* mem, struct PSaciRendererConfig* cfg, union PSaciGFXInfo* info);
+    void (*new)(struct CSaciRenderer* self, SaciMemPool* mem, struct PSaciConfigRenderer* cfg, union PSaciGFXInfo* info);
     void (*begin)(const struct CSaciRenderer* self);
     void (*bind_texture)(struct CSaciRenderer* self, union PSaciTexture);
     void (*set_uniform)(struct CSaciRenderer* self, SaciS32, const void* const, SaciDataType);
@@ -170,7 +170,7 @@ struct CSaciRenderer {
 
 #define CSACI_RENDERER_MAX_DYNAMIC_VERT_PER_PUSH (300)
 
-extern void csaci_renderer_instanced_new(struct CSaciRenderer* self, SaciMemPool* mem, struct PSaciRendererConfig* cfg, union PSaciGFXInfo* info); // Implemented in sb-renderer-instance
+extern void csaci_renderer_instanced_new(struct CSaciRenderer* self, SaciMemPool* mem, struct PSaciConfigRenderer* cfg, union PSaciGFXInfo* info); // Implemented in sb-renderer-instance
 
 SACI_INTERNAL const struct CSaciRendererInterface CSACI_G_RENDERER_INSTANCE_INTERFACE_DEFAULT_INITIALIZER =
     {
@@ -179,20 +179,20 @@ SACI_INTERNAL const struct CSaciRendererInterface CSACI_G_RENDERER_INSTANCE_INTE
 
 /* --- FUNCS USED IN OTHER RENDERER FILES --- */
 
-void csaci_renderer_init_bound(struct CSaciRendererBound* bound_out, const struct PSaciRendererConfig cfg, SaciMemPool* mem);
+void csaci_renderer_init_bound(struct CSaciRendererBound* bound_out, const struct PSaciConfigRenderer cfg, SaciMemPool* mem);
 
-void csaci_init_uniforms(struct PSaciRendererConfig* cfg_out, const union PSaciGFXInfo* gfx_info);
+void csaci_init_uniforms(struct PSaciConfigRenderer* cfg_out, const union PSaciGFXInfo* gfx_info);
 
-void csaci_init_samplers(struct PSaciRendererConfig* cfg_out, const union PSaciGFXInfo* gfx_info);
+void csaci_init_samplers(struct PSaciConfigRenderer* cfg_out, const union PSaciGFXInfo* gfx_info);
 
-void csaci_init_vertex_layout(struct PSaciRendererConfig* cfg_out);
+void csaci_init_vertex_layout(struct PSaciConfigRenderer* cfg_out);
 
-void csaci_init_shaders(struct PSaciRendererConfig* cfg, union PSaciGFXInfo* info_out);
+void csaci_init_shaders(struct PSaciConfigRenderer* cfg, union PSaciGFXInfo* info_out);
 
 union PSaciGFXUniformValue csaci_renderer_uniform_value_from_type(SaciDataType type, const void* value);
 
-SaciMemPool* csaci_renderer_get_pool_from_cfg(const struct PSaciRendererConfig* cfg, enum CSaciRendererType type);
+SaciMemPool* csaci_renderer_get_pool_from_cfg(const struct PSaciConfigRenderer* cfg, enum CSaciRendererType type);
 
-void csaci_renderer_cfg_copy_and_cleanup(struct PSaciRendererConfig* src, struct PSaciRendererConfig* dest, SaciMemPool* pool);
+void csaci_renderer_cfg_copy_and_cleanup(struct PSaciConfigRenderer* src, struct PSaciConfigRenderer* dest, SaciMemPool* pool);
 
 #endif // SACI_BACKEND_SB_RENDERER_COMMON_H

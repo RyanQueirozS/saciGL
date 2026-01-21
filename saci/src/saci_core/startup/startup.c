@@ -17,7 +17,7 @@ SaciBool csaci_startup_gfx_load(void)
 
 SaciBool csaci_startup_dependencies_load(void)
 {
-    psaci_dependencies_load();
+    // psaci_dependencies_load();
     return SACI_TRUE;
 }
 
