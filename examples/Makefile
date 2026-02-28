@@ -17,10 +17,10 @@ endif
 CFLAGS_BASE = -x c -std=c11 -Wall -Wextra -O0 -g \
 	-I../saci/include \
 	-I../saci/src \
-	-I../saci/deps/stb \
-	-I../saci/deps/memory \
-	-I../saci/deps/model-loading \
-	-I../saci/deps/ryanqueirozs \
+	-I../saci/vendor/assets-loading \
+	-I../saci/vendor/memory \
+	-I../saci/vendor/model-loading \
+	-I../saci/vendor/dependency-management \
 	-DSACI_DEBUG_MODE_ALL \
 	-DSACI_LIB_PATH=\"./\" \
 	-DSACI_DEFAULT_CONFIG_PATH=\"../saci/saci-config.lua\"

@@ -19,11 +19,6 @@ if("${CMAKE_C_COMPILER}" MATCHES "emcc")
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
 endif()
 
-# --- External Dependencies ---
-if(NOT IS_EMSCRIPTEN)
-    set(GLFW_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/lib/GLFW/libglfw.so.3.4")
-endif()
-
 # --- Gather sources ---
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.c")
 file(GLOB_RECURSE HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.h")
@@ -35,11 +30,10 @@ set_property(TARGET saci PROPERTY C_STANDARD 99)
 
 target_include_directories(saci 
     SYSTEM PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/deps/stb"
-        "${CMAKE_CURRENT_SOURCE_DIR}/deps/memory"
-        "${CMAKE_CURRENT_SOURCE_DIR}/deps/model-loading"
-        "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/deps/ryanqueirozs/"
+        "${CMAKE_CURRENT_SOURCE_DIR}/vendor/assets-loading"
+        "${CMAKE_CURRENT_SOURCE_DIR}/vendor/memory"
+        "${CMAKE_CURRENT_SOURCE_DIR}/vendor/model-loading"
+        "${CMAKE_CURRENT_SOURCE_DIR}/vendor/dependency-management/"
 
     PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
