@@ -9,6 +9,7 @@
 #include <lua5.4/lualib.h>
 #include <lua5.4/lua.h>
 
+#include <saci_util/memory.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +19,13 @@
 
 #define PSACI_G_PATH_BUFFER_MAX_WORDS (int)32
 #define PSACI_G_PATH_BUFFER_WORD_MAX_LETERS (int)128
+
+/* === Internal Declarations === */
+
+// IMPORTANT LUA CUSTOM ALLOCATOR
+SACI_INTERNAL void* psaci__lua_allocator(void* ud, void* ptr, size_t osize, size_t nsize);
+
+// Other funcs:
 
 // Type only used here, but it saves a lot of annoying uselessly-used space
 typedef char PSaciCfgPathBufferArray[PSACI_G_PATH_BUFFER_MAX_WORDS][PSACI_G_PATH_BUFFER_WORD_MAX_LETERS];
@@ -29,11 +37,20 @@ SACI_INTERNAL void psaci__lua_path_to_buffer(
     PSaciCfgPathBufferArray path_buffer_out,
     int* words_out);
 
-SACI_INTERNAL enum PSaciLuaType psaci__lua_get_datatype_with_lua_type(int lua_type);
-SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(PSaciLuaState* lua, struct PSaciLuaValue* value_out);
-SACI_INTERNAL SaciBool psaci__lua_traverse_to_path(PSaciLuaState* lua, const PSaciCfgPathBufferArray path_buffer, const int word_count);
+SACI_INTERNAL enum PSaciLuaType psaci__lua_get_datatype_with_lua_type(
+    int lua_type);
+SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(
+    PSaciLuaState* lua,
+    struct PSaciLuaValue* value_out);
 
-// lua.h
+SACI_INTERNAL SaciBool psaci__lua_traverse_to_path(
+    PSaciLuaState* lua,
+    const PSaciCfgPathBufferArray path_buffer,
+    const int word_count);
+
+SACI_INTERNAL SaciMemChunk* psaci__lua_strdup(const char* src);
+
+/* === Header Implementation === */
 
 void psaci_lua_clear_stack(PSaciLuaState* lua)
 {
@@ -228,7 +245,7 @@ SaciU64 psaci_lua_get_array_length(PSaciLuaState* lua, const char* path_to_array
 
 PSaciLuaState* psaci_lua_load(const char* file_path)
 {
-    lua_State* lua_state = luaL_newstate();
+    lua_State* lua_state = lua_newstate(psaci__lua_allocator, NULL);
     luaL_openlibs(lua_state);
 
     if (luaL_dofile(lua_state, file_path) != LUA_OK) {
@@ -288,10 +305,24 @@ void psaci_lua_get_length_name(PSaciLuaState* lua, SaciU64* total_size, SaciU64 
     if (!psaci_lua_get_value(lua, "name", &val, PSACI_LUA_TYPE_STRING)) {
         return;
     }
-    *total_size += SACI_STRSIZE_M(val.data.string) + struct_size;
+    *total_size += SACI_STRSIZE_M(saci_mem_chunk_get_ptr(val.data.string, 0)) + struct_size;
 }
 
-// Internal
+/* === Internal Implementation === */
+
+SACI_INTERNAL void* psaci__lua_allocator(void* ud, void* ptr, size_t osize, size_t nsize)
+{
+    (void)ud, (void)osize;
+
+    if (nsize == 0) {
+        saci_mem_chunk_free(SACI_CAST_M(SaciMemChunk*)(ptr));
+        return NULL;
+    }
+
+    saci_mem_chunk_free(ptr);
+    struct SaciMemChunk* newptr = saci_mem_alloc_chunk_size(SACI_MEM_CONTEXT_LUA, nsize);
+    return newptr;
+}
 
 SACI_INTERNAL void psaci__lua_path_to_buffer(
     const char* path,
@@ -370,7 +401,7 @@ SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(PSaciLuaState* lua, str
     case LUA_TSTRING:
         value_out->type = PSACI_LUA_TYPE_STRING;
         const char* s = lua_tostring(lua, -1);
-        value_out->data.string = strdup(s); // TODO redo allocation
+        value_out->data.string = psaci__lua_strdup(s);
         return SACI_TRUE;
 
     case LUA_TUSERDATA:
@@ -412,4 +443,13 @@ SACI_INTERNAL SaciBool psaci__lua_traverse_to_path(PSaciLuaState* lua, const PSa
         return SACI_FALSE;
     }
     return SACI_TRUE;
+}
+
+SACI_INTERNAL SaciMemChunk* psaci__lua_strdup(const char* src)
+{
+    SaciMemChunk* strchunk = saci_mem_alloc_chunk(SACI_MEM_CONTEXT_LUA, strnlen(src, SACI_MAX_CONFIG_FIELD_STRING_SIZE), sizeof(char));
+
+    saci_mem_chunk_set(strchunk, 0, src, strnlen(src, SACI_MAX_CONFIG_FIELD_STRING_SIZE) * sizeof(char));
+
+    return strchunk;
 }

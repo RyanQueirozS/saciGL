@@ -71,7 +71,13 @@
 
 #define SACI_TOGGLE_FLAG_M(var, flag) ((var) ^= (flag))
 
+// 2^20
+#define SACI_MAX_STRING_SIZE 1048576
+
 // For some reason, strlen does not count the '\0' char. Why???
-#define SACI_STRSIZE_M(str) ((strlen(str) + 1) * sizeof(char))
+#define SACI_STRSIZE_M(str) ((strnlen(str, SACI_MAX_STRING_SIZE) + 1) * sizeof(char))
+
+// 2̛̛^14
+#define SACI_MAX_CONFIG_FIELD_STRING_SIZE 16384
 
 #endif // SACI_UTILS_SU_GENERAL_H

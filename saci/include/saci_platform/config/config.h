@@ -5,6 +5,7 @@
 #include "saci_util/defines.h"
 
 #include <lua5.4/lua.h>
+#include <saci_util/memory.h>
 
 /* === Lua CFG === */
 
@@ -23,8 +24,8 @@ struct PSaciLuaValue {
     union {
         double number;
         int boolean;
-        char* string;   /* Caller must free */
-        void* userdata; /* Lua-owned */
+        SaciMemChunk* string; /* Caller must free */
+        void* userdata;       /* Lua-owned */
     } data;
 };
 

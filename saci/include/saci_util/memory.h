@@ -7,6 +7,7 @@
 enum SaciMemContext {
     SACI_MEM_CONTEXT_CONFIG,
     SACI_MEM_CONTEXT_RENDERER,
+    SACI_MEM_CONTEXT_LUA,
     SACI_MEM_CONTEXT_GFX,
 };
 
@@ -28,7 +29,7 @@ SACI_API SaciMemChunk* saci_mem_alloc_chunk(const enum SaciMemContext ctx,
 SACI_API SaciMemPool* saci_mem_create_pool(const enum SaciMemContext ctx,
                                            const SaciU64 size);
 
-SACI_API SaciBool saci_mem_chunk_set(struct SaciMemChunk* chunk, SaciU64 idx, void* data, SaciU64 data_size);
+SACI_API SaciBool saci_mem_chunk_set(struct SaciMemChunk* chunk, SaciU64 idx, const void* data, SaciU64 data_size);
 
 SACI_API const void* saci_mem_chunk_get(struct SaciMemChunk* chunk, SaciU64 idx, SaciU64 data_size);
 

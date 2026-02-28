@@ -247,7 +247,7 @@ SaciMemPool* saci_mem_create_pool(const enum SaciMemContext ctx,
     return pool;
 }
 
-SaciBool saci_mem_chunk_set(struct SaciMemChunk* chunk, SaciU64 idx, void* data, SaciU64 data_size)
+SaciBool saci_mem_chunk_set(struct SaciMemChunk* chunk, SaciU64 idx, const void* data, SaciU64 data_size)
 {
     SACI_LOG_DUMMY_CHECK_M(chunk, SACI_LOG_CONTEXT_CORE_MEMORY_MANAGER,
                            "Using empty memory chunk in set func");
