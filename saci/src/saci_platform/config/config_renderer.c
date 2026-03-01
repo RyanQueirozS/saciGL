@@ -1,8 +1,10 @@
 #include "saci_platform/config/config_renderer.h"
+
 #include "saci_util/memory.h"
 #include "saci_util/internal/log.h"
 #include "saci_util/log.h"
-#include <saci_util/types.h>
+#include "saci_platform/config/lua.h"
+#include "saci_util/types.h"
 
 /* = Header Impl == */
 
@@ -21,6 +23,7 @@ struct PSaciConfigRenderer {
 /* == Funcs == */
 
 struct PSaciConfigRenderer* psaci_config_renderer_new(
+    PSaciLuaState* lua,
     const struct PSaciConfigRendererInterface* config_renderer_interface,
     const struct PSaciConfigPreallocEntity* prealloc_table,
     const struct PSaciConfigPopulateEntity* populate_table,
@@ -43,7 +46,7 @@ struct PSaciConfigRenderer* psaci_config_renderer_new(
     renderer_config->populate_table = populate_table;
 
     renderer_config->interface->preallocate(
-        renderer_config, pool, prealloc_table, &renderer_config->config_data);
+        lua, pool, prealloc_table, &renderer_config->config_data);
     if (!renderer_config->config_data) {
         SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_CRASH,
                          SACI_LOG_CONTEXT_CORE_CONFIG,
@@ -51,7 +54,7 @@ struct PSaciConfigRenderer* psaci_config_renderer_new(
                          "config_data is null");
     }
     renderer_config->interface->populate(
-        renderer_config, populate_table, &renderer_config->config_data);
+        lua, populate_table, &renderer_config->config_data);
 
     return renderer_config;
 }
@@ -65,7 +68,7 @@ SaciBool psaci_config_renderer_reset(struct PSaciConfigRenderer* cfg_renderer)
                          "reset");
         return SACI_FALSE;
     }
-    cfg_renderer->interface->reset(cfg_renderer, cfg_renderer->config_data);
+    cfg_renderer->interface->reset(cfg_renderer->config_data);
     return SACI_TRUE;
 }
 
@@ -82,7 +85,7 @@ SaciBool psaci_config_renderer_free(struct PSaciConfigRenderer* cfg_renderer)
     return SACI_TRUE;
 }
 
-SaciBool psaci_config_renderer_fetch(struct PSaciConfigRenderer* cfg_renderer)
+SaciBool psaci_config_renderer_fetch(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_renderer)
 {
     if (!cfg_renderer) {
         SACI_LOG_ERROR_M(SACI_LOG_TYPE_PROD, SACI_LOG_ERROR_SEVERITY_HIGH,
@@ -92,11 +95,11 @@ SaciBool psaci_config_renderer_fetch(struct PSaciConfigRenderer* cfg_renderer)
         return SACI_FALSE;
     }
 
-    cfg_renderer->interface->reset(cfg_renderer, cfg_renderer->config_data);
-    cfg_renderer->interface->preallocate(cfg_renderer, cfg_renderer->pool,
+    cfg_renderer->interface->reset(cfg_renderer->config_data);
+    cfg_renderer->interface->preallocate(lua, cfg_renderer->pool,
                                          cfg_renderer->prealloc_table,
                                          &cfg_renderer->config_data);
-    cfg_renderer->interface->populate(cfg_renderer,
+    cfg_renderer->interface->populate(lua,
                                       cfg_renderer->populate_table,
                                       &cfg_renderer->config_data);
     return SACI_TRUE;
