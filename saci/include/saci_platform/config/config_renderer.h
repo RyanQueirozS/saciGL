@@ -1,3 +1,6 @@
+#ifndef SACI_PLATFORM_CONFIG_CONFIG_RENDERER_H
+#define SACI_PLATFORM_CONFIG_CONFIG_RENDERER_H
+
 #include "saci_platform/config/lua.h"
 #include "saci_util/memory.h"
 #include "saci_util/defines.h"
@@ -24,7 +27,7 @@ struct PSaciConfigRendererInterface {
 
     void (*populate)(struct PSaciConfigRenderer* self, const struct PSaciConfigPopulateEntity* populate_table, void** cfg_data);
 
-    void (*reset)(struct PSaciConfigRenderer* self);
+    void (*reset)(struct PSaciConfigRenderer* self, void** cfg_data);
 
     void (*free)(struct PSaciConfigRenderer* self);
 };
@@ -44,3 +47,5 @@ SACI_API SaciBool psaci_config_renderer_fetch(struct PSaciConfigRenderer* cfg_re
 SACI_API const void* psaci_config_renderer_get_data(const struct PSaciConfigRenderer* cfg_renderer);
 
 SACI_API SaciMemPool* psaci_config_renderer_get_pool(struct PSaciConfigRenderer* cfg_renderer);
+
+#endif // SACI_PLATFORM_CONFIG_CONFIG_RENDERER_H

@@ -1,4 +1,4 @@
-#include "saci_platform/config/config_experimental.h"
+#include "saci_platform/config/config_renderer.h"
 #include "saci_util/memory.h"
 #include "saci_util/internal/log.h"
 #include "saci_util/log.h"
@@ -65,7 +65,7 @@ SaciBool psaci_config_renderer_reset(struct PSaciConfigRenderer* cfg_renderer)
                          "reset");
         return SACI_FALSE;
     }
-    cfg_renderer->interface->reset(cfg_renderer);
+    cfg_renderer->interface->reset(cfg_renderer, cfg_renderer->config_data);
     return SACI_TRUE;
 }
 
@@ -92,7 +92,7 @@ SaciBool psaci_config_renderer_fetch(struct PSaciConfigRenderer* cfg_renderer)
         return SACI_FALSE;
     }
 
-    cfg_renderer->interface->reset(cfg_renderer);
+    cfg_renderer->interface->reset(cfg_renderer, cfg_renderer->config_data);
     cfg_renderer->interface->preallocate(cfg_renderer, cfg_renderer->pool,
                                          cfg_renderer->prealloc_table,
                                          &cfg_renderer->config_data);
