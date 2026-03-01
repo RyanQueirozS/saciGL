@@ -1,7 +1,9 @@
 #ifndef SACI_UTILS_SU_GENERAL_H
 #define SACI_UTILS_SU_GENERAL_H
 
+#include <saci_util/types.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifndef SACI_LIB_PATH
 #  error "SACI_LIB_PATH not defined! Set it in CMakeLists.txt or config.sh"
@@ -71,12 +73,13 @@
 
 #define SACI_TOGGLE_FLAG_M(var, flag) ((var) ^= (flag))
 
+size_t saci_strlen(const char* s, size_t maxlen);
+size_t saci_strsize(const char* s, size_t maxlen); // Same as strlen just adds the null terminator
+
 // 2^20
 #define SACI_MAX_STRING_SIZE 1048576
-
-// For some reason, strlen does not count the '\0' char. Why???
-#define SACI_STRSIZE_M(str) ((strnlen(str, SACI_MAX_STRING_SIZE) + 1) * sizeof(char))
-
+// 2^7
+#define SACI_MAX_CONFIG_FIELD_STRING_SIZE_SMALL 128
 // 2̛̛^14
 #define SACI_MAX_CONFIG_FIELD_STRING_SIZE 16384
 

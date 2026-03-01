@@ -2,6 +2,7 @@
 
 #include "saci_util/internal/log.h"
 
+#include "saci_util/internal/general.h"
 #include <stdlib.h>
 
 #define ARENA_ASSERT(x) SACI_LOG_ASSERT_M(x, SACI_LOG_CONTEXT_CORE_MEMORY, "Error in arena function")
@@ -119,7 +120,7 @@ void saci_mem_init(const SaciBool use_arenas)
     }
 }
 
-struct SaciMemChunk* saci_mem_alloc_chunk_size(const enum SaciMemContext ctx,
+struct SaciMemChunk* saci_mem_chunk_alloc_size(const enum SaciMemContext ctx,
                                                const SaciU64 size)
 {
     if (size == 0) {
@@ -163,7 +164,7 @@ struct SaciMemChunk* saci_mem_alloc_chunk_size(const enum SaciMemContext ctx,
     return chunk;
 }
 
-struct SaciMemChunk* saci_mem_alloc_chunk(const enum SaciMemContext ctx,
+struct SaciMemChunk* saci_mem_chunk_alloc(const enum SaciMemContext ctx,
                                           const SaciU64 count,
                                           const SaciU64 element_size)
 {
@@ -213,6 +214,17 @@ struct SaciMemChunk* saci_mem_alloc_chunk(const enum SaciMemContext ctx,
         .data = (void*)((char*)memctx + sizeof(struct SaciMemChunk)),
     };
     return chunk;
+}
+
+SACI_API SaciMemChunk* saci_mem_chunk_strdup(const enum SaciMemContext ctx,
+                                             const char* str,
+                                             const SaciU64 max_size)
+{
+    SaciMemChunk* strchunk = saci_mem_chunk_alloc(ctx, saci_strlen(str, max_size), sizeof(char));
+
+    saci_mem_chunk_set(strchunk, 0, str, saci_strlen(str, max_size) * sizeof(char));
+
+    return strchunk;
 }
 
 SaciMemPool* saci_mem_create_pool(const enum SaciMemContext ctx,

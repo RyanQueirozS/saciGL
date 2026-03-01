@@ -19,12 +19,18 @@ SACI_API void saci_mem_init(const SaciBool use_arenas);
 
 SACI_API void saci_mem_print_info(void);
 
-SACI_API SaciMemChunk* saci_mem_alloc_chunk_size(const enum SaciMemContext ctx,
+/* === Chunk === */
+
+SACI_API SaciMemChunk* saci_mem_chunk_alloc_size(const enum SaciMemContext ctx,
                                                  const SaciU64 size);
 
-SACI_API SaciMemChunk* saci_mem_alloc_chunk(const enum SaciMemContext ctx,
+SACI_API SaciMemChunk* saci_mem_chunk_alloc(const enum SaciMemContext ctx,
                                             const SaciU64 count,
                                             const SaciU64 element_type);
+
+SACI_API SaciMemChunk* saci_mem_chunk_strdup(const enum SaciMemContext ctx,
+                                             const char* str,
+                                             const SaciU64 max_size);
 
 SACI_API SaciMemPool* saci_mem_create_pool(const enum SaciMemContext ctx,
                                            const SaciU64 size);
@@ -44,6 +50,8 @@ SACI_API SaciBool saci_mem_chunk_get_element_size(const struct SaciMemChunk* chu
 SACI_API SaciBool saci_mem_chunk_get_element_count(const struct SaciMemChunk* chunk, SaciU64* data_out);
 
 SACI_API SaciBool saci_mem_chunk_free(struct SaciMemChunk* chunk);
+
+/* === Pool === */
 
 SACI_API void* saci_mem_pool_alloc(SaciMemPool* pool, const SaciU64 size);
 

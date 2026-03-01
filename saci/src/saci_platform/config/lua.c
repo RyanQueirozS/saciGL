@@ -48,8 +48,6 @@ SACI_INTERNAL SaciBool psaci__lua_traverse_to_path(
     const PSaciCfgPathBufferArray path_buffer,
     const int word_count);
 
-SACI_INTERNAL SaciMemChunk* psaci__lua_strdup(const char* src);
-
 /* === Header Implementation === */
 
 void psaci_lua_clear_stack(PSaciLuaState* lua)
@@ -305,7 +303,7 @@ void psaci_lua_get_length_name(PSaciLuaState* lua, SaciU64* total_size, SaciU64 
     if (!psaci_lua_get_value(lua, "name", &val, PSACI_LUA_TYPE_STRING)) {
         return;
     }
-    *total_size += SACI_STRSIZE_M(saci_mem_chunk_get_ptr(val.data.string, 0)) + struct_size;
+    *total_size += saci_strsize(saci_mem_chunk_get_ptr(val.data.string, 0), SACI_MAX_CONFIG_FIELD_STRING_SIZE_SMALL) + struct_size;
 }
 
 /* === Internal Implementation === */
@@ -320,7 +318,7 @@ SACI_INTERNAL void* psaci__lua_allocator(void* ud, void* ptr, size_t osize, size
     }
 
     saci_mem_chunk_free(ptr);
-    struct SaciMemChunk* newptr = saci_mem_alloc_chunk_size(SACI_MEM_CONTEXT_LUA, nsize);
+    struct SaciMemChunk* newptr = saci_mem_chunk_alloc_size(SACI_MEM_CONTEXT_LUA, nsize);
     return newptr;
 }
 
@@ -401,7 +399,7 @@ SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(PSaciLuaState* lua, str
     case LUA_TSTRING:
         value_out->type = PSACI_LUA_TYPE_STRING;
         const char* s = lua_tostring(lua, -1);
-        value_out->data.string = psaci__lua_strdup(s);
+        value_out->data.string = saci_mem_chunk_strdup(SACI_MEM_CONTEXT_LUA, s, SACI_MAX_CONFIG_FIELD_STRING_SIZE);
         return SACI_TRUE;
 
     case LUA_TUSERDATA:
@@ -443,13 +441,4 @@ SACI_INTERNAL SaciBool psaci__lua_traverse_to_path(PSaciLuaState* lua, const PSa
         return SACI_FALSE;
     }
     return SACI_TRUE;
-}
-
-SACI_INTERNAL SaciMemChunk* psaci__lua_strdup(const char* src)
-{
-    SaciMemChunk* strchunk = saci_mem_alloc_chunk(SACI_MEM_CONTEXT_LUA, strnlen(src, SACI_MAX_CONFIG_FIELD_STRING_SIZE), sizeof(char));
-
-    saci_mem_chunk_set(strchunk, 0, src, strnlen(src, SACI_MAX_CONFIG_FIELD_STRING_SIZE) * sizeof(char));
-
-    return strchunk;
 }
