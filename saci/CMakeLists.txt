@@ -63,9 +63,11 @@ else()
 endif()
 
 # --- Compiler flags ---
-set(SACI_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Path to SACI's dir")
+set(SACI_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/saci" CACHE PATH "Path to SACI's dir")
+set(SACI_PROEJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Path to SACI's dir")
 target_compile_definitions(saci PRIVATE
     SACI_LIB_PATH="${SACI_LIB_PATH}"
+    SACI_PROJECT_PATH="${SACI_PROJECT_PATH}"
 )
 target_compile_options(saci PRIVATE
     -Wall

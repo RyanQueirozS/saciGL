@@ -7,6 +7,10 @@
 #  error "SACI_LIB_PATH not defined! Set it in CMakeLists.txt or config.sh"
 #endif
 
+#ifndef SACI_PROJECT_PATH
+#  error "SACI_PROJECT_PATH not defined! Set it in CMakeLists.txt or config.sh"
+#endif
+
 #ifdef __cplusplus
 #  define SACI_CAST_M(type) static_cast<type>
 #else
