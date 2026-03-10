@@ -1,16 +1,17 @@
-#include "saci_core/renderer/internal/renderer.h"
+#if 0
+#  include "saci_core/renderer/internal/renderer.h"
 
-#include "saci_util/log.h"
-#include "saci_util/internal/log.h"
+#  include "saci_util/log.h"
+#  include "saci_util/internal/log.h"
 
-#include "saci_platform/gfx/internal/gfx.h"
-#include "saci_platform/dependencies/internal/dependency.h"
+#  include "saci_platform/gfx/internal/gfx.h"
+#  include "saci_platform/dependencies/internal/dependency.h"
 
-#ifndef __EMSCRIPTEN__
-#  include "saci_platform/config/config.h"
-#endif
+#  ifndef __EMSCRIPTEN__
+#    include "saci_platform/config/config.h"
+#  endif
 
-#include <stdio.h>
+#  include <stdio.h>
 
 // Internal
 SACI_INTERNAL void csaci__init_instance_buffers(struct PSaciConfigRenderer* cfg_out);
@@ -33,12 +34,12 @@ SACI_INTERNAL_CONST struct PSaciConfigRenderer CSACI_G_INSTANCE_CONFIG_DEFAULT =
     },
     .shaders = {
         .frag = "#version "
-#ifndef __EMSCRIPTEN__
+#  ifndef __EMSCRIPTEN__
                 "330 core"
-#else
+#  else
                 "300 es\n"
                 "precision mediump float;"
-#endif
+#  endif
                 "\n\n"
                 "in vec4 v_color;\n"
                 "in vec2 v_texcoord;\n\n"
@@ -55,11 +56,11 @@ SACI_INTERNAL_CONST struct PSaciConfigRenderer CSACI_G_INSTANCE_CONFIG_DEFAULT =
                 "   }\n"
                 "}",
         .vert = "#version "
-#ifndef __EMSCRIPTEN__
+#  ifndef __EMSCRIPTEN__
                 "330 core"
-#else
+#  else
                 "300 es"
-#endif
+#  endif
                 "\n\n"
                 "layout (location = 0) in vec3 a_pos;\n"
                 "layout (location = 1) in vec4 a_color;\n"
@@ -258,7 +259,7 @@ void csaci_init_uniforms(struct PSaciConfigRenderer* cfg_out, const union PSaciG
 
     if (!cfg_out->uniform_array) {
         // TODO
-#if 0
+#  if 0
         cfg_out->uniform_array = su_darray_create(
             SACI_ARRLEN_M(uniform_array),
             sizeof(struct PSaciRendererCfgUniform),
@@ -266,7 +267,7 @@ void csaci_init_uniforms(struct PSaciConfigRenderer* cfg_out, const union PSaciG
         for (SaciU64 i = 0; i < SACI_ARRLEN_M(uniform_array); ++i) {
             su_darray_push(cfg_out->uniform_array, &uniform_array[i]);
         }
-#endif
+#  endif
     }
 }
 
@@ -551,3 +552,4 @@ SACI_INTERNAL void csaci__init_instance_buffers(struct PSaciConfigRenderer* cfg_
         cfg_out->instance_data.buffer_array = &csaci__buffer;
     }
 }
+#endif

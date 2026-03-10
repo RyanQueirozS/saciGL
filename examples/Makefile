@@ -23,6 +23,7 @@ CFLAGS_BASE = -x c -std=c11 -Wall -Wextra -O0 -g \
 	-I../saci/vendor/dependency-management \
 	-DSACI_DEBUG_MODE_ALL \
 	-DSACI_LIB_PATH=\"./\" \
+	-DSACI_PROJECT_PATH=\"./\" \
 	-DSACI_DEFAULT_CONFIG_PATH=\"../saci/saci-config.lua\"
 
 # Platform-specific flags

@@ -100,7 +100,7 @@ struct CSaciInstanceBoundExtra {
 
 struct CSaciInstanceRenderer {
     union PSaciGFXInfo gfx;
-    struct PSaciConfigRenderer cfg;
+    struct PSaciConfigRenderer* cfg;
     struct CSaciInstanceBoundExtra bound_extra;
     SaciBufferId instance_transform_vbo;
     SaciBufferId instance_color_vbo;

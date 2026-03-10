@@ -1,18 +1,19 @@
-#include "saci_core/renderer/renderer.h"
-#include "saci_core/renderer/internal/renderer.h"
+#if 0
+#  include "saci_core/renderer/renderer.h"
+#  include "saci_core/renderer/internal/renderer.h"
 
-#include "saci_util/internal/log.h"
-#include "saci_util/log.h"
-#include "saci_util/memory.h"
-#include "saci_util/darray.h"
-#include "saci_util/types.h"
+#  include "saci_util/internal/log.h"
+#  include "saci_util/log.h"
+#  include "saci_util/memory.h"
+#  include "saci_util/darray.h"
+#  include "saci_util/types.h"
 
-#include "saci_platform/gfx/internal/gfx.h"
+#  include "saci_platform/gfx/internal/gfx.h"
 
-#include "saci_platform/dependencies/dependency.h"
-#include <saci_platform/config/config.h>
-#include <stdio.h>
-#include <stdlib.h>
+#  include "saci_platform/dependencies/dependency.h"
+#  include <saci_platform/config/config.h>
+#  include <stdio.h>
+#  include <stdlib.h>
 
 /* --- LOCAL --- */
 
@@ -127,10 +128,10 @@ SACI_INTERNAL void csaci__renderer_instance_begin(const struct CSaciRenderer* se
 {
     self->rendr.instance_renderer->bound.index_count = 0;
     self->rendr.instance_renderer->bound.uniform_count = 0;
-#ifdef __EMSCRIPTEN__
+#  ifdef __EMSCRIPTEN__
     self->rendr.instance_renderer->bound.texture.gl.texture = 0;
     self->rendr.instance_renderer->bound.texture.gl.is_empty = SACI_TRUE;
-#else
+#  else
     switch (psaci_dependencies_get_render_api()) {
     case PSACI_RENDERER_API_OPENGL4:
         self->rendr.instance_renderer->bound.texture.gl.texture = 0;
@@ -140,7 +141,7 @@ SACI_INTERNAL void csaci__renderer_instance_begin(const struct CSaciRenderer* se
     case PSACI_RENDERER_API_VULKAN:
         break;
     }
-#endif
+#  endif
 
     self->rendr.instance_renderer->batch_info.in_use = 0;
     for (SaciU8 i = 0; i < self->rendr.instance_renderer->cfg.batch.capacity; ++i) {
@@ -361,3 +362,4 @@ SACI_INTERNAL void csaci__renderer_init_bound_extra(struct CSaciInstanceBoundExt
     void* mem = saci_mem_pool_alloc(pool, size);
     bound_extra->bound_instance_data_array = saci_darray_create_ctx_void(mem, size, cfg.bound.instance_cfg.capacity, sizeof(struct PSaciGFXInstanceData));
 }
+#endif
