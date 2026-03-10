@@ -3,6 +3,9 @@
 #include "saci_util/internal/log.h"
 
 #include "saci_util/internal/general.h"
+#include "saci_util/safe_string.h"
+#include <saci_util/log.h>
+#include <saci_util/types.h>
 #include <stdlib.h>
 
 #define ARENA_ASSERT(x) SACI_LOG_ASSERT_M(x, SACI_LOG_CONTEXT_CORE_MEMORY, "Error in arena function")
@@ -49,6 +52,11 @@ SACI_STATIC int saci__mem_chunk_compare_addresses(const void* a, const void* b);
 SACI_STATIC SaciU64 saci__mem_new_chunk_id(void);
 
 SACI_STATIC void saci__mem_chunk_join_all(struct SaciMemChunk** mem_chunk_ptr_array, const SaciU64 array_len);
+
+SACI_STATIC SaciBool saci__mem_safe_copy_validate(
+    void* dest_ptr, SaciU64 dest_capacity, SaciU64 dest_offset,
+    const void* src_ptr, SaciU64 src_size, SaciU64 src_offset,
+    SaciU64 copy_length);
 
 /* === Header impl === */
 
@@ -220,9 +228,9 @@ SACI_API SaciMemChunk* saci_mem_chunk_strdup(const enum SaciMemContext ctx,
                                              const char* str,
                                              const SaciU64 max_size)
 {
-    SaciMemChunk* strchunk = saci_mem_chunk_alloc(ctx, saci_strlen(str, max_size), sizeof(char));
+    SaciMemChunk* strchunk = saci_mem_chunk_alloc(ctx, saci_safe_str_len(str, max_size), sizeof(char));
 
-    saci_mem_chunk_set(strchunk, 0, str, saci_strlen(str, max_size) * sizeof(char));
+    saci_mem_chunk_set(strchunk, 0, str, saci_safe_str_len(str, max_size) * sizeof(char));
 
     return strchunk;
 }
@@ -417,68 +425,23 @@ void* saci_mem_pool_alloc(SaciMemPool* pool, const SaciU64 size)
     return ArenaPush(&pool->arena, size);
 }
 
-SaciBool saci_mem_safe_copy(void* dest_ptr, SaciU64 dest_capacity, SaciU64 dest_offset,
-                            const void* src_ptr, SaciU64 src_size, SaciU64 src_offset,
-                            SaciU64 copy_length)
+SaciBool saci_mem_safe_copy(
+    void* dest_ptr, SaciU64 dest_capacity, SaciU64 dest_offset,
+    const void* src_ptr, SaciU64 src_size, SaciU64 src_offset,
+    SaciU64 copy_length)
 {
-    if (dest_ptr == NULL) {
-        SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
-                          SACI_LOG_CONTEXT_CORE_MEMORY,
-                          "Destination pointer is NULL in safe memcpy");
+    if (!saci__mem_safe_copy_validate(dest_ptr, dest_capacity, dest_offset,
+                                      src_ptr, src_size, src_offset,
+                                      copy_length)) {
         return SACI_FALSE;
     }
-
-    if (src_ptr == NULL) {
-        SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
-                          SACI_LOG_CONTEXT_CORE_MEMORY,
-                          "Source pointer is NULL in safe memcpy");
-        return SACI_FALSE;
-    }
-
-    if (copy_length == 0) {
-        SACI_LOG_WARNF_M(SACI_LOG_TYPE_USER, SACI_LOG_WARN_SEVERITY_LOW,
-                         SACI_LOG_CONTEXT_CORE_MEMORY,
-                         "Zero-length copy operation requested");
-        return SACI_TRUE; // Zero-length copy is technically valid
-    }
-
-    if (dest_offset > dest_capacity) {
-        SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
-                          SACI_LOG_CONTEXT_CORE_MEMORY,
-                          "Destination offset exceeds capacity (offset: " SACI_FMTU64 ", capacity: " SACI_FMTU64 ")",
-                          dest_offset, dest_capacity);
-        return SACI_FALSE;
-    }
-
-    if (dest_offset + copy_length > dest_capacity) {
-        SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
-                          SACI_LOG_CONTEXT_CORE_MEMORY,
-                          "Copy would exceed destination capacity (offset: " SACI_FMTU64 ", length: " SACI_FMTU64 ", capacity: " SACI_FMTU64 ")",
-                          dest_offset, copy_length, dest_capacity);
-        return SACI_FALSE;
-    }
-
-    if (src_offset > src_size) {
-        SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
-                          SACI_LOG_CONTEXT_CORE_MEMORY,
-                          "Source offset exceeds source size (offset: " SACI_FMTU64 ", size: " SACI_FMTU64 ")",
-                          src_offset, src_size);
-        return SACI_FALSE;
-    }
-
-    if (src_offset + copy_length > src_size) {
-        SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
-                          SACI_LOG_CONTEXT_CORE_MEMORY,
-                          "Copy would exceed source bounds (offset: " SACI_FMTU64 ", length: " SACI_FMTU64 ", size: " SACI_FMTU64 ")",
-                          src_offset, copy_length, src_size);
-        return SACI_FALSE;
-    }
-
     uint8_t* dest_start = (uint8_t*)dest_ptr + dest_offset;
     const uint8_t* src_start = (const uint8_t*)src_ptr + src_offset;
 
-    if ((src_start < dest_start && src_start + copy_length > dest_start) ||
-        (dest_start < src_start && dest_start + copy_length > src_start)) {
+    SaciBool does_overlap =
+        (src_start < dest_start && src_start + copy_length > dest_start) ||
+        (dest_start < src_start && dest_start + copy_length > src_start);
+    if (does_overlap) {
         SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
                           SACI_LOG_CONTEXT_CORE_MEMORY,
                           "Overlapping memory regions in safe memcpy (src: %p, dest: %p, length: " SACI_FMTU64 ")",
@@ -486,29 +449,15 @@ SaciBool saci_mem_safe_copy(void* dest_ptr, SaciU64 dest_capacity, SaciU64 dest_
         return SACI_FALSE;
     }
 
-    SACI_LOG_ASSERTF_M(dest_ptr != NULL, SACI_LOG_CONTEXT_CORE_MEMORY,
-                       "Destination pointer assertion failed");
-    SACI_LOG_ASSERTF_M(src_ptr != NULL, SACI_LOG_CONTEXT_CORE_MEMORY,
-                       "Source pointer assertion failed");
-    SACI_LOG_ASSERTF_M(dest_offset + copy_length <= dest_capacity,
-                       SACI_LOG_CONTEXT_CORE_MEMORY,
-                       "Destination bounds assertion failed");
-    SACI_LOG_ASSERTF_M(src_offset + copy_length <= src_size,
-                       SACI_LOG_CONTEXT_CORE_MEMORY,
-                       "Source bounds assertion failed");
-
     memcpy(dest_start, src_start, copy_length);
 
-    if (copy_length > 0) {
-        SACI_LOG_DUMMY_CHECKF_M(*src_start == *dest_start,
-                                SACI_LOG_CONTEXT_CORE_MEMORY,
-                                "First byte verification in safe memcpy");
-
-        if (copy_length > 1) {
-            SACI_LOG_DUMMY_CHECKF_M(*(src_start + copy_length - 1) == *(dest_start + copy_length - 1),
-                                    SACI_LOG_CONTEXT_CORE_MEMORY,
-                                    "Last byte verification in safe memcpy");
-        }
+    SACI_LOG_ASSERTF_M(*src_start == *dest_start,
+                       SACI_LOG_CONTEXT_CORE_MEMORY,
+                       "First byte verification in safe memcpy");
+    if (copy_length > 1) {
+        SACI_LOG_ASSERTF_M(*(src_start + copy_length - 1) == *(dest_start + copy_length - 1),
+                           SACI_LOG_CONTEXT_CORE_MEMORY,
+                           "Last byte verification in safe memcpy");
     }
 
     SACI_LOG_INFOF_M(SACI_LOG_TYPE_USER, SACI_LOG_CONTEXT_CORE_MEMORY,
@@ -709,4 +658,62 @@ SaciBool saci__mem_pool_alloc(void* pool, SaciU64* capacity_inout, const SaciU64
     }
 
     return saci__mem_malloc(capacity_inout, total_size, mem_out);
+}
+
+SACI_STATIC SaciBool saci__mem_safe_copy_validate(
+    void* dest_ptr, SaciU64 dest_capacity, SaciU64 dest_offset,
+    const void* src_ptr, SaciU64 src_size, SaciU64 src_offset,
+    SaciU64 copy_length)
+{
+    SaciBool should_crash = SACI_FALSE;
+    char* invalid_checks[7] = {0};
+    if (dest_ptr == NULL) {
+        invalid_checks[0] = "Destination pointer";
+        should_crash = SACI_TRUE;
+    }
+
+    if (src_ptr == NULL) {
+        invalid_checks[1] = "Source pointer";
+        should_crash = SACI_TRUE;
+    }
+
+    if (copy_length == 0) {
+        invalid_checks[2] = "Copy length";
+    }
+
+    if (dest_offset > dest_capacity) {
+        invalid_checks[3] = "Destination offset exceeds capacity";
+        should_crash = SACI_TRUE;
+    }
+
+    if (dest_offset + copy_length > dest_capacity) {
+        invalid_checks[4] = "Copy would exceed destination capacity";
+        should_crash = SACI_TRUE;
+    }
+
+    if (src_offset > src_size) {
+        invalid_checks[5] = "Source offset exceeds source size";
+        should_crash = SACI_TRUE;
+    }
+
+    if (src_offset + copy_length > src_size) {
+        invalid_checks[6] = "Copy would exceed source bounds";
+        should_crash = SACI_TRUE;
+    }
+
+    SaciBool has_errors = SACI_FALSE;
+    enum SaciLogErrorSeverity severity = should_crash
+                                             ? SACI_LOG_ERROR_SEVERITY_CRASH
+                                             : SACI_LOG_ERROR_SEVERITY_HIGH;
+    for (SaciU64 i = 0; i < SACI_ARRLEN_M(invalid_checks); ++i) {
+        if (invalid_checks[i][0]) {
+            SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, severity,
+                              SACI_LOG_CONTEXT_CORE_MEMORY,
+                              "Error while copying memory: %s",
+                              invalid_checks[i]);
+            has_errors = SACI_TRUE;
+        }
+    }
+
+    return has_errors;
 }

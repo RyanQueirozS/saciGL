@@ -6,7 +6,7 @@
 #include "saci_platform/dependencies/internal/dependency.h"
 
 #ifndef __EMSCRIPTEN__
-#  include "saci_platform/config/config.h"
+#  include "saci_platform/config/config_renderer.h"
 #endif
 
 #include "saci_util/memory.h"
@@ -75,11 +75,13 @@ void psaci_gfx_load_proc(PSaciGfxProcAddress addrs)
 }
 #endif
 
-void psaci_gfx_init_shader(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer cfg)
+void psaci_gfx_init_shader_default(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer* cfg)
 {
+    // TODO
+#if 0
     SACI_LOG_ASSERT_M(cfg.shaders.vert, SACI_LOG_CONTEXT_GFX, "Vertex shader is empty or NULL");
     SACI_LOG_ASSERT_M(cfg.shaders.frag, SACI_LOG_CONTEXT_GFX, "Frag shader is empty or NULL");
-#ifndef __EMSCRIPTEN__
+#  ifndef __EMSCRIPTEN__
     switch (psaci_g_render_api) {
     case PSACI_RENDERER_API_OPENGL4:
         {
@@ -93,14 +95,17 @@ void psaci_gfx_init_shader(union PSaciGFXInfo* info_out, const struct PSaciConfi
     case PSACI_RENDERER_API_VULKAN:
         break;
     }
-#else
+#  else
     SACI_LOG_ASSERT_M(!cfg.shaders.geom, SACI_LOG_CONTEXT_GFX, "Opengl ES3 does not accept geometry shaders");
     info_out->gl_data.shader_program = sb_emsdk_shader_create_program_code(cfg.shaders.frag, cfg.shaders.vert);
+#  endif
 #endif
 }
 
-void psaci_gfx_create(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer cfg)
+void psaci_gfx_create_default(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer* cfg)
 {
+// TODO
+#if 0
     psaci_g_instance_draw_data_pool = saci_mem_create_pool(SACI_MEM_CONTEXT_GFX, sizeof(SaciMat4) * 10000); // TODO remove the magic numbers and perhaps redo the whole chunk stuff
     switch (psaci_g_render_api) {
     case PSACI_RENDERER_API_OPENGL4:
@@ -112,6 +117,7 @@ void psaci_gfx_create(union PSaciGFXInfo* info_out, const struct PSaciConfigRend
     case PSACI_RENDERER_API_VULKAN:
         break;
     }
+#endif
 }
 
 void psaci_gfx_clear_color(const SaciColor color)

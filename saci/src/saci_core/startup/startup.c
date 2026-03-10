@@ -1,7 +1,6 @@
 #include "saci_core/startup/startup.h"
 
 #include "saci_platform/gfx/internal/gfx.h"
-#include "saci_platform/dependencies/dependency.h"
 
 #ifdef __ESMCRIPTEN__
 SaciBool csaci_startup_dependencies_load(void)

@@ -9,7 +9,6 @@
 #include "saci_util/types.h"
 
 #include "saci_core/renderer/renderer.h"
-#include "saci_core/runtime/event.h"
 #include "saci_core/runtime/looper.h"
 #include "saci_core/runtime/windowing.h"
 #include "saci_core/startup/startup.h"
@@ -130,7 +129,8 @@ void saci_begin(void)
 
 void saci_set_background_color(const SaciColor color)
 {
-    // saci_g_contextn.windowing.bg_color = color;
+    (void)color;
+    // saci_g_context.windowing_ctx_ptr_array[0]->bg_color = color;
 }
 
 void saci_set_loop_func(SaciMainLoopFunc loop_func)
@@ -163,6 +163,7 @@ void saci_draw_cube(const SaciCube cube)
         .color = cube.fill_color,
         .transform = transform,
     };
+    (void)instance;
     // SaciInstanceData instance_data = {
     //     .data_size = sizeof(SaciShapeInstance),
     //     .location = 3,
@@ -183,6 +184,7 @@ void saci_present(void)
     SaciMat4 view = saci_mat4_look_at((SaciVec3){0.0f, 2.0f, -20.0f},
                                       (SaciVec3){0.0f, 0.0f, 0.0f},
                                       (SaciVec3){0.0f, 1.0f, 0.0f});
+    (void)view;
     // csaci_renderer_set_uniform(
     //     saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].renderer,
     //     saci_g_contextn.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[saci__UNIFORM_DEFAULT_MODEL_MATRIX],
@@ -279,7 +281,7 @@ SACI_INTERNAL SaciMat4 saci__mat4_create_transform_from_flag(
     SaciU64 flag_var)
 {
     SaciMat4 transform_mat = SACI_G_IDENTITY_MAT4;
-    if (!SACI_HAS_FLAG(flag_var, SACI_MODEL_FLAG_ROTATION_RTS)) { // Most likelly
+    if (!SACI_HAS_FLAG_M(flag_var, SACI_MODEL_FLAG_ROTATION_RTS)) { // Most likelly
         transform_mat = saci_mat4_model_matrix_trs(
             transform.pos,
             transform.rotation,
@@ -320,9 +322,4 @@ SACI_INTERNAL void saci__handle_events(void)
     //        sizeof(saci_g_contextn.event.controller.button_was_released));
     //
     // sb_event_poll();
-}
-
-SACI_INTERNAL double saci__get_delta(void)
-{
-    return 0.0; // TODO
 }

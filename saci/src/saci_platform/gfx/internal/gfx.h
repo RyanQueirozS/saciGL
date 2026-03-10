@@ -3,12 +3,9 @@
 
 #include "saci_platform/gfx/graphics.h"
 
-#include "saci_platform/config/config.h"
-#include "saci_util/memory.h"
-#include "saci_util/defines.h"
+#include "saci_platform/config/config_renderer.h"
 #include "saci_util/internal/general.h"
 #include "saci_util/types.h"
-#include "saci_util/math.h"
 
 union PSaciGFXUniformValue {
     // Scalar types
@@ -96,9 +93,9 @@ typedef void* (*PSaciGfxProcAddress)(const char*);
 void psaci_gfx_load_proc(PSaciGfxProcAddress addrs);
 #endif
 
-void psaci_gfx_init_shader(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer cfg);
+void psaci_gfx_init_shader_default(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer* cfg);
 
-void psaci_gfx_create(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer cfg);
+void psaci_gfx_create_default(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer* cfg);
 
 void psaci_gfx_clear_color(const SaciColor color);
 
