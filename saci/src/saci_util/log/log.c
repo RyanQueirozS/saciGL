@@ -3,6 +3,7 @@
 
 #include "saci_util/types.h"
 #include "saci_util/defines.h"
+#include "saci_util/safe_string.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -335,7 +336,7 @@ SACI_INTERNAL void saci__log_default_dummy_check_fail_callback(const SaciLogDumm
 SACI_INTERNAL void saci__log_copy_safe_str(char* dest_out, const char* src, SaciU64 max, const char* fallback)
 {
     if (!src) {
-        SaciU64 str_len = strnlen(fallback, max);
+        SaciU64 str_len = saci_safe_str_len(fallback, max);
         if (str_len >= max) {
             str_len = max - 1;
         }
@@ -343,7 +344,7 @@ SACI_INTERNAL void saci__log_copy_safe_str(char* dest_out, const char* src, Saci
         dest_out[str_len] = '\0';
         return;
     }
-    SaciU64 str_len = strnlen(src, max);
+    SaciU64 str_len = saci_safe_str_len(src, max);
     if (str_len >= max) {
         str_len = max - 1;
     }

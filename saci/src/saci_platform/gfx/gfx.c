@@ -30,7 +30,7 @@ SACI_STATIC enum PSaciRenderApi sb__render_api = PSACI_RENDERER_API_OPENGL;
 SACI_STATIC struct SaciMemPool* psaci_g_instance_draw_data_pool = NULL; // Used in sb__gfx_join_instance_data
 
 // Init
-SACI_INTERNAL void psaci__gfx_gl_init_info(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer cfg);
+SACI_INTERNAL void psaci__gfx_gl_init_info(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer* cfg);
 
 // Draw
 SACI_INTERNAL void psaci__gfx_join_instance_data(const struct PSaciGFXDrawData* draw_data, void** instance_data_array_out, SaciU64* instance_data_array_size_out);
@@ -249,8 +249,9 @@ void psaci_gfx_initialize_renderer_debugger(void* debug_func)
 
 SACI_INTERNAL void psaci__gfx_gl_create_main_buffers(
     union PSaciGFXInfo* info_out,
-    const struct PSaciConfigRenderer cfg)
+    const struct PSaciConfigRenderer* cfg)
 {
+#if 0
     info_out->gl_data.vbo = psaci_gl_create_vertex_buffer_dynamic(
         cfg.batch.vertex_cfg.capacity * cfg.vertex_attributes.element_size_internal,
         NULL);
@@ -260,13 +261,15 @@ SACI_INTERNAL void psaci__gfx_gl_create_main_buffers(
         NULL);
 
     psaci_gl_create_vertex_array(1, &info_out->gl_data.vao);
+#endif
 }
 
 SACI_INTERNAL void psaci__gfx_gl_setup_vertex_attributes(
-    const struct PSaciConfigRenderer cfg,
+    const struct PSaciConfigRenderer* cfg,
     SaciBufferId vao,
     SaciBufferId vbo)
 {
+#if 0
     psaci_gl_bind_vertex_array(vao);
     psaci_gl_bind_vertex_buffer(vbo);
 
@@ -283,12 +286,14 @@ SACI_INTERNAL void psaci__gfx_gl_setup_vertex_attributes(
         psaci_gl_enable_vertex_attrib_array(
             SACI_CAST_M(SaciU64)(layout.location));
     }
+#endif
 }
 
 SACI_INTERNAL void psaci__gfx_gl_setup_instance_buffers(
     union PSaciGFXInfo* info_out,
-    const struct PSaciConfigRenderer cfg)
+    const struct PSaciConfigRenderer* cfg)
 {
+#if 0
     if (!cfg.instance_data.buffer_array_length) {
         return;
     }
@@ -324,12 +329,14 @@ SACI_INTERNAL void psaci__gfx_gl_setup_instance_buffers(
         }
     }
     psaci_gl_bind_vertex_buffer(0);
+#endif
 }
 
 SACI_INTERNAL void psaci__gfx_gl_init_info(
     union PSaciGFXInfo* info_out,
-    const struct PSaciConfigRenderer cfg)
+    const struct PSaciConfigRenderer* cfg)
 {
+#if 0
     SACI_LOG_ASSERT_M(cfg.shaders.vert, SACI_LOG_CONTEXT_GFX, "GL vert shader is empty");
     SACI_LOG_ASSERT_M(cfg.shaders.frag, SACI_LOG_CONTEXT_GFX, "GL frag shader is empty");
     SACI_LOG_ASSERT_M(cfg.batch.index_cfg.capacity, SACI_LOG_CONTEXT_GFX, "Index capacity is not set");
@@ -338,6 +345,7 @@ SACI_INTERNAL void psaci__gfx_gl_init_info(
     psaci__gfx_gl_create_main_buffers(info_out, cfg);
     psaci__gfx_gl_setup_vertex_attributes(cfg, info_out->gl_data.vao, info_out->gl_data.vbo);
     psaci__gfx_gl_setup_instance_buffers(info_out, cfg);
+#endif
 }
 
 SACI_INTERNAL void psaci__gfx_join_instance_data(const struct PSaciGFXDrawData* draw_data, void** instance_data_array_out, SaciU64* instance_data_array_size_out)
