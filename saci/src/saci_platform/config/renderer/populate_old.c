@@ -1,21 +1,22 @@
+#if 0
 // TODO remove unecessary checks for name when building for prod
 // TODO log whenever `name` exists but the required fields are not
 // TODO find a way to check extra fields that shouldn't be on that config table
-#include "saci_platform/config/config.h"
+#  include "saci_platform/config/config.h"
 
-#include "saci_platform/config/internal/prealloc.h"
-#include "saci_platform/config/internal/lua.h"
+#  include "saci_platform/config/internal/prealloc.h"
+#  include "saci_platform/config/internal/lua.h"
 
-#include "saci_util/defines.h"
-#include "saci_util/internal/general.h"
-#include "saci_util/internal/log.h"
+#  include "saci_util/defines.h"
+#  include "saci_util/internal/general.h"
+#  include "saci_util/internal/log.h"
 
-#include <saci_platform/gfx/internal/gfx.h>
-#include <saci_util/internal/sorting_algorithms.h>
-#include <saci_util/log.h>
-#include <saci_util/memory.h>
-#include <saci_util/types.h>
-#include <string.h>
+#  include <saci_platform/gfx/internal/gfx.h>
+#  include <saci_util/internal/sorting_algorithms.h>
+#  include <saci_util/log.h>
+#  include <saci_util/memory.h>
+#  include <saci_util/types.h>
+#  include <string.h>
 
 /* = Internal = */
 
@@ -384,3 +385,4 @@ void psaci__cfg_renderer_populate_pipeline(PSaciLuaState* lua, struct PSaciConfi
         cfg_out->pipeline.blend.enabled = val.data.boolean;
     }
 }
+#endif

@@ -1,11 +1,12 @@
-#include "saci_platform/config/internal/renderer_prealloc.h"
+#if 0
+#  include "saci_platform/config/internal/renderer_prealloc.h"
 
-#include "saci_platform/config/config.h"
-#include "saci_platform/config/internal/lua.h"
-#include "saci_platform/config/internal/prealloc.h"
+#  include "saci_platform/config/config.h"
+#  include "saci_platform/config/internal/lua.h"
+#  include "saci_platform/config/internal/prealloc.h"
 
-#include "saci_util/memory.h"
-#include "saci_util/internal/general.h"
+#  include "saci_util/memory.h"
+#  include "saci_util/internal/general.h"
 
 /* = Internal Funcs = */
 
@@ -145,3 +146,4 @@ SaciMemPool* psaci__cfg_renderer_get_pool(PSaciLuaState* lua, const char* name)
 
     return saci_mem_create_pool(SACI_MEM_CONTEXT_CONFIG, total_size);
 }
+#endif

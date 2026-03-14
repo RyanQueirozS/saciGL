@@ -1,16 +1,17 @@
-#include "saci_platform/config/config.h"
+#if 0
+#  include "saci_platform/config/config.h"
 
-#include "saci_platform/config/internal/lua.h"
-#include "saci_platform/config/internal/renderer_prealloc.h"
-#include "saci_platform/config/internal/renderer_populate.h"
+#  include "saci_platform/config/internal/lua.h"
+#  include "saci_platform/config/internal/renderer_prealloc.h"
+#  include "saci_platform/config/internal/renderer_populate.h"
 
-#include "saci_util/internal/general.h"
-#include "saci_util/memory.h"
-#include "saci_util/log.h"
-#include "saci_util/internal/log.h"
+#  include "saci_util/internal/general.h"
+#  include "saci_util/memory.h"
+#  include "saci_util/log.h"
+#  include "saci_util/internal/log.h"
 
-#include <saci_util/defines.h>
-#include <string.h>
+#  include <saci_util/defines.h>
+#  include <string.h>
 
 /* === Internal === */
 
@@ -209,3 +210,4 @@ SACI_INTERNAL void psaci__cfg_renderer_print_pipeline(const struct PSaciConfigRe
                      "  Blend: enabled=%s, opts=" SACI_FMTU64 "\n",
                      cfg->pipeline.blend.enabled ? "true" : "false", cfg->pipeline.blend.opts);
 }
+#endif

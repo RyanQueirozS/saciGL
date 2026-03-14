@@ -6,7 +6,8 @@
 #include "saci_platform/config/config_renderer.h"
 #include "saci_util/internal/general.h"
 #include "saci_util/types.h"
-#include "saci_util/internal/max_values.h"
+
+#define SACI_MAX_INSTANCE_BUFFERS 16
 
 union PSaciGFXUniformValue {
     // Scalar types
@@ -90,10 +91,9 @@ struct PSaciGFXInstanceData {
     void* instance_data_structure;
 };
 
-// TODO transform into a structure of arrays
 struct PSaciGFXDrawData {
     struct {
-        void* array; // unkown_size_at_compiletime
+        void* array; // unkown size at compiletime
         SaciU64 struct_size;
         SaciU64 count;
     } vertex_data;

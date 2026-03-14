@@ -1,21 +1,22 @@
 // TODO check if when using `psaci__lua_traverse_to_path` word_count should be 1
 // smaller (won't access the last value, as it is not a table)
 // TODO remove the if(!lua) and use dummy checks
-#include "saci_platform/config/config.h"
+#include "saci_platform/config/lua.h"
 
 #include "saci_util/internal/general.h"
+#include "saci_util/memory.h"
+#include "saci_util/safe_string.h"
+#include "saci_util/internal/log.h"
+#include "saci_util/types.h"
+#include "saci_util/internal/max_values.h"
 
 #include <lua5.4/lauxlib.h>
 #include <lua5.4/lualib.h>
 #include <lua5.4/lua.h>
 
-#include <saci_util/memory.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "saci_util/internal/log.h"
-#include "saci_util/types.h"
 
 #define PSACI_G_PATH_BUFFER_MAX_WORDS (int)32
 #define PSACI_G_PATH_BUFFER_WORD_MAX_LETERS (int)128
@@ -303,7 +304,7 @@ void psaci_lua_get_length_name(PSaciLuaState* lua, SaciU64* total_size, SaciU64 
     if (!psaci_lua_get_value(lua, "name", &val, PSACI_LUA_TYPE_STRING)) {
         return;
     }
-    *total_size += saci_strsize(saci_mem_chunk_get_ptr(val.data.string, 0), SACI_MAX_CONFIG_FIELD_STRING_SIZE_SMALL) + struct_size;
+    *total_size += saci_safe_str_size(saci_mem_chunk_get_ptr(val.data.string, 0), SACI_MAX_CONFIG_FIELD_STRING_SIZE_SMALL) + struct_size;
 }
 
 /* === Internal Implementation === */
