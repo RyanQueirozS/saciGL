@@ -22,14 +22,31 @@ struct PSaciConfigPopulateEntity {
 
 struct PSaciConfigRenderer;
 
+typedef void (*PSaciConfigRendererPreallocFunc)(
+    PSaciLuaState* lua, SaciMemPool* mem,
+    const struct PSaciConfigPreallocEntity* prealloc_table, void** cfg_data);
+
+typedef void (*PSaciConfigRendererPopulateFunc)(
+    PSaciLuaState* lua,
+    const struct PSaciConfigPopulateEntity* populate_table,
+    void** cfg_data);
+
+typedef const void* (*PSaciConfigRendererGetFieldFunc)(const void* cfg_data, const void* query);
+
+typedef void (*PSaciConfigRendererResetFunc)(void* cfg_data);
+
+typedef void (*PSaciConfigRendererFreeFunc)(struct PSaciConfigRenderer* self);
+
 struct PSaciConfigRendererInterface {
-    void (*preallocate)(PSaciLuaState* lua, SaciMemPool* mem, const struct PSaciConfigPreallocEntity* prealloc_table, void** cfg_data);
+    PSaciConfigRendererPreallocFunc preallocate;
 
-    void (*populate)(PSaciLuaState* lua, const struct PSaciConfigPopulateEntity* populate_table, void** cfg_data);
+    PSaciConfigRendererPopulateFunc populate;
 
-    void (*reset)(void** cfg_data);
+    PSaciConfigRendererGetFieldFunc get_field;
 
-    void (*free)(struct PSaciConfigRenderer* self);
+    PSaciConfigRendererResetFunc reset;
+
+    PSaciConfigRendererFreeFunc free;
 };
 
 SACI_API struct PSaciConfigRenderer* psaci_config_renderer_new(
@@ -39,14 +56,23 @@ SACI_API struct PSaciConfigRenderer* psaci_config_renderer_new(
     const struct PSaciConfigPopulateEntity* populate_table,
     SaciMemPool* pool);
 
-SACI_API SaciBool psaci_config_renderer_reset(struct PSaciConfigRenderer* cfg_renderer);
+SACI_API SaciBool psaci_config_renderer_reset(
+    struct PSaciConfigRenderer* cfg_renderer);
 
-SACI_API SaciBool psaci_config_renderer_free(struct PSaciConfigRenderer* cfg_renderer);
+SACI_API SaciBool psaci_config_renderer_free(
+    struct PSaciConfigRenderer* cfg_renderer);
 
-SACI_API SaciBool psaci_config_renderer_fetch(PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_renderer);
+SACI_API SaciBool psaci_config_renderer_fetch(
+    PSaciLuaState* lua, struct PSaciConfigRenderer* cfg_renderer);
 
-SACI_API const void* psaci_config_renderer_get_data(const struct PSaciConfigRenderer* cfg_renderer);
+SACI_API const void* psaci_config_renderer_get_data(
+    const struct PSaciConfigRenderer* cfg_renderer);
 
-SACI_API SaciMemPool* psaci_config_renderer_get_pool(struct PSaciConfigRenderer* cfg_renderer);
+SACI_API const void* psaci_config_renderer_get_field(
+    const struct PSaciConfigRenderer* cfg_renderer,
+    const void* query);
+
+SACI_API SaciMemPool* psaci_config_renderer_get_pool(struct PSaciConfigRenderer*
+                                                         cfg_renderer);
 
 #endif // SACI_PLATFORM_CONFIG_CONFIG_RENDERER_H

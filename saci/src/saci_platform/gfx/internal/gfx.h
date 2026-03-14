@@ -6,6 +6,7 @@
 #include "saci_platform/config/config_renderer.h"
 #include "saci_util/internal/general.h"
 #include "saci_util/types.h"
+#include "saci_util/internal/max_values.h"
 
 union PSaciGFXUniformValue {
     // Scalar types
@@ -40,11 +41,38 @@ union PSaciGFXUniformValue {
     // float mat4x3[4][3];
 };
 
+struct PSaciGFXInfoConstructionData {
+    SaciU64 idx_capacity, idx_element_size,
+        vtx_capacity, vtx_element_size;
+
+    struct {
+        SaciU64 element_array_length;
+        struct PSaciGFXInfoVertexAttributeElementData {
+            SaciDataType type;
+            SaciU32 location;
+            SaciU32 offset;
+        }* element_array; // Assumes it is in order
+        SaciU64 total_size_bytes;
+    } vertex_attribute;
+
+    struct PSaciGFXInfoInstanceBufferData {
+        SaciU64 total_size_byte;
+        SaciU64 layout_array_length;
+        struct PSaciGFXInfoInstanceBufferLayoutData {
+            SaciDataType type;
+            SaciU64 offset;
+            SaciU32 location;
+        }* layout_array;
+        SaciU64 capacity;
+    }* instance_buffer_array;
+    SaciU8 instance_buffer_array_length;
+};
+
 union PSaciGFXInfo {
     struct {
         SaciShaderId shader_program;
         SaciBufferId ibo, vbo, vao;
-        SaciBufferId instance_buffer; // needs to be a darray of buffers each named with a su_String
+        SaciBufferId instance_buffer[SACI_MAX_INSTANCE_BUFFERS]; // needs to be a darray of buffers each named with a su_String
     } gl_data;
     // struct {} dx_data;
     // struct {} vk_data;
@@ -84,18 +112,22 @@ struct PSaciGFXDrawData {
 
     union PSaciTexture texture_array[SACI_MAX_TEXTURES];
     SaciU32 texture_array_loc[SACI_MAX_TEXTURES];
+
+    SaciBufferId instance_buffer_id;
 };
 
 SaciBool psaci_gfx_load(void);
 
 typedef void* (*PSaciGfxProcAddress)(const char*);
-#ifndef __EMSCRIPTEN__
 void psaci_gfx_load_proc(PSaciGfxProcAddress addrs);
-#endif
 
-void psaci_gfx_init_shader_default(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer* cfg);
+void psaci_gfx_init_shader(
+    union PSaciGFXInfo* info_out,
+    const char* vshader_code,
+    const char* fshader_code,
+    const char* gshader_code);
 
-void psaci_gfx_create_default(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer* cfg);
+void psaci_gfx_fill_info(union PSaciGFXInfo* info_out, const struct PSaciGFXInfoConstructionData construction_data);
 
 void psaci_gfx_clear_color(const SaciColor color);
 

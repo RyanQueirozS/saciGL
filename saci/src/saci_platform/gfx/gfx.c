@@ -4,10 +4,7 @@
 
 #include "saci_platform/dependencies/dependency.h"
 #include "saci_platform/dependencies/internal/dependency.h"
-
-#ifndef __EMSCRIPTEN__
-#  include "saci_platform/config/config_renderer.h"
-#endif
+#include <stdbool.h>
 
 #include "saci_util/memory.h"
 #include "saci_util/internal/general.h"
@@ -19,18 +16,17 @@
 #include <string.h>
 
 /* === Internal helper Declarations === */
-
-#ifndef __EMSCRIPTEN__
-SACI_STATIC struct PSaciRenderApiLoaderFuncs psaci_g_render_loader_funcs;
-SACI_STATIC enum PSaciRenderApi psaci_g_render_api;
-#else
-SACI_STATIC enum PSaciRenderApi sb__render_api = PSACI_RENDERER_API_OPENGL;
-#endif
-
-SACI_STATIC struct SaciMemPool* psaci_g_instance_draw_data_pool = NULL; // Used in sb__gfx_join_instance_data
+SACI_STATIC struct {
+    SaciBool is_loaded;
+    enum PSaciRenderApi render_api;
+    struct PSaciRenderApiLoaderFuncs render_loader_funcs;
+    struct SaciMemPool* instance_draw_data_pool; // Used in sb__gfx_join_instance_data
+} psaci_g_gfx_context = {0};
 
 // Init
-SACI_INTERNAL void psaci__gfx_gl_init_info(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer* cfg);
+SACI_INTERNAL void psaci__gfx_gl_init_info(
+    union PSaciGFXInfo* info_out,
+    struct PSaciGFXInfoConstructionData construction_data);
 
 // Draw
 SACI_INTERNAL void psaci__gfx_join_instance_data(const struct PSaciGFXDrawData* draw_data, void** instance_data_array_out, SaciU64* instance_data_array_size_out);
@@ -42,11 +38,17 @@ SACI_INTERNAL SaciBool psaci__has_texture(union PSaciTexture* texture_array, Sac
 
 SaciBool psaci_gfx_load(void)
 {
-#ifndef __EMSCRIPTEN__
-    psaci_g_render_loader_funcs = psaci_dependencies_get_render_loader_api_funcs();
-    psaci_g_render_api = psaci_dependencies_get_render_api();
+    if (psaci_g_gfx_context.is_loaded) {
+        return SACI_TRUE;
+    }
+    psaci_g_gfx_context.is_loaded = SACI_TRUE;
+    psaci_g_gfx_context.instance_draw_data_pool = saci_mem_create_pool(SACI_MEM_CONTEXT_GFX, sizeof(SaciMat4) * 10000); // TODO remove the magic numbers and perhaps redo the whole chunk stuff
 
-    switch (psaci_g_render_api) {
+#ifndef __EMSCRIPTEN__
+    psaci_g_gfx_context.render_loader_funcs = psaci_dependencies_get_render_loader_api_funcs();
+    psaci_g_gfx_context.render_api = psaci_dependencies_get_render_api();
+
+    switch (psaci_g_gfx_context.render_api) {
     case PSACI_RENDERER_API_OPENGL4:
         return psaci_gl_load();
     case PSACI_RENDERER_API_OPENGLES3:
@@ -59,34 +61,40 @@ SaciBool psaci_gfx_load(void)
     return SACI_FALSE;
 }
 
-#ifndef __EMSCRIPTEN__
 void psaci_gfx_load_proc(PSaciGfxProcAddress addrs)
 {
-    switch (psaci_g_render_api) {
+#ifndef __EMSCRIPTEN__
+    switch (psaci_g_gfx_context.render_api) {
     case PSACI_RENDERER_API_OPENGL4:
-        psaci_g_render_loader_funcs.glad.load_opengl(addrs);
+        psaci_g_gfx_context.render_loader_funcs.glad.load_opengl(addrs);
         break;
     case PSACI_RENDERER_API_OPENGLES3:
-        // TODO
+        // Not handles since EMSCRIPTEN doesn't need to load any proc
         break;
     case PSACI_RENDERER_API_VULKAN:
         break;
     }
-}
 #endif
+}
 
-void psaci_gfx_init_shader_default(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer* cfg)
+void psaci_gfx_init_shader(
+    union PSaciGFXInfo* info_out,
+    const char* vshader_code,
+    const char* fshader_code,
+    const char* gshader_code)
 {
-    // TODO
-#if 0
-    SACI_LOG_ASSERT_M(cfg.shaders.vert, SACI_LOG_CONTEXT_GFX, "Vertex shader is empty or NULL");
-    SACI_LOG_ASSERT_M(cfg.shaders.frag, SACI_LOG_CONTEXT_GFX, "Frag shader is empty or NULL");
-#  ifndef __EMSCRIPTEN__
-    switch (psaci_g_render_api) {
+    SACI_LOG_ASSERT_M(vshader_code, SACI_LOG_CONTEXT_GFX,
+                      "Vertex shader is empty or NULL");
+    SACI_LOG_ASSERT_M(fshader_code, SACI_LOG_CONTEXT_GFX,
+                      "Frag shader is empty or NULL");
+#ifndef __EMSCRIPTEN__
+    switch (psaci_g_gfx_context.render_api) {
     case PSACI_RENDERER_API_OPENGL4:
         {
-            info_out->gl_data.shader_program = psaci_gl_shader_create_shader_program_source(
-                cfg.shaders.vert, cfg.shaders.frag, cfg.shaders.geom);
+            info_out->gl_data.shader_program =
+                psaci_gl_shader_create_shader_program_source(vshader_code,
+                                                             fshader_code,
+                                                             gshader_code);
             break;
         }
     case PSACI_RENDERER_API_OPENGLES3:
@@ -95,21 +103,19 @@ void psaci_gfx_init_shader_default(union PSaciGFXInfo* info_out, const struct PS
     case PSACI_RENDERER_API_VULKAN:
         break;
     }
-#  else
-    SACI_LOG_ASSERT_M(!cfg.shaders.geom, SACI_LOG_CONTEXT_GFX, "Opengl ES3 does not accept geometry shaders");
-    info_out->gl_data.shader_program = sb_emsdk_shader_create_program_code(cfg.shaders.frag, cfg.shaders.vert);
-#  endif
+#else
+    SACI_LOG_ASSERT_M(!gshader_code, SACI_LOG_CONTEXT_GFX,
+                      "Opengl ES3 does not accept geometry shaders");
+    info_out->gl_data.shader_program =
+        psaci_emsdk_shader_create_program_code(vshader_code, fshader_code, );
 #endif
 }
 
-void psaci_gfx_create_default(union PSaciGFXInfo* info_out, const struct PSaciConfigRenderer* cfg)
+void psaci_gfx_fill_info(union PSaciGFXInfo* info_out, const struct PSaciGFXInfoConstructionData construction_data)
 {
-// TODO
-#if 0
-    psaci_g_instance_draw_data_pool = saci_mem_create_pool(SACI_MEM_CONTEXT_GFX, sizeof(SaciMat4) * 10000); // TODO remove the magic numbers and perhaps redo the whole chunk stuff
-    switch (psaci_g_render_api) {
+    switch (psaci_g_gfx_context.render_api) {
     case PSACI_RENDERER_API_OPENGL4:
-        psaci__gfx_gl_init_info(info_out, cfg);
+        psaci__gfx_gl_init_info(info_out, construction_data);
         break;
     case PSACI_RENDERER_API_OPENGLES3:
         // TODO
@@ -117,7 +123,6 @@ void psaci_gfx_create_default(union PSaciGFXInfo* info_out, const struct PSaciCo
     case PSACI_RENDERER_API_VULKAN:
         break;
     }
-#endif
 }
 
 void psaci_gfx_clear_color(const SaciColor color)
@@ -136,7 +141,7 @@ void psaci_gfx_clear_depth_buffer(void)
 
 void psaci_gfx_draw(const union PSaciGFXInfo* gfx_info, const struct PSaciGFXDrawData* data)
 {
-    switch (psaci_g_render_api) {
+    switch (psaci_g_gfx_context.render_api) {
     case PSACI_RENDERER_API_OPENGL4:
         psaci__gfx_gl_draw(gfx_info, data);
         break;
@@ -151,7 +156,7 @@ void psaci_gfx_draw(const union PSaciGFXInfo* gfx_info, const struct PSaciGFXDra
 SaciS32 psaci_gfx_get_uniform_loc(const union PSaciGFXInfo* info, const char* name)
 {
     SaciS32 location = 0;
-    switch (psaci_g_render_api) {
+    switch (psaci_g_gfx_context.render_api) {
     case PSACI_RENDERER_API_OPENGL4:
         location = psaci_gl_uniform_location(info->gl_data.shader_program, name);
         break;
@@ -176,7 +181,7 @@ void psaci_gfx_upload_texture_2d(union PSaciTexture texture,
                                  SaciS32 width, SaciS32 height,
                                  const void* data)
 {
-    switch (psaci_g_render_api) {
+    switch (psaci_g_gfx_context.render_api) {
     case PSACI_RENDERER_API_OPENGL4:
         psaci_gl_upload_texture_2d(texture.gl.texture,
                                    format, width, height, data);
@@ -191,7 +196,7 @@ void psaci_gfx_upload_texture_2d(union PSaciTexture texture,
 
 void psaci_gfx_get_texture_size_2d(union PSaciTexture texture, SaciS32* width_out, SaciS32* height_out)
 {
-    switch (psaci_g_render_api) {
+    switch (psaci_g_gfx_context.render_api) {
     case PSACI_RENDERER_API_OPENGL4:
         psaci_gl_get_texture_size_2d(texture.gl.texture,
                                      width_out, height_out);
@@ -206,7 +211,7 @@ void psaci_gfx_get_texture_size_2d(union PSaciTexture texture, SaciS32* width_ou
 
 void psaci_gfx_generate_mipmap_2d(union PSaciTexture texture)
 {
-    switch (psaci_g_render_api) {
+    switch (psaci_g_gfx_context.render_api) {
     case PSACI_RENDERER_API_OPENGL4:
         psaci_gl_generate_mipmap_2d(texture.gl.texture);
         break;
@@ -220,7 +225,7 @@ void psaci_gfx_generate_mipmap_2d(union PSaciTexture texture)
 
 void psaci_gfx_delete_texture(union PSaciTexture texture)
 {
-    switch (psaci_g_render_api) {
+    switch (psaci_g_gfx_context.render_api) {
     case PSACI_RENDERER_API_OPENGL4:
         psaci_gl_delete_texture(1, &texture.gl.texture);
         break;
@@ -234,7 +239,7 @@ void psaci_gfx_delete_texture(union PSaciTexture texture)
 
 void psaci_gfx_initialize_renderer_debugger(void* debug_func)
 {
-    switch (psaci_g_render_api) {
+    switch (psaci_g_gfx_context.render_api) {
     case PSACI_RENDERER_API_OPENGL4:
         psaci_gl_initialized_debugger(debug_func);
         break;
@@ -249,103 +254,115 @@ void psaci_gfx_initialize_renderer_debugger(void* debug_func)
 
 SACI_INTERNAL void psaci__gfx_gl_create_main_buffers(
     union PSaciGFXInfo* info_out,
-    const struct PSaciConfigRenderer* cfg)
+    SaciU64 idx_capacity, SaciU64 idx_element_size,
+    SaciU64 vtx_capacity, SaciU64 vtx_element_size)
 {
-#if 0
     info_out->gl_data.vbo = psaci_gl_create_vertex_buffer_dynamic(
-        cfg.batch.vertex_cfg.capacity * cfg.vertex_attributes.element_size_internal,
-        NULL);
+        vtx_capacity * vtx_element_size, NULL);
 
     info_out->gl_data.ibo = psaci_gl_create_index_buffer_dynamic(
-        cfg.batch.index_cfg.capacity * cfg.index_data.element_size_internal,
-        NULL);
+        idx_capacity * idx_element_size, NULL);
 
     psaci_gl_create_vertex_array(1, &info_out->gl_data.vao);
-#endif
 }
 
 SACI_INTERNAL void psaci__gfx_gl_setup_vertex_attributes(
-    const struct PSaciConfigRenderer* cfg,
-    SaciBufferId vao,
-    SaciBufferId vbo)
+    union PSaciGFXInfo* info_out,
+    struct PSaciGFXInfoConstructionData construction_data)
 {
-#if 0
-    psaci_gl_bind_vertex_array(vao);
-    psaci_gl_bind_vertex_buffer(vbo);
+    psaci_gl_bind_vertex_array(info_out->gl_data.vao);
+    psaci_gl_bind_vertex_buffer(info_out->gl_data.vbo);
 
-    for (SaciU64 i = 0; i < cfg.vertex_attributes.element_array_length; ++i) {
-        const struct PSaciRendererCfgVertexElement layout = cfg.vertex_attributes.element_array[i];
+    for (SaciU64 i = 0; i < construction_data.vertex_attribute.element_array_length; ++i) {
+        const struct PSaciGFXInfoVertexAttributeElementData element =
+            construction_data.vertex_attribute.element_array[i];
 
         psaci_gl_set_vertex_attrib_pointer(
-            layout.location,
-            SACI_CAST_M(SaciS32)(SACI_G_TYPE_SIZE_TABLE[layout.type]),
-            psaci_gl_type_to_gl(layout.type),
+            element.location,
+            SACI_CAST_M(SaciU32)(SACI_G_TYPE_SIZE_TABLE[element.type]),
+            psaci_gl_type_to_gl(element.type),
             SACI_FALSE,
-            cfg.vertex_attributes.element_size_internal,
-            SACI_CAST_M(void*)(layout.offset));
+            construction_data.vertex_attribute.total_size_bytes,
+            SACI_CAST_M(void*)(&element.offset));
         psaci_gl_enable_vertex_attrib_array(
-            SACI_CAST_M(SaciU64)(layout.location));
+            SACI_CAST_M(SaciU64)(element.location));
     }
-#endif
 }
 
-SACI_INTERNAL void psaci__gfx_gl_setup_instance_buffers(
-    union PSaciGFXInfo* info_out,
-    const struct PSaciConfigRenderer* cfg)
+SACI_INTERNAL void psaci__gfx_gl_setup_instance_buffer_attribute(
+    struct PSaciGFXInfoInstanceBufferLayoutData layout,
+    SaciU64 buffer_total_size_bytes)
 {
-#if 0
-    if (!cfg.instance_data.buffer_array_length) {
+    if (layout.type == SACI_TYPE_MAT4) {
+        for (SaciU32 col = 0; col < 4; ++col) {
+            psaci_gl_set_vertex_attrib_pointer(
+                layout.location + col, sizeof(SaciVec4),
+                PSACI_GL_FLOAT, SACI_FALSE, (buffer_total_size_bytes),
+                (void*)(layout.offset + sizeof(SaciVec4) * col));
+            psaci_gl_enable_vertex_attrib_array(layout.location + col);
+            psaci_gl_vertex_attrib_divisor(layout.location + col, 1);
+        }
+    } else {
+        psaci_gl_set_vertex_attrib_pointer(
+            layout.location, SACI_CAST_M(SaciS32)(SACI_G_TYPE_SIZE_TABLE[layout.type]),
+            psaci_gl_type_to_gl(layout.type),
+            SACI_FALSE,
+            buffer_total_size_bytes,
+            (void*)(layout.offset));
+        psaci_gl_enable_vertex_attrib_array(layout.location);
+        psaci_gl_vertex_attrib_divisor(layout.location, 1);
+    }
+}
+
+SACI_INTERNAL void psaci__gfx_gl_setup_instance_buffer(
+    union PSaciGFXInfo* info_out,
+    const struct PSaciGFXInfoInstanceBufferData buffer_data, SaciU8 idx)
+{
+    info_out->gl_data.instance_buffer[idx] = psaci_gl_create_vertex_buffer_dynamic(buffer_data.total_size_byte * buffer_data.capacity, NULL);
+    psaci_gl_bind_vertex_buffer(info_out->gl_data.instance_buffer[idx]);
+
+    for (SaciU64 attrib_i = 0; attrib_i < buffer_data.layout_array_length; ++attrib_i) {
+        const struct PSaciGFXInfoInstanceBufferLayoutData layout = buffer_data.layout_array[attrib_i];
+        psaci__gfx_gl_setup_instance_buffer_attribute(layout, buffer_data.total_size_byte);
+    }
+}
+
+SACI_INTERNAL void psaci__gfx_gl_setup_instance_buffer_array(
+    union PSaciGFXInfo* info_out,
+    struct PSaciGFXInfoConstructionData construction_data)
+{
+    if (!construction_data.instance_buffer_array_length) {
         return;
     }
 
-    for (SaciU64 buf_i = 0; buf_i < cfg.instance_data.buffer_array_length; ++buf_i) {
-        const struct PSaciRendererCfgInstanceBuffer buffer_cfg = cfg.instance_data.buffer_array[buf_i];
-
-        info_out->gl_data.instance_buffer = psaci_gl_create_vertex_buffer_dynamic(buffer_cfg.size_byte_internal * cfg.batch.instance_cfg.capacity, NULL);
-        psaci_gl_bind_vertex_buffer(info_out->gl_data.instance_buffer);
-
-        for (SaciU64 attrib_i = 0; attrib_i < buffer_cfg.layout_array_length; ++attrib_i) {
-            const struct PSaciRendererCfgInstanceBufferLayout attrib = buffer_cfg.layout_array[attrib_i];
-
-            if (attrib.type == SACI_TYPE_MAT4) {
-                for (SaciU32 col = 0; col < 4; ++col) {
-                    psaci_gl_set_vertex_attrib_pointer(
-                        attrib.location + col, sizeof(SaciVec4),
-                        PSACI_GL_FLOAT, SACI_FALSE, (buffer_cfg.size_byte_internal),
-                        (void*)(attrib.offset + sizeof(SaciVec4) * col));
-                    psaci_gl_enable_vertex_attrib_array(attrib.location + col);
-                    psaci_gl_vertex_attrib_divisor(attrib.location + col, 1);
-                }
-            } else {
-                psaci_gl_set_vertex_attrib_pointer(
-                    attrib.location, SACI_CAST_M(SaciS32)(SACI_G_TYPE_SIZE_TABLE[attrib.type]),
-                    psaci_gl_type_to_gl(attrib.type),
-                    SACI_FALSE,
-                    buffer_cfg.size_byte_internal,
-                    (void*)(attrib.offset));
-                psaci_gl_enable_vertex_attrib_array(attrib.location);
-                psaci_gl_vertex_attrib_divisor(attrib.location, 1);
-            }
-        }
+    for (SaciU8 buf_i = 0; buf_i < construction_data.instance_buffer_array_length; ++buf_i) {
+        const struct PSaciGFXInfoInstanceBufferData buffer_data = construction_data.instance_buffer_array[buf_i];
+        psaci__gfx_gl_setup_instance_buffer(info_out, buffer_data, buf_i);
     }
     psaci_gl_bind_vertex_buffer(0);
-#endif
 }
 
 SACI_INTERNAL void psaci__gfx_gl_init_info(
     union PSaciGFXInfo* info_out,
-    const struct PSaciConfigRenderer* cfg)
+    struct PSaciGFXInfoConstructionData construction_data)
 {
-#if 0
-    SACI_LOG_ASSERT_M(cfg.shaders.vert, SACI_LOG_CONTEXT_GFX, "GL vert shader is empty");
-    SACI_LOG_ASSERT_M(cfg.shaders.frag, SACI_LOG_CONTEXT_GFX, "GL frag shader is empty");
-    SACI_LOG_ASSERT_M(cfg.batch.index_cfg.capacity, SACI_LOG_CONTEXT_GFX, "Index capacity is not set");
-    SACI_LOG_ASSERT_M(cfg.batch.vertex_cfg.capacity, SACI_LOG_CONTEXT_GFX, "Vertex capacity is not set");
+    SACI_LOG_ASSERT_M(construction_data.idx_capacity,
+                      SACI_LOG_CONTEXT_GFX, "Index capacity is not set");
+    SACI_LOG_ASSERT_M(construction_data.vtx_capacity,
+                      SACI_LOG_CONTEXT_GFX, "Vertex capacity is not set");
+    SACI_LOG_ASSERT_M(construction_data.idx_element_size,
+                      SACI_LOG_CONTEXT_GFX, "Index element size is not set");
+    SACI_LOG_ASSERT_M(construction_data.vtx_element_size,
+                      SACI_LOG_CONTEXT_GFX, "Vertex element size is not set");
 
-    psaci__gfx_gl_create_main_buffers(info_out, cfg);
-    psaci__gfx_gl_setup_vertex_attributes(cfg, info_out->gl_data.vao, info_out->gl_data.vbo);
-    psaci__gfx_gl_setup_instance_buffers(info_out, cfg);
-#endif
+    psaci__gfx_gl_create_main_buffers(
+        info_out,
+        construction_data.idx_capacity, construction_data.idx_element_size,
+        construction_data.vtx_capacity, construction_data.vtx_element_size);
+
+    psaci__gfx_gl_setup_vertex_attributes(info_out, construction_data);
+
+    psaci__gfx_gl_setup_instance_buffer_array(info_out, construction_data);
 }
 
 SACI_INTERNAL void psaci__gfx_join_instance_data(const struct PSaciGFXDrawData* draw_data, void** instance_data_array_out, SaciU64* instance_data_array_size_out)
@@ -361,7 +378,7 @@ SACI_INTERNAL void psaci__gfx_join_instance_data(const struct PSaciGFXDrawData* 
         return;
     }
 
-    *instance_data_array_out = saci_mem_pool_alloc(psaci_g_instance_draw_data_pool, *instance_data_array_size_out);
+    *instance_data_array_out = saci_mem_pool_alloc(psaci_g_gfx_context.instance_draw_data_pool, *instance_data_array_size_out);
     if (*instance_data_array_out == NULL) {
         SACI_LOG_ERROR_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
                          SACI_LOG_CONTEXT_GFX, "Failed to allocate memory for instance data");
@@ -402,7 +419,7 @@ SACI_INTERNAL void psaci__gfx_gl_draw(const union PSaciGFXInfo* gfx_info, const 
         SaciU64 instance_data_size = 0;
         psaci__gfx_join_instance_data(data, &instance_data, &instance_data_size);
 
-        psaci_gl_bind_vertex_buffer(gfx_info->gl_data.instance_buffer);
+        psaci_gl_bind_vertex_buffer(data->instance_buffer_id);
         psaci_gl_set_vertex_buffer_subdata(0, instance_data_size,
                                            instance_data);
     }

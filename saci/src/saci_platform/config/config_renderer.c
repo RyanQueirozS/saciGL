@@ -119,6 +119,19 @@ const void* psaci_config_renderer_get_data(
     return cfg_renderer->config_data;
 }
 
+const void* psaci_config_renderer_get_field(const struct PSaciConfigRenderer* cfg_renderer, const void* query)
+{
+    SACI_LOG_DUMMY_CHECKF_M(cfg_renderer,
+                            SACI_LOG_CONTEXT_CORE_CONFIG,
+                            "Null or not initialized renderer config trying to "
+                            "get field");
+    SACI_LOG_DUMMY_CHECKF_M(query,
+                            SACI_LOG_CONTEXT_CORE_CONFIG,
+                            "Null or empty query trying to get field");
+
+    return cfg_renderer->interface->get_field(cfg_renderer->config_data, query);
+}
+
 SaciMemPool* psaci_config_renderer_get_pool(
     struct PSaciConfigRenderer* cfg_renderer)
 {
