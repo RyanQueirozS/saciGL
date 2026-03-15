@@ -41,6 +41,8 @@ SACI_API const void* saci_mem_chunk_get(struct SaciMemChunk* chunk, SaciU64 idx,
 
 SACI_API void* saci_mem_chunk_get_ptr(struct SaciMemChunk* chunk, SaciU64 idx);
 
+SACI_API void* saci_mem_chunk_get_ptr_offset(struct SaciMemChunk* chunk, SaciU64 offset);
+
 SACI_API SaciBool saci_mem_chunk_get_ctx(const struct SaciMemChunk* chunk, enum SaciMemContext* ctx_out);
 
 SACI_API SaciBool saci_mem_chunk_get_capacity(const struct SaciMemChunk* chunk, SaciU64* data_out);

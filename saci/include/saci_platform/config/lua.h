@@ -9,24 +9,27 @@
 
 /* === Lua CFG === */
 
-enum PSaciLuaType {
-    PSACI_LUA_TYPE_NIL,
-    PSACI_LUA_TYPE_NUMBER,
-    PSACI_LUA_TYPE_BOOLEAN,
-    PSACI_LUA_TYPE_STRING,
-    PSACI_LUA_TYPE_TABLE,
-    PSACI_LUA_TYPE_USERDATA,
-    PSACI_LUA_TYPE_FUNTION,
+struct PSaciLuaField {
+    SaciDataType type;
+    union PSaciLuaValueData {
+        double float_val;
+        SaciBool bool_val;
+        SaciS64 int_val;
+        SaciMemChunk* string_val;
+        struct PSaciLuaTable* table;
+        void* voidptr_val;
+        int function_ref;
+        int thread_ref;
+    } data;
 };
 
-struct PSaciLuaValue {
-    enum PSaciLuaType type;
-    union {
-        double number;
-        int boolean;
-        SaciMemChunk* string; /* Caller must free */
-        void* userdata;       /* Lua-owned */
-    } data;
+struct PSaciLuaTable {
+    SaciMemChunk* chunk;
+    struct PSaciLuaFieldName {
+        struct PSaciLuaField value;
+        const char* name;
+    }* value_array;
+    SaciU64 value_count;
 };
 
 typedef lua_State PSaciLuaState;
@@ -50,9 +53,9 @@ SACI_API SaciBool psaci_lua_push_array_entry_to_stack(PSaciLuaState* lua, const 
 SACI_API SaciBool psaci_lua_array_iter(PSaciLuaState* lua, const char* path_to_array, PSaciLuaArrayIter array_iter, void* user_data);
 
 // Already pops the data for the "path_to_value"
-SACI_API SaciBool psaci_lua_get_value(PSaciLuaState* lua, const char* path_to_value, struct PSaciLuaValue* value_out, const enum PSaciLuaType expected_type);
+SACI_API SaciBool psaci_lua_get_value(PSaciLuaState* lua, const char* path_to_value, struct PSaciLuaField* value_out, const SaciDataType expected_type);
 
-SACI_API SaciBool psaci_lua_has_value(PSaciLuaState* lua, const char* path_to_value, enum PSaciLuaType expected_type);
+SACI_API SaciBool psaci_lua_has_value(PSaciLuaState* lua, const char* path_to_value, const SaciDataType expected_type);
 
 SACI_API SaciU64 psaci_lua_get_array_length_in_stack(PSaciLuaState* lua);
 

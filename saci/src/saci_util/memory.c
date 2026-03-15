@@ -339,6 +339,21 @@ void* saci_mem_chunk_get_ptr(struct SaciMemChunk* chunk, SaciU64 idx)
     return (void*)((char*)chunk->data + (idx * chunk->element_size_bytes));
 }
 
+void* saci_mem_chunk_get_ptr_offset(struct SaciMemChunk* chunk, SaciU64 offset)
+{
+    SACI_LOG_DUMMY_CHECK_M(chunk, SACI_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                           "Using empty memory chunk in get ptr func");
+    SACI_LOG_DUMMY_CHECK_M(!chunk->is_freed, SACI_LOG_CONTEXT_CORE_MEMORY_MANAGER,
+                           "Using freed memory chunk in get ptr func");
+    if (chunk->element_count) {
+        SACI_LOG_ERROR_M(
+            SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_CRASH,
+            SACI_LOG_CONTEXT_CORE_MEMORY,
+            "Forbidden use of element based chunk on a offset operation");
+    }
+    return (void*)((char*)(chunk->data) + (offset));
+}
+
 void saci_mem_print_info(void)
 {
     SaciU64 capacity_total = 0, size_total = 0;

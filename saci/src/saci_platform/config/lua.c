@@ -5,7 +5,6 @@
 
 #include "saci_util/internal/general.h"
 #include "saci_util/memory.h"
-#include "saci_util/safe_string.h"
 #include "saci_util/internal/log.h"
 #include "saci_util/types.h"
 #include "saci_util/internal/max_values.h"
@@ -17,13 +16,14 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define PSACI_G_PATH_BUFFER_MAX_WORDS (int)32
 #define PSACI_G_PATH_BUFFER_WORD_MAX_LETERS (int)128
 
 /* === Internal Declarations === */
 
-// IMPORTANT LUA CUSTOM ALLOCATOR
+// **IMPORTANT** LUA CUSTOM ALLOCATOR
 SACI_INTERNAL void* psaci__lua_allocator(void* ud, void* ptr, size_t osize, size_t nsize);
 
 // Other funcs:
@@ -38,16 +38,18 @@ SACI_INTERNAL void psaci__lua_path_to_buffer(
     PSaciCfgPathBufferArray path_buffer_out,
     int* words_out);
 
-SACI_INTERNAL enum PSaciLuaType psaci__lua_get_datatype_with_lua_type(
-    int lua_type);
+SACI_INTERNAL SaciDataType psaci__lua_get_luatype(PSaciLuaState* lua, int idx);
+
 SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(
     PSaciLuaState* lua,
-    struct PSaciLuaValue* value_out);
+    struct PSaciLuaField* value_out);
 
 SACI_INTERNAL SaciBool psaci__lua_traverse_to_path(
     PSaciLuaState* lua,
     const PSaciCfgPathBufferArray path_buffer,
     const int word_count);
+
+SACI_INTERNAL struct PSaciLuaTable* psaci__lua_get_table(PSaciLuaState* lua, int idx);
 
 /* === Header Implementation === */
 
@@ -134,7 +136,7 @@ SaciBool psaci_lua_array_iter(PSaciLuaState* lua, const char* path_to_array, PSa
     return SACI_TRUE;
 }
 
-SaciBool psaci_lua_get_value(PSaciLuaState* lua, const char* path_to_value, struct PSaciLuaValue* value_out, const enum PSaciLuaType expected_type)
+SaciBool psaci_lua_get_value(PSaciLuaState* lua, const char* path_to_value, struct PSaciLuaField* value_out, const SaciDataType expected_type)
 {
     if (!lua) {
         return SACI_FALSE;
@@ -156,7 +158,7 @@ SaciBool psaci_lua_get_value(PSaciLuaState* lua, const char* path_to_value, stru
         }
     }
 
-    enum PSaciLuaType type = psaci__lua_get_datatype_with_lua_type(lua_type(lua, -1));
+    SaciDataType type = psaci__lua_get_luatype(lua, -1);
     if (type != expected_type) {
         SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
                           SACI_LOG_CONTEXT_CORE_CONFIG,
@@ -178,7 +180,7 @@ SaciBool psaci_lua_get_value(PSaciLuaState* lua, const char* path_to_value, stru
     return SACI_TRUE;
 }
 
-SACI_API SaciBool psaci_lua_has_value(PSaciLuaState* lua, const char* path_to_value, enum PSaciLuaType expected_type)
+SACI_API SaciBool psaci_lua_has_value(PSaciLuaState* lua, const char* path_to_value, const SaciDataType expected_type)
 {
 
     int word_count = 0;
@@ -196,7 +198,7 @@ SACI_API SaciBool psaci_lua_has_value(PSaciLuaState* lua, const char* path_to_va
             return SACI_FALSE;
         }
     }
-    enum PSaciLuaType type = psaci__lua_get_datatype_with_lua_type(lua_type(lua, -1));
+    SaciDataType type = psaci__lua_get_luatype(lua, -1);
     if (type != expected_type) {
         SACI_LOG_ERRORF_M(SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
                           SACI_LOG_CONTEXT_CORE_CONFIG,
@@ -296,17 +298,6 @@ void psaci_lua_dump_stack(PSaciLuaState* l)
     printf("---------------------------\n");
 }
 
-// internal/lua.h
-
-void psaci_lua_get_length_name(PSaciLuaState* lua, SaciU64* total_size, SaciU64 struct_size)
-{
-    struct PSaciLuaValue val = {0};
-    if (!psaci_lua_get_value(lua, "name", &val, PSACI_LUA_TYPE_STRING)) {
-        return;
-    }
-    *total_size += saci_safe_str_size(saci_mem_chunk_get_ptr(val.data.string, 0), SACI_MAX_CONFIG_FIELD_STRING_SIZE_SMALL) + struct_size;
-}
-
 /* === Internal Implementation === */
 
 SACI_INTERNAL void* psaci__lua_allocator(void* ud, void* ptr, size_t osize, size_t nsize)
@@ -355,61 +346,99 @@ SACI_INTERNAL void psaci__lua_path_to_buffer(
     *words_out = word;
 }
 
-SACI_INTERNAL enum PSaciLuaType psaci__lua_get_datatype_with_lua_type(int ltype)
+SACI_INTERNAL SaciDataType psaci__lua_get_luatype(PSaciLuaState* lua, int idx)
 {
+    int ltype = lua_type(lua, idx);
+
     switch (ltype) {
     case LUA_TNIL:
-        return PSACI_LUA_TYPE_NIL;
+        return SACI_TYPE_NULL;
 
     case LUA_TBOOLEAN:
-        return PSACI_LUA_TYPE_BOOLEAN;
+        return SACI_TYPE_BOOL;
 
     case LUA_TNUMBER:
-        return PSACI_LUA_TYPE_NUMBER;
+        if (lua_isinteger(lua, idx)) {
+            return SACI_TYPE_S64;
+        }
+        return SACI_TYPE_FLOAT;
 
     case LUA_TSTRING:
-        return PSACI_LUA_TYPE_STRING;
+        return SACI_TYPE_STRING;
 
     case LUA_TTABLE:
-        return PSACI_LUA_TYPE_TABLE;
+        return SACI_TYPE_STRUCT;
 
     case LUA_TUSERDATA:
     case LUA_TLIGHTUSERDATA:
-        return PSACI_LUA_TYPE_USERDATA;
+        return SACI_TYPE_VOIDPTR;
 
     case LUA_TFUNCTION:
+        return SACI_TYPE_FUNCTION;
+
     case LUA_TTHREAD:
+        return SACI_TYPE_THREAD;
+
     default:
-        return PSACI_LUA_TYPE_FUNTION;
+        return SACI_TYPE_UNKNOWN;
     }
 }
 
-SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(PSaciLuaState* lua, struct PSaciLuaValue* value_out)
+SACI_INTERNAL SaciBool psaci__lua_get_value_through_type(PSaciLuaState* lua, struct PSaciLuaField* value_out)
 {
-    switch (lua_type(lua, -1)) {
-    case LUA_TNUMBER:
-        value_out->type = PSACI_LUA_TYPE_NUMBER;
-        value_out->data.number = lua_tonumber(lua, -1);
-        return SACI_TRUE;
+    switch (value_out->type) {
+    case SACI_TYPE_NULL:
+        {
+            return SACI_FALSE;
+        }
+    case SACI_TYPE_BOOL:
+        {
+            value_out->data.bool_val = lua_toboolean(lua, -1);
+            return SACI_TRUE;
+        }
+    case SACI_TYPE_S64:
+        {
+            value_out->data.int_val = lua_tonumber(lua, -1);
+            return SACI_TRUE;
+        }
+    case SACI_TYPE_DOUBLE:
+        {
+            value_out->data.float_val = lua_tonumber(lua, -1);
+            return SACI_TRUE;
+        }
+    case SACI_TYPE_STRING:
+        {
+            const char* s = lua_tostring(lua, -1);
+            value_out->data.string_val =
+                saci_mem_chunk_strdup(SACI_MEM_CONTEXT_LUA,
+                                      s, SACI_MAX_CONFIG_FIELD_STRING_SIZE);
+            return SACI_TRUE;
+        }
 
-    case LUA_TBOOLEAN:
-        value_out->type = PSACI_LUA_TYPE_BOOLEAN;
-        value_out->data.boolean = lua_toboolean(lua, -1);
-        return SACI_TRUE;
-
-    case LUA_TSTRING:
-        value_out->type = PSACI_LUA_TYPE_STRING;
-        const char* s = lua_tostring(lua, -1);
-        value_out->data.string = saci_mem_chunk_strdup(SACI_MEM_CONTEXT_LUA, s, SACI_MAX_CONFIG_FIELD_STRING_SIZE);
-        return SACI_TRUE;
-
-    case LUA_TUSERDATA:
-        value_out->type = PSACI_LUA_TYPE_USERDATA;
-        value_out->data.userdata = lua_touserdata(lua, -1);
-        return SACI_TRUE;
-
+    case SACI_TYPE_STRUCT:
+        {
+            value_out->data.table = psaci__lua_get_table(lua, -1);
+            return SACI_TRUE;
+        }
+    case SACI_TYPE_VOIDPTR:
+        {
+            value_out->data.voidptr_val = lua_touserdata(lua, -1);
+            return SACI_TRUE;
+        }
+    case LUA_TFUNCTION:
+        {
+            value_out->data.function_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
+            return SACI_TRUE;
+        }
+    case LUA_TTHREAD:
+        {
+            value_out->data.thread_ref = luaL_ref(lua, LUA_REGISTRYINDEX);
+            return SACI_TRUE;
+        }
     default:
-        return SACI_FALSE;
+        {
+            return SACI_FALSE;
+        }
     }
 }
 
@@ -442,4 +471,54 @@ SACI_INTERNAL SaciBool psaci__lua_traverse_to_path(PSaciLuaState* lua, const PSa
         return SACI_FALSE;
     }
     return SACI_TRUE;
+}
+
+SACI_INTERNAL struct PSaciLuaTable* psaci__lua_get_table(PSaciLuaState* lua, int idx)
+{
+    if (!lua_istable(lua, idx)) {
+        return NULL;
+    }
+
+    idx = lua_absindex(lua, idx);
+
+    lua_pushnil(lua);
+
+    // Get the size to alloc value_array
+    SaciU64 value_count = 0;
+    while (lua_next(lua, idx) != 0) {
+        value_count++;
+        psaci_lua_pop(lua, 1); // Pop value
+    }
+    SaciMemChunk* chunk = saci_mem_chunk_alloc_size(
+        SACI_MEM_CONTEXT_LUA,
+        sizeof(struct PSaciLuaTable) +
+            (sizeof(struct PSaciLuaFieldName)) * value_count);
+    struct PSaciLuaTable* table = saci_mem_chunk_get_ptr_offset(chunk, 0);
+    table->value_array = saci_mem_chunk_get_ptr_offset(chunk, sizeof(table->value_array));
+    table->value_count = value_count;
+    table->chunk = chunk;
+
+    while (lua_next(lua, idx) != 0) {
+        if (lua_type(lua, -2) != LUA_TSTRING) {
+            lua_pop(lua, 1);
+            continue;
+        }
+
+        const char* key = lua_tostring(lua, -2);
+
+        struct PSaciLuaField* field =
+            &table->value_array[table->value_count].value;
+
+        table->value_array[table->value_count].name = key;
+
+        field->type = psaci__lua_get_luatype(lua, -1);
+
+        psaci__lua_get_value_through_type(lua, field);
+
+        table->value_count++;
+
+        psaci_lua_pop(lua, 1); // Pop value
+    }
+
+    return table;
 }

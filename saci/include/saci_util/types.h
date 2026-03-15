@@ -103,7 +103,7 @@ typedef struct {
 /* === Types === */
 
 typedef enum {
-    SACI_TYPE_UNKOWN = 0,
+    SACI_TYPE_UNKNOWN = 0,
     SACI_TYPE_VOIDPTR = 1,
     SACI_TYPE_U8 = 2,  // unsigned int8
     SACI_TYPE_U16 = 3, // unsigned int16
@@ -147,9 +147,13 @@ typedef enum {
     SACI_TYPE_NULL = 32,
 
     SACI_TYPE_SAMPLER2D = 33,
+
+    SACI_TYPE_FUNCTION = 34,
+    SACI_TYPE_THREAD = 35,
+    SACI_TYPE_STRUCT = 36,
 } SaciDataType;
 
-#define SACI_TYPE_MAX SACI_TYPE_SAMPLER2D
+#define SACI_TYPE_MAX SACI_TYPE_THREAD
 static const SaciU64 SACI_G_TYPE_SIZE_TABLE[SACI_TYPE_MAX + 1] = {
     0, // UNKOWN
     0, // VOIDPTR
