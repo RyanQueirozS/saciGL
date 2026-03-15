@@ -224,9 +224,42 @@ struct SaciMemChunk* saci_mem_chunk_alloc(const enum SaciMemContext ctx,
     return chunk;
 }
 
-SACI_API SaciMemChunk* saci_mem_chunk_strdup(const enum SaciMemContext ctx,
-                                             const char* str,
-                                             const SaciU64 max_size)
+SaciMemChunk* saci_mem_chunk_realloc(SaciMemChunk* old, SaciU64 new_size)
+{
+    if (old == NULL) {
+        if (new_size == 0) {
+            return NULL;
+        }
+
+        return saci_mem_chunk_alloc_size(SACI_MEM_CONTEXT_LUA, new_size);
+    }
+
+    if (new_size == 0) {
+        saci_mem_chunk_free(old);
+        return NULL;
+    }
+
+    SaciMemChunk* new_chunk = saci_mem_chunk_alloc_size(old->ctx, new_size);
+    if (!new_chunk) {
+        return NULL;
+    }
+
+    SaciU64 copy_size = old->size < new_size ? old->size : new_size;
+    memcpy(new_chunk->data, old->data, copy_size);
+
+    saci_mem_chunk_free(old);
+
+    return new_chunk;
+}
+
+SaciMemChunk* saci_mem_chunk_from_data(void* data_addr)
+{
+    return (SaciMemChunk*)((char*)data_addr - sizeof(SaciMemChunk));
+}
+
+SaciMemChunk* saci_mem_chunk_strdup(const enum SaciMemContext ctx,
+                                    const char* str,
+                                    const SaciU64 max_size)
 {
     SaciMemChunk* strchunk = saci_mem_chunk_alloc(ctx, saci_safe_str_len(str, max_size), sizeof(char));
 

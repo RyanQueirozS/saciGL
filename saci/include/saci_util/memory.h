@@ -28,6 +28,10 @@ SACI_API SaciMemChunk* saci_mem_chunk_alloc(const enum SaciMemContext ctx,
                                             const SaciU64 count,
                                             const SaciU64 element_type);
 
+SACI_API SaciMemChunk* saci_mem_chunk_realloc(SaciMemChunk* old, SaciU64 new_size);
+
+SACI_API SaciMemChunk* saci_mem_chunk_from_data(void* data_addr);
+
 SACI_API SaciMemChunk* saci_mem_chunk_strdup(const enum SaciMemContext ctx,
                                              const char* str,
                                              const SaciU64 max_size);
