@@ -13,7 +13,10 @@ a field is marked as `readonly = false`
 <name_array_length>, regarding the item itself and it's length respectivelly
 ]]
 
-Saci.Types.custom_type("saciUniformElement", {
+local Saci_Platform = require("saci_platform")
+local Saci = require("saci")
+
+Saci.Types.custom_type("SaciUniformElement", {
   name = {
     data_type = Saci.Types.STRING,
     default = nil,
@@ -35,7 +38,7 @@ Saci.Types.custom_type("saciUniformElement", {
   },
 });
 
-Saci.Types.custom_type("saciSamplerElement", {
+Saci.Types.custom_type("SaciSamplerElement", {
   name = {
     data_type = Saci.Types.STRING,
     default = nil,
@@ -65,7 +68,7 @@ Saci.Types.custom_type("saciSamplerElement", {
   },
 })
 
-Saci.Types.custom_type("saciVertexAttributeElement", {
+Saci.Types.custom_type("SaciVertexAttributeElement", {
   name = {
     data_type = Saci.Types.STRING,
     default = nil,
@@ -95,7 +98,7 @@ Saci.Types.custom_type("saciVertexAttributeElement", {
   },
 })
 
-Saci.Types.custom_type("saciInstanceBufferLayout", {
+Saci.Types.custom_type("SaciInstanceBufferLayout", {
   name = {
     data_type = Saci.Types.STRING,
     default = nil,
@@ -124,7 +127,7 @@ Saci.Types.custom_type("saciInstanceBufferLayout", {
   is_array = true,
 })
 
-SaciPlatform.renderer.configs.register_config("saci_base", {
+Saci_Platform.renderer.configs.register_config("saci_base", {
   backend = {
     api = "OpenGL",
     api_version = "4",
@@ -146,20 +149,20 @@ SaciPlatform.renderer.configs.register_config("saci_base", {
       },
 
       attribute = {
-        data_type = Saci.Types.custom_type("saciVertexAttributeElement"),
+        data_type = Saci.Types.custom_type("SaciVertexAttributeElement"),
         is_array = true
       },
     },
 
 
     uniform = {
-      data_type = Saci.Types.custom_type("saciUniformElement"),
+      data_type = Saci.Types.custom_type("SaciUniformElement"),
       required = false,
       is_array = true,
     },
 
     sampler = {
-      data_type = Saci.Types.custom_type("saciSamplerElement"),
+      data_type = Saci.Types.custom_type("SaciSamplerElement"),
       required = false,
       is_array = true,
     },
@@ -177,7 +180,7 @@ SaciPlatform.renderer.configs.register_config("saci_base", {
       },
 
       layout = {
-        data_type = Saci.Types.custom_type("saciInstanceBufferLayout"),
+        data_type = Saci.Types.custom_type("SaciInstanceBufferLayout"),
         is_array = true,
       },
 

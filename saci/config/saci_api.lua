@@ -1,4 +1,4 @@
-Saci = {
+local M = {
   Types = {
     UNKOWN = 0,
     VOIDPTR = 1,
@@ -42,3 +42,5 @@ Saci = {
     SAMPLER2D = 33,
   },
 }
+
+return M;

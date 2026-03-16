@@ -1,7 +1,7 @@
 local default_renderer_backend_api = "OpenGL"
 local default_renderer_backend_version = "4"
 
-SaciPlatform = {
+local M = {
   renderer = {
     configs = {},
   },
@@ -20,3 +20,5 @@ SaciPlatform = {
     version = "3",
   },
 }
+
+return M;

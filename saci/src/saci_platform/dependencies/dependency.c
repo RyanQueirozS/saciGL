@@ -30,8 +30,6 @@ SACI_INTERNAL void psaci__load_symbols(DyliloHandle handle,
                                        size_t count);
 
 SACI_INTERNAL struct {
-    const char* cfg_file_path;
-
     struct PSaciWindowingApiFuncs windowing_funcs;
     struct PSaciRenderApiFuncs render_funcs;
     struct PSaciRenderApiLoaderFuncs render_loader_funcs;
@@ -181,11 +179,6 @@ struct PSaciRenderApiFuncs psaci_dependencies_get_render_api_funcs(void)
 struct PSaciRenderApiLoaderFuncs psaci_dependencies_get_render_loader_api_funcs(void)
 {
     return psaci_g_dependency_handler.render_loader_funcs;
-}
-
-SACI_API const char* psaci_dependencies_get_cfg_file_path(void)
-{
-    return psaci_g_dependency_handler.cfg_file_path;
 }
 
 /* === HELPER IMPL === */

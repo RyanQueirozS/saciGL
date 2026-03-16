@@ -1,2 +1,4 @@
-SaciCore = {
+local M = {
 }
+
+return M;

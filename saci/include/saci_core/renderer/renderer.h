@@ -16,13 +16,7 @@ typedef void* CSaciUniformData;
 // Should have the complete renderer structure
 #endif // CSACI_RENDERER_STRUCT_EXPOSE
 
-enum CSaciRendererType {
-    CSACI_RENDERER_STATIC,
-    CSACI_RENDERER_DYNAMIC,
-    CSACI_RENDERER_INSTANCE,
-};
-
-SACI_API CSaciRenderer* csaci_renderer_new(const enum CSaciRendererType type, const char* name);
+SACI_API CSaciRenderer* csaci_renderer_new(const char* name);
 
 SACI_API void csaci_renderer_begin(struct CSaciRenderer* rendr);
 

@@ -364,7 +364,7 @@ SACI_INTERNAL int psaci__lua_writer(PSaciLuaState* lua, const void* p, size_t sz
 
     m->chunk = saci_mem_chunk_realloc(m->chunk, m->size + sz);
     m->bytecode = saci_mem_chunk_get_ptr_offset(m->chunk, 0);
-    memcpy(m->bytecode + m->size, p, sz);
+    memcpy(m->bytecode + m->size, p, sz); // TODO use memchunk set function instead
     m->size += sz;
 
     return 0;
