@@ -29,7 +29,7 @@ typedef void (*PSaciConfigRendererPreallocFunc)(
 typedef void (*PSaciConfigRendererPopulateFunc)(
     PSaciLuaState* lua,
     const struct PSaciConfigPopulateEntity* populate_table,
-    void** cfg_data);
+    void** cfg_data_ptr);
 
 typedef const void* (*PSaciConfigRendererGetFieldFunc)(const void* cfg_data, const void* query);
 
