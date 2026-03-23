@@ -150,6 +150,8 @@ typedef enum {
 
     SACI_TYPE_FUNCTION = 34,
     SACI_TYPE_THREAD = 35,
+    SACI_TYPE_FUNCTION_LUA = 34,
+    SACI_TYPE_THREAD_LUA = 35,
     SACI_TYPE_STRUCT = 36,
 } SaciDataType;
 
