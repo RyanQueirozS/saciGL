@@ -1,15 +1,16 @@
 #include "saci_platform/dependencies/dependency.h"
 
-#include <stdio.h>
-#define DYLILO_IMPL
-#include <dylilo/dylilo.h>
-
 #include "saci_platform/dependencies/internal/dependency.h"
 
 #include "saci_util/defines.h"
 #include "saci_util/internal/general.h"
 #include "saci_util/internal/log.h"
 #include "saci_util/log.h"
+
+#include <stdio.h>
+
+#define DYLILO_IMPL
+#include <dylilo/dylilo.h>
 
 /* === HELPER === */
 
@@ -24,7 +25,7 @@ SACI_INTERNAL const char* psaci__dependencies_get_windowing_api_path(void);
 
 SACI_INTERNAL void psaci__dependencies_load_handles(void);
 SACI_INTERNAL void psaci__dependencies_load_symbols(void);
-SACI_INTERNAL void psaci__dependecies_validate(void);
+SACI_INTERNAL void psaci__dependencies_validate(void);
 SACI_INTERNAL void psaci__load_symbols(DyliloHandle handle,
                                        const struct PSaciDependencySymbolTable* symbols,
                                        size_t count);
@@ -144,10 +145,13 @@ void psaci_dependencies_load(const struct PSaciDependencyLoaderContext dependenc
     psaci_g_dependency_handler.windowing_api = dependency_context.windowing_api_data.api;
     psaci_g_dependency_handler.render_api = dependency_context.render_api_data.api;
     psaci_g_dependency_handler.render_api_loader = dependency_context.render_api_loader_data.api_loader;
+    psaci_g_dependency_handler.windowing_path = dependency_context.windowing_api_data.path_to_api;
+    psaci_g_dependency_handler.render_loader_path = dependency_context.render_api_loader_data.path_to_api;
+    psaci_g_dependency_handler.render_path = dependency_context.render_api_data.path_to_api;
     psaci__dependencies_load_handles();
     // TODO dupe strings for paths
-    psaci__dependecies_validate();
     psaci__dependencies_load_symbols();
+    psaci__dependencies_validate();
 }
 
 enum PSaciRenderApiLoader psaci_dependencies_get_render_loader(void)
@@ -303,7 +307,7 @@ SACI_INTERNAL void psaci__load_symbols(DyliloHandle handle,
     }
 }
 
-SACI_INTERNAL void psaci__dependecies_validate(void)
+SACI_INTERNAL void psaci__dependencies_validate(void)
 {
     switch (psaci_dependencies_get_render_api()) {
     case PSACI_RENDERER_API_OPENGL4:
@@ -340,7 +344,4 @@ SACI_INTERNAL void psaci__dependecies_validate(void)
                       "Could not load Render API Loader handle");
     SACI_LOG_ASSERT_M(psaci_g_dependency_handler.window_handle, SACI_LOG_CONTEXT_CORE_CONFIG,
                       "Could not load Windowing API handle");
-    free(psaci_g_dependency_handler.render_loader_handle); // TODO update dylilo
-    free(psaci_g_dependency_handler.render_handle);        // TODO update dylilo
-    free(psaci_g_dependency_handler.window_handle);        // TODO update dylilo
 }

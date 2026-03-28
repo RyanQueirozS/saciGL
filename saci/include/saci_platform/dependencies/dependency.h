@@ -14,8 +14,12 @@
 #  define PSACI_DEFAULT_GLAD_PATH "C:\\Program Files\\GLAD\\lib\\glad.dll"
 #elif defined(__linux__) && !defined(__EMSCRIPTEN__) // Linux
 #  define PSACI_DEFAULT_OPENGL_PATH "/usr/lib/x86_64-linux-gnu/libGL.so"
+/* TODO NEEDS TO REMAIN LIKE THIS, REMOVE THE UNCOMENTED VERSION LATER
 #  define PSACI_DEFAULT_GLFW_PATH "/usr/local/lib/libglfw.so"
 #  define PSACI_DEFAULT_GLAD_PATH "/usr/local/lib/libglad.so"
+*/
+#  define PSACI_DEFAULT_GLFW_PATH "/lib/x86_64-linux-gnu/libglfw.so"
+#  define PSACI_DEFAULT_GLAD_PATH "/home/ryan/.local/lib/glad/lib/libglad.so"
 #elif defined(__APPLE__) && !defined(__EMSCRIPTEN__) // macOS
 #  define PSACI_DEFAULT_OPENGL_PATH "/System/Library/Frameworks/OpenGL.framework/OpenGL"
 #  define PSACI_DEFAULT_GLFW_PATH "/usr/local/lib/libglfw.dylib"

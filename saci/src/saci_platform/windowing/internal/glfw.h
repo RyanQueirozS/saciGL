@@ -7,11 +7,11 @@
 #include "saci_util/defines.h"
 #include "saci_util/types.h"
 
-#define sb_GLFW_CONTEXT_VERSION_MINOR 0x00022003
-#define sb_GLFW_CONTEXT_VERSION_MAJOR 0x00022002
-#define sb_GLFW_OPENGL_PROFILE 0x00022008
-#define sb_GLFW_OPENGL_CORE_PROFILE 0x00032001
-#define sb_GLFW_PRESS 1
+#define PSACI_GLFW_CONTEXT_VERSION_MINOR 0x00022003
+#define PSACI_GLFW_CONTEXT_VERSION_MAJOR 0x00022002
+#define PSACI_GLFW_OPENGL_PROFILE 0x00022008
+#define PSACI_GLFW_OPENGL_CORE_PROFILE 0x00032001
+#define PSACI_GLFW_PRESS 1
 
 SACI_API void psaci_window_glfw_load_dependencies(struct PSaciWindowingApiFuncs api_funcs);
 

@@ -1,7 +1,7 @@
 #ifndef SACI_PLATFORM_CONFIG_CONFIG_RENDERER_H
 #define SACI_PLATFORM_CONFIG_CONFIG_RENDERER_H
 
-#include "saci_platform/config/lua.h"
+#include "saci_platform/scripting/lua.h"
 #include "saci_util/memory.h"
 #include "saci_util/defines.h"
 #include "saci_util/types.h"

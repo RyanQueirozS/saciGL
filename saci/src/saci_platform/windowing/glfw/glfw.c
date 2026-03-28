@@ -1,4 +1,4 @@
-#include "../internal/glfw.h"
+#include "saci_platform/windowing/internal/glfw.h"
 
 SACI_INTERNAL struct PSaciWindowingApiFuncs psaci_g_windowing_api_funcs;
 
@@ -9,6 +9,9 @@ void psaci_window_glfw_load_dependencies(struct PSaciWindowingApiFuncs api_funcs
 
 SaciS32 psaci_window_glfw_init(void)
 {
+    psaci_g_windowing_api_funcs.glfw.set_hint(PSACI_GLFW_CONTEXT_VERSION_MAJOR, 3);
+    psaci_g_windowing_api_funcs.glfw.set_hint(PSACI_GLFW_CONTEXT_VERSION_MINOR, 3);
+    psaci_g_windowing_api_funcs.glfw.set_hint(PSACI_GLFW_OPENGL_PROFILE, PSACI_GLFW_OPENGL_CORE_PROFILE);
     return psaci_g_windowing_api_funcs.glfw.init();
 }
 

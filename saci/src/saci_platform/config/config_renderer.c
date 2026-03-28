@@ -3,7 +3,7 @@
 #include "saci_util/memory.h"
 #include "saci_util/internal/log.h"
 #include "saci_util/log.h"
-#include "saci_platform/config/lua.h"
+#include "saci_platform/scripting/lua.h"
 #include "saci_util/types.h"
 
 /* = Header Impl == */

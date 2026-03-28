@@ -106,7 +106,13 @@ void saci_init(void)
     csaci_startup_dependencies_load();
     csaci_startup_gfx_load();
     {
-        struct CSaciWindowProperties props = {0};
+        struct CSaciWindowProperties props = {
+            .height = 1600,
+            .width = 900,
+            .title = "Test",
+            .x = 0,
+            .y = 0,
+        };
         csaci_windowing_init(props, saci_g_context.windowing_ctx_ptr_array[csaci_windowing_get_ctx_count()]);
     }
     saci__init_memory();
@@ -124,7 +130,7 @@ void saci_enable(SaciFlags flag, SaciBool enable)
 void saci_begin(void)
 {
     saci__handle_events();
-    saci__begin_renderer(saci_g_context.renderer_info_array[CSACI_RENDERER_INSTANCE].renderer);
+    // saci__begin_renderer(saci_g_context.renderer_info_array[CSACI_RENDERER_INSTANCE].renderer);
 }
 
 void saci_set_background_color(const SaciColor color)
@@ -243,17 +249,17 @@ SACI_INTERNAL void saci__init_memory(void)
     saci_g_context.renderer_info_array = calloc(
         SACI_RENDERER_AMOUNT,
         sizeof(struct SaciRendererInfo*));
-    struct CSaciRenderer* instance_rendr = csaci_renderer_new(CSACI_RENDERER_INSTANCE, "instance");
-    saci_g_context.renderer_info_array[CSACI_RENDERER_INSTANCE].renderer = instance_rendr;
-    saci_g_context.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array = malloc(sizeof(SaciS32) * 5);
-    saci_g_context.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[SACI_UNIFORM_DEFAULT_MODEL_MATRIX] =
-        csaci_renderer_get_uniform_id(instance_rendr, "u_model_matrix");
-    saci_g_context.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[SACI_UNIFORM_DEFAULT_VIEW_MATRIX] =
-        csaci_renderer_get_uniform_id(instance_rendr, "u_view_matrix");
-    saci_g_context.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[SACI_UNIFORM_DEFAULT_PROJ_MATRIX] =
-        csaci_renderer_get_uniform_id(instance_rendr, "u_projection_matrix");
-    saci_g_context.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[SACI_UNIFORM_DEFAULT_FLAGS] =
-        csaci_renderer_get_uniform_id(instance_rendr, "u_flags");
+    // struct CSaciRenderer* instance_rendr = csaci_renderer_new(CSACI_RENDERER_INSTANCE, "instance");
+    // saci_g_context.renderer_info_array[CSACI_RENDERER_INSTANCE].renderer = instance_rendr;
+    // saci_g_context.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array = malloc(sizeof(SaciS32) * 5);
+    // saci_g_context.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[SACI_UNIFORM_DEFAULT_MODEL_MATRIX] =
+    //     csaci_renderer_get_uniform_id(instance_rendr, "u_model_matrix");
+    // saci_g_context.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[SACI_UNIFORM_DEFAULT_VIEW_MATRIX] =
+    //     csaci_renderer_get_uniform_id(instance_rendr, "u_view_matrix");
+    // saci_g_context.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[SACI_UNIFORM_DEFAULT_PROJ_MATRIX] =
+    //     csaci_renderer_get_uniform_id(instance_rendr, "u_projection_matrix");
+    // saci_g_context.renderer_info_array[CSACI_RENDERER_INSTANCE].uniform_location_array[SACI_UNIFORM_DEFAULT_FLAGS] =
+    //     csaci_renderer_get_uniform_id(instance_rendr, "u_flags");
 
     const SaciS32 saci_shape_amount = 10; /// TODO
     saci_g_context.shape_instance_data_array = calloc(
@@ -298,7 +304,7 @@ SACI_INTERNAL SaciMat4 saci__mat4_create_transform_from_flag(
 SACI_INTERNAL void saci__begin_renderer(CSaciRenderer* rendr)
 {
     saci__reset_memory();
-    csaci_renderer_begin(rendr);
+    // csaci_renderer_begin(rendr);
 }
 
 SACI_INTERNAL void saci__handle_events(void)
