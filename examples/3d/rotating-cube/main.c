@@ -57,5 +57,5 @@ int main(void) {
 
     saci_loop();
 
-    saci_free();
+    saci_end();
 }
