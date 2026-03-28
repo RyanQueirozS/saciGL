@@ -32,4 +32,6 @@ struct PSaciScriptingTable {
     SaciU64 field_count;
 };
 
+SACI_API void* psaci_get_scripting_value_data(const struct PSaciScriptingValue* val);
+
 #endif // SACI_PLATFORM_SCRIPTING_SCRIPTING_H

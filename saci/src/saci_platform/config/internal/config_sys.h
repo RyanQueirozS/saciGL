@@ -14,7 +14,7 @@ enum PSaciConfigFieldFlags {
     PSACI_CONFIG_FIELD_FLAG_MIN = 1 << 4,
     PSACI_CONFIG_FIELD_FLAG_MAX = 1 << 5,
     PSACI_CONFIG_FIELD_FLAG_MAX_STR_SIZE = 1 << 6,
-    PSACI_CONFIG_FIELD_FLAG_EXPECTED_VALUE = 1 << 7,
+    PSACI_CONFIG_FIELD_FLAG_ALLOWED_VALUE = 1 << 7,
     PSACI_CONFIG_FIELD_FLAG_DEFAULT_VALUE = 1 << 8,
 };
 
@@ -23,8 +23,8 @@ struct PSaciConfigValidationConstraints {
 
     SaciDataType expected_type;
 
-    struct PSaciScriptingValue min_value;
-    struct PSaciScriptingValue max_value;
+    SaciS64 min_value;
+    SaciS64 max_value;
 
     SaciU64 max_str_size;
 
@@ -45,12 +45,16 @@ struct PSaciConfigSchema {
 
     struct PSaciConfigValidationConstraints self_constraints;
 
-    SaciU64 validation_rule_count;
-    struct PSaciConfigValidationRule* validation_rule_array;
+    struct {
+        SaciU64 count;
+        struct PSaciConfigValidationRule* array;
+    } validation_rule;
 
-    SaciU64 child_schema_ptr_count;
+    struct {
+        SaciU64 ptr_array_count;
+        struct PSaciConfigSchema** ptr_array;
+    } child_schema;
     const struct PSaciConfigSchema* parent_schema_ptr;
-    const struct PSaciConfigSchema** child_schema_ptr_array;
 };
 
 struct PSaciConfigSystem {
@@ -60,6 +64,11 @@ struct PSaciConfigSystem {
     const struct PSaciConfigSchema* schema_array;
     SaciU64 schema_count;
 };
+
+// Item generated through a system. ConfigItem is the config itself
+struct PSaciConfigItem;
+
+void psaci_config_system_init(void);
 
 void psaci_config_create_validation_constraints(
     PSaciLuaState* lua,
@@ -75,9 +84,16 @@ void psaci_config_create_schema(PSaciLuaState* lua,
 void psaci_config_create_system(PSaciLuaState* lua,
                                 struct PSaciConfigSystem* system_out);
 
-SaciBool psaci_config_get_config_from_system(
+const struct PSaciConfigItem* psaci_config_get_config_from_system(
     PSaciLuaState* lua,
     const struct PSaciConfigSystem* system,
-    struct PSaciScriptingTable* config_root_out);
+    const char* config_name);
+
+// Fields must be passed as "table1.table2.field"
+const void* psaci_config_get_field(const struct PSaciConfigItem* config_item,
+                                   const char* field_name);
+
+SaciBool psaci_config_set_field(const struct PSaciConfigItem* config_item,
+                                const char* field_name, const void* data);
 
 #endif // SACI_PLATFORM_CONFIG_CONFIG_H

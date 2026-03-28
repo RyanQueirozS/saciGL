@@ -12,7 +12,7 @@
 
 typedef lua_State PSaciLuaState;
 
-typedef void (*PSaciLuaArrayIter)(PSaciLuaState* lua, SaciU64 idx, void* user_data);
+typedef void (*PSaciLuaArrayIter)(PSaciLuaState* lua, SaciU64 idx, struct PSaciScriptingField field, void* user_data);
 
 SACI_API PSaciLuaState* psaci_lua_load(const char* file_path);
 
@@ -28,15 +28,19 @@ SACI_API SaciBool psaci_lua_push_to_stack(PSaciLuaState* lua, const char* path_t
 
 SACI_API SaciBool psaci_lua_push_array_entry_to_stack(PSaciLuaState* lua, const SaciU64 idx);
 
-SACI_API SaciBool psaci_lua_array_iter(PSaciLuaState* lua, const char* path_to_array, PSaciLuaArrayIter array_iter, void* user_data);
+SACI_API SaciBool psaci_lua_table_iter(PSaciLuaState* lua, const char* path_to_array, PSaciLuaArrayIter array_iter, void* user_data);
 
 // Already pops the data for the "path_to_value"
 SACI_API SaciBool psaci_lua_get_value(PSaciLuaState* lua, const char* path_to_value, struct PSaciScriptingValue* value_out, const SaciDataType expected_type);
 
+SACI_API SaciBool psaci_lua_get_field(PSaciLuaState* lua, const char* path_to_field, struct PSaciScriptingField* field_out, const SaciDataType expected_type);
+
 SACI_API SaciBool psaci_lua_has_value(PSaciLuaState* lua, const char* path_to_value, const SaciDataType expected_type);
 
-SACI_API SaciU64 psaci_lua_get_array_length_in_stack(PSaciLuaState* lua);
+SACI_API SaciU64 psaci_lua_get_key_value_count_in_stack(PSaciLuaState* lua);
 
-SACI_API SaciU64 psaci_lua_get_array_length(PSaciLuaState* lua, const char* path_to_array);
+SACI_API SaciU64 psaci_lua_get_key_value_count(PSaciLuaState* lua, const char* path_to_table);
+
+SACI_API SaciBool psaci_lua_query_field_type(PSaciLuaState* lua, const char* path_to_value, SaciDataType* type_out);
 
 #endif // SACI_PLATFORM_CONFIG_LUA_H
