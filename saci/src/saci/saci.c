@@ -1,9 +1,7 @@
 #include "saci/saci.h"
 
 #include "saci_util/math.h"
-#include "saci_util/darray.h"
 #include "saci_util/memory.h"
-#include "saci_util/internal/general.h"
 #include "saci_util/log.h"
 #include "saci_util/internal/log.h"
 #include "saci_util/types.h"
@@ -30,14 +28,6 @@ SACI_INTERNAL void saci__handle_events(void);
 
 /* === Header impl === */
 
-enum SaciContextRendererLocation {
-    SACI_RENDERER_LOCATION_INSTANCE = 2,
-};
-
-struct SaciShapeDrawCall {
-    SaciDArray* instance_data_array; // SaciInstanceData
-};
-
 enum {
     SACI_UNIFORM_DEFAULT_MODEL_MATRIX = 0,
     SACI_UNIFORM_DEFAULT_VIEW_MATRIX = 1,
@@ -47,8 +37,6 @@ enum {
 
 SACI_INTERNAL struct {
     // Each index is a shape
-    struct SaciShapeDrawCall* shape_instance_data_array;
-
     struct CSaciWindowingCtx* windowing_ctx_ptr_array[CSACI_WINDOWING_MAX_WINDOW_CONTEXTS];
 
     struct SaciRendererInfo {
@@ -197,9 +185,6 @@ SACI_INTERNAL void saci__init_memory(void)
     //     csaci_renderer_get_uniform_id(instance_rendr, "u_flags");
 
     const SaciS32 saci_shape_amount = 10; /// TODO
-    saci_g_context.shape_instance_data_array = calloc(
-        SACI_CAST_M(SaciU64)(saci_shape_amount),
-        sizeof(struct SaciShapeDrawCall));
     for (SaciS32 i = 0; i < saci_shape_amount; ++i) {
         // saci_g_contextn.shape_instance_data_array[i].instance_data_array = saci_darray_create(1024, sizeof(SaciInstanceData), SACI_TRUE);
     }
@@ -209,11 +194,6 @@ SACI_INTERNAL void saci__reset_memory(void)
 {
     const SaciS32 saci_shape_amount = 10; /// TODO
     for (SaciS32 i = 0; i < saci_shape_amount; ++i) {
-        if (!saci_darray_clear(saci_g_context.shape_instance_data_array[i].instance_data_array)) {
-            SACI_LOG_ERROR_M(
-                SACI_LOG_TYPE_USER, SACI_LOG_ERROR_SEVERITY_HIGH,
-                SACI_LOG_CONTEXT_MAIN_SHAPES_DRAW, "Could not reset shape instance");
-        }
     }
 }
 
