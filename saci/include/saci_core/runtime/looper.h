@@ -16,11 +16,11 @@ typedef struct {
 
 typedef struct {
     float desired_fps;
-} CSaciMainLoopOpts;
+} CSaciLoopOpts;
 
-typedef void (*CSaciMainLoopFunc)(CSaciLoopFrameData);
+typedef void (*CSaciLoopFunc)(CSaciLoopFrameData);
 
-SACI_API void csaci_looper_set_main_loop(CSaciMainLoopFunc loop_func, CSaciMainLoopOpts loop_opts);
+SACI_API void csaci_looper_set_main_loop(CSaciLoopFunc loop_func, CSaciLoopOpts loop_opts);
 SACI_API void csaci_looper_run(void);
 SACI_API void csaci_looper_stop(void);
 SACI_API SaciBool csaci_looper_is_running(void);

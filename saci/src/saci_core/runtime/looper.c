@@ -1,4 +1,6 @@
 #include "saci_core/runtime/looper.h"
+#include "saci_util/types.h"
+#include "saci_core/runtime/windowing.h"
 
 #ifdef __EMSCRIPTEN__
 #  include "saci_platform/gfx/internal/gles3.h"
@@ -13,12 +15,12 @@ SACI_INTERNAL void csaci__looper_main_loop_wrapper(void);
 // Header impl
 
 SACI_INTERNAL struct {
-    CSaciMainLoopFunc loop_func;
-    CSaciMainLoopOpts opts;
+    CSaciLoopFunc loop_func;
+    CSaciLoopOpts opts;
     SaciBool is_running;
 } csaci_g_looper_data = {0};
 
-void csaci_looper_set_main_loop(CSaciMainLoopFunc loop_func, CSaciMainLoopOpts loop_opts)
+void csaci_looper_set_main_loop(CSaciLoopFunc loop_func, CSaciLoopOpts loop_opts)
 {
     csaci_g_looper_data.loop_func = loop_func;
     csaci_g_looper_data.opts = loop_opts;
@@ -32,7 +34,7 @@ void csaci_looper_run(void)
 
     csaci_g_looper_data.is_running = SACI_TRUE;
 #ifndef __EMSCRIPTEN__
-    while (csaci_g_looper_data.is_running) {
+    while (csaci_g_looper_data.is_running && !csaci_window_should_close()) {
         csaci__looper_main_loop_wrapper();
     }
 #else

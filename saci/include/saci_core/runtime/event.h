@@ -21,4 +21,6 @@ typedef struct {
     } controller;
 } CSaciEvent;
 
+void csaci_event_poll(CSaciEvent* event);
+
 #endif // SACI_CORE_RUNTIME_EVENT_H

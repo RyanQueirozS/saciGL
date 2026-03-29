@@ -7,6 +7,7 @@
 #include "saci_util/internal/general.h"
 
 #include "saci_platform/gfx/internal/gfx.h"
+#include <stdio.h>
 
 #ifdef __EMSCRIPTEN__
 #  include "./internal/emsdk.h"

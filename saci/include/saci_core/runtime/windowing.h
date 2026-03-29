@@ -19,4 +19,6 @@ SACI_API void csaci_windowing_init(struct CSaciWindowProperties props, struct CS
 
 SACI_API SaciU8 csaci_windowing_get_ctx_count(void);
 
+SACI_API SaciBool csaci_window_should_close(void);
+
 #endif // SACI_CORE_RUNTIME_WINDOWING_H

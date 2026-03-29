@@ -13,6 +13,7 @@
 #include "saci_core/runtime/windowing.h"
 #include "saci_core/startup/startup.h"
 
+#include <saci_core/runtime/event.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -58,6 +59,8 @@ SACI_INTERNAL void saci__begin_renderer(CSaciRenderer* rendr);
 
 SACI_INTERNAL void saci__handle_events(void);
 
+SACI_INTERNAL void saci__loop_func_wrapper(CSaciLoopFrameData frame_data);
+
 /* === Header impl === */
 
 enum SaciContextRendererLocation {
@@ -96,6 +99,8 @@ SACI_INTERNAL struct {
         CSaciRenderer* renderer;
     }* renderer_info_array;
 
+    SaciLoopFunc loop_func;
+
     SaciEvent event;
 
     SaciU64 enable_flags;
@@ -107,8 +112,8 @@ void saci_init(void)
     csaci_startup_gfx_load();
     {
         struct CSaciWindowProperties props = {
-            .height = 1600,
-            .width = 900,
+            .height = 900,
+            .width = 1600,
             .title = "Test",
             .x = 0,
             .y = 0,
@@ -139,10 +144,11 @@ void saci_set_background_color(const SaciColor color)
     // saci_g_context.windowing_ctx_ptr_array[0]->bg_color = color;
 }
 
-void saci_set_loop_func(SaciMainLoopFunc loop_func)
+void saci_set_loop_func(SaciLoopFunc loop_func)
 {
     SACI_LOG_ASSERT_M(loop_func, SACI_LOG_CONTEXT_CORE_MAINLOOP, "Loop function is NULL");
-    csaci_looper_set_main_loop(loop_func, (CSaciMainLoopOpts){0});
+    saci_g_context.loop_func = loop_func;
+    csaci_looper_set_main_loop(saci__loop_func_wrapper, (CSaciLoopOpts){.desired_fps = 60.0f});
 }
 
 const SaciEvent* saci_get_event(void)
@@ -152,6 +158,8 @@ const SaciEvent* saci_get_event(void)
 
 void saci_loop(void)
 {
+    SACI_LOG_ASSERT_M(saci_g_context.loop_func, SACI_LOG_CONTEXT_CORE_MAINLOOP,
+                      "Loop function is NULL");
     csaci_looper_run();
 }
 
@@ -309,23 +317,11 @@ SACI_INTERNAL void saci__begin_renderer(CSaciRenderer* rendr)
 
 SACI_INTERNAL void saci__handle_events(void)
 {
-    // memset(saci_g_contextn.event.keyboard.key_was_pressed, 0,
-    //        sizeof(saci_g_contextn.event.keyboard.key_was_pressed));
-    //
-    // memset(saci_g_contextn.event.keyboard.key_was_released, 0,
-    //        sizeof(saci_g_contextn.event.keyboard.key_was_released));
-    //
-    // memset(saci_g_contextn.event.mouse.button_was_pressed, 0,
-    //        sizeof(saci_g_contextn.event.mouse.button_was_pressed));
-    //
-    // memset(saci_g_contextn.event.mouse.button_was_released, 0,
-    //        sizeof(saci_g_contextn.event.mouse.button_was_released));
-    //
-    // memset(saci_g_contextn.event.controller.button_was_pressed, 0,
-    //        sizeof(saci_g_contextn.event.controller.button_was_pressed));
-    //
-    // memset(saci_g_contextn.event.controller.button_was_released, 0,
-    //        sizeof(saci_g_contextn.event.controller.button_was_released));
-    //
-    // sb_event_poll();
+    csaci_event_poll(&saci_g_context.event);
+}
+
+SACI_INTERNAL void saci__loop_func_wrapper(CSaciLoopFrameData frame_data)
+{
+    saci__handle_events();
+    saci_g_context.loop_func(frame_data);
 }

@@ -6,7 +6,7 @@
 #include "saci_core/runtime/looper.h"
 #include "saci_core/runtime/event.h"
 
-typedef CSaciMainLoopFunc SaciMainLoopFunc;
+typedef CSaciLoopFunc SaciLoopFunc;
 typedef CSaciLoopFrameData SaciLoopFrameData;
 typedef CSaciEvent SaciEvent;
 
@@ -34,7 +34,7 @@ SACI_API void saci_begin(void);
 
 SACI_API void saci_set_background_color(const SaciColor color);
 
-SACI_API void saci_set_loop_func(SaciMainLoopFunc loop_func);
+SACI_API void saci_set_loop_func(SaciLoopFunc loop_func);
 
 SACI_API const SaciEvent* saci_get_event(void);
 
