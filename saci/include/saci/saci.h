@@ -11,20 +11,8 @@ typedef CSaciLoopFrameData SaciLoopFrameData;
 typedef CSaciEvent SaciEvent;
 
 typedef enum {
-    SACI_MODEL_FLAG_ROTATION_RTS = 1U << 0,
-} SaciModelFlag;
-
-typedef enum {
     SACI_RENDERING_FLAG_BLEND = 1U << 0,
 } SaciFlags;
-
-typedef struct SaciCube {
-    SaciVec3 pos_center;
-    SaciVec3 dimentions;
-    SaciVec3 rotation;
-    SaciColor fill_color;
-    SaciModelFlag flags;
-} SaciCube;
 
 SACI_API void saci_init(void);
 
@@ -39,8 +27,6 @@ SACI_API void saci_set_loop_func(SaciLoopFunc loop_func);
 SACI_API const SaciEvent* saci_get_event(void);
 
 SACI_API void saci_loop(void);
-
-SACI_API void saci_draw_cube(const SaciCube cube);
 
 SACI_API void saci_present(void);
 

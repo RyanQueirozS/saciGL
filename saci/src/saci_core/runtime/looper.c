@@ -34,7 +34,7 @@ void csaci_looper_run(void)
 
     csaci_g_looper_data.is_running = SACI_TRUE;
 #ifndef __EMSCRIPTEN__
-    while (csaci_g_looper_data.is_running && !csaci_window_should_close()) {
+    while (csaci_g_looper_data.is_running && !csaci_windowing_should_close()) {
         csaci__looper_main_loop_wrapper();
     }
 #else

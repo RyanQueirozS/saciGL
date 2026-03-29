@@ -1,5 +1,7 @@
 #include "saci/saci.h"
 
+#include "saci/shapes.h"
+
 #include "saci_util/math.h"
 #include "saci_util/types.h"
 
