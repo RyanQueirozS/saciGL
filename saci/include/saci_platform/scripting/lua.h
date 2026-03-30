@@ -14,6 +14,16 @@ typedef lua_State PSaciLuaState;
 
 typedef void (*PSaciLuaArrayIter)(PSaciLuaState* lua, SaciU64 idx, struct PSaciScriptingField field, void* user_data);
 
+struct PSaciLuaModule {
+    const char* name;
+
+    const unsigned char* bytecode;
+    SaciU64 size;
+};
+
+SACI_API void psaci_lua_init(const struct PSaciLuaModule* module_array,
+                             SaciU64 module_count);
+
 SACI_API PSaciLuaState* psaci_lua_load(const char* file_path);
 
 SACI_API void psaci_lua_close(PSaciLuaState* state);

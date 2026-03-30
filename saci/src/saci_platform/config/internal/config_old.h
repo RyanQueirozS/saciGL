@@ -1,6 +1,7 @@
-#include "saci_platform/config/config.h"
+#if 0
+#  include "saci_platform/config/config.h"
 
-#include "saci_util/memory.h"
+#  include "saci_util/memory.h"
 
 struct PSaciCfgArrayIterablePathTable {
     const char* path;
@@ -15,3 +16,4 @@ struct PSaciCfgPreallocArrayEntity {
 };
 
 void psaci_cfg_preallocate_array_component(PSaciLuaState* lua, SaciMemPool* pool, struct PSaciCfgPreallocArrayEntity prealloc_entity);
+#endif

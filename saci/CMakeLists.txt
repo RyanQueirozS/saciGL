@@ -9,6 +9,61 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# --- Lua bytecode embedding (FIXED + ROBUST) ---
+
+find_program(LUAC_EXECUTABLE luac REQUIRED)
+find_program(XXD_EXECUTABLE xxd REQUIRED)
+
+set(SACI_CONFIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/config)
+set(SACI_GENERATED_DIR ${CMAKE_CURRENT_SOURCE_DIR}/gen/saci_gen)
+
+file(MAKE_DIRECTORY ${SACI_GENERATED_DIR})
+
+file(GLOB_RECURSE SACI_LUA_CONFIGS
+    "${SACI_CONFIG_DIR}/*.lua"
+)
+
+set(GENERATED_HEADERS)
+
+foreach(LUA_FILE ${SACI_LUA_CONFIGS})
+    file(RELATIVE_PATH REL_PATH ${SACI_CONFIG_DIR} ${LUA_FILE})
+
+    # normalize name
+    string(REPLACE "/" "_" SAFE_NAME ${REL_PATH})
+    string(REPLACE "\\" "_" SAFE_NAME ${SAFE_NAME})
+    string(REPLACE ".lua" "" SAFE_NAME ${SAFE_NAME})
+
+    set(LUAC_FILE ${SACI_GENERATED_DIR}/${SAFE_NAME}.luac)
+    set(HEADER_FILE ${SACI_GENERATED_DIR}/${SAFE_NAME}.h)
+
+    add_custom_command(
+        OUTPUT ${HEADER_FILE}
+
+        # 1. compile lua → bytecode
+        COMMAND ${LUAC_EXECUTABLE} -s -o ${LUAC_FILE} ${LUA_FILE}
+
+        # 2. generate header (use shell for redirection)
+        COMMAND ${CMAKE_COMMAND} -E copy ${LUAC_FILE} ${SACI_GENERATED_DIR}/${SAFE_NAME}.luac
+        
+        COMMAND /bin/sh -c "cd ${SACI_GENERATED_DIR} && ${XXD_EXECUTABLE} -i ${SAFE_NAME}.luac > ${SAFE_NAME}.h"
+
+        # 3. normalize symbol names (NO sed, use CMake-safe trick)
+        COMMAND ${CMAKE_COMMAND} -E copy ${HEADER_FILE} ${HEADER_FILE}.tmp
+        COMMAND ${CMAKE_COMMAND} -E remove ${HEADER_FILE}
+        COMMAND ${CMAKE_COMMAND} -E rename ${HEADER_FILE}.tmp ${HEADER_FILE}
+
+        DEPENDS ${LUA_FILE}
+        COMMENT "Embedding Lua: ${REL_PATH}"
+        VERBATIM
+    )
+
+    list(APPEND GENERATED_HEADERS ${HEADER_FILE})
+endforeach()
+
+add_custom_target(saci_lua_headers ALL
+    DEPENDS ${GENERATED_HEADERS}
+)
+
 # --- Emscripten check ---
 set(IS_EMSCRIPTEN FALSE)
 if("${CMAKE_C_COMPILER}" MATCHES "emcc")
@@ -25,10 +80,12 @@ file(GLOB_RECURSE HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.h")
 
 # --- Create SACI static library ---
 add_library(saci STATIC ${SOURCES})
+add_dependencies(saci saci_lua_headers)
 
 set_property(TARGET saci PROPERTY C_STANDARD 99)
 
 target_include_directories(saci 
+
     SYSTEM PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/vendor/assets-loading"
         "${CMAKE_CURRENT_SOURCE_DIR}/vendor/memory"
@@ -37,6 +94,7 @@ target_include_directories(saci
 
     PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
+        "${CMAKE_CURRENT_SOURCE_DIR}/gen"
 
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/include"

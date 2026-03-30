@@ -1,16 +1,17 @@
 #include "saci/saci.h"
 
+#include "saci_core/config/config_manager.h"
+#include "saci_core/renderer/renderer.h"
+#include "saci_core/runtime/event.h"
+#include "saci_core/runtime/looper.h"
+#include "saci_core/runtime/windowing.h"
+#include "saci_core/startup/startup.h"
+
 #include "saci_util/math.h"
 #include "saci_util/memory.h"
 #include "saci_util/log.h"
 #include "saci_util/internal/log.h"
 #include "saci_util/types.h"
-
-#include "saci_core/renderer/renderer.h"
-#include "saci_core/runtime/looper.h"
-#include "saci_core/runtime/windowing.h"
-#include "saci_core/startup/startup.h"
-#include "saci_core/runtime/event.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,7 +53,6 @@ SACI_INTERNAL struct {
 void saci_init(void)
 {
     csaci_startup_dependencies_load();
-    csaci_startup_gfx_load();
     {
         struct CSaciWindowProperties props = {
             .height = 900,

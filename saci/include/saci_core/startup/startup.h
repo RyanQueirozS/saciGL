@@ -5,6 +5,4 @@
 
 SaciBool csaci_startup_dependencies_load(void);
 
-SaciBool csaci_startup_gfx_load(void);
-
 #endif // SACI_CORE_STARTUP_STARTUP_H
