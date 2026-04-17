@@ -52,7 +52,7 @@ SACI_INTERNAL struct {
 
 void saci_init(void)
 {
-    csaci_startup_dependencies_load();
+    csaci_startup_dependencies_init();
     {
         struct CSaciWindowProperties props = {
             .height = 900,

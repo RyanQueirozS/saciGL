@@ -6,9 +6,9 @@
 
 typedef struct PSaciDependencyLoaderContext CSaciDependencyLoaderContext;
 
-SaciBool csaci_startup_dependencies_load(void)
+SaciBool csaci_startup_dependencies_init(void)
 {
-    csaci_cfg_manager_load();
+    csaci_cfg_manager_init();
 
     psaci_dependencies_load(PSACI_G_DEPENDENCY_CONTEXT_DEFAULT);
 

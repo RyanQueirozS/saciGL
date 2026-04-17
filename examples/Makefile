@@ -21,6 +21,7 @@ CFLAGS_BASE = -x c -std=c11 -Wall -Wextra -O0 -g \
 	-I../saci/vendor/memory \
 	-I../saci/vendor/model-loading \
 	-I../saci/vendor/dependency-management \
+	-I../saci/gen \
 	-DSACI_DEBUG_MODE_ALL \
 	-DSACI_LIB_PATH=\"./\" \
 	-DSACI_PROJECT_PATH=\"./\" \

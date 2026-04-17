@@ -4,7 +4,6 @@
 #include "saci_platform/scripting/lua.h"
 
 #include "saci_util/defines.h"
-#include "saci_util/internal/defaults.h"
 #include "saci_util/internal/log.h"
 #include "saci_util/internal/max_values.h"
 #include "saci_util/log.h"
@@ -29,8 +28,6 @@
 // **IMPORTANT** LUA CUSTOM ALLOCATOR
 SACI_INTERNAL void* psaci__lua_allocator(void* ud, void* ptr, size_t osize, size_t nsize);
 
-SACI_INTERNAL void psaci__lua_register_modules(lua_State* lua);
-
 // Other funcs:
 
 // Type only used here, but it saves a lot of annoying uselessly-used space
@@ -38,7 +35,7 @@ typedef char PSaciCfgPathBufferArray[PSACI_G_PATH_BUFFER_MAX_WORDS][PSACI_G_PATH
 
 SACI_STATIC PSaciCfgPathBufferArray psaci_g_path_buffer = {0};
 
-SACI_INTERNAL void psaci__lua_load_default_states(void);
+SACI_INTERNAL int psaci__lua_module_loader(lua_State* lua);
 
 SACI_INTERNAL void psaci__lua_path_to_buffer(
     const char* path,
@@ -66,6 +63,8 @@ SACI_STATIC struct {
     const struct PSaciLuaModule* module_array;
     size_t module_count;
     SaciBool was_initialized;
+
+    SaciMemPool* pool;
 } psaci_g_lua_ctx;
 
 void psaci_lua_clear_stack(PSaciLuaState* lua)
@@ -315,8 +314,8 @@ SACI_API SaciBool psaci_lua_query_field_type(PSaciLuaState* lua, const char* pat
     return SACI_TRUE;
 }
 
-SACI_API void psaci_lua_init(const struct PSaciLuaModule* module_array,
-                             SaciU64 module_count)
+SACI_API void psaci_lua_init_modules(const struct PSaciLuaModule* module_array,
+                                     SaciU64 module_count)
 {
     if (psaci_g_lua_ctx.was_initialized) {
         return; // TODO log error
@@ -327,10 +326,12 @@ SACI_API void psaci_lua_init(const struct PSaciLuaModule* module_array,
 
 PSaciLuaState* psaci_lua_load(const char* file_path)
 {
+    if (!psaci_g_lua_ctx.pool) {
+        saci_mem_create_pool(SACI_MEM_CONTEXT_LUA, 1e10); // TODO totally random number lol
+    }
+
     lua_State* lua = lua_newstate(psaci__lua_allocator, NULL);
     luaL_openlibs(lua);
-
-    psaci__lua_register_modules(lua);
 
     if (luaL_dofile(lua, file_path) != LUA_OK) {
         SACI_LOG_ERRORF_M(
@@ -344,6 +345,53 @@ PSaciLuaState* psaci_lua_load(const char* file_path)
     }
 
     return lua;
+}
+
+SACI_API void psaci_lua_register_cfunc(
+    PSaciLuaState* lua,
+    struct PSaciLuaRegFunc reg)
+{
+    const char* root = reg.root_table ? reg.root_table : "saci";
+
+    lua_getglobal(lua, root);
+
+    if (!lua_istable(lua, -1)) {
+        lua_pop(lua, 1);
+        lua_newtable(lua);
+        lua_setglobal(lua, root);
+        lua_getglobal(lua, root);
+        return;
+    }
+
+    if (!reg.nested_table_count) {
+        lua_pushcfunction(lua, reg.c_func);
+        lua_setfield(lua, -2, reg.func_name);
+        lua_pop(lua, 1);
+        return;
+    }
+
+    for (SaciU64 i = 0; i < reg.nested_table_count; i++) {
+        const char* key = reg.nested_table_array[i];
+
+        lua_getfield(lua, -1, key);
+
+        if (!lua_istable(lua, -1)) {
+            // create table if missing
+            lua_pop(lua, 1);
+            lua_newtable(lua);
+            lua_pushvalue(lua, -1);
+            lua_setfield(lua, -3, key);
+        }
+
+        // Remove parent, keep child as current
+        lua_remove(lua, -2);
+    }
+
+    // Register function
+    lua_pushcfunction(lua, reg.c_func);
+    lua_setfield(lua, -2, reg.func_name);
+
+    lua_pop(lua, 1); // pop final table
 }
 
 void psaci_lua_close(PSaciLuaState* state)
@@ -386,6 +434,24 @@ void psaci_lua_dump_stack(PSaciLuaState* l)
     printf("---------------------------\n");
 }
 
+void psaci_lua_register_modules(lua_State* lua)
+{
+
+    lua_getglobal(lua, "package");
+    lua_getfield(lua, -1, "preload");
+
+    for (size_t i = 0; i < psaci_g_lua_ctx.module_count; i++) {
+        const struct PSaciLuaModule* mod = &psaci_g_lua_ctx.module_array[i];
+
+        lua_pushlightuserdata(lua, (void*)mod);
+        lua_pushcclosure(lua, psaci__lua_module_loader, 1);
+
+        lua_setfield(lua, -2, mod->name);
+    }
+
+    lua_pop(lua, 2);
+}
+
 /* === Internal Implementation === */
 
 SACI_INTERNAL void* psaci__lua_allocator(void* ud, void* ptr, size_t osize, size_t nsize)
@@ -401,17 +467,14 @@ SACI_INTERNAL void* psaci__lua_allocator(void* ud, void* ptr, size_t osize, size
     }
 
     if (!ptr) {
-        SaciMemChunk* chunk =
-            saci_mem_chunk_alloc_size(SACI_MEM_CONTEXT_LUA, nsize);
-        return chunk ? saci_mem_chunk_get_ptr_offset(chunk, 0) : NULL;
+        void* partition =
+            saci_mem_pool_alloc(psaci_g_lua_ctx.pool, nsize);
+        return partition ? saci_mem_chunk_get_ptr_offset(partition, 0) : NULL;
     }
 
-    SaciMemChunk* chunk =
-        saci_mem_chunk_from_data(ptr);
+    void* partition = saci_mem_pool_alloc(psaci_g_lua_ctx.pool, nsize);
 
-    chunk = saci_mem_chunk_realloc(chunk, nsize);
-
-    return chunk ? saci_mem_chunk_get_ptr_offset(chunk, 0) : NULL;
+    return partition ? saci_mem_chunk_get_ptr_offset(partition, 0) : NULL;
 }
 
 SACI_INTERNAL int psaci__lua_module_loader(lua_State* lua)
@@ -431,24 +494,6 @@ SACI_INTERNAL int psaci__lua_module_loader(lua_State* lua)
     }
 
     return 1;
-}
-
-SACI_INTERNAL void psaci__lua_register_modules(lua_State* lua)
-{
-
-    lua_getglobal(lua, "package");
-    lua_getfield(lua, -1, "preload");
-
-    for (size_t i = 0; i < psaci_g_lua_ctx.module_count; i++) {
-        const struct PSaciLuaModule* mod = &psaci_g_lua_ctx.module_array[i];
-
-        lua_pushlightuserdata(lua, (void*)mod);
-        lua_pushcclosure(lua, psaci__lua_module_loader, 1);
-
-        lua_setfield(lua, -2, mod->name);
-    }
-
-    lua_pop(lua, 2);
 }
 
 SACI_INTERNAL void psaci__lua_path_to_buffer(

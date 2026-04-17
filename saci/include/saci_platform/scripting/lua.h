@@ -10,9 +10,21 @@
 
 /* === Lua CFG === */
 
+typedef lua_CFunction PSaciLuaCFunc;
+
 typedef lua_State PSaciLuaState;
 
 typedef void (*PSaciLuaArrayIter)(PSaciLuaState* lua, SaciU64 idx, struct PSaciScriptingField field, void* user_data);
+
+struct PSaciLuaRegFunc {
+    PSaciLuaCFunc c_func;
+
+    const char* func_name;
+    const char** nested_table_array;
+    SaciU64 nested_table_count;
+
+    const char* root_table; // optional, default = "saci"
+};
 
 struct PSaciLuaModule {
     const char* name;
@@ -21,10 +33,12 @@ struct PSaciLuaModule {
     SaciU64 size;
 };
 
-SACI_API void psaci_lua_init(const struct PSaciLuaModule* module_array,
-                             SaciU64 module_count);
-
 SACI_API PSaciLuaState* psaci_lua_load(const char* file_path);
+
+SACI_API void psaci_lua_init_modules(const struct PSaciLuaModule* module_array,
+                                     SaciU64 module_count);
+
+SACI_API void psaci_lua_register_modules(lua_State* lua);
 
 SACI_API void psaci_lua_close(PSaciLuaState* state);
 
@@ -52,5 +66,8 @@ SACI_API SaciU64 psaci_lua_get_key_value_count_in_stack(PSaciLuaState* lua);
 SACI_API SaciU64 psaci_lua_get_key_value_count(PSaciLuaState* lua, const char* path_to_table);
 
 SACI_API SaciBool psaci_lua_query_field_type(PSaciLuaState* lua, const char* path_to_value, SaciDataType* type_out);
+
+SACI_API void psaci_lua_register_cfunc(PSaciLuaState* lua,
+                                       struct PSaciLuaRegFunc reg);
 
 #endif // SACI_PLATFORM_CONFIG_LUA_H

@@ -1,4 +1,7 @@
-local saci = require("saci.saci")
+local saci = require("saci")
+
+require("saci.types")
+require("saci.platform")
 
 local modules = { require("saci.renderer.base") }
 

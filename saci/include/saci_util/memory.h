@@ -61,6 +61,8 @@ SACI_API SaciBool saci_mem_chunk_free(struct SaciMemChunk* chunk);
 
 SACI_API void* saci_mem_pool_alloc(SaciMemPool* pool, const SaciU64 size);
 
+SACI_API void* saci_mem_pool_realloc(SaciMemPool* pool, void* old_ptr, const SaciU64 old_size, SaciU64 new_size);
+
 SACI_API SaciBool saci_mem_safe_copy(void* dest_ptr, SaciU64 dest_capacity, SaciU64 dest_offset,
                                      const void* src_ptr, SaciU64 src_size, SaciU64 src_offset,
                                      SaciU64 copy_length);
